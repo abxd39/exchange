@@ -6,18 +6,18 @@ import (
 	. "digicon/proto/common"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"digicon2/gateway/http/controller"
 )
 
 type UserControll struct{}
+
 func (this *UserControll) Router( r *gin.Engine){
 	user := r.Group("/user")
 	{
-		user.POST("/register", controller.RegisterController)
-		user.POST("/login", controller.LoginController)
-		user.POST("/forget",controller.ForgetPwdController)
-		user.POST("/auth",controller.AuthSecurityController)
-		user.POST("/change_pwd",controller.ForgetPwdController)
+		user.POST("/register", RegisterController)
+		user.POST("/login", LoginController)
+		user.POST("/forget",ForgetPwdController)
+		user.POST("/auth",AuthSecurityController)
+		user.POST("/change_pwd",ForgetPwdController)
 	}
 }
 
@@ -152,3 +152,22 @@ func AuthSecurityController(c *gin.Context) {
 	d:=ret[RetData].(map[string]interface{})
 	d["security_key"]=rsp.SecurityKey
 }
+
+type PhoneParam struct {
+	Phone string `form:"phone" binding:"required"`
+}
+
+func SendPhoneSMSController(c *gin.Context) {
+	ret := NewErrorMessage()
+	defer func() {
+		c.JSON(http.StatusOK, ret)
+	}()
+	var param PhoneParam
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret[ErrCodeRet] = ERRCODE_PARAM
+		ret[ErrCodeMessage]=err.Error()
+		return
+	}
+
+	}
