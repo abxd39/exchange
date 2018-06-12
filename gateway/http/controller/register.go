@@ -6,7 +6,20 @@ import (
 	. "digicon/proto/common"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"digicon2/gateway/http/controller"
 )
+
+type UserControll struct{}
+func (this *UserControll) Router( r *gin.Engine){
+	user := r.Group("/user")
+	{
+		user.POST("/register", controller.RegisterController)
+		user.POST("/login", controller.LoginController)
+		user.POST("/forget",controller.ForgetPwdController)
+		user.POST("/auth",controller.AuthSecurityController)
+		user.POST("/change_pwd",controller.ForgetPwdController)
+	}
+}
 
 type RegisterParam struct {
 	Phone      string `form:"phone" binding:"required"`
