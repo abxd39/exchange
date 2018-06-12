@@ -141,6 +141,6 @@ func (s *Dao) GetUserExByPhone(phone string) (u *model.UserEx, ret int32) {
 	return
 }
 
-func (s *Dao) ModifyPwd()  {
+func (s *Dao) ModifyPwd() {
 
 }

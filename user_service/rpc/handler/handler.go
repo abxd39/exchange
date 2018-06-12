@@ -33,21 +33,20 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		rsp.Message = GetErrorMessage(ret)
 		return nil
 	}
-	rsp.Err=ret
-	rsp.Message=GetErrorMessage(ret)
-	rsp.Email=u.Email
-	rsp.Phone=u.Phone
+	rsp.Err = ret
+	rsp.Message = GetErrorMessage(ret)
+	rsp.Email = u.Email
+	rsp.Phone = u.Phone
 	return nil
 }
 
 func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest, rsp *proto.SecurityResponse) error {
-	security_key,err :=DB.GenSecurityKey(req.Phone)
-	if  err!=nil{
+	security_key, err := DB.GenSecurityKey(req.Phone)
+	if err != nil {
 		return nil
 	}
-	rsp.Err=ERRCODE_SUCCESS
-	rsp.Message=GetErrorMessage(rsp.Err)
-	rsp.SecurityKey=security_key
+	rsp.Err = ERRCODE_SUCCESS
+	rsp.Message = GetErrorMessage(rsp.Err)
+	rsp.SecurityKey = security_key
 	return nil
 }
-

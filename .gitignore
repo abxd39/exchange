@@ -17,7 +17,7 @@
 ./proto/*.pb.go
 ./proto/*.micro.go
 .idea/
-/usr_service/*.ini
+/user_service/*.ini
 /gateway/*.ini
 /wallet_service/*.ini
 /currency_service/*.ini

@@ -24,7 +24,7 @@ func GetErrorMessage(code int32) string {
 
 func NewErrorMessage() gin.H {
 	var ret = gin.H{}
-	data:=make(map[string]interface{},0)
+	data := make(map[string]interface{}, 0)
 	ret[ErrCodeRet] = 0
 	ret[ErrCodeMessage] = 0
 	ret[RetData] = data

@@ -10,14 +10,14 @@ import (
 
 type UserControll struct{}
 
-func (this *UserControll) Router( r *gin.Engine){
+func (this *UserControll) Router(r *gin.Engine) {
 	user := r.Group("/user")
 	{
 		user.POST("/register", RegisterController)
 		user.POST("/login", LoginController)
-		user.POST("/forget",ForgetPwdController)
-		user.POST("/auth",AuthSecurityController)
-		user.POST("/change_pwd",ForgetPwdController)
+		user.POST("/forget", ForgetPwdController)
+		user.POST("/auth", AuthSecurityController)
+		user.POST("/change_pwd", ForgetPwdController)
 	}
 }
 
@@ -38,7 +38,7 @@ func RegisterController(c *gin.Context) {
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 
@@ -73,20 +73,19 @@ func LoginController(c *gin.Context) {
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Phone, param.Pwd)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage]=GetErrorMessage(rsp.Err)
+	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
 }
-
 
 type ForgetPwdParam struct {
 	Phone string `form:"phone" binding:"required"`
@@ -102,31 +101,29 @@ func ForgetPwdController(c *gin.Context) {
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallForgetPwd(param.Phone)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 
 	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage]=GetErrorMessage(rsp.Err)
-	d:=ret[RetData].(map[string]interface{})
-	d["phone"]=rsp.Phone
-	d["email"]=rsp.Email
+	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
+	d := ret[RetData].(map[string]interface{})
+	d["phone"] = rsp.Phone
+	d["email"] = rsp.Email
 }
 
-
 type AuthSecurityParam struct {
-	Phone string `form:"phone" binding:"required"`
+	Phone     string `form:"phone" binding:"required"`
 	PhoneCode string `form:"phone_code" binding:"required"`
 	EmailCode string `form:"email_code" binding:"required"`
 }
-
 
 func AuthSecurityController(c *gin.Context) {
 	ret := NewErrorMessage()
@@ -137,20 +134,20 @@ func AuthSecurityController(c *gin.Context) {
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallAuthSecurity(param.Phone,param.PhoneCode,param.EmailCode)
+	rsp, err := rpc.InnerService.UserSevice.CallAuthSecurity(param.Phone, param.PhoneCode, param.EmailCode)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage]=GetErrorMessage(rsp.Err)
-	d:=ret[RetData].(map[string]interface{})
-	d["security_key"]=rsp.SecurityKey
+	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
+	d := ret[RetData].(map[string]interface{})
+	d["security_key"] = rsp.SecurityKey
 }
 
 type PhoneParam struct {
@@ -166,8 +163,8 @@ func SendPhoneSMSController(c *gin.Context) {
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage]=err.Error()
+		ret[ErrCodeMessage] = err.Error()
 		return
 	}
 
-	}
+}

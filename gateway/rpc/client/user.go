@@ -48,9 +48,9 @@ func (s *UserRPCCli) CallLogin(phone, pwd string) (rsp *proto.LoginResponse, err
 	return
 }
 
-func (s *UserRPCCli) CallForgetPwd(phone string) (rsp *proto.ForgetResponse, err error)  {
-	rsp, err =s.conn.ForgetPwd(context.TODO(),&proto.ForgetRequest{
-		Phone:phone,
+func (s *UserRPCCli) CallForgetPwd(phone string) (rsp *proto.ForgetResponse, err error) {
+	rsp, err = s.conn.ForgetPwd(context.TODO(), &proto.ForgetRequest{
+		Phone: phone,
 	})
 
 	if err != nil {
@@ -60,11 +60,11 @@ func (s *UserRPCCli) CallForgetPwd(phone string) (rsp *proto.ForgetResponse, err
 	return
 }
 
-func (s *UserRPCCli) CallAuthSecurity(phone,phone_code,email_code string) (rsp *proto.SecurityResponse, err error)  {
-	rsp, err =s.conn.AuthSecurity(context.TODO(),&proto.SecurityRequest{
-		Phone:phone,
-		PhoneAuthCode:phone_code,
-		EmailAuthCode:email_code,
+func (s *UserRPCCli) CallAuthSecurity(phone, phone_code, email_code string) (rsp *proto.SecurityResponse, err error) {
+	rsp, err = s.conn.AuthSecurity(context.TODO(), &proto.SecurityRequest{
+		Phone:         phone,
+		PhoneAuthCode: phone_code,
+		EmailAuthCode: email_code,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -72,9 +72,6 @@ func (s *UserRPCCli) CallAuthSecurity(phone,phone_code,email_code string) (rsp *
 	}
 	return
 }
-
-
-
 
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
