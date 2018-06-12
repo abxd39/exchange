@@ -13,15 +13,18 @@ type UserControll struct{}
 func (this *UserControll) Router(r *gin.Engine) {
 	user := r.Group("/user")
 	{
-		user.POST("/register", RegisterController)
+		user.POST("/register_phone", RegisterPhoneController)
+		user.POST("/register_email", RegisterEmailController)
 		user.POST("/login", LoginController)
 		user.POST("/forget", ForgetPwdController)
 		user.POST("/auth", AuthSecurityController)
-		user.POST("/change_pwd", ForgetPwdController)
+		user.POST("/change_pwd", ChangePwdcontroller)
+		user.POST("/send_sms", SendPhoneSMSController)
+		user.POST("/send_email", SendEmailController)
 	}
 }
 
-type RegisterParam struct {
+type RegisterByPhoneParam struct {
 	Phone      string `form:"phone" binding:"required"`
 	Pwd        string `form:"pwd" binding:"required"`
 	Confirm    string `form:"confirm" binding:"required"`
@@ -29,12 +32,13 @@ type RegisterParam struct {
 	Country    int    `form:"country" binding:"required"`
 }
 
-func RegisterController(c *gin.Context) {
+//用户注册by phone
+func RegisterPhoneController(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
-	var param RegisterParam
+	var param RegisterByPhoneParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
@@ -59,11 +63,39 @@ func RegisterController(c *gin.Context) {
 	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
 }
 
+type RegisterByEmailParam struct {
+	Phone      string `form:"phone" binding:"required"`
+	Pwd        string `form:"pwd" binding:"required"`
+	Confirm    string `form:"confirm" binding:"required"`
+	InviteCode string `form:"invite_code" binding:"required"`
+	Country    int    `form:"country" binding:"required"`
+}
+
+
+//用户注册by email
+func RegisterEmailController(c *gin.Context) {
+	ret := NewErrorMessage()
+	defer func() {
+		c.JSON(http.StatusOK, ret)
+	}()
+
+	var param RegisterByEmailParam
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret[ErrCodeRet] = ERRCODE_PARAM
+		ret[ErrCodeMessage] = err.Error()
+		return
+	}
+
+}
+
+
 type LoginParam struct {
 	Phone string `form:"phone" binding:"required"`
 	Pwd   string `form:"pwd" binding:"required"`
 }
 
+//用户登陆
 func LoginController(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
@@ -91,6 +123,7 @@ type ForgetPwdParam struct {
 	Phone string `form:"phone" binding:"required"`
 }
 
+//忘记密码
 func ForgetPwdController(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
@@ -125,6 +158,7 @@ type AuthSecurityParam struct {
 	EmailCode string `form:"email_code" binding:"required"`
 }
 
+//提交手机验证
 func AuthSecurityController(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
@@ -166,5 +200,44 @@ func SendPhoneSMSController(c *gin.Context) {
 		ret[ErrCodeMessage] = err.Error()
 		return
 	}
+}
 
+type ChangePwdParam struct {
+	SecurityKey string `form:"security_key" binding:"required"`
+	Phone string `form:"phone" binding:"required"`
+	Pwd string `form:"pwd" binding:"required"`
+}
+
+func ChangePwdcontroller(c *gin.Context) {
+	ret := NewErrorMessage()
+	defer func() {
+		c.JSON(http.StatusOK, ret)
+	}()
+	var param ChangePwdParam
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret[ErrCodeRet] = ERRCODE_PARAM
+		ret[ErrCodeMessage] = err.Error()
+		return
+	}
+
+}
+
+type EamilParam struct {
+	Phone string `form:"phone" binding:"required"`
+}
+
+func SendEmailController(c *gin.Context) {
+	ret := NewErrorMessage()
+	defer func() {
+		c.JSON(http.StatusOK, ret)
+	}()
+
+	var param EamilParam
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret[ErrCodeRet] = ERRCODE_PARAM
+		ret[ErrCodeMessage] = err.Error()
+		return
+	}
 }

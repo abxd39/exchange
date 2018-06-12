@@ -141,6 +141,14 @@ func (s *Dao) GetUserExByPhone(phone string) (u *model.UserEx, ret int32) {
 	return
 }
 
-func (s *Dao) ModifyPwd() {
-
+func (s *Dao) ModifyPwd(phone string,pwd string) (ret int32){
+	u := model.User{}
+	u.Pwd=pwd
+	_,err:=s.mysql.im.Where("phone=?",phone).Cols("pwd").Update(u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	return
 }

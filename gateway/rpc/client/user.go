@@ -73,6 +73,40 @@ func (s *UserRPCCli) CallAuthSecurity(phone, phone_code, email_code string) (rsp
 	return
 }
 
+func (s *UserRPCCli) CallSendSms(phone string) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.SendSms(context.TODO(), &proto.SmsRequest{
+		Phone:         phone,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.SendEmail(context.TODO(), &proto.EmailRequest{
+		Email:         email,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *UserRPCCli) CallChangePwd(phone ,security_key string) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.ChangePwd(context.TODO(), &proto.ChangePwdRequest{
+		Phone:         phone,
+		SecurityKey:   security_key,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

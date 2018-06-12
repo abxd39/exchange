@@ -8,9 +8,9 @@ import fmt "fmt"
 import math "math"
 
 import (
-	context "context"
 	client "github.com/micro/go-micro/client"
 	server "github.com/micro/go-micro/server"
+	context "context"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -31,6 +31,9 @@ type Gateway2UserService interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...client.CallOption) (*LoginResponse, error)
 	ForgetPwd(ctx context.Context, in *ForgetRequest, opts ...client.CallOption) (*ForgetResponse, error)
 	AuthSecurity(ctx context.Context, in *SecurityRequest, opts ...client.CallOption) (*SecurityResponse, error)
+	ChangePwd(ctx context.Context, in *ChangePwdRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	SendSms(ctx context.Context, in *SmsRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	SendEmail(ctx context.Context, in *EmailRequest, opts ...client.CallOption) (*CommonErrResponse, error)
 }
 
 type gateway2UserService struct {
@@ -101,6 +104,36 @@ func (c *gateway2UserService) AuthSecurity(ctx context.Context, in *SecurityRequ
 	return out, nil
 }
 
+func (c *gateway2UserService) ChangePwd(ctx context.Context, in *ChangePwdRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "Gateway2User.ChangePwd", in)
+	out := new(CommonErrResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gateway2UserService) SendSms(ctx context.Context, in *SmsRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "Gateway2User.SendSms", in)
+	out := new(CommonErrResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gateway2UserService) SendEmail(ctx context.Context, in *EmailRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "Gateway2User.SendEmail", in)
+	out := new(CommonErrResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Gateway2User service
 
 type Gateway2UserHandler interface {
@@ -109,6 +142,9 @@ type Gateway2UserHandler interface {
 	Login(context.Context, *LoginRequest, *LoginResponse) error
 	ForgetPwd(context.Context, *ForgetRequest, *ForgetResponse) error
 	AuthSecurity(context.Context, *SecurityRequest, *SecurityResponse) error
+	ChangePwd(context.Context, *ChangePwdRequest, *CommonErrResponse) error
+	SendSms(context.Context, *SmsRequest, *CommonErrResponse) error
+	SendEmail(context.Context, *EmailRequest, *CommonErrResponse) error
 }
 
 func RegisterGateway2UserHandler(s server.Server, hdlr Gateway2UserHandler, opts ...server.HandlerOption) {
@@ -118,6 +154,9 @@ func RegisterGateway2UserHandler(s server.Server, hdlr Gateway2UserHandler, opts
 		Login(ctx context.Context, in *LoginRequest, out *LoginResponse) error
 		ForgetPwd(ctx context.Context, in *ForgetRequest, out *ForgetResponse) error
 		AuthSecurity(ctx context.Context, in *SecurityRequest, out *SecurityResponse) error
+		ChangePwd(ctx context.Context, in *ChangePwdRequest, out *CommonErrResponse) error
+		SendSms(ctx context.Context, in *SmsRequest, out *CommonErrResponse) error
+		SendEmail(ctx context.Context, in *EmailRequest, out *CommonErrResponse) error
 	}
 	type Gateway2User struct {
 		gateway2User
@@ -148,4 +187,16 @@ func (h *gateway2UserHandler) ForgetPwd(ctx context.Context, in *ForgetRequest, 
 
 func (h *gateway2UserHandler) AuthSecurity(ctx context.Context, in *SecurityRequest, out *SecurityResponse) error {
 	return h.Gateway2UserHandler.AuthSecurity(ctx, in, out)
+}
+
+func (h *gateway2UserHandler) ChangePwd(ctx context.Context, in *ChangePwdRequest, out *CommonErrResponse) error {
+	return h.Gateway2UserHandler.ChangePwd(ctx, in, out)
+}
+
+func (h *gateway2UserHandler) SendSms(ctx context.Context, in *SmsRequest, out *CommonErrResponse) error {
+	return h.Gateway2UserHandler.SendSms(ctx, in, out)
+}
+
+func (h *gateway2UserHandler) SendEmail(ctx context.Context, in *EmailRequest, out *CommonErrResponse) error {
+	return h.Gateway2UserHandler.SendEmail(ctx, in, out)
 }

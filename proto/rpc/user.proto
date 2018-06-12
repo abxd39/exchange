@@ -7,6 +7,9 @@ service Gateway2User {
 	rpc Login(LoginRequest) returns (LoginResponse) {}
 	rpc ForgetPwd(ForgetRequest) returns (ForgetResponse) {}
 	rpc AuthSecurity(SecurityRequest) returns (SecurityResponse) {}
+	rpc ChangePwd(ChangePwdRequest) returns (CommonErrResponse) {}
+	rpc SendSms(SmsRequest) returns (CommonErrResponse) {}
+    rpc SendEmail(EmailRequest) returns (CommonErrResponse) {}
 }
 
 message CommonErrResponse{
@@ -63,4 +66,17 @@ message SecurityResponse{
     int32 err               =1;
     string message          =2;
     bytes security_key     =3;
+}
+
+message SmsRequest {
+    string phone            =1;
+}
+
+message EmailRequest{
+    string email            =1;
+}
+
+message ChangePwdRequest {
+    bytes security_key            =1;
+    string phone                    =2;
 }

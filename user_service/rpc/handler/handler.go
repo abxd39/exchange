@@ -50,3 +50,26 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 	rsp.SecurityKey = security_key
 	return nil
 }
+
+func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
+	return nil
+}
+
+func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp *proto.CommonErrResponse) error {
+	return nil
+}
+
+func (s *RPCServer) ChangePwd(ctx context.Context, req *proto.ChangePwdRequest, rsp *proto.CommonErrResponse) error {
+	security_key,err:=DB.GetSecurityKeyByPhone(req.Phone)
+	if err != nil {
+		return nil
+	}
+	if string(security_key)==string(req.SecurityKey) {
+		rsp.Err=ERRCODE_SUCCESS
+		rsp.Message=GetErrorMessage(rsp.Err)
+	}else{
+		rsp.Err=ERRCODE_SECURITY_KEY
+		rsp.Message=GetErrorMessage(rsp.Err)
+	}
+	return nil
+}

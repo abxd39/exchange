@@ -16,6 +16,7 @@ const (
 	ERRCODE_ACCOUNT_NOTEXIST = 5
 	ERRCODE_PWD              = 6
 	ERRCODE_PWD_COMFIRM      = 7
+	ERRCODE_SECURITY_KEY     = 8
 )
 
 func GetErrorMessage(code int32) string {
@@ -41,4 +42,5 @@ func init() {
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"
 	message[ERRCODE_PWD] = "密码错误"
 	message[ERRCODE_PWD_COMFIRM] = "确认密码不一致"
+	message[ERRCODE_SECURITY_KEY] = "安全码不一致"
 }

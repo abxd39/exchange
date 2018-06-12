@@ -54,3 +54,12 @@ func (s *Dao) GenSecurityKey(phone string) (security_key []byte, err error) {
 	}
 	return
 }
+
+func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err error)  {
+	security_key,err = s.redis.rcon.Get(GetUserTag(phone)).Bytes()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
