@@ -26,8 +26,7 @@ message HelloResponse {
 	string greeting = 2;
 }
 
-####
-使用micro框架开发接口流程
+### 使用micro框架开发接口流程
 1.在proto文件夹生成所需要的内部调用接口(执行脚本自动生成sh run.sh)
 2.在user_service/rpc/handler中新增内部rpc调用的hello处理函数func (s *Greeter) Hello(ctx context.Context, req *proto.HelloRequest, rsp *proto.HelloResponse) error
 3.在gateway/rpc/client/中新增所需要调用的服务类型（实现实例所调用的user 的CallGreet方法）
