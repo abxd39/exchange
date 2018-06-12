@@ -15,7 +15,8 @@ import (
 func RPCServerInit() {
 	service_name := cf.Cfg.MustValue("base", "service_name")
 
-	r := consul.NewRegistry(registry.Addrs("47.106.136.96:8500"))
+	consul_addr := cf.Cfg.MustValue("consul", "addr")
+	r := consul.NewRegistry(registry.Addrs(consul_addr))
 	service := micro.NewService(
 		micro.Name(service_name),
 		micro.Version("1.0.0"),
