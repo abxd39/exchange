@@ -1,0 +1,8 @@
+syntax = "proto3";
+package g2u;
+
+import "rpc/currency.proto";
+
+service TokenRPC {
+    	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
+}

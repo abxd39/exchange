@@ -1,0 +1,16 @@
+syntax = "proto3";
+package g2u;
+
+service CurrencyRPC {
+    	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
+}
+
+message AdminRequest {
+	string cmd      =   1;
+}
+
+message AdminResponse {
+	int32 code      =   1;
+	int32 message   =   2;
+	string data     =   3;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package g2u;
+
+service Gateway2Waller {
+	rpc Hello(HelloRequest2) returns (HelloResponse2) {}
+}
+
+message HelloRequest2 {
+	string name = 1;
+}
+
+message HelloResponse2 {
+	string greeting = 2;
+}

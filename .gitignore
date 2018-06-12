@@ -1,0 +1,36 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+
+./proto/*.pb.go
+./proto/*.micro.go
+.idea/
+./usr_service/*.ini
+./gateway/*.ini
+./wallet_service/*.ini
+./currency_service/*.ini
+./token_service/*.ini
+
+./usr_service/*.exe
+./gateway/*.exe
+./wallet_service/*.exe
+./currency_service/*.exe
+./token_service/*.exe
+
+./usr_service/logfile/
+./gateway/logfile/
+./wallet_service/logfile/
+./currency_service/logfile/
+./token_service/logfile/
