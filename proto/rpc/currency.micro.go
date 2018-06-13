@@ -16,20 +16,25 @@ It has these top-level messages:
 	CommonErrResponse
 	HelloRequest
 	HelloResponse
-	RegisterRequest
-	RegisterResponse
+	RegisterPhoneRequest
+	RegisterEmailRequest
 	LoginRequest
 	LoginResponse
 	ForgetRequest
 	ForgetResponse
 	SecurityRequest
 	SecurityResponse
+	SmsRequest
+	EmailRequest
+	ChangePwdRequest
 	NoticeListRequest
 	NoticeListResponse
 	NoticeDetailRequest
 	NoticeDetailResponse
 	HelloRequest2
 	HelloResponse2
+	CreateWalletRequest
+	CreateWalletResponse
 */
 package g2u
 

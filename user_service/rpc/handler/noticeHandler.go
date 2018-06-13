@@ -2,13 +2,11 @@ package handler
 
 import (
 	proto "digicon/proto/rpc"
-	. "digicon/user_service/dao"
-	"digicon/user_service/model"
-
 	"golang.org/x/net/context"
 )
 
 func (s *RPCServer) NoticeList(ctx context.Context, req *proto.NoticeListRequest, rsp *proto.NoticeListResponse) error {
+<<<<<<< HEAD
 	result := make([]model.NoticeStruct, 0)
 	rsp.Err = DB.NoticeList(req.NoticeType, req.StartRow, req.EndRow, &result)
 	//len := len(result)
@@ -21,10 +19,25 @@ func (s *RPCServer) NoticeList(ctx context.Context, req *proto.NoticeListRequest
 		rsp.Notice = append(rsp.Notice, &ntc)
 	}
 
+=======
+	/*
+		result := make([]model.NoticeStruct, 0)
+		ok := DB.NoticeList(&result)
+		if ok {
+			len := len(result)
+			for _, value := range result {
+				ntc := proto.NoticeListResponse_Notice{}
+				ntc.Id = value.Id
+			}
+
+		}
+	*/
+>>>>>>> 22bc5f02800c57be8a373bbe6d6be3b14bc01bed
 	return nil
 }
 
 func (s *RPCServer) NoticeDetail(ctx context.Context, req *proto.NoticeDetailRequest, rsp *proto.NoticeDetailResponse) error {
+<<<<<<< HEAD
 	result := model.NoticeDetailStruct{}
 	rsp.Err = DB.NoticeDescription(req.Id, &result)
 	ntc := proto.NoticeDetailResponse{}
@@ -46,5 +59,8 @@ func (s *RPCServer) NoticeDetail(ctx context.Context, req *proto.NoticeDetailReq
 	ntc.UpdateTime = result.UpdateTime
 	ntc.AdminId = result.AdminID
 	ntc.AdminNickname = result.AdminNickname
+=======
+
+>>>>>>> 22bc5f02800c57be8a373bbe6d6be3b14bc01bed
 	return nil
 }

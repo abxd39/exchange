@@ -3,6 +3,7 @@ package g2u;
 
 service Gateway2Waller {
 	rpc Hello(HelloRequest2) returns (HelloResponse2) {}
+	rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse){}
 }
 
 message HelloRequest2 {
@@ -11,4 +12,16 @@ message HelloRequest2 {
 
 message HelloResponse2 {
 	string greeting = 2;
+}
+
+message CreateWalletRequest{
+    int32 userid=1;
+    int32 tokenid=2;
+}
+
+message CreateWalletResponse{
+    string code=1;
+    string msg=2;
+    string type=3;
+    string addr=4;
 }

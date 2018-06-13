@@ -23,38 +23,50 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Client API for Gateway2User service
+// Client API for UserRPC service
 
-type Gateway2UserService interface {
+type UserRPCService interface {
 	Hello(ctx context.Context, in *HelloRequest, opts ...client.CallOption) (*HelloResponse, error)
-	Register(ctx context.Context, in *RegisterRequest, opts ...client.CallOption) (*RegisterResponse, error)
+	// 注册by手机
+	RegisterByPhone(ctx context.Context, in *RegisterPhoneRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 注册by email
+	RegisterByEmail(ctx context.Context, in *RegisterEmailRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 登陆
 	Login(ctx context.Context, in *LoginRequest, opts ...client.CallOption) (*LoginResponse, error)
+	// 忘记密码
 	ForgetPwd(ctx context.Context, in *ForgetRequest, opts ...client.CallOption) (*ForgetResponse, error)
+	// 安全认证
 	AuthSecurity(ctx context.Context, in *SecurityRequest, opts ...client.CallOption) (*SecurityResponse, error)
+	// 改变密码
+	ChangePwd(ctx context.Context, in *ChangePwdRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 发生短信验证码
+	SendSms(ctx context.Context, in *SmsRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 发送邮箱验证码
+	SendEmail(ctx context.Context, in *EmailRequest, opts ...client.CallOption) (*CommonErrResponse, error)
 	NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error)
 	NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error)
 }
 
-type gateway2UserService struct {
+type userRPCService struct {
 	c    client.Client
 	name string
 }
 
-func NewGateway2UserService(name string, c client.Client) Gateway2UserService {
+func NewUserRPCService(name string, c client.Client) UserRPCService {
 	if c == nil {
 		c = client.NewClient()
 	}
 	if len(name) == 0 {
 		name = "g2u"
 	}
-	return &gateway2UserService{
+	return &userRPCService{
 		c:    c,
 		name: name,
 	}
 }
 
-func (c *gateway2UserService) Hello(ctx context.Context, in *HelloRequest, opts ...client.CallOption) (*HelloResponse, error) {
-	req := c.c.NewRequest(c.name, "Gateway2User.Hello", in)
+func (c *userRPCService) Hello(ctx context.Context, in *HelloRequest, opts ...client.CallOption) (*HelloResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.Hello", in)
 	out := new(HelloResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -63,9 +75,9 @@ func (c *gateway2UserService) Hello(ctx context.Context, in *HelloRequest, opts 
 	return out, nil
 }
 
-func (c *gateway2UserService) Register(ctx context.Context, in *RegisterRequest, opts ...client.CallOption) (*RegisterResponse, error) {
-	req := c.c.NewRequest(c.name, "Gateway2User.Register", in)
-	out := new(RegisterResponse)
+func (c *userRPCService) RegisterByPhone(ctx context.Context, in *RegisterPhoneRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.RegisterByPhone", in)
+	out := new(CommonErrResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -73,8 +85,18 @@ func (c *gateway2UserService) Register(ctx context.Context, in *RegisterRequest,
 	return out, nil
 }
 
-func (c *gateway2UserService) Login(ctx context.Context, in *LoginRequest, opts ...client.CallOption) (*LoginResponse, error) {
-	req := c.c.NewRequest(c.name, "Gateway2User.Login", in)
+func (c *userRPCService) RegisterByEmail(ctx context.Context, in *RegisterEmailRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.RegisterByEmail", in)
+	out := new(CommonErrResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userRPCService) Login(ctx context.Context, in *LoginRequest, opts ...client.CallOption) (*LoginResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.Login", in)
 	out := new(LoginResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -83,8 +105,8 @@ func (c *gateway2UserService) Login(ctx context.Context, in *LoginRequest, opts 
 	return out, nil
 }
 
-func (c *gateway2UserService) ForgetPwd(ctx context.Context, in *ForgetRequest, opts ...client.CallOption) (*ForgetResponse, error) {
-	req := c.c.NewRequest(c.name, "Gateway2User.ForgetPwd", in)
+func (c *userRPCService) ForgetPwd(ctx context.Context, in *ForgetRequest, opts ...client.CallOption) (*ForgetResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.ForgetPwd", in)
 	out := new(ForgetResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -93,8 +115,8 @@ func (c *gateway2UserService) ForgetPwd(ctx context.Context, in *ForgetRequest, 
 	return out, nil
 }
 
-func (c *gateway2UserService) AuthSecurity(ctx context.Context, in *SecurityRequest, opts ...client.CallOption) (*SecurityResponse, error) {
-	req := c.c.NewRequest(c.name, "Gateway2User.AuthSecurity", in)
+func (c *userRPCService) AuthSecurity(ctx context.Context, in *SecurityRequest, opts ...client.CallOption) (*SecurityResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.AuthSecurity", in)
 	out := new(SecurityResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -103,8 +125,38 @@ func (c *gateway2UserService) AuthSecurity(ctx context.Context, in *SecurityRequ
 	return out, nil
 }
 
-func (c *gateway2UserService) NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error) {
-	req := c.c.NewRequest(c.name, "Gateway2User.NoticeList", in)
+func (c *userRPCService) ChangePwd(ctx context.Context, in *ChangePwdRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.ChangePwd", in)
+	out := new(CommonErrResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userRPCService) SendSms(ctx context.Context, in *SmsRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.SendSms", in)
+	out := new(CommonErrResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userRPCService) SendEmail(ctx context.Context, in *EmailRequest, opts ...client.CallOption) (*CommonErrResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.SendEmail", in)
+	out := new(CommonErrResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userRPCService) NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.NoticeList", in)
 	out := new(NoticeListResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -113,8 +165,8 @@ func (c *gateway2UserService) NoticeList(ctx context.Context, in *NoticeListRequ
 	return out, nil
 }
 
-func (c *gateway2UserService) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error) {
-	req := c.c.NewRequest(c.name, "Gateway2User.NoticeDetail", in)
+func (c *userRPCService) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.NoticeDetail", in)
 	out := new(NoticeDetailResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -123,63 +175,95 @@ func (c *gateway2UserService) NoticeDetail(ctx context.Context, in *NoticeDetail
 	return out, nil
 }
 
-// Server API for Gateway2User service
+// Server API for UserRPC service
 
-type Gateway2UserHandler interface {
+type UserRPCHandler interface {
 	Hello(context.Context, *HelloRequest, *HelloResponse) error
-	Register(context.Context, *RegisterRequest, *RegisterResponse) error
+	// 注册by手机
+	RegisterByPhone(context.Context, *RegisterPhoneRequest, *CommonErrResponse) error
+	// 注册by email
+	RegisterByEmail(context.Context, *RegisterEmailRequest, *CommonErrResponse) error
+	// 登陆
 	Login(context.Context, *LoginRequest, *LoginResponse) error
+	// 忘记密码
 	ForgetPwd(context.Context, *ForgetRequest, *ForgetResponse) error
+	// 安全认证
 	AuthSecurity(context.Context, *SecurityRequest, *SecurityResponse) error
+	// 改变密码
+	ChangePwd(context.Context, *ChangePwdRequest, *CommonErrResponse) error
+	// 发生短信验证码
+	SendSms(context.Context, *SmsRequest, *CommonErrResponse) error
+	// 发送邮箱验证码
+	SendEmail(context.Context, *EmailRequest, *CommonErrResponse) error
 	NoticeList(context.Context, *NoticeListRequest, *NoticeListResponse) error
 	NoticeDetail(context.Context, *NoticeDetailRequest, *NoticeDetailResponse) error
 }
 
-func RegisterGateway2UserHandler(s server.Server, hdlr Gateway2UserHandler, opts ...server.HandlerOption) {
-	type gateway2User interface {
+func RegisterUserRPCHandler(s server.Server, hdlr UserRPCHandler, opts ...server.HandlerOption) {
+	type userRPC interface {
 		Hello(ctx context.Context, in *HelloRequest, out *HelloResponse) error
-		Register(ctx context.Context, in *RegisterRequest, out *RegisterResponse) error
+		RegisterByPhone(ctx context.Context, in *RegisterPhoneRequest, out *CommonErrResponse) error
+		RegisterByEmail(ctx context.Context, in *RegisterEmailRequest, out *CommonErrResponse) error
 		Login(ctx context.Context, in *LoginRequest, out *LoginResponse) error
 		ForgetPwd(ctx context.Context, in *ForgetRequest, out *ForgetResponse) error
 		AuthSecurity(ctx context.Context, in *SecurityRequest, out *SecurityResponse) error
+		ChangePwd(ctx context.Context, in *ChangePwdRequest, out *CommonErrResponse) error
+		SendSms(ctx context.Context, in *SmsRequest, out *CommonErrResponse) error
+		SendEmail(ctx context.Context, in *EmailRequest, out *CommonErrResponse) error
 		NoticeList(ctx context.Context, in *NoticeListRequest, out *NoticeListResponse) error
 		NoticeDetail(ctx context.Context, in *NoticeDetailRequest, out *NoticeDetailResponse) error
 	}
-	type Gateway2User struct {
-		gateway2User
+	type UserRPC struct {
+		userRPC
 	}
-	h := &gateway2UserHandler{hdlr}
-	s.Handle(s.NewHandler(&Gateway2User{h}, opts...))
+	h := &userRPCHandler{hdlr}
+	s.Handle(s.NewHandler(&UserRPC{h}, opts...))
 }
 
-type gateway2UserHandler struct {
-	Gateway2UserHandler
+type userRPCHandler struct {
+	UserRPCHandler
 }
 
-func (h *gateway2UserHandler) Hello(ctx context.Context, in *HelloRequest, out *HelloResponse) error {
-	return h.Gateway2UserHandler.Hello(ctx, in, out)
+func (h *userRPCHandler) Hello(ctx context.Context, in *HelloRequest, out *HelloResponse) error {
+	return h.UserRPCHandler.Hello(ctx, in, out)
 }
 
-func (h *gateway2UserHandler) Register(ctx context.Context, in *RegisterRequest, out *RegisterResponse) error {
-	return h.Gateway2UserHandler.Register(ctx, in, out)
+func (h *userRPCHandler) RegisterByPhone(ctx context.Context, in *RegisterPhoneRequest, out *CommonErrResponse) error {
+	return h.UserRPCHandler.RegisterByPhone(ctx, in, out)
 }
 
-func (h *gateway2UserHandler) Login(ctx context.Context, in *LoginRequest, out *LoginResponse) error {
-	return h.Gateway2UserHandler.Login(ctx, in, out)
+func (h *userRPCHandler) RegisterByEmail(ctx context.Context, in *RegisterEmailRequest, out *CommonErrResponse) error {
+	return h.UserRPCHandler.RegisterByEmail(ctx, in, out)
 }
 
-func (h *gateway2UserHandler) ForgetPwd(ctx context.Context, in *ForgetRequest, out *ForgetResponse) error {
-	return h.Gateway2UserHandler.ForgetPwd(ctx, in, out)
+func (h *userRPCHandler) Login(ctx context.Context, in *LoginRequest, out *LoginResponse) error {
+	return h.UserRPCHandler.Login(ctx, in, out)
 }
 
-func (h *gateway2UserHandler) AuthSecurity(ctx context.Context, in *SecurityRequest, out *SecurityResponse) error {
-	return h.Gateway2UserHandler.AuthSecurity(ctx, in, out)
+func (h *userRPCHandler) ForgetPwd(ctx context.Context, in *ForgetRequest, out *ForgetResponse) error {
+	return h.UserRPCHandler.ForgetPwd(ctx, in, out)
 }
 
-func (h *gateway2UserHandler) NoticeList(ctx context.Context, in *NoticeListRequest, out *NoticeListResponse) error {
-	return h.Gateway2UserHandler.NoticeList(ctx, in, out)
+func (h *userRPCHandler) AuthSecurity(ctx context.Context, in *SecurityRequest, out *SecurityResponse) error {
+	return h.UserRPCHandler.AuthSecurity(ctx, in, out)
 }
 
-func (h *gateway2UserHandler) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, out *NoticeDetailResponse) error {
-	return h.Gateway2UserHandler.NoticeDetail(ctx, in, out)
+func (h *userRPCHandler) ChangePwd(ctx context.Context, in *ChangePwdRequest, out *CommonErrResponse) error {
+	return h.UserRPCHandler.ChangePwd(ctx, in, out)
+}
+
+func (h *userRPCHandler) SendSms(ctx context.Context, in *SmsRequest, out *CommonErrResponse) error {
+	return h.UserRPCHandler.SendSms(ctx, in, out)
+}
+
+func (h *userRPCHandler) SendEmail(ctx context.Context, in *EmailRequest, out *CommonErrResponse) error {
+	return h.UserRPCHandler.SendEmail(ctx, in, out)
+}
+
+func (h *userRPCHandler) NoticeList(ctx context.Context, in *NoticeListRequest, out *NoticeListResponse) error {
+	return h.UserRPCHandler.NoticeList(ctx, in, out)
+}
+
+func (h *userRPCHandler) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, out *NoticeDetailResponse) error {
+	return h.UserRPCHandler.NoticeDetail(ctx, in, out)
 }

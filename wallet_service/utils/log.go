@@ -1,18 +1,17 @@
-package log
+package utils
 
 import (
-	cf "digicon/wallet_service/conf"
+
 	"github.com/sirupsen/logrus"
 	"os"
 )
 
 var Log *logrus.Logger
 
-func InitLog() {
+func init() {
 	Log = logrus.New()
-
-	filename := cf.Cfg.MustValue("log", "log_path")
-
+	println("log 初始化")
+	filename := Cfg.MustValue("log", "log_path")
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
 		Log.Out = file

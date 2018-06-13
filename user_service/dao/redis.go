@@ -1,22 +1,22 @@
 package dao
 
 import (
-	"github.com/go-redis/redis"
-	. "digicon/user_service/log"
 	cf "digicon/user_service/conf"
+	. "digicon/user_service/log"
+	"github.com/go-redis/redis"
 	"time"
-	"fmt"
 	"digicon/common/encryption"
+	"digicon/user_service/tools"
 )
 
 type RedisCli struct {
-	rcon *redis.Client
+	rcon    *redis.Client
 	key_ttl time.Duration
-	salt string
+	salt    string
 }
 
 func NewRedisCli() *RedisCli {
-	addr:=cf.Cfg.MustValue("redis","addr")
+	addr := cf.Cfg.MustValue("redis", "addr")
 
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
@@ -25,30 +25,53 @@ func NewRedisCli() *RedisCli {
 	})
 
 	pong, err := client.Ping().Result()
-	if err!=nil {
+	if err != nil {
 		Log.Fatalf("redis connect faild ")
 	}
 	Log.Infoln(pong)
 
-	ct,err:=cf.Cfg.Int64("redis","ttl")
-	if err!=nil {
-		ct=30
+	ct, err := cf.Cfg.Int64("redis", "ttl")
+	if err != nil {
+		ct = 30
 	}
 	return &RedisCli{
-		rcon: client,
-		salt:"mjfdsap832-1##1!",
-		key_ttl:time.Duration(ct)*time.Second,
+		rcon:    client,
+		salt:    "mjfdsap832-1##1!",
+		key_ttl: time.Duration(ct) * time.Second,
 	}
 }
 
-func GetUserTag(phone string)  string{
-	return fmt.Sprintf("%s:SecurityKey",phone)
+func (s *Dao) GenSecurityKey(phone string) (security_key []byte, err error) {
+	security_key = encryption.Gensha256(phone, time.Now().Unix(), s.redis.salt)
+	err = s.redis.rcon.Set(tools.GetUserTagByLogic(phone,tools.LOGIC_SECURITY), security_key, s.redis.key_ttl).Err()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
 }
 
-func (s *Dao) GenSecurityKey(phone string) (security_key []byte,err error) {
-	security_key =encryption.Gensha256(phone,time.Now().Unix(),s.redis.salt)
-	err=s.redis.rcon.Set(GetUserTag(phone),security_key,s.redis.key_ttl).Err()
-	if err!=nil {
+func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err error) {
+	security_key, err = s.redis.rcon.Get(tools.GetUserTagByLogic(phone, tools.LOGIC_SECURITY)).Bytes()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *Dao) SetSmsCode(phone string, code string, ty int32) (err error) {
+	err = s.redis.rcon.Set(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty), code, 60*time.Second).Err()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *Dao) GetSmsCode(phone string,ty int32) (code string,err error) {
+	code,err = s.redis.rcon.Get(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty)).Result()
+	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}

@@ -2,19 +2,20 @@ package client
 
 import (
 	"context"
+	cf "digicon/gateway/conf"
+	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
-	. "digicon/wallet_service/utils"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
 )
 
-type UserRPCCli struct {
+type WalletRPCCli struct {
 	conn proto.Gateway2WallerService
 }
 
-func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
-	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{})
+func (s *WalletRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
+	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{Name: name})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -22,18 +23,18 @@ func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err erro
 	return
 }
 
-func NewUserRPCCli() (u *UserRPCCli) {
-	consul_addr := Cfg.MustValue("consul", "addr")
+func NewWalletRPCCli() (u *WalletRPCCli) {
+	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))
 	service := micro.NewService(
-		micro.Name("greeter.client"),
+		micro.Name("wallet.client"),
 		micro.Registry(r),
 	)
 	service.Init()
 
-	service_name := Cfg.MustValue("base", "service_name")
+	service_name := cf.Cfg.MustValue("base", "service_client_wallet")
 	greeter := proto.NewGateway2WallerService(service_name, service.Client())
-	u = &UserRPCCli{
+	u = &WalletRPCCli{
 		conn: greeter,
 	}
 	return

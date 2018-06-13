@@ -2,7 +2,7 @@ package rpc
 
 import (
 	proto "digicon/proto/rpc"
-	cf "digicon/wallet_service/conf"
+	. "digicon/wallet_service/utils"
 	"digicon/wallet_service/rpc/handler"
 	"fmt"
 	"github.com/micro/go-micro"
@@ -13,8 +13,8 @@ import (
 )
 
 func RPCServerInit() {
-	service_name := cf.Cfg.MustValue("base", "service_name")
-	addr := cf.Cfg.MustValue("consul", "addr")
+	service_name := Cfg.MustValue("base", "service_name")
+	addr := Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(addr))
 	service := micro.NewService(
 		micro.Name(service_name),
@@ -24,7 +24,7 @@ func RPCServerInit() {
 	)
 	service.Init()
 
-	proto.RegisterGateway2WallerHandler(service.Server(), new(handler.Greeter))
+	proto.RegisterGateway2WallerHandler(service.Server(), new(handler.Wallet))
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err.Error())

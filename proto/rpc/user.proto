@@ -1,12 +1,25 @@
 syntax = "proto3";
 package g2u;
 
-service Gateway2User {
+service UserRPC {
 	rpc Hello(HelloRequest) returns (HelloResponse) {}
-	rpc Register(RegisterRequest) returns (RegisterResponse) {}
+	//注册by手机
+	rpc RegisterByPhone(RegisterPhoneRequest) returns (CommonErrResponse) {}
+	//注册by email
+	rpc RegisterByEmail(RegisterEmailRequest) returns (CommonErrResponse) {}
+	//登陆
 	rpc Login(LoginRequest) returns (LoginResponse) {}
+	//忘记密码
 	rpc ForgetPwd(ForgetRequest) returns (ForgetResponse) {}
+	//安全认证
 	rpc AuthSecurity(SecurityRequest) returns (SecurityResponse) {}
+	//改变密码
+	rpc ChangePwd(ChangePwdRequest) returns (CommonErrResponse) {}
+	//发生短信验证码
+	rpc SendSms(SmsRequest) returns (CommonErrResponse) {}
+	//发送邮箱验证码
+    rpc SendEmail(EmailRequest) returns (CommonErrResponse) {}
+
     rpc NoticeList(NoticeListRequest) returns (NoticeListResponse) {}
 	rpc NoticeDetail(NoticeDetailRequest) returns (NoticeDetailResponse) {}
 
@@ -25,15 +38,20 @@ message HelloResponse {
 	string greeting = 2;
 }
 
-message RegisterRequest {
+message RegisterPhoneRequest {
     string phone=1;
     string pwd=2;
     string invite_code=4;
     int32  country=5;
+    string code=6;
 }
 
-message RegisterResponse {
-	int32 err = 1;
+message RegisterEmailRequest {
+    string email=1;
+    string pwd=2;
+    string invite_code=4;
+    int32  country=5;
+    string code=6;
 }
 
 message LoginRequest {
@@ -43,6 +61,7 @@ message LoginRequest {
 
 message LoginResponse {
 	int32 err = 1;
+	string message  =2;
 }
 
 message ForgetRequest {
@@ -66,6 +85,21 @@ message SecurityResponse{
     int32 err               =1;
     string message          =2;
     bytes security_key     =3;
+}
+
+
+message SmsRequest {
+    string phone            =1;
+    int32 type              =2;//1表示注册
+}
+
+message EmailRequest{
+    string email            =1;
+}
+
+message ChangePwdRequest {
+    bytes security_key            =1;
+    string phone                    =2;
 }
 
 message NoticeListRequest{
@@ -112,5 +146,6 @@ message NoticeDetailResponse{
 	int32 adminId 			=19;
 	string admin_nickname	=20;     
 }
+
 
 
