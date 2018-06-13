@@ -10,8 +10,8 @@ import (
 	cf "digicon/user_service/conf"
 	. "digicon/user_service/log"
 	"digicon/user_service/tools"
-	"github.com/sirupsen/logrus"
 	"github.com/go-redis/redis"
+	"github.com/sirupsen/logrus"
 )
 
 type RPCServer struct{}
@@ -23,18 +23,18 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 }
 
 func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhoneRequest, rsp *proto.CommonErrResponse) error {
-	code,err:=DB.GetSmsCode(req.Phone,tools.SMS_REGISTER)
+	code, err := DB.GetSmsCode(req.Phone, tools.SMS_REGISTER)
 	if err == redis.Nil {
 		rsp.Err = ERRCODE_SMS_CODE_NIL
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
-	} else	if err!=nil {
+	} else if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message =err.Error()
+		rsp.Message = err.Error()
 		return nil
 	}
 
-	if req.Code==code{
+	if req.Code == code {
 		rsp.Err = DB.RegisterByPhone(req)
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil

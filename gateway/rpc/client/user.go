@@ -23,12 +23,12 @@ func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse, err error
 	return
 }
 
-func (s *UserRPCCli) CallRegisterByPhone(phone, pwd, invite_code string, country int,code string) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallRegisterByPhone(phone, pwd, invite_code string, country int, code string) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.RegisterByPhone(context.TODO(), &proto.RegisterPhoneRequest{
 		Phone:      phone,
 		Pwd:        pwd,
 		InviteCode: invite_code,
-		Code:code,
+		Code:       code,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -87,10 +87,10 @@ func (s *UserRPCCli) CallAuthSecurity(phone, phone_code, email_code string) (rsp
 	return
 }
 
-func (s *UserRPCCli) CallSendSms(phone string,ty int32) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallSendSms(phone string, ty int32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.SendSms(context.TODO(), &proto.SmsRequest{
 		Phone: phone,
-		Type:ty,
+		Type:  ty,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())

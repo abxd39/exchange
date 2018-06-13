@@ -1,11 +1,11 @@
 package handler
 
 import (
-	proto "digicon/proto/rpc"
 	"context"
-	"log"
+	proto "digicon/proto/rpc"
 	. "digicon/wallet_service/model"
 	"errors"
+	"log"
 )
 
 type Wallet struct{}
@@ -21,13 +21,12 @@ func (s *Wallet) CreateWallet(ctx context.Context, req *proto.CreateWalletReques
 	var err error
 	var addr string
 
-	tokenModel := &Tokens{Id:int(req.Tokenid)}
-	_,err =tokenModel.GetByid()
-
+	tokenModel := &Tokens{Id: int(req.Tokenid)}
+	_, err = tokenModel.GetByid()
 
 	switch tokenModel.Type {
 	case "eth":
-		addr,err = Neweth(int(req.Userid),int(req.Tokenid),"123456",)
+		addr, err = Neweth(int(req.Userid), int(req.Tokenid), "123456")
 	default:
 		err = errors.New("unknow type")
 	}
@@ -35,13 +34,13 @@ func (s *Wallet) CreateWallet(ctx context.Context, req *proto.CreateWalletReques
 	if err != nil {
 		rsp.Code = string("1")
 		rsp.Type = "eth"
-		rsp.Msg	 = err.Error()
+		rsp.Msg = err.Error()
 		//fmt.Println(rsp)
 		return nil
 	}
 	rsp.Code = "0"
 	rsp.Type = "eth"
 	rsp.Addr = addr
-	rsp.Msg= "生成成功"
+	rsp.Msg = "生成成功"
 	return nil
 }

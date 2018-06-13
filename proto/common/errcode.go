@@ -18,8 +18,8 @@ const (
 	ERRCODE_PWD              = 6
 	ERRCODE_PWD_COMFIRM      = 7
 	ERRCODE_SECURITY_KEY     = 8
-	ERRCODE_SMS_CODE_DIFF    	 = 9
-	ERRCODE_SMS_CODE_NIL    	 = 10
+	ERRCODE_SMS_CODE_DIFF    = 9
+	ERRCODE_SMS_CODE_NIL     = 10
 
 	//100-130 sms
 	ERRCODE_SMS_COMMIT_QUICK  = 103
@@ -61,10 +61,8 @@ func init() {
 	message[ERRCODE_PWD] = "密码错误"
 	message[ERRCODE_PWD_COMFIRM] = "确认密码不一致"
 	message[ERRCODE_SECURITY_KEY] = "安全码不一致"
-	message[ERRCODE_SMS_CODE_DIFF]="验证码错误"
-	message[ERRCODE_SMS_CODE_NIL]="验证码未获取"
-
-
+	message[ERRCODE_SMS_CODE_DIFF] = "验证码错误"
+	message[ERRCODE_SMS_CODE_NIL] = "验证码未获取"
 
 	message[ERRCODE_SMS_COMMIT_QUICK] = "提交过快"
 	message[ERRCODE_SMS_SYS_BUSY] = "系统忙"

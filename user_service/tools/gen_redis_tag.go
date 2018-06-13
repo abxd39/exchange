@@ -1,13 +1,13 @@
 package tools
 
 import (
-	"github.com/sirupsen/logrus"
-	"fmt"
 	. "digicon/user_service/log"
+	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
-	SMS_REGISTER 	=1//注册业务
+	SMS_REGISTER = 1 //注册业务
 )
 const (
 	LOGIC_SMS      = 1 //短信业务

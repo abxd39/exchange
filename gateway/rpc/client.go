@@ -9,9 +9,8 @@ type RPCClient struct {
 	CurrencyService *client.CurrencyRPCCli
 	TokenService    *client.TokenRPCCli
 	WallService     *client.WalletRPCCli
-	PublicService	*client.PublciRPCCli
-	WalletSevice *client.WalletRPCCli
-
+	PublicService   *client.PublciRPCCli
+	WalletSevice    *client.WalletRPCCli
 }
 
 func NewRPCClient() (c *RPCClient) {
@@ -21,9 +20,8 @@ func NewRPCClient() (c *RPCClient) {
 		CurrencyService: client.NewCurrencyRPCCli(),
 		TokenService:    client.NewTokenRPCCli(),
 		WallService:     client.NewWalletRPCCli(),
-		PublicService:	 client.NewPublciRPCCli(),
-		WalletSevice:client.NewWalletRPCCli(),
-
+		PublicService:   client.NewPublciRPCCli(),
+		WalletSevice:    client.NewWalletRPCCli(),
 	}
 	return c
 }

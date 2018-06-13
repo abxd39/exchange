@@ -1,10 +1,10 @@
 package utils
-import (
-_ "github.com/go-sql-driver/mysql"
-"github.com/go-xorm/xorm"
-"github.com/garyburd/redigo/redis"
-)
 
+import (
+	"github.com/garyburd/redigo/redis"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-xorm/xorm"
+)
 
 var Engine *xorm.Engine
 var Redis *redis.Conn
@@ -17,12 +17,11 @@ func init() {
 	dsource := Cfg.MustValue("mysql", "conn")
 	Engine, err = xorm.NewEngine("mysql", dsource)
 
-
-	if err != nil{
-		panic( err)
+	if err != nil {
+		panic(err)
 	}
 	err = Engine.Ping()
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
 	//redis初始化

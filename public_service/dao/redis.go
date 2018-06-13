@@ -7,7 +7,7 @@ import (
 )
 
 type RedisCli struct {
-	rcon    *redis.Client
+	rcon *redis.Client
 }
 
 func NewRedisCli() *RedisCli {
@@ -26,6 +26,6 @@ func NewRedisCli() *RedisCli {
 	Log.Infoln(pong)
 
 	return &RedisCli{
-		rcon:    client,
+		rcon: client,
 	}
 }

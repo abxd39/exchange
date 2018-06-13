@@ -38,4 +38,3 @@ type ArticlesDetailStruct struct {
 	AdminID       int32
 	AdminNickname string
 }
-

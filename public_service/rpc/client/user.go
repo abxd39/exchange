@@ -2,9 +2,9 @@ package client
 
 import (
 	"context"
+	proto "digicon/proto/rpc"
 	cf "digicon/public_service/conf"
 	. "digicon/public_service/log"
-	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"

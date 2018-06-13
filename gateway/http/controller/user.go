@@ -51,7 +51,7 @@ type RegisterByPhoneParam struct {
 	Confirm    string `form:"confirm" binding:"required"`
 	InviteCode string `form:"invite_code" binding:"required"`
 	Country    int    `form:"country" binding:"required"`
-	Code 	   string  `form:"code" binding:"required"`
+	Code       string `form:"code" binding:"required"`
 }
 
 //用户注册by phone
@@ -74,7 +74,7 @@ func RegisterPhoneController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallRegisterByPhone(param.Phone, param.Pwd, param.InviteCode, param.Country,param.Code)
+	rsp, err := rpc.InnerService.UserSevice.CallRegisterByPhone(param.Phone, param.Pwd, param.InviteCode, param.Country, param.Code)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
 		ret[ErrCodeMessage] = err.Error()
@@ -92,7 +92,7 @@ type RegisterByEmailParam struct {
 	Confirm    string `form:"confirm" binding:"required"`
 	InviteCode string `form:"invite_code" binding:"required"`
 	Country    int    `form:"country" binding:"required"`
-	Code 	 string  `form:"code" binding:"required"`
+	Code       string `form:"code" binding:"required"`
 }
 
 //用户注册by email
@@ -223,7 +223,7 @@ func AuthSecurityController(c *gin.Context) {
 
 type PhoneParam struct {
 	Phone string `form:"phone" binding:"required"`
-	Type  int32 `form:"type" binding:"required"`
+	Type  int32  `form:"type" binding:"required"`
 }
 
 //发生短信
@@ -240,7 +240,7 @@ func SendPhoneSMSController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone,param.Type)
+	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Type)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
 		ret[ErrCodeMessage] = err.Error()
