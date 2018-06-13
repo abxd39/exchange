@@ -187,15 +187,9 @@ func (s *Dao) ModifyPwd(phone string, pwd string) (ret int32) {
 	*/
 }
 
-<<<<<<< HEAD
 func (s *Dao) NoticeList(tp, startRow, endRow int32, u *[]model.NoticeStruct) int32 {
 	//err := s.mysql.im.Find(&u)
 	total, err := s.mysql.im.Where("type =?", tp).Count(&u)
-=======
-func (s *Dao) NoticeList() (u *[]model.NoticeStruct, ret int32) {
-	err := s.mysql.im.Find(&u)
-
->>>>>>> 22bc5f02800c57be8a373bbe6d6be3b14bc01bed
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
