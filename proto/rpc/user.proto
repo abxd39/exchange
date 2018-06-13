@@ -20,9 +20,6 @@ service UserRPC {
 	//发送邮箱验证码
     rpc SendEmail(EmailRequest) returns (CommonErrResponse) {}
 
-    rpc NoticeList(NoticeListRequest) returns (NoticeListResponse) {}
-	rpc NoticeDetail(NoticeDetailRequest) returns (NoticeDetailResponse) {}
-
 }
 
 message CommonErrResponse{
@@ -102,50 +99,6 @@ message ChangePwdRequest {
     string phone                    =2;
 }
 
-message NoticeListRequest{
-	int32 NoticeType=1;
-	int32 StartRow=2;
-	int32 EndRow=3; 
-}
-
-message NoticeListResponse{ 
-	message Notice{
-		int32 id 				=1;
-		string title 			=2;
-		string Description 		=3;
-		string createDateTime 	=4; 
-	} 
-	repeated Notice  notice =1;
-	int32 err               =2;
-    string message          =3;
-}
-
-message NoticeDetailRequest{
-	int32 id =1;
-}
-
-message NoticeDetailResponse{
-	int32 err               =1;
-    string message          =2;
-	int32 id 				=3;
-	string title			=4;
-	string description		=5;       
-	string content 			=6;
-	bytes  covers			=7;
-	bytes content_images	=8;
-	int32 type				=9;
-	string type_name		=10;
-	string author			=11;
-	int32 weight			=12;
-	int32 shares			=13;
-	int32 hits				=14;
-	int32 comments			=15;
-	bool DisplayMark		=16;
-	string create_time		=17;
-	string update_time		=18;    
-	int32 adminId 			=19;
-	string admin_nickname	=20;     
-}
 
 
 

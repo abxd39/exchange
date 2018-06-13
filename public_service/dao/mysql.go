@@ -37,7 +37,7 @@ func NewMysql() (mysql *Mysql) {
 	return mysql
 }
 
-func (s *Dao) NoticeList(tp, startRow, endRow int32, u *[]model.NoticeStruct) int32 {
+func (s *Dao) ArticlesList(tp, startRow, endRow int32, u *[]model.ArticlesStruct) int32 {
 	//err := s.mysql.im.Find(&u)
 	total, err := s.mysql.im.Where("type =?", tp).Count(&u)
 	if err != nil {
@@ -56,8 +56,8 @@ func (s *Dao) NoticeList(tp, startRow, endRow int32, u *[]model.NoticeStruct) in
 	return ERRCODE_SUCCESS
 }
 
-func (s *Dao) NoticeDescription(Id int32, u *model.NoticeDetailStruct) int32 {
-	u = &model.NoticeDetailStruct{}
+func (s *Dao) ArticlesDescription(Id int32, u *model.ArticlesDetailStruct) int32 {
+	u = &model.ArticlesDetailStruct{}
 	ok, err := s.mysql.im.Where("ID=?", Id).Get(u)
 	if err != nil {
 		Log.Errorln(err.Error())
