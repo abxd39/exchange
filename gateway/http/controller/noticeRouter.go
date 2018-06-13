@@ -14,7 +14,7 @@ type NoticeControll struct{}
 func (this *NoticeControll) Router(r *gin.Engine) {
 	notice := r.Group("/notice")
 	{
-		notice.GET("/des/:id", Noticedescription)
+		notice.GET("/des/:id", NoticeDetail)
 		notice.GET("/list", NoticeList)
 
 	}
@@ -24,7 +24,7 @@ type NoticeListParam struct {
 	ID int32 `form:"id" binding:"required"`
 }
 
-func Noticedescription(c *gin.Context) {
+func NoticeDetail(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
