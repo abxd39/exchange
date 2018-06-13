@@ -4,6 +4,7 @@ import (
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,24 +13,26 @@ import (
 type ArticlesGroup struct{}
 
 func (this *ArticlesGroup) Router(r *gin.Engine) {
-	Articles := r.Group("/Articles")
+	Articles := r.Group("/articles")
 	{
-		Articles.GET("/des/:id", ArticlesDetail)
-		Articles.GET("/list", ArticlesList)
+		fmt.Println("ccc")
+		Articles.GET("/des/:id", this.ArticlesDetail)
+		Articles.GET("/list", this.ArticlesList)
 
 	}
 }
 
-type ArticlesListParam struct {
+type ArticlesDetailParam struct {
 	ID int32 `form:"id" binding:"required"`
 }
 
-func ArticlesDetail(c *gin.Context) {
+func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
+	fmt.Println("bbb")
 	ret := NewErrorMessage()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
-	var param ArticlesListParam
+	var param ArticlesDetailParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
@@ -38,6 +41,7 @@ func ArticlesDetail(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.ID)
+	fmt.Println("aaa")
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
 		ret[ErrCodeMessage] = err.Error()
@@ -67,7 +71,13 @@ func ArticlesDetail(c *gin.Context) {
 	d["AdminNickname"] = rsp.AdminNickname
 }
 
-func ArticlesList(c *gin.Context) {
+type ArticlesListParam struct {
+	ArticlesType int32 `form:"ArticlesType" binding:"required"`
+	StartRow     int32 `form:"StartRow" binding:"required"`
+	EndRow       int32 `form:"EndRow" binding:"required"`
+}
+
+func (this *ArticlesGroup) ArticlesList(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
 		c.JSON(http.StatusOK, ret)

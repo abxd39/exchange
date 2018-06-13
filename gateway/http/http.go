@@ -4,6 +4,7 @@ import (
 	cf "digicon/gateway/conf"
 	"digicon/gateway/http/controller"
 	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +14,7 @@ func initRouter() *gin.Engine {
 
 	new(controller.UserGroup).Router(r)
 	new(controller.WalletController).Router(r)
-
+	new(controller.ArticlesGroup).Router(r)
 	return r
 }
 
