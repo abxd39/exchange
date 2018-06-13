@@ -187,29 +187,37 @@ func (s *Dao) ModifyPwd(phone string, pwd string) (ret int32) {
 	*/
 }
 
-func (s *Dao) NoticeList() (u *[]model.NoticeStruct, ret int32) {
-	err := s.mysql.im.Find(&u)
-
+func (s *Dao) NoticeList(tp, startRow, endRow int32, u *[]model.NoticeStruct) int32 {
+	//err := s.mysql.im.Find(&u)
+	total, err := s.mysql.im.Where("type =?", tp).Count(&u)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret = ERRCODE_UNKNOWN
-		return
+		return ERRCODE_UNKNOWN
 	}
-	return
+	if startRow > endRow || startRow > int32(total) {
+		Log.Errorln("查询的其实行列不合法")
+		return ERRCODE_UNKNOWN
+	}
+	s.mysql.im.Where("type=?", tp).Limit(int(startRow), int(endRow)).Find(&u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	return ERRCODE_SUCCESS
 }
 
-func (s *Dao) NoticeDescription(Id int32) (u *model.NoticeDetailStruct, ret int32) {
+func (s *Dao) NoticeDescription(Id int32, u *model.NoticeDetailStruct) int32 {
 	u = &model.NoticeDetailStruct{}
 	ok, err := s.mysql.im.Where("ID=?", Id).Get(u)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret = ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN
 	}
 	if ok {
-		ret = ERRCODE_SUCCESS
-		return
+		return ERRCODE_SUCCESS
+
 	}
 
-	ret = ERRCODE_ACCOUNT_NOTEXIST
-	return
+	return ERRCODE_ACCOUNT_NOTEXIST
+
 }

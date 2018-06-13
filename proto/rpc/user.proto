@@ -103,7 +103,9 @@ message ChangePwdRequest {
 }
 
 message NoticeListRequest{
-
+	int32 NoticeType=1;
+	int32 StartRow=2;
+	int32 EndRow=3; 
 }
 
 message NoticeListResponse{ 
