@@ -3,8 +3,7 @@ package client
 import (
 	"context"
 	proto "digicon/proto/rpc"
-	cf "digicon/wallet_service/conf"
-	. "digicon/wallet_service/log"
+	. "digicon/wallet_service/utils"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
@@ -24,7 +23,7 @@ func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err erro
 }
 
 func NewUserRPCCli() (u *UserRPCCli) {
-	consul_addr := cf.Cfg.MustValue("consul", "addr")
+	consul_addr := Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))
 	service := micro.NewService(
 		micro.Name("greeter.client"),
@@ -32,7 +31,7 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	)
 	service.Init()
 
-	service_name := cf.Cfg.MustValue("base", "service_name")
+	service_name := Cfg.MustValue("base", "service_name")
 	greeter := proto.NewGateway2WallerService(service_name, service.Client())
 	u = &UserRPCCli{
 		conn: greeter,

@@ -1,14 +1,12 @@
-package conf
+package utils
 
 import (
 	"flag"
 	"github.com/Unknwon/goconfig"
 )
 
-var (
-	confPath string
-	Cfg      *goconfig.ConfigFile
-)
+var 	Cfg  *goconfig.ConfigFile
+
 
 func NewConfig(path string) *goconfig.ConfigFile {
 	ConfigFile, err := goconfig.LoadConfigFile(path)
@@ -20,9 +18,8 @@ func NewConfig(path string) *goconfig.ConfigFile {
 }
 
 func init() {
+	println("conf 初始化")
+	var 	confPath string
 	flag.StringVar(&confPath, "conf", "wallet.ini", "config path")
-}
-
-func Init() {
 	Cfg = NewConfig(confPath)
 }
