@@ -7,6 +7,7 @@ import (
 	"time"
 	"digicon/common/encryption"
 	"digicon/user_service/tools"
+	"github.com/liudng/godump"
 )
 
 type RedisCli struct {
@@ -61,7 +62,8 @@ func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err erro
 }
 
 func (s *Dao) SetSmsCode(phone string, code string, ty int32) (err error) {
-	err = s.redis.rcon.Set(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty), code, 60*time.Second).Err()
+	godump.Dump(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty))
+	err = s.redis.rcon.Set(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty), code, 600*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -70,6 +72,7 @@ func (s *Dao) SetSmsCode(phone string, code string, ty int32) (err error) {
 }
 
 func (s *Dao) GetSmsCode(phone string,ty int32) (code string,err error) {
+	godump.Dump(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty))
 	code,err = s.redis.rcon.Get(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty)).Result()
 	if err != nil {
 		Log.Errorln(err.Error())

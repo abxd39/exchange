@@ -15,8 +15,8 @@
 .glide/
 
 
-./proto/*.pb.go
-./proto/*.micro.go
+/proto/rpc/*.go
+
 .idea/
 /user_service/*.ini
 /gateway/*.ini
