@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-type WalletController struct {
+type WalletGroup struct {
 
 }
 
-func (this *WalletController) Router(router *gin.Engine){
+func (this *WalletGroup) Router(router *gin.Engine){
 
 	r := router.Group("wallet")
 	r.GET("create",this.Create)
@@ -20,10 +20,10 @@ func (this *WalletController) Router(router *gin.Engine){
 	r.GET("findOne",this.FindOne)
 }
 
-func (this *WalletController)Index(ctx *gin.Context){
+func (this *WalletGroup)Index(ctx *gin.Context){
 
 }
-func (this *WalletController)Create(ctx *gin.Context){
+func (this *WalletGroup)Create(ctx *gin.Context){
 
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(1,1)
 	if err != nil {
@@ -33,7 +33,7 @@ func (this *WalletController)Create(ctx *gin.Context){
 
 	ctx.JSON(http.StatusOK, rsp)
 }
-func (this *WalletController)Update(ctx *gin.Context){
+func (this *WalletGroup)Update(ctx *gin.Context){
 	rsp, err := rpc.InnerService.WalletSevice.Callhello("eth")
 	if err != nil {
 		ctx.String(http.StatusOK, "err 0000 rsp")
@@ -41,15 +41,15 @@ func (this *WalletController)Update(ctx *gin.Context){
 	}
 	ctx.JSON(http.StatusOK, rsp)
 }
-func (this *WalletController)Query(ctx *gin.Context){
+func (this *WalletGroup)Query(ctx *gin.Context){
 
 }
-func (this *WalletController)Delete(ctx *gin.Context){
+func (this *WalletGroup)Delete(ctx *gin.Context){
 
 }
-func (this *WalletController)FindOne(ctx *gin.Context){
+func (this *WalletGroup)FindOne(ctx *gin.Context){
 
 }
-func (this *WalletController)before() gin.HandlerFunc {
+func (this *WalletGroup)before() gin.HandlerFunc {
 		return nil
 }
