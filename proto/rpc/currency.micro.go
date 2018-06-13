@@ -24,6 +24,10 @@ It has these top-level messages:
 	ForgetResponse
 	SecurityRequest
 	SecurityResponse
+	NoticeListRequest
+	NoticeListResponse
+	NoticeDetailRequest
+	NoticeDetailResponse
 	HelloRequest2
 	HelloResponse2
 */

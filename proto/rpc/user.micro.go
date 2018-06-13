@@ -31,6 +31,8 @@ type Gateway2UserService interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...client.CallOption) (*LoginResponse, error)
 	ForgetPwd(ctx context.Context, in *ForgetRequest, opts ...client.CallOption) (*ForgetResponse, error)
 	AuthSecurity(ctx context.Context, in *SecurityRequest, opts ...client.CallOption) (*SecurityResponse, error)
+	NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error)
+	NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error)
 }
 
 type gateway2UserService struct {
@@ -101,6 +103,26 @@ func (c *gateway2UserService) AuthSecurity(ctx context.Context, in *SecurityRequ
 	return out, nil
 }
 
+func (c *gateway2UserService) NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error) {
+	req := c.c.NewRequest(c.name, "Gateway2User.NoticeList", in)
+	out := new(NoticeListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gateway2UserService) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error) {
+	req := c.c.NewRequest(c.name, "Gateway2User.NoticeDetail", in)
+	out := new(NoticeDetailResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Gateway2User service
 
 type Gateway2UserHandler interface {
@@ -109,6 +131,8 @@ type Gateway2UserHandler interface {
 	Login(context.Context, *LoginRequest, *LoginResponse) error
 	ForgetPwd(context.Context, *ForgetRequest, *ForgetResponse) error
 	AuthSecurity(context.Context, *SecurityRequest, *SecurityResponse) error
+	NoticeList(context.Context, *NoticeListRequest, *NoticeListResponse) error
+	NoticeDetail(context.Context, *NoticeDetailRequest, *NoticeDetailResponse) error
 }
 
 func RegisterGateway2UserHandler(s server.Server, hdlr Gateway2UserHandler, opts ...server.HandlerOption) {
@@ -118,6 +142,8 @@ func RegisterGateway2UserHandler(s server.Server, hdlr Gateway2UserHandler, opts
 		Login(ctx context.Context, in *LoginRequest, out *LoginResponse) error
 		ForgetPwd(ctx context.Context, in *ForgetRequest, out *ForgetResponse) error
 		AuthSecurity(ctx context.Context, in *SecurityRequest, out *SecurityResponse) error
+		NoticeList(ctx context.Context, in *NoticeListRequest, out *NoticeListResponse) error
+		NoticeDetail(ctx context.Context, in *NoticeDetailRequest, out *NoticeDetailResponse) error
 	}
 	type Gateway2User struct {
 		gateway2User
@@ -148,4 +174,12 @@ func (h *gateway2UserHandler) ForgetPwd(ctx context.Context, in *ForgetRequest, 
 
 func (h *gateway2UserHandler) AuthSecurity(ctx context.Context, in *SecurityRequest, out *SecurityResponse) error {
 	return h.Gateway2UserHandler.AuthSecurity(ctx, in, out)
+}
+
+func (h *gateway2UserHandler) NoticeList(ctx context.Context, in *NoticeListRequest, out *NoticeListResponse) error {
+	return h.Gateway2UserHandler.NoticeList(ctx, in, out)
+}
+
+func (h *gateway2UserHandler) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, out *NoticeDetailResponse) error {
+	return h.Gateway2UserHandler.NoticeDetail(ctx, in, out)
 }
