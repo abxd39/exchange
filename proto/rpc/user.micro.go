@@ -27,13 +27,21 @@ var _ server.Option
 
 type UserRPCService interface {
 	Hello(ctx context.Context, in *HelloRequest, opts ...client.CallOption) (*HelloResponse, error)
+	// 注册by手机
 	RegisterByPhone(ctx context.Context, in *RegisterPhoneRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 注册by email
 	RegisterByEmail(ctx context.Context, in *RegisterEmailRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 登陆
 	Login(ctx context.Context, in *LoginRequest, opts ...client.CallOption) (*LoginResponse, error)
+	// 忘记密码
 	ForgetPwd(ctx context.Context, in *ForgetRequest, opts ...client.CallOption) (*ForgetResponse, error)
+	// 安全认证
 	AuthSecurity(ctx context.Context, in *SecurityRequest, opts ...client.CallOption) (*SecurityResponse, error)
+	// 改变密码
 	ChangePwd(ctx context.Context, in *ChangePwdRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 发生短信验证码
 	SendSms(ctx context.Context, in *SmsRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	// 发送邮箱验证码
 	SendEmail(ctx context.Context, in *EmailRequest, opts ...client.CallOption) (*CommonErrResponse, error)
 	NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error)
 	NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error)
@@ -171,13 +179,21 @@ func (c *userRPCService) NoticeDetail(ctx context.Context, in *NoticeDetailReque
 
 type UserRPCHandler interface {
 	Hello(context.Context, *HelloRequest, *HelloResponse) error
+	// 注册by手机
 	RegisterByPhone(context.Context, *RegisterPhoneRequest, *CommonErrResponse) error
+	// 注册by email
 	RegisterByEmail(context.Context, *RegisterEmailRequest, *CommonErrResponse) error
+	// 登陆
 	Login(context.Context, *LoginRequest, *LoginResponse) error
+	// 忘记密码
 	ForgetPwd(context.Context, *ForgetRequest, *ForgetResponse) error
+	// 安全认证
 	AuthSecurity(context.Context, *SecurityRequest, *SecurityResponse) error
+	// 改变密码
 	ChangePwd(context.Context, *ChangePwdRequest, *CommonErrResponse) error
+	// 发生短信验证码
 	SendSms(context.Context, *SmsRequest, *CommonErrResponse) error
+	// 发送邮箱验证码
 	SendEmail(context.Context, *EmailRequest, *CommonErrResponse) error
 	NoticeList(context.Context, *NoticeListRequest, *NoticeListResponse) error
 	NoticeDetail(context.Context, *NoticeDetailRequest, *NoticeDetailResponse) error

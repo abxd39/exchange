@@ -88,7 +88,7 @@ func (s *UserRPCCli) CallAuthSecurity(phone, phone_code, email_code string) (rsp
 
 func (s *UserRPCCli) CallSendSms(phone string) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.SendSms(context.TODO(), &proto.SmsRequest{
-		Phone:         phone,
+		Phone: phone,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -99,7 +99,7 @@ func (s *UserRPCCli) CallSendSms(phone string) (rsp *proto.CommonErrResponse, er
 
 func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.SendEmail(context.TODO(), &proto.EmailRequest{
-		Email:         email,
+		Email: email,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -108,10 +108,10 @@ func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, 
 	return
 }
 
-func (s *UserRPCCli) CallChangePwd(phone ,security_key string) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallChangePwd(phone, security_key string) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.ChangePwd(context.TODO(), &proto.ChangePwdRequest{
-		Phone:         phone,
-		SecurityKey:   []byte(security_key),
+		Phone:       phone,
+		SecurityKey: []byte(security_key),
 	})
 	if err != nil {
 		Log.Errorln(err.Error())

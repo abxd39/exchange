@@ -2,18 +2,17 @@ package client
 
 import (
 	"context"
+	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
-	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro"
-	cf "digicon/gateway/conf"
+	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
 )
 
 type CurrencyRPCCli struct {
 	conn proto.CurrencyRPCService
 }
-
 
 func (s *CurrencyRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err error) {
 	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
@@ -23,7 +22,6 @@ func (s *CurrencyRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err e
 	}
 	return
 }
-
 
 func NewCurrencyRPCCli() (u *CurrencyRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")

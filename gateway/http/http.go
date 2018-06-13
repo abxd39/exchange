@@ -12,16 +12,7 @@ func initRouter() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	new(controller.UserControll).Router(r)
-	/*
-		user := r.Group("/user")
-		{
-			user.POST("/register", controller.RegisterController)
-			user.POST("/login", controller.LoginController)
-			user.POST("/forget",controller.ForgetPwdController)
-			user.POST("/auth",controller.AuthSecurityController)
-			user.POST("/change_pwd",controller.ForgetPwdController)
-		}
-	*/
+
 	return r
 }
 

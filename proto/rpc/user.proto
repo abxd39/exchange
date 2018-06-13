@@ -3,13 +3,21 @@ package g2u;
 
 service UserRPC {
 	rpc Hello(HelloRequest) returns (HelloResponse) {}
+	//注册by手机
 	rpc RegisterByPhone(RegisterPhoneRequest) returns (CommonErrResponse) {}
+	//注册by email
 	rpc RegisterByEmail(RegisterEmailRequest) returns (CommonErrResponse) {}
+	//登陆
 	rpc Login(LoginRequest) returns (LoginResponse) {}
+	//忘记密码
 	rpc ForgetPwd(ForgetRequest) returns (ForgetResponse) {}
+	//安全认证
 	rpc AuthSecurity(SecurityRequest) returns (SecurityResponse) {}
+	//改变密码
 	rpc ChangePwd(ChangePwdRequest) returns (CommonErrResponse) {}
+	//发生短信验证码
 	rpc SendSms(SmsRequest) returns (CommonErrResponse) {}
+	//发送邮箱验证码
     rpc SendEmail(EmailRequest) returns (CommonErrResponse) {}
 
     rpc NoticeList(NoticeListRequest) returns (NoticeListResponse) {}
@@ -35,6 +43,7 @@ message RegisterPhoneRequest {
     string pwd=2;
     string invite_code=4;
     int32  country=5;
+    string code=6;
 }
 
 message RegisterEmailRequest {
@@ -42,6 +51,7 @@ message RegisterEmailRequest {
     string pwd=2;
     string invite_code=4;
     int32  country=5;
+    string code=6;
 }
 
 message LoginRequest {
@@ -80,6 +90,7 @@ message SecurityResponse{
 
 message SmsRequest {
     string phone            =1;
+    int32 type              =2;//1表示注册
 }
 
 message EmailRequest{

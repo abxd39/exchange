@@ -42,7 +42,7 @@ func NewMysql() (mysql *Mysql) {
 }
 
 func (s *Dao) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
-	if ret := s.CheckUserExist(req.Phone,"phone"); ret != ERRCODE_SUCCESS {
+	if ret := s.CheckUserExist(req.Phone, "phone"); ret != ERRCODE_SUCCESS {
 		return ret
 	}
 
@@ -77,9 +77,8 @@ func (s *Dao) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 	return ERRCODE_SUCCESS
 }
 
-
 func (s *Dao) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
-	if ret := s.CheckUserExist(req.Email,"email"); ret != ERRCODE_SUCCESS {
+	if ret := s.CheckUserExist(req.Email, "email"); ret != ERRCODE_SUCCESS {
 		return ret
 	}
 
@@ -114,8 +113,8 @@ func (s *Dao) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 	return ERRCODE_SUCCESS
 }
 
-func (s *Dao) CheckUserExist(param string,col string) int32 {
-	sql:=fmt.Sprintf("%s=?",col)
+func (s *Dao) CheckUserExist(param string, col string) int32 {
+	sql := fmt.Sprintf("%s=?", col)
 	ok, err := s.mysql.im.Where(sql, param).Get(&model.User{})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -179,13 +178,12 @@ func (s *Dao) GetUserExByPhone(phone string) (u *model.UserEx, ret int32) {
 	return
 }
 
-
-func (s *Dao) ModifyPwd(phone string,pwd string) (ret int32) {
+func (s *Dao) ModifyPwd(phone string, pwd string) (ret int32) {
 	return 0
 	/*
-	u := model.User{}
-	u.Pwd = pwd
-	_, err := s.mysql.im.Where("phone=?", phone).Cols("pwd").Update(u)
+		u := model.User{}
+		u.Pwd = pwd
+		_, err := s.mysql.im.Where("phone=?", phone).Cols("pwd").Update(u)
 	*/
 }
 
@@ -199,7 +197,6 @@ func (s *Dao) NoticeList() (u *[]model.NoticeStruct, ret int32) {
 	}
 	return
 }
-
 
 func (s *Dao) NoticeDescription(Id int32) (u *model.NoticeDetailStruct, ret int32) {
 	u = &model.NoticeDetailStruct{}
@@ -216,4 +213,3 @@ func (s *Dao) NoticeDescription(Id int32) (u *model.NoticeDetailStruct, ret int3
 	ret = ERRCODE_ACCOUNT_NOTEXIST
 	return
 }
-

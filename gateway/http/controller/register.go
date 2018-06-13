@@ -14,16 +14,34 @@ type UserControll struct{}
 func (this *UserControll) Router(r *gin.Engine) {
 	user := r.Group("/user")
 	{
-		user.POST("/register_phone", RegisterPhoneController)
-		user.POST("/register_email", RegisterEmailController)
+		user.POST("/register", RegisterController)
+		//user.POST("/register_phone", RegisterPhoneController)
+		//user.POST("/register_email", RegisterEmailController)
 		user.POST("/login", LoginController)
 		user.POST("/forget", ForgetPwdController)
 		user.POST("/auth", AuthSecurityController)
 		user.POST("/change_pwd", ChangePwdcontroller)
 		user.POST("/send_sms", SendPhoneSMSController)
 		user.POST("/send_email", SendEmailController)
-		user.POST("/change_pwd", ForgetPwdController)
 
+	}
+}
+
+func RegisterController(c *gin.Context) {
+	ty, ok := c.Params.Get("type")
+	if !ok {
+		ret := NewErrorMessage()
+		defer func() {
+			c.JSON(http.StatusOK, ret)
+		}()
+		ret[ErrCodeRet] = ERRCODE_PARAM
+		ret[ErrCodeMessage] = GetErrorMessage(ERRCODE_PARAM)
+		return
+	}
+	if ty == "1" { //1电话注册
+		RegisterPhoneController(c)
+	} else if ty == "2" { //邮箱注册
+		RegisterEmailController(c)
 	}
 }
 
@@ -75,7 +93,6 @@ type RegisterByEmailParam struct {
 	Country    int    `form:"country" binding:"required"`
 }
 
-
 //用户注册by email
 func RegisterEmailController(c *gin.Context) {
 	ret := NewErrorMessage()
@@ -107,7 +124,6 @@ func RegisterEmailController(c *gin.Context) {
 	ret[ErrCodeRet] = rsp.Err
 	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
 }
-
 
 type LoginParam struct {
 	Phone string `form:"phone" binding:"required"`
@@ -177,7 +193,6 @@ type AuthSecurityParam struct {
 	EmailCode string `form:"email_code" binding:"required"`
 }
 
-
 //提交手机验证
 func AuthSecurityController(c *gin.Context) {
 	ret := NewErrorMessage()
@@ -206,8 +221,10 @@ func AuthSecurityController(c *gin.Context) {
 
 type PhoneParam struct {
 	Phone string `form:"phone" binding:"required"`
+	Type  string `form:"type" binding:"required"`
 }
 
+//发生短信
 func SendPhoneSMSController(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
@@ -221,7 +238,6 @@ func SendPhoneSMSController(c *gin.Context) {
 		return
 	}
 
-
 	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
@@ -234,10 +250,11 @@ func SendPhoneSMSController(c *gin.Context) {
 
 type ChangePwdParam struct {
 	SecurityKey string `form:"security_key" binding:"required"`
-	Phone string `form:"phone" binding:"required"`
-	Pwd string `form:"pwd" binding:"required"`
+	Phone       string `form:"phone" binding:"required"`
+	Pwd         string `form:"pwd" binding:"required"`
 }
 
+//改密码
 func ChangePwdcontroller(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
@@ -257,6 +274,7 @@ type EamilParam struct {
 	Phone string `form:"phone" binding:"required"`
 }
 
+//发生邮箱验证
 func SendEmailController(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
@@ -271,6 +289,3 @@ func SendEmailController(c *gin.Context) {
 		return
 	}
 }
-
-
-
