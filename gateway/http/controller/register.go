@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserControll struct{}
+type UserGroup struct{}
 
-func (this *UserControll) Router(r *gin.Engine) {
+func (this *UserGroup) Router(r *gin.Engine) {
 	user := r.Group("/user")
 	{
 		user.POST("/register", RegisterController)
