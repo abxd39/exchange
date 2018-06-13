@@ -16,7 +16,6 @@ const (
 
 //获取用户redis中逻辑标签信息
 func GetUserTagByLogic(phone string, logic int, others ...interface{}) string {
-
 	switch logic {
 	case LOGIC_SMS:
 		if len(others) > 0 {
