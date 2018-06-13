@@ -2,6 +2,7 @@ package conf
 
 import (
 	"flag"
+
 	"github.com/Unknwon/goconfig"
 )
 
@@ -20,7 +21,7 @@ func NewConfig(path string) *goconfig.ConfigFile {
 }
 
 func init() {
-	flag.StringVar(&confPath, "conf", "currency.ini", "config path")
+	flag.StringVar(&confPath, "conf", "public.ini", "config path")
 }
 
 func Init() {
