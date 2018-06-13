@@ -215,6 +215,15 @@ func SendPhoneSMSController(c *gin.Context) {
 		ret[ErrCodeMessage] = err.Error()
 		return
 	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone)
+	if err != nil {
+		ret[ErrCodeRet] = ERRCODE_UNKNOWN
+		ret[ErrCodeMessage] = err.Error()
+		return
+	}
+	ret[ErrCodeRet] = rsp.Err
+	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
 }
 
 type ChangePwdParam struct {

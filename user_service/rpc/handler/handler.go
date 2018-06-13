@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"digicon/common"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
@@ -61,6 +62,9 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 
 
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
+	common.Send253Sms("122")
+	rsp.Err = ERRCODE_SUCCESS
+	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }
 
