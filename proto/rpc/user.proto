@@ -1,9 +1,10 @@
 syntax = "proto3";
 package g2u;
 
-service Gateway2User {
+service UserRPC {
 	rpc Hello(HelloRequest) returns (HelloResponse) {}
-	rpc Register(RegisterRequest) returns (RegisterResponse) {}
+	rpc RegisterByPhone(RegisterPhoneRequest) returns (CommonErrResponse) {}
+	rpc RegisterByEmail(RegisterEmailRequest) returns (CommonErrResponse) {}
 	rpc Login(LoginRequest) returns (LoginResponse) {}
 	rpc ForgetPwd(ForgetRequest) returns (ForgetResponse) {}
 	rpc AuthSecurity(SecurityRequest) returns (SecurityResponse) {}
@@ -25,15 +26,18 @@ message HelloResponse {
 	string greeting = 2;
 }
 
-message RegisterRequest {
+message RegisterPhoneRequest {
     string phone=1;
     string pwd=2;
     string invite_code=4;
     int32  country=5;
 }
 
-message RegisterResponse {
-	int32 err = 1;
+message RegisterEmailRequest {
+    string email=1;
+    string pwd=2;
+    string invite_code=4;
+    int32  country=5;
 }
 
 message LoginRequest {
@@ -43,6 +47,7 @@ message LoginRequest {
 
 message LoginResponse {
 	int32 err = 1;
+	string message  =2;
 }
 
 message ForgetRequest {

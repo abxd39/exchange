@@ -11,7 +11,7 @@ import (
 )
 
 type UserRPCCli struct {
-	conn proto.Gateway2UserService
+	conn proto.UserRPCService
 }
 
 func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse, err error) {
@@ -23,9 +23,22 @@ func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse, err error
 	return
 }
 
-func (s *UserRPCCli) CallRegister(phone, pwd, invite_code string, country int) (rsp *proto.RegisterResponse, err error) {
-	rsp, err = s.conn.Register(context.TODO(), &proto.RegisterRequest{
+func (s *UserRPCCli) CallRegisterByPhone(phone, pwd, invite_code string, country int) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.RegisterByPhone(context.TODO(), &proto.RegisterPhoneRequest{
 		Phone:      phone,
+		Pwd:        pwd,
+		InviteCode: invite_code,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country int) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.RegisterByEmail(context.TODO(), &proto.RegisterEmailRequest{
+		Email:      email,
 		Pwd:        pwd,
 		InviteCode: invite_code,
 	})
@@ -98,7 +111,7 @@ func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, 
 func (s *UserRPCCli) CallChangePwd(phone ,security_key string) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.ChangePwd(context.TODO(), &proto.ChangePwdRequest{
 		Phone:         phone,
-		SecurityKey:   security_key,
+		SecurityKey:   []byte(security_key),
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -117,7 +130,7 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_client_user")
-	greeter := proto.NewGateway2UserService(service_name, service.Client())
+	greeter := proto.NewUserRPCService(service_name, service.Client())
 	u = &UserRPCCli{
 		conn: greeter,
 	}

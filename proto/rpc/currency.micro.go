@@ -16,8 +16,8 @@ It has these top-level messages:
 	CommonErrResponse
 	HelloRequest
 	HelloResponse
-	RegisterRequest
-	RegisterResponse
+	RegisterPhoneRequest
+	RegisterEmailRequest
 	LoginRequest
 	LoginResponse
 	ForgetRequest

@@ -52,7 +52,7 @@ func RegisterPhoneController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallRegister(param.Phone, param.Pwd, param.InviteCode, param.Country)
+	rsp, err := rpc.InnerService.UserSevice.CallRegisterByPhone(param.Phone, param.Pwd, param.InviteCode, param.Country)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
 		ret[ErrCodeMessage] = err.Error()
@@ -64,7 +64,7 @@ func RegisterPhoneController(c *gin.Context) {
 }
 
 type RegisterByEmailParam struct {
-	Phone      string `form:"phone" binding:"required"`
+	Email      string `form:"email" binding:"required"`
 	Pwd        string `form:"pwd" binding:"required"`
 	Confirm    string `form:"confirm" binding:"required"`
 	InviteCode string `form:"invite_code" binding:"required"`
@@ -87,6 +87,21 @@ func RegisterEmailController(c *gin.Context) {
 		return
 	}
 
+	if param.Pwd != param.Confirm {
+		ret[ErrCodeRet] = ERRCODE_PWD_COMFIRM
+		ret[ErrCodeMessage] = GetErrorMessage(ERRCODE_PWD_COMFIRM)
+		return
+	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallRegisterByEmail(param.Email, param.Pwd, param.InviteCode, param.Country)
+	if err != nil {
+		ret[ErrCodeRet] = ERRCODE_UNKNOWN
+		ret[ErrCodeMessage] = err.Error()
+		return
+	}
+
+	ret[ErrCodeRet] = rsp.Err
+	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
 }
 
 

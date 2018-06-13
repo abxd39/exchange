@@ -16,13 +16,21 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 	return nil
 }
 
-func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.RegisterResponse) error {
-	rsp.Err = DB.Register(req)
+func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhoneRequest, rsp *proto.CommonErrResponse) error {
+	rsp.Err = DB.RegisterByPhone(req)
+	rsp.Message = GetErrorMessage(rsp.Err)
+	return nil
+}
+
+func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmailRequest, rsp *proto.CommonErrResponse) error {
+	rsp.Err = DB.RegisterByEmail(req)
+	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }
 
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
 	rsp.Err = DB.Login(req.Phone, req.Pwd)
+	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }
 
@@ -51,9 +59,11 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 	return nil
 }
 
+
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
 	return nil
 }
+
 
 func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp *proto.CommonErrResponse) error {
 	return nil

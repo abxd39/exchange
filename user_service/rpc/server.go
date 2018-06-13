@@ -26,7 +26,7 @@ func RPCServerInit() {
 	)
 	service.Init()
 
-	proto.RegisterGateway2UserHandler(service.Server(), new(handler.RPCServer))
+	proto.RegisterUserRPCHandler(service.Server(), new(handler.RPCServer))
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err.Error())
