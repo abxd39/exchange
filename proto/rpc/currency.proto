@@ -14,3 +14,4 @@ message AdminResponse {
 	int32 message   =   2;
 	string data     =   3;
 }
+

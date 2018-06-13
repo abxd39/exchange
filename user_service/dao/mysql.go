@@ -7,9 +7,10 @@ import (
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
 	"fmt"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	"time"
 )
 
 type Mysql struct {
@@ -178,10 +179,19 @@ func (s *Dao) GetUserExByPhone(phone string) (u *model.UserEx, ret int32) {
 	return
 }
 
-func (s *Dao) ModifyPwd(phone string,pwd string) (ret int32){
+
+func (s *Dao) ModifyPwd(phone string,pwd string) (ret int32) {
+	return 0
+	/*
 	u := model.User{}
-	u.Pwd=pwd
-	_,err:=s.mysql.im.Where("phone=?",phone).Cols("pwd").Update(u)
+	u.Pwd = pwd
+	_, err := s.mysql.im.Where("phone=?", phone).Cols("pwd").Update(u)
+	*/
+}
+
+func (s *Dao) NoticeList() (u *[]model.NoticeStruct, ret int32) {
+	err := s.mysql.im.Find(&u)
+
 	if err != nil {
 		Log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
@@ -189,3 +199,21 @@ func (s *Dao) ModifyPwd(phone string,pwd string) (ret int32){
 	}
 	return
 }
+
+
+func (s *Dao) NoticeDescription(Id int32) (u *model.NoticeDetailStruct, ret int32) {
+	u = &model.NoticeDetailStruct{}
+	ok, err := s.mysql.im.Where("ID=?", Id).Get(u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+	}
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+

@@ -4,8 +4,9 @@ import (
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserControll struct{}
@@ -21,6 +22,8 @@ func (this *UserControll) Router(r *gin.Engine) {
 		user.POST("/change_pwd", ChangePwdcontroller)
 		user.POST("/send_sms", SendPhoneSMSController)
 		user.POST("/send_email", SendEmailController)
+		user.POST("/change_pwd", ForgetPwdController)
+
 	}
 }
 
@@ -61,6 +64,7 @@ func RegisterPhoneController(c *gin.Context) {
 
 	ret[ErrCodeRet] = rsp.Err
 	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
+
 }
 
 type RegisterByEmailParam struct {
@@ -173,6 +177,7 @@ type AuthSecurityParam struct {
 	EmailCode string `form:"email_code" binding:"required"`
 }
 
+
 //提交手机验证
 func AuthSecurityController(c *gin.Context) {
 	ret := NewErrorMessage()
@@ -215,6 +220,7 @@ func SendPhoneSMSController(c *gin.Context) {
 		ret[ErrCodeMessage] = err.Error()
 		return
 	}
+
 
 	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone)
 	if err != nil {
@@ -265,3 +271,6 @@ func SendEmailController(c *gin.Context) {
 		return
 	}
 }
+
+
+

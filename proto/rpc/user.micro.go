@@ -35,6 +35,8 @@ type UserRPCService interface {
 	ChangePwd(ctx context.Context, in *ChangePwdRequest, opts ...client.CallOption) (*CommonErrResponse, error)
 	SendSms(ctx context.Context, in *SmsRequest, opts ...client.CallOption) (*CommonErrResponse, error)
 	SendEmail(ctx context.Context, in *EmailRequest, opts ...client.CallOption) (*CommonErrResponse, error)
+	NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error)
+	NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error)
 }
 
 type userRPCService struct {
@@ -145,6 +147,26 @@ func (c *userRPCService) SendEmail(ctx context.Context, in *EmailRequest, opts .
 	return out, nil
 }
 
+func (c *userRPCService) NoticeList(ctx context.Context, in *NoticeListRequest, opts ...client.CallOption) (*NoticeListResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.NoticeList", in)
+	out := new(NoticeListResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userRPCService) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, opts ...client.CallOption) (*NoticeDetailResponse, error) {
+	req := c.c.NewRequest(c.name, "UserRPC.NoticeDetail", in)
+	out := new(NoticeDetailResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserRPC service
 
 type UserRPCHandler interface {
@@ -157,6 +179,8 @@ type UserRPCHandler interface {
 	ChangePwd(context.Context, *ChangePwdRequest, *CommonErrResponse) error
 	SendSms(context.Context, *SmsRequest, *CommonErrResponse) error
 	SendEmail(context.Context, *EmailRequest, *CommonErrResponse) error
+	NoticeList(context.Context, *NoticeListRequest, *NoticeListResponse) error
+	NoticeDetail(context.Context, *NoticeDetailRequest, *NoticeDetailResponse) error
 }
 
 func RegisterUserRPCHandler(s server.Server, hdlr UserRPCHandler, opts ...server.HandlerOption) {
@@ -170,6 +194,8 @@ func RegisterUserRPCHandler(s server.Server, hdlr UserRPCHandler, opts ...server
 		ChangePwd(ctx context.Context, in *ChangePwdRequest, out *CommonErrResponse) error
 		SendSms(ctx context.Context, in *SmsRequest, out *CommonErrResponse) error
 		SendEmail(ctx context.Context, in *EmailRequest, out *CommonErrResponse) error
+		NoticeList(ctx context.Context, in *NoticeListRequest, out *NoticeListResponse) error
+		NoticeDetail(ctx context.Context, in *NoticeDetailRequest, out *NoticeDetailResponse) error
 	}
 	type UserRPC struct {
 		userRPC
@@ -216,4 +242,12 @@ func (h *userRPCHandler) SendSms(ctx context.Context, in *SmsRequest, out *Commo
 
 func (h *userRPCHandler) SendEmail(ctx context.Context, in *EmailRequest, out *CommonErrResponse) error {
 	return h.UserRPCHandler.SendEmail(ctx, in, out)
+}
+
+func (h *userRPCHandler) NoticeList(ctx context.Context, in *NoticeListRequest, out *NoticeListResponse) error {
+	return h.UserRPCHandler.NoticeList(ctx, in, out)
+}
+
+func (h *userRPCHandler) NoticeDetail(ctx context.Context, in *NoticeDetailRequest, out *NoticeDetailResponse) error {
+	return h.UserRPCHandler.NoticeDetail(ctx, in, out)
 }

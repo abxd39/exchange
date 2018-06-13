@@ -27,6 +27,10 @@ It has these top-level messages:
 	SmsRequest
 	EmailRequest
 	ChangePwdRequest
+	NoticeListRequest
+	NoticeListResponse
+	NoticeDetailRequest
+	NoticeDetailResponse
 	HelloRequest2
 	HelloResponse2
 */
