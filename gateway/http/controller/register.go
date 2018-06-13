@@ -23,7 +23,6 @@ func (this *UserGroup) Router(r *gin.Engine) {
 		user.POST("/change_pwd", ChangePwdcontroller)
 		user.POST("/send_sms", SendPhoneSMSController)
 		user.POST("/send_email", SendEmailController)
-
 	}
 }
 
