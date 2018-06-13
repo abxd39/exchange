@@ -12,6 +12,7 @@ func initRouter() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	new(controller.UserControll).Router(r)
+	new(controller.WalletController).Router(r)
 
 	return r
 }
