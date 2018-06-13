@@ -27,6 +27,7 @@ var _ server.Option
 
 type Gateway2WallerService interface {
 	Hello(ctx context.Context, in *HelloRequest2, opts ...client.CallOption) (*HelloResponse2, error)
+	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...client.CallOption) (*CreateWalletResponse, error)
 }
 
 type gateway2WallerService struct {
@@ -57,15 +58,27 @@ func (c *gateway2WallerService) Hello(ctx context.Context, in *HelloRequest2, op
 	return out, nil
 }
 
+func (c *gateway2WallerService) CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...client.CallOption) (*CreateWalletResponse, error) {
+	req := c.c.NewRequest(c.name, "Gateway2Waller.CreateWallet", in)
+	out := new(CreateWalletResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Gateway2Waller service
 
 type Gateway2WallerHandler interface {
 	Hello(context.Context, *HelloRequest2, *HelloResponse2) error
+	CreateWallet(context.Context, *CreateWalletRequest, *CreateWalletResponse) error
 }
 
 func RegisterGateway2WallerHandler(s server.Server, hdlr Gateway2WallerHandler, opts ...server.HandlerOption) {
 	type gateway2Waller interface {
 		Hello(ctx context.Context, in *HelloRequest2, out *HelloResponse2) error
+		CreateWallet(ctx context.Context, in *CreateWalletRequest, out *CreateWalletResponse) error
 	}
 	type Gateway2Waller struct {
 		gateway2Waller
@@ -80,4 +93,8 @@ type gateway2WallerHandler struct {
 
 func (h *gateway2WallerHandler) Hello(ctx context.Context, in *HelloRequest2, out *HelloResponse2) error {
 	return h.Gateway2WallerHandler.Hello(ctx, in, out)
+}
+
+func (h *gateway2WallerHandler) CreateWallet(ctx context.Context, in *CreateWalletRequest, out *CreateWalletResponse) error {
+	return h.Gateway2WallerHandler.CreateWallet(ctx, in, out)
 }
