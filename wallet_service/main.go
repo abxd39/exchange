@@ -2,11 +2,11 @@ package main
 
 import (
 	"digicon/wallet_service/rpc"
-	. "digicon/wallet_service/utils"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
+	. "digicon/wallet_service/utils"
 )
 
 func main() {

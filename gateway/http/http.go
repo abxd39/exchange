@@ -13,7 +13,7 @@ func initRouter() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	new(controller.UserGroup).Router(r)
-	new(controller.WalletController).Router(r)
+	new(controller.WalletGroup).Router(r)
 	new(controller.ArticlesGroup).Router(r)
 	return r
 }

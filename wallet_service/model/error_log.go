@@ -1,7 +1,7 @@
 package models
 
 import (
-	"time"
+"time"
 )
 
 type ErrorLog struct {
@@ -10,3 +10,4 @@ type ErrorLog struct {
 	Msg   string    `xorm:"not null comment('错误提示') VARCHAR(255)"`
 	Ctime time.Time `xorm:"not null default 'CURRENT_TIMESTAMP' comment('创建时间') TIMESTAMP"`
 }
+
