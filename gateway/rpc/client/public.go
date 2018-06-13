@@ -1,11 +1,11 @@
 package client
 
-
 import (
 	"context"
 	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
@@ -41,3 +41,22 @@ func NewPublciRPCCli() (u *PublciRPCCli) {
 	return
 }
 
+func (s *PublciRPCCli) CallArticlesDesc(id int32) (rsp *proto.ArticlesDetailResponse, err error) {
+	rsp, err = s.conn.ArticlesDetail(context.TODO(), &proto.ArticlesDetailRequest{
+		Id: id,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *PublciRPCCli) CallArticlesList() (rsp *proto.ArticlesListResponse, err error) {
+	rsp, err = s.conn.ArticlesList(context.TODO(), &proto.ArticlesListRequest{})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}

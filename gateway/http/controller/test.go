@@ -12,7 +12,7 @@ func HelloController(c *gin.Context) {
 	//s, _ := c.Params.Get("name")
 
 	//rsp, err := rpc.InnerService.UserSevice.CallGreet(s)
-	rsp, err := rpc.InnerService.UserSevice.CallNoticeDesc(1)
+	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(1)
 	if err != nil {
 		c.String(http.StatusOK, "err rsp")
 		return

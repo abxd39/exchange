@@ -1,11 +1,14 @@
 package dao
 
 import (
+	. "digicon/proto/common"
 	"digicon/public_service/conf"
 	. "digicon/public_service/log"
+	"digicon/user_service/model"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	"time"
 )
 
 type Mysql struct {
@@ -32,4 +35,39 @@ func NewMysql() (mysql *Mysql) {
 		im: engine,
 	}
 	return mysql
+}
+
+func (s *Dao) ArticlesList(tp, startRow, endRow int32, u *[]model.ArticlesStruct) int32 {
+	//err := s.mysql.im.Find(&u)
+	total, err := s.mysql.im.Where("type =?", tp).Count(&u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	if startRow > endRow || startRow > int32(total) {
+		Log.Errorln("查询的其实行列不合法")
+		return ERRCODE_UNKNOWN
+	}
+	s.mysql.im.Where("type=?", tp).Limit(int(startRow), int(endRow)).Find(&u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	return ERRCODE_SUCCESS
+}
+
+func (s *Dao) ArticlesDescription(Id int32, u *model.ArticlesDetailStruct) int32 {
+	u = &model.ArticlesDetailStruct{}
+	ok, err := s.mysql.im.Where("ID=?", Id).Get(u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	if ok {
+		return ERRCODE_SUCCESS
+
+	}
+
+	return ERRCODE_ACCOUNT_NOTEXIST
+
 }

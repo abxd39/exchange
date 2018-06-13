@@ -6,7 +6,6 @@ import (
 	"log"
 	. "digicon/wallet_service/model"
 	"errors"
-	"fmt"
 )
 
 type Wallet struct{}
@@ -37,7 +36,7 @@ func (s *Wallet) CreateWallet(ctx context.Context, req *proto.CreateWalletReques
 		rsp.Code = string("1")
 		rsp.Type = "eth"
 		rsp.Msg	 = err.Error()
-		fmt.Println(rsp)
+		//fmt.Println(rsp)
 		return nil
 	}
 	rsp.Code = "0"

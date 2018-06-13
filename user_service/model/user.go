@@ -11,14 +11,14 @@ type User struct {
 	GoogleVerifyTime int    `xorm:"INT(255)"`
 }
 
-type NoticeStruct struct {
+type ArticlesStruct struct {
 	ID             int32
 	Description    string //重要 、一般
 	Title          string
 	CreateDateTime string
 }
 
-type NoticeDetailStruct struct {
+type ArticlesDetailStruct struct {
 	ID            int32
 	Title         string
 	Description   string

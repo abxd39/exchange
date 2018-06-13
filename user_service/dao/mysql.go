@@ -186,38 +186,3 @@ func (s *Dao) ModifyPwd(phone string, pwd string) (ret int32) {
 		_, err := s.mysql.im.Where("phone=?", phone).Cols("pwd").Update(u)
 	*/
 }
-
-func (s *Dao) NoticeList(tp, startRow, endRow int32, u *[]model.NoticeStruct) int32 {
-	//err := s.mysql.im.Find(&u)
-	total, err := s.mysql.im.Where("type =?", tp).Count(&u)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-	if startRow > endRow || startRow > int32(total) {
-		Log.Errorln("查询的其实行列不合法")
-		return ERRCODE_UNKNOWN
-	}
-	s.mysql.im.Where("type=?", tp).Limit(int(startRow), int(endRow)).Find(&u)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-	return ERRCODE_SUCCESS
-}
-
-func (s *Dao) NoticeDescription(Id int32, u *model.NoticeDetailStruct) int32 {
-	u = &model.NoticeDetailStruct{}
-	ok, err := s.mysql.im.Where("ID=?", Id).Get(u)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-	if ok {
-		return ERRCODE_SUCCESS
-
-	}
-
-	return ERRCODE_ACCOUNT_NOTEXIST
-
-}

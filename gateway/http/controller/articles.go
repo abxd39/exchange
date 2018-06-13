@@ -9,27 +9,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type NoticeControll struct{}
+type ArticlesGroup struct{}
 
-func (this *NoticeControll) Router(r *gin.Engine) {
-	notice := r.Group("/notice")
+func (this *ArticlesGroup) Router(r *gin.Engine) {
+	Articles := r.Group("/Articles")
 	{
-		notice.GET("/des/:id", NoticeDetail)
-		notice.GET("/list", NoticeList)
+		Articles.GET("/des/:id", ArticlesDetail)
+		Articles.GET("/list", ArticlesList)
 
 	}
 }
 
-type NoticeListParam struct {
+type ArticlesListParam struct {
 	ID int32 `form:"id" binding:"required"`
 }
 
-func NoticeDetail(c *gin.Context) {
+func ArticlesDetail(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
-	var param NoticeListParam
+	var param ArticlesListParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
@@ -37,7 +37,7 @@ func NoticeDetail(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallNoticeDesc(param.ID)
+	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.ID)
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
 		ret[ErrCodeMessage] = err.Error()
@@ -67,12 +67,12 @@ func NoticeDetail(c *gin.Context) {
 	d["AdminNickname"] = rsp.AdminNickname
 }
 
-func NoticeList(c *gin.Context) {
+func ArticlesList(c *gin.Context) {
 	ret := NewErrorMessage()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
-	var param NoticeListParam
+	var param ArticlesListParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
@@ -80,7 +80,7 @@ func NoticeList(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallnoticeList()
+	rsp, err := rpc.InnerService.PublicService.CallArticlesList()
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
 		ret[ErrCodeMessage] = err.Error()
@@ -91,5 +91,5 @@ func NoticeList(c *gin.Context) {
 	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
 
 	d := ret[RetData].(map[string]interface{})
-	d["Notice"] = rsp.Notice
+	d["Articles"] = rsp.Articles
 }

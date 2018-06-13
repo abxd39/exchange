@@ -13,28 +13,27 @@ type WalletController struct {
 func (this *WalletController) Router(router *gin.Engine){
 
 	r := router.Group("wallet")
-	r.GET("create",this.create)
-	r.GET("update",this.update)
-	r.GET("query",this.query)
-	r.GET("delete",this.delete)
-	r.GET("findOne",this.findOne)
+	r.GET("create",this.Create)
+	r.GET("update",this.Update)
+	r.GET("query",this.Query)
+	r.GET("delete",this.Delete)
+	r.GET("findOne",this.FindOne)
 }
 
 func (this *WalletController)Index(ctx *gin.Context){
 
 }
-func (this *WalletController)create(ctx *gin.Context){
+func (this *WalletController)Create(ctx *gin.Context){
+
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(1,1)
 	if err != nil {
 		ctx.String(http.StatusOK, "err 0000 rsp")
 		return
 	}
-	//var ret = NewErrorMessage()
-	//ret["code"] = "0"
-	//ret["msg"] = rsp.
+
 	ctx.JSON(http.StatusOK, rsp)
 }
-func (this *WalletController)update(ctx *gin.Context){
+func (this *WalletController)Update(ctx *gin.Context){
 	rsp, err := rpc.InnerService.WalletSevice.Callhello("eth")
 	if err != nil {
 		ctx.String(http.StatusOK, "err 0000 rsp")
@@ -42,13 +41,13 @@ func (this *WalletController)update(ctx *gin.Context){
 	}
 	ctx.JSON(http.StatusOK, rsp)
 }
-func (this *WalletController)query(ctx *gin.Context){
+func (this *WalletController)Query(ctx *gin.Context){
 
 }
-func (this *WalletController)delete(ctx *gin.Context){
+func (this *WalletController)Delete(ctx *gin.Context){
 
 }
-func (this *WalletController)findOne(ctx *gin.Context){
+func (this *WalletController)FindOne(ctx *gin.Context){
 
 }
 func (this *WalletController)before() gin.HandlerFunc {
