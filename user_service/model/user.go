@@ -1,12 +1,13 @@
 package model
 
 import (
-	"time"
-	"fmt"
-	proto "digicon/proto/rpc"
+	"digicon/common/check"
 	. "digicon/proto/common"
+	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
+	"fmt"
+	"time"
 )
 
 type User struct {
@@ -50,7 +51,6 @@ type ArticlesDetailStruct struct {
 }
 */
 
-
 func (s *User) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 	if ret := s.CheckUserExist(req.Phone, "phone"); ret != ERRCODE_SUCCESS {
 		return ret
@@ -66,7 +66,7 @@ func (s *User) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 		return ERRCODE_UNKNOWN
 	}
 
-	_, err =DB.GetMysqlConn().Where("phone=?", req.Phone).Get(e)
+	_, err = DB.GetMysqlConn().Where("phone=?", req.Phone).Get(e)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -102,7 +102,7 @@ func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 		return ERRCODE_UNKNOWN
 	}
 
-	_, err =DB.GetMysqlConn().Where("email=?", req.Email).Get(e)
+	_, err = DB.GetMysqlConn().Where("email=?", req.Email).Get(e)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -136,7 +136,10 @@ func (s *User) CheckUserExist(param string, col string) int32 {
 	return ERRCODE_SUCCESS
 }
 
-func (s *User) Login(phone, pwd string) int32 {
+func (s *User) LoginByPhone(phone, pwd string) int32 {
+	if ok := check.CheckPhone(phone); !ok {
+		return ERRCODE_SMS_PHONE_FORMAT
+	}
 	m := &User{}
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(m)
 	if err != nil {
@@ -152,7 +155,24 @@ func (s *User) Login(phone, pwd string) int32 {
 	return ERRCODE_ACCOUNT_NOTEXIST
 }
 
-
+func (s *User) LoginByEmail(eamil, pwd string) int32 {
+	if ok := check.CheckEmail(eamil); !ok {
+		return ERRCODE_SMS_EMAIL_FORMAT
+	}
+	m := &User{}
+	ok, err := DB.GetMysqlConn().Where("email=?", eamil).Get(m)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	if ok {
+		if m.Pwd == pwd {
+			return ERRCODE_SUCCESS
+		}
+		return ERRCODE_PWD
+	}
+	return ERRCODE_ACCOUNT_NOTEXIST
+}
 
 func (s *User) GetUserByPhone(phone string) (u *User, ret int32) {
 	u = &User{}

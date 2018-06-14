@@ -35,13 +35,35 @@ func Send253YunSms(phone, code string) (rcode int32, msg string) {
 	}
 
 	code_, _ := strconv.Atoi(p.Code)
-	msg, ok := CheckErrorMessage(int32(code_))
-	if ok {
+	//msg, ok := CheckErrorMessage(int32(code_))
+	switch int32(code_) {
+	case 0:
 		rcode = ERRCODE_SUCCESS
-		msg = msg
-	} else {
+		return
+	case 109:
+		rcode = ERRCODE_SMS_MONEY_ENGOUGE
+		return
+	case 104:
+		rcode = ERRCODE_SMS_SYS_BUSY
+		return
+	case 103:
+		rcode = ERRCODE_SMS_COMMIT_QUICK
+		return
+	default:
 		rcode = ERRCODE_UNKNOWN
 		msg = p.ErrorMsg
+		return
 	}
+
+	return
+	/*
+		if ok {
+			rcode = ERRCODE_SUCCESS
+			msg = msg
+		} else {
+			rcode = ERRCODE_UNKNOWN
+			msg = p.ErrorMsg
+		}
+	*/
 	return
 }

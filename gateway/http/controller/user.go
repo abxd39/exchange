@@ -7,8 +7,8 @@ import (
 	. "digicon/proto/common"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"digicon/common/check"
+	"github.com/gin-gonic/gin"
 )
 
 type UserGroup struct{}
@@ -126,8 +126,10 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 	}()
 
 	type LoginParam struct {
-		Phone string `form:"phone" binding:"required"`
+		Phone string `form:"phone" `
+		Email string `form:"email" `
 		Pwd   string `form:"pwd" binding:"required"`
+		Type  int32  `form:"type" binding:"required"`
 	}
 	var param LoginParam
 
@@ -137,12 +139,22 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Phone, param.Pwd)
-	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+	if param.Type == 1 && param.Phone == "" || param.Type == 2 && param.Email == "" {
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
-	ret.SetErrCode(rsp.Err, rsp.Message)
+
+	if param.Type == 1 || param.Type == 2 {
+		rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Phone, param.Email, param.Pwd, param.Type)
+		if err != nil {
+			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+			return
+		}
+		ret.SetErrCode(rsp.Err, rsp.Message)
+	} else {
+		ret.SetErrCode(ERRCODE_PARAM)
+	}
+
 }
 
 //忘记密码
@@ -220,11 +232,10 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 		return
 	}
 
-	if ok:=check.CheckPhone(param.Phone);!ok {
+	if ok := check.CheckPhone(param.Phone); !ok {
 		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
 		return
 	}
-
 
 	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Type)
 	if err != nil {
@@ -274,7 +285,7 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 		return
 	}
 
-	if ok:=check.CheckEmail(param.Email);!ok {
+	if ok := check.CheckEmail(param.Email); !ok {
 		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
 		return
 	}

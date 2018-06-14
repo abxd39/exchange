@@ -39,6 +39,7 @@ func NewMysql() (mysql *Mysql) {
 func (s *Dao) GetMysqlConn() *xorm.Engine {
 	return s.mysql.im
 }
+
 /*
 func (s *Dao) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 	if ret := s.CheckUserExist(req.Phone, "phone"); ret != ERRCODE_SUCCESS {
