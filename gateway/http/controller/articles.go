@@ -15,9 +15,9 @@ type ArticlesGroup struct{}
 func (this *ArticlesGroup) Router(r *gin.Engine) {
 	Articles := r.Group("/articles")
 	{
-		fmt.Println("ccc")
-		Articles.GET("/des/:id", this.ArticlesDetail)
-		Articles.GET("/list", this.ArticlesList)
+
+		Articles.GET("/des", this.ArticlesDetail)
+		Articles.POST("/list", this.ArticlesList)
 
 	}
 }
@@ -27,31 +27,31 @@ type ArticlesDetailParam struct {
 }
 
 func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
-	fmt.Println("bbb")
 	ret := NewErrorMessage()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
+
 	var param ArticlesDetailParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret[ErrCodeRet] = ERRCODE_PARAM
 		ret[ErrCodeMessage] = err.Error()
+
 		return
 	}
-
+	fmt.Println(param)
 	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.ID)
-	fmt.Println("aaa")
+
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
 		ret[ErrCodeMessage] = err.Error()
 		return
 	}
-
 	ret[ErrCodeRet] = rsp.Err
 	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
 	d := ret[RetData].(map[string]interface{})
-	d["id"] = rsp.Id
+	d["Id"] = rsp.Id
 	d["Title"] = rsp.Title
 	d["Description"] = rsp.Description
 	d["Content"] = rsp.Content

@@ -1,9 +1,9 @@
 package models
 
 import (
+	"time"
 	. "digicon/wallet_service/utils"
 	. "github.com/ethereum/go-ethereum/cmd/wallet"
-	"time"
 )
 
 type Keystores struct {
@@ -19,20 +19,20 @@ type Keystores struct {
 	Type       string    `xorm:"not null comment('钱包类型（eth,btc）') CHAR(20)"`
 }
 
-func (this *Keystores) Create() error {
+func (this *Keystores)Create() error{
 	this.Updatetime = time.Now()
 	this.Createtime = time.Now()
-	_, err := Engine.Insert(this)
+	_,err := Engine.Insert(this)
 	return err
 }
 
 //创建以太坊钱包
-func Neweth(userid int, tokenid int, password string) (addr string, err error) {
-	var keystoreModel = Keystores{Userid: userid, Password: password, Tokenid: tokenid, Type: "eth"}
-	keystoreModel.Address, keystoreModel.Keystore, keystoreModel.Privatekey, err = New_keystore(password)
+func Neweth(userid int,tokenid int,password string)(addr string,err error){
+	var keystoreModel = Keystores{Userid:userid,Password:password,Tokenid:tokenid,Type:"eth"}
+	keystoreModel.Address,keystoreModel.Keystore,keystoreModel.Privatekey,err =New_keystore(password)
 	if err != nil {
-		return "", err
+		return "",err
 	}
 	err = keystoreModel.Create()
-	return keystoreModel.Address, err
+	return keystoreModel.Address,err
 }

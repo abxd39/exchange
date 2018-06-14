@@ -14,6 +14,11 @@ message HelloResponse2 {
 	string greeting = 2;
 }
 
+message CreateWalletPos{
+    string type=1;
+    string addr=2;
+}
+
 message CreateWalletRequest{
     int32 userid=1;
     int32 tokenid=2;
@@ -22,6 +27,5 @@ message CreateWalletRequest{
 message CreateWalletResponse{
     string code=1;
     string msg=2;
-    string type=3;
-    string addr=4;
+    CreateWalletPos data=3;
 }
