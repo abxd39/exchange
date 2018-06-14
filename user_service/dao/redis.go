@@ -11,11 +11,10 @@ import (
 )
 
 type RedisCli struct {
-	rcon    *redis.Client
+	rcon   *redis.Client
 	KeyTtl time.Duration
-	salt    string
+	salt   string
 }
-
 
 func NewRedisCli() *RedisCli {
 	addr := cf.Cfg.MustValue("redis", "addr")
@@ -37,8 +36,8 @@ func NewRedisCli() *RedisCli {
 		ct = 30
 	}
 	return &RedisCli{
-		rcon:    client,
-		salt:    "mjfdsap832-1##1!",
+		rcon:   client,
+		salt:   "mjfdsap832-1##1!",
 		KeyTtl: time.Duration(ct) * time.Second,
 	}
 }

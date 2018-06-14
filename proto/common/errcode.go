@@ -70,3 +70,43 @@ func init() {
 	message[ERRCODE_SMS_MONEY_ENGOUGE] = "无发送额度"
 	message[ERRCODE_SMS_PARAM] = "请求参数错误"
 }
+
+type PublicErrorType struct {
+	ret  gin.H
+	data map[string]interface{}
+}
+
+func NewPublciError() *PublicErrorType {
+	s := new(PublicErrorType)
+	s.init()
+	return s
+}
+
+func (s *PublicErrorType) init() {
+	var ret = gin.H{}
+	//s.data := make(map[string]interface{}, 0)
+	ret[ErrCodeRet] = 0
+	ret[ErrCodeMessage] = 0
+	//ret[RetData] = data
+	s.ret = ret
+	s.data = make(map[string]interface{}, 0)
+}
+
+func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
+	s.ret[ErrCodeRet] = code
+	if len(err_msg) > 0 {
+		s.ret[ErrCodeMessage] = err_msg[0]
+	} else {
+		s.ret[ErrCodeMessage] = GetErrorMessage(code)
+	}
+}
+
+func (s *PublicErrorType) SetDataSection(key string, value interface{}) {
+	//d := s.ret[RetData].(map[string]interface{})
+	s.data[key] = value
+}
+
+func (s *PublicErrorType) GetResult() gin.H {
+	s.ret[RetData] = s.data
+	return s.ret
+}

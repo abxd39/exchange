@@ -27,7 +27,6 @@ func (this *UserGroup) Router(r *gin.Engine) {
 }
 
 func RegisterController(c *gin.Context) {
-
 	ty, ok := c.GetPostForm("type")
 	if !ok {
 		ret := NewErrorMessage()
@@ -56,34 +55,28 @@ type RegisterByPhoneParam struct {
 
 //用户注册by phone
 func RegisterPhoneController(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	var param RegisterByPhoneParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	if param.Pwd != param.Confirm {
-		ret[ErrCodeRet] = ERRCODE_PWD_COMFIRM
-		ret[ErrCodeMessage] = GetErrorMessage(ERRCODE_PWD_COMFIRM)
+		ret.SetErrCode(ERRCODE_PWD_COMFIRM)
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallRegisterByPhone(param.Phone, param.Pwd, param.InviteCode, param.Country, param.Code)
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
-
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
 type RegisterByEmailParam struct {
@@ -97,34 +90,29 @@ type RegisterByEmailParam struct {
 
 //用户注册by email
 func RegisterEmailController(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
 	var param RegisterByEmailParam
-	if err := c.ShouldBind(&param); err != nil {
+	if err := c.ShouldBindQuery(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	if param.Pwd != param.Confirm {
-		ret[ErrCodeRet] = ERRCODE_PWD_COMFIRM
-		ret[ErrCodeMessage] = GetErrorMessage(ERRCODE_PWD_COMFIRM)
+		ret.SetErrCode(ERRCODE_PWD_COMFIRM)
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallRegisterByEmail(param.Email, param.Pwd, param.InviteCode, param.Country)
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
 type LoginParam struct {
@@ -134,26 +122,25 @@ type LoginParam struct {
 
 //用户登陆
 func LoginController(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
 	var param LoginParam
+
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Phone, param.Pwd)
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
 type ForgetPwdParam struct {
@@ -162,7 +149,7 @@ type ForgetPwdParam struct {
 
 //忘记密码
 func ForgetPwdController(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
@@ -170,23 +157,19 @@ func ForgetPwdController(c *gin.Context) {
 	var param ForgetPwdParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallForgetPwd(param.Phone)
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
-	d := ret[RetData].(map[string]interface{})
-	d["phone"] = rsp.Phone
-	d["email"] = rsp.Email
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("phone", rsp.Phone)
+	ret.SetDataSection("email", rsp.Email)
 }
 
 type AuthSecurityParam struct {
@@ -197,28 +180,23 @@ type AuthSecurityParam struct {
 
 //提交手机验证
 func AuthSecurityController(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	var param AuthSecurityParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallAuthSecurity(param.Phone, param.PhoneCode, param.EmailCode)
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
-	d := ret[RetData].(map[string]interface{})
-	d["security_key"] = rsp.SecurityKey
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
 type PhoneParam struct {
@@ -228,26 +206,23 @@ type PhoneParam struct {
 
 //发生短信
 func SendPhoneSMSController(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	var param PhoneParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Type)
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
 type ChangePwdParam struct {
@@ -258,15 +233,14 @@ type ChangePwdParam struct {
 
 //改密码
 func ChangePwdcontroller(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	var param ChangePwdParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
@@ -278,16 +252,15 @@ type EamilParam struct {
 
 //发生邮箱验证
 func SendEmailController(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
 	var param EamilParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 }

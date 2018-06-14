@@ -10,10 +10,10 @@ import (
 
 func initRouter() *gin.Engine {
 	r := gin.Default()
-	gin.SetMode(gin.ReleaseMode)
+	//gin.SetMode(gin.ReleaseMode)
 
 	new(controller.UserGroup).Router(r)
-	new(controller.WalletController).Router(r)
+	new(controller.WalletGroup).Router(r)
 	new(controller.ArticlesGroup).Router(r)
 	return r
 }

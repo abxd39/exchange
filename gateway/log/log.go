@@ -18,6 +18,7 @@ func InitLog() {
 	if err == nil {
 		Log.Out = file
 	} else {
-		panic("Failed to log to file, using default stderr")
+		Log.Out = os.Stdout
+		//panic("Failed to log to file, using default stderr")
 	}
 }
