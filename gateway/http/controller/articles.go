@@ -35,8 +35,8 @@ func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
 	var param ArticlesDetailParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = err.Error()
 
 		return
 	}
@@ -44,13 +44,13 @@ func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
 	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.Id)
 
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret[ERR_CODE_RET] = ERRCODE_UNKNOWN
+		ret[ERR_CODE_MESSAGE] = err.Error()
 		return
 	}
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
-	d := ret[RetData].(map[string]interface{})
+	ret[ERR_CODE_RET] = rsp.Err
+	ret[ERR_CODE_MESSAGE] = GetErrorMessage(rsp.Err)
+	d := ret[RET_DATA].(map[string]interface{})
 	d["Id"] = rsp.Id
 	d["Title"] = rsp.Title
 	d["Description"] = rsp.Description
@@ -85,21 +85,21 @@ func (this *ArticlesGroup) ArticlesList(c *gin.Context) {
 	var param ArticlesListParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = err.Error()
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = err.Error()
 		return
 	}
 
 	rsp, err := rpc.InnerService.PublicService.CallArticlesList()
 	if err != nil {
-		ret[ErrCodeRet] = ERRCODE_UNKNOWN
-		ret[ErrCodeMessage] = err.Error()
+		ret[ERR_CODE_RET] = ERRCODE_UNKNOWN
+		ret[ERR_CODE_MESSAGE] = err.Error()
 		return
 	}
 
-	ret[ErrCodeRet] = rsp.Err
-	ret[ErrCodeMessage] = GetErrorMessage(rsp.Err)
+	ret[ERR_CODE_RET] = rsp.Err
+	ret[ERR_CODE_MESSAGE] = GetErrorMessage(rsp.Err)
 
-	d := ret[RetData].(map[string]interface{})
+	d := ret[RET_DATA].(map[string]interface{})
 	d["Articles"] = rsp.Articles
 }

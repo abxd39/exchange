@@ -4,7 +4,7 @@ import (
 	"digicon/common/sms"
 	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
-	"digicon/user_service/model"
+	//"digicon/user_service/model"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -18,7 +18,15 @@ func Send253YunSms(phone, code string) (rcode int32, msg string) {
 		msg = err.Error()
 		return
 	}
-	p := &model.SmsRet{}
+
+	type SmsRet struct {
+		Code      string `json:"code"`
+		MessageId string `json:"msg_id"`
+		Time      string `json:"time"`
+		ErrorMsg  string `json:"error_msg"`
+	}
+
+	p := &SmsRet{}
 	err = json.Unmarshal([]byte(ret), p)
 	if err != nil {
 		rcode = ERRCODE_UNKNOWN

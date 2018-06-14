@@ -2,9 +2,9 @@ package errdefine
 
 import "github.com/gin-gonic/gin"
 
-var ErrCodeRet = "code"
-var ErrCodeMessage = "msg"
-var RetData = "data"
+var ERR_CODE_RET = "code"
+var ERR_CODE_MESSAGE = "msg"
+var RET_DATA = "data"
 
 var message map[int32]string
 
@@ -13,20 +13,21 @@ const (
 	ERRCODE_SUCCESS          = 0
 	ERRCODE_UNKNOWN          = 1
 	ERRCODE_PARAM            = 2
-	ERRCODE_ACCOUNT_EXIST    = 4
-	ERRCODE_ACCOUNT_NOTEXIST = 5
-	ERRCODE_PWD              = 6
-	ERRCODE_PWD_COMFIRM      = 7
-	ERRCODE_SECURITY_KEY     = 8
-	ERRCODE_SMS_CODE_DIFF    = 9
-	ERRCODE_SMS_CODE_NIL     = 10
 
-	//100-130 sms
-	ERRCODE_SMS_COMMIT_QUICK  = 103
-	ERRCODE_SMS_SYS_BUSY      = 104
-	ERRCODE_SMS_TEL_FORMAT    = 107
-	ERRCODE_SMS_MONEY_ENGOUGE = 109
-	ERRCODE_SMS_PARAM         = 130
+	//200-
+	ERRCODE_ACCOUNT_EXIST    	= 202
+	ERRCODE_ACCOUNT_NOTEXIST 	= 203
+	ERRCODE_PWD              	= 204
+	ERRCODE_PWD_COMFIRM      	= 205
+	ERRCODE_SECURITY_KEY     	= 206
+	ERRCODE_SMS_CODE_DIFF    	= 207
+	ERRCODE_SMS_CODE_NIL     	= 208
+	ERRCODE_SMS_COMMIT_QUICK  	= 209
+	ERRCODE_SMS_SYS_BUSY      	= 210
+	ERRCODE_SMS_MONEY_ENGOUGE 	= 211
+	ERRCODE_SMS_PHONE_FORMAT	= 212
+	ERRCODE_SMS_EMAIL_FORMAT	= 213
+	//300-
 )
 
 func GetErrorMessage(code int32) string {
@@ -44,10 +45,9 @@ func CheckErrorMessage(code int32) (ret string, ok bool) {
 func NewErrorMessage() gin.H {
 	var ret = gin.H{}
 	data := make(map[string]interface{}, 0)
-	ret[ErrCodeRet] = 0
-	ret[ErrCodeMessage] = 0
-	ret[RetData] = data
-
+	ret[ERR_CODE_RET] = 0
+	ret[ERR_CODE_MESSAGE] = 0
+	ret[RET_DATA] = data
 	return ret
 }
 
@@ -66,9 +66,9 @@ func init() {
 
 	message[ERRCODE_SMS_COMMIT_QUICK] = "提交过快"
 	message[ERRCODE_SMS_SYS_BUSY] = "系统忙"
-	message[ERRCODE_SMS_TEL_FORMAT] = "包含错误的手机号码"
 	message[ERRCODE_SMS_MONEY_ENGOUGE] = "无发送额度"
-	message[ERRCODE_SMS_PARAM] = "请求参数错误"
+	message[ERRCODE_SMS_PHONE_FORMAT] = "手机号格式错误"
+	message[ERRCODE_SMS_EMAIL_FORMAT] = "邮箱格式错误"
 }
 
 type PublicErrorType struct {
@@ -76,34 +76,39 @@ type PublicErrorType struct {
 	data map[string]interface{}
 }
 
+//创建统一错误返回格式
 func NewPublciError() *PublicErrorType {
 	s := new(PublicErrorType)
 	s.init()
 	return s
 }
 
+//初始化操作
 func (s *PublicErrorType) init() {
 	var ret = gin.H{}
-	ret[ErrCodeRet] = 0
-	ret[ErrCodeMessage] = 0
+	ret[ERR_CODE_RET] = 0
+	ret[ERR_CODE_MESSAGE] = 0
 	s.ret = ret
 	s.data = make(map[string]interface{}, 0)
 }
 
+//设置错误代码，如果有自定义错误信息填写err_msg参数
 func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
-	s.ret[ErrCodeRet] = code
+	s.ret[ERR_CODE_RET] = code
 	if len(err_msg) > 0 {
-		s.ret[ErrCodeMessage] = err_msg[0]
+		s.ret[ERR_CODE_MESSAGE] = err_msg[0]
 	} else {
-		s.ret[ErrCodeMessage] = GetErrorMessage(code)
+		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
 	}
 }
 
+//设置数据部分内容
 func (s *PublicErrorType) SetDataSection(key string, value interface{}) {
 	s.data[key] = value
 }
 
+//返回最终的数据
 func (s *PublicErrorType) GetResult() gin.H {
-	s.ret[RetData] = s.data
+	s.ret[RET_DATA] = s.data
 	return s.ret
 }

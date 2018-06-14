@@ -1,3 +1,4 @@
+//介绍用户基本操作的功能注册登录流程
 package controller
 
 import (
@@ -7,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"digicon/common/check"
 )
 
 type UserGroup struct{}
@@ -33,8 +35,8 @@ func (s *UserGroup) RegisterController(c *gin.Context) {
 		defer func() {
 			c.JSON(http.StatusOK, ret)
 		}()
-		ret[ErrCodeRet] = ERRCODE_PARAM
-		ret[ErrCodeMessage] = GetErrorMessage(ERRCODE_PARAM)
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
 		return
 	}
 	if ty == "1" { //1电话注册
@@ -80,8 +82,6 @@ func (s *UserGroup) RegisterPhoneController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-
-
 //用户注册by email
 func (s *UserGroup) RegisterEmailController(c *gin.Context) {
 	ret := NewPublciError()
@@ -118,8 +118,6 @@ func (s *UserGroup) RegisterEmailController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-
-
 //用户登陆
 func (s *UserGroup) LoginController(c *gin.Context) {
 	ret := NewPublciError()
@@ -147,14 +145,12 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-
 //忘记密码
-func  (s *UserGroup) ForgetPwdController(c *gin.Context) {
+func (s *UserGroup) ForgetPwdController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
-
 
 	type ForgetPwdParam struct {
 		Phone string `form:"phone" binding:"required"`
@@ -184,7 +180,6 @@ func (s *UserGroup) AuthSecurityController(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-
 	type AuthSecurityParam struct {
 		Phone     string `form:"phone" binding:"required"`
 		PhoneCode string `form:"phone_code" binding:"required"`
@@ -206,8 +201,7 @@ func (s *UserGroup) AuthSecurityController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-
-//发生短信
+//发送短信
 func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -226,6 +220,12 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 		return
 	}
 
+	if ok:=check.CheckPhone(param.Phone);!ok {
+		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
+		return
+	}
+
+
 	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Type)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
@@ -233,7 +233,6 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
-
 
 //改密码
 func (s *UserGroup) ChangePwdcontroller(c *gin.Context) {
@@ -264,15 +263,19 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-
 	type EamilParam struct {
-		Phone string `form:"phone" binding:"required"`
+		Email string `form:"email" binding:"required"`
 	}
 
 	var param EamilParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if ok:=check.CheckEmail(param.Email);!ok {
+		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
 		return
 	}
 }

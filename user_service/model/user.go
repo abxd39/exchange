@@ -1,5 +1,14 @@
 package model
 
+import (
+	"time"
+	"fmt"
+	proto "digicon/proto/rpc"
+	. "digicon/proto/common"
+	. "digicon/user_service/dao"
+	. "digicon/user_service/log"
+)
+
 type User struct {
 	Uid              int    `xorm:"not null pk autoincr INT(11)"`
 	Pwd              string `xorm:"VARCHAR(255)"`
@@ -11,6 +20,7 @@ type User struct {
 	GoogleVerifyTime int    `xorm:"INT(255)"`
 }
 
+/*
 type ArticlesStruct struct {
 	ID             int32
 	Description    string //重要 、一般
@@ -37,4 +47,148 @@ type ArticlesDetailStruct struct {
 	UpdateTime    string
 	AdminID       int32
 	AdminNickname string
+}
+*/
+
+
+func (s *User) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
+	if ret := s.CheckUserExist(req.Phone, "phone"); ret != ERRCODE_SUCCESS {
+		return ret
+	}
+
+	e := &User{
+		Pwd:   req.Pwd,
+		Phone: req.Phone,
+	}
+	_, err := DB.GetMysqlConn().Cols("pwd", "phone").Insert(e)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	_, err =DB.GetMysqlConn().Where("phone=?", req.Phone).Get(e)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	m := &UserEx{
+		Uid:          e.Uid,
+		RegisterTime: time.Now().Unix(),
+		InviteCode:   req.InviteCode,
+	}
+
+	_, err = DB.GetMysqlConn().Insert(m)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	return ERRCODE_SUCCESS
+}
+
+func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
+	if ret := s.CheckUserExist(req.Email, "email"); ret != ERRCODE_SUCCESS {
+		return ret
+	}
+
+	e := &User{
+		Pwd:   req.Pwd,
+		Email: req.Email,
+	}
+	_, err := DB.GetMysqlConn().Cols("pwd", "email").Insert(e)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	_, err =DB.GetMysqlConn().Where("email=?", req.Email).Get(e)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	m := &UserEx{
+		Uid:          e.Uid,
+		RegisterTime: time.Now().Unix(),
+		InviteCode:   req.InviteCode,
+	}
+
+	_, err = DB.GetMysqlConn().Insert(m)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	return ERRCODE_SUCCESS
+}
+
+func (s *User) CheckUserExist(param string, col string) int32 {
+	sql := fmt.Sprintf("%s=?", col)
+	ok, err := DB.GetMysqlConn().Where(sql, param).Get(&User{})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	if ok {
+		return ERRCODE_ACCOUNT_EXIST
+	}
+	return ERRCODE_SUCCESS
+}
+
+func (s *User) Login(phone, pwd string) int32 {
+	m := &User{}
+	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(m)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	if ok {
+		if m.Pwd == pwd {
+			return ERRCODE_SUCCESS
+		}
+		return ERRCODE_PWD
+	}
+	return ERRCODE_ACCOUNT_NOTEXIST
+}
+
+
+
+func (s *User) GetUserByPhone(phone string) (u *User, ret int32) {
+	u = &User{}
+	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+
+func (s *User) GetUserExByPhone(phone string) (u *UserEx, ret int32) {
+	u = &UserEx{}
+	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(u)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+
+func (s *User) ModifyPwd(phone string, pwd string) (ret int32) {
+	return 0
 }

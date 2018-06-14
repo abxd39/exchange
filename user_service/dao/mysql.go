@@ -1,12 +1,8 @@
 package dao
 
 import (
-	. "digicon/proto/common"
-	proto "digicon/proto/rpc"
 	"digicon/user_service/conf"
 	. "digicon/user_service/log"
-	"digicon/user_service/model"
-	"fmt"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -19,7 +15,6 @@ type Mysql struct {
 
 func NewMysql() (mysql *Mysql) {
 	dsource := conf.Cfg.MustValue("mysql", "conn")
-
 	//root:current@tcp(47.106.136.96:3306)/rumi?charset=utf8
 	engine, err := xorm.NewEngine("mysql", dsource)
 	if err != nil {
@@ -41,6 +36,10 @@ func NewMysql() (mysql *Mysql) {
 	return mysql
 }
 
+func (s *Dao) GetMysqlConn() *xorm.Engine {
+	return s.mysql.im
+}
+/*
 func (s *Dao) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 	if ret := s.CheckUserExist(req.Phone, "phone"); ret != ERRCODE_SUCCESS {
 		return ret
@@ -142,6 +141,7 @@ func (s *Dao) Login(phone, pwd string) int32 {
 	return ERRCODE_ACCOUNT_NOTEXIST
 }
 
+
 func (s Dao) GetUserByPhone(phone string) (u *model.User, ret int32) {
 	u = &model.User{}
 	ok, err := s.mysql.im.Where("phone=?", phone).Get(u)
@@ -155,7 +155,6 @@ func (s Dao) GetUserByPhone(phone string) (u *model.User, ret int32) {
 		ret = ERRCODE_SUCCESS
 		return
 	}
-
 	ret = ERRCODE_ACCOUNT_NOTEXIST
 	return
 }
@@ -180,9 +179,5 @@ func (s *Dao) GetUserExByPhone(phone string) (u *model.UserEx, ret int32) {
 
 func (s *Dao) ModifyPwd(phone string, pwd string) (ret int32) {
 	return 0
-	/*
-		u := model.User{}
-		u.Pwd = pwd
-		_, err := s.mysql.im.Where("phone=?", phone).Cols("pwd").Update(u)
-	*/
 }
+*/
