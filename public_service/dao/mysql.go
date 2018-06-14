@@ -4,7 +4,8 @@ import (
 	. "digicon/proto/common"
 	"digicon/public_service/conf"
 	. "digicon/public_service/log"
-	"digicon/user_service/model"
+	"digicon/public_service/model"
+	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -37,28 +38,35 @@ func NewMysql() (mysql *Mysql) {
 	return mysql
 }
 
-func (s *Dao) ArticlesList(tp, startRow, endRow int32, u *[]model.ArticlesStruct) int32 {
+func (s *Dao) ArticlesList(tp, page, page_num int32, u *[]model.Articles_list) int32 {
 	//err := s.mysql.im.Find(&u)
-	total, err := s.mysql.im.Where("type =?", tp).Count(&u)
+	default_page := int32(10)
+	list := new(model.Articles_list)
+	if page_num <= 0 {
+		page_num = default_page
+	}
+	total, err := s.mysql.im.Where("type =?", tp).Count(list)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
-	if startRow > endRow || startRow > int32(total) {
-		Log.Errorln("查询的其实行列不合法")
-		return ERRCODE_UNKNOWN
+	var count int32
+	if int32(total) <= default_page || page == 1 {
+		count = 1
+	} else {
+		count = page * page_num
 	}
-	s.mysql.im.Where("type=?", tp).Limit(int(startRow), int(endRow)).Find(&u)
+	err = s.mysql.im.Where("type=?", tp).Limit(int(page_num), int(count)).Find(u)
 	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		log.Fatalf(err.Error())
 	}
 	return ERRCODE_SUCCESS
+
 }
 
-func (s *Dao) ArticlesDescription(Id int32, u *model.ArticlesDetailStruct) int32 {
-	u = &model.ArticlesDetailStruct{}
-	ok, err := s.mysql.im.Where("ID=?", Id).Get(u)
+func (s *Dao) ArticlesDescription(Id int32, u *model.ArticlesCopy1) int32 {
+	//u = &model.ArticlesCopy1{}
+	ok, err := s.mysql.im.Where("id=?", Id).Get(u)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
