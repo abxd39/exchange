@@ -5,6 +5,7 @@ import (
 	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+	"fmt"
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -45,6 +46,7 @@ func (s *PublciRPCCli) CallArticlesDesc(id int32) (rsp *proto.ArticlesDetailResp
 	rsp, err = s.conn.ArticlesDetail(context.TODO(), &proto.ArticlesDetailRequest{
 		Id: id,
 	})
+	fmt.Println(err.Error())
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
