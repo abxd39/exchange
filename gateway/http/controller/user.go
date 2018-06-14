@@ -16,7 +16,7 @@ func (this *UserGroup) Router(r *gin.Engine) {
 	{
 		user.POST("/register", RegisterController)
 		//user.POST("/register_phone", RegisterPhoneController)
-		//user.POST("/register_email", RegisterEmailController)
+		//user.GET("/register_email", RegisterEmailController)
 		user.POST("/login", LoginController)
 		user.POST("/forget", ForgetPwdController)
 		user.POST("/auth", AuthSecurityController)

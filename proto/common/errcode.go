@@ -84,10 +84,8 @@ func NewPublciError() *PublicErrorType {
 
 func (s *PublicErrorType) init() {
 	var ret = gin.H{}
-	//s.data := make(map[string]interface{}, 0)
 	ret[ErrCodeRet] = 0
 	ret[ErrCodeMessage] = 0
-	//ret[RetData] = data
 	s.ret = ret
 	s.data = make(map[string]interface{}, 0)
 }
@@ -102,7 +100,6 @@ func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
 }
 
 func (s *PublicErrorType) SetDataSection(key string, value interface{}) {
-	//d := s.ret[RetData].(map[string]interface{})
 	s.data[key] = value
 }
 
