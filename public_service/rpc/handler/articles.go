@@ -4,6 +4,7 @@ import (
 	proto "digicon/proto/rpc"
 	. "digicon/public_service/dao"
 	"digicon/user_service/model"
+	"fmt"
 
 	"golang.org/x/net/context"
 )
@@ -27,24 +28,25 @@ func (s *RPCServer) ArticlesList(ctx context.Context, req *proto.ArticlesListReq
 func (s *RPCServer) ArticlesDetail(ctx context.Context, req *proto.ArticlesDetailRequest, rsp *proto.ArticlesDetailResponse) error {
 	result := model.ArticlesDetailStruct{}
 	rsp.Err = DB.ArticlesDescription(req.Id, &result)
-	ntc := proto.ArticlesDetailResponse{}
-	ntc.Id = result.ID
-	ntc.Title = result.Title
-	ntc.Description = result.Description
-	ntc.Content = result.Content
-	ntc.Covers = result.Covers
-	ntc.ContentImages = result.ContentImages
-	ntc.Type = result.Type
-	ntc.TypeName = result.TypeName
-	ntc.Author = result.Author
-	ntc.Weight = result.Weight
-	ntc.Shares = result.Shares
-	ntc.Hits = result.Hits
-	ntc.Comments = result.Comments
-	ntc.DisplayMark = result.DisplayMark
-	ntc.CreateTime = result.CreateTime
-	ntc.UpdateTime = result.UpdateTime
-	ntc.AdminId = result.AdminID
-	ntc.AdminNickname = result.AdminNickname
+	fmt.Println(result)
+	//ntc := proto.ArticlesDetailResponse{}
+	rsp.Id = result.ID
+	rsp.Title = result.Title
+	rsp.Description = result.Description
+	rsp.Content = result.Content
+	rsp.Covers = result.Covers
+	rsp.ContentImages = result.ContentImages
+	rsp.Type = result.Type
+	rsp.TypeName = result.TypeName
+	rsp.Author = result.Author
+	rsp.Weight = result.Weight
+	rsp.Shares = result.Shares
+	rsp.Hits = result.Hits
+	rsp.Comments = result.Comments
+	rsp.DisplayMark = result.DisplayMark
+	rsp.CreateTime = result.CreateTime
+	rsp.UpdateTime = result.UpdateTime
+	rsp.AdminId = result.AdminID
+	rsp.AdminNickname = result.AdminNickname
 	return nil
 }
