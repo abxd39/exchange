@@ -4,7 +4,7 @@ import (
 	"digicon/common/sms"
 	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
-	"digicon/user_service/model"
+	//"digicon/user_service/model"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -18,7 +18,15 @@ func Send253YunSms(phone, code string) (rcode int32, msg string) {
 		msg = err.Error()
 		return
 	}
-	p := &model.SmsRet{}
+
+	type SmsRet struct {
+		Code      string `json:"code"`
+		MessageId string `json:"msg_id"`
+		Time      string `json:"time"`
+		ErrorMsg  string `json:"error_msg"`
+	}
+
+	p := &SmsRet{}
 	err = json.Unmarshal([]byte(ret), p)
 	if err != nil {
 		rcode = ERRCODE_UNKNOWN
@@ -27,13 +35,35 @@ func Send253YunSms(phone, code string) (rcode int32, msg string) {
 	}
 
 	code_, _ := strconv.Atoi(p.Code)
-	msg, ok := CheckErrorMessage(int32(code_))
-	if ok {
+	//msg, ok := CheckErrorMessage(int32(code_))
+	switch int32(code_) {
+	case 0:
 		rcode = ERRCODE_SUCCESS
-		msg = msg
-	} else {
+		return
+	case 109:
+		rcode = ERRCODE_SMS_MONEY_ENGOUGE
+		return
+	case 104:
+		rcode = ERRCODE_SMS_SYS_BUSY
+		return
+	case 103:
+		rcode = ERRCODE_SMS_COMMIT_QUICK
+		return
+	default:
 		rcode = ERRCODE_UNKNOWN
 		msg = p.ErrorMsg
+		return
 	}
+
+	return
+	/*
+		if ok {
+			rcode = ERRCODE_SUCCESS
+			msg = msg
+		} else {
+			rcode = ERRCODE_UNKNOWN
+			msg = p.ErrorMsg
+		}
+	*/
 	return
 }

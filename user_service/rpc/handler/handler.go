@@ -9,6 +9,7 @@ import (
 	"digicon/common/random"
 	cf "digicon/user_service/conf"
 	. "digicon/user_service/log"
+	"digicon/user_service/model"
 	"digicon/user_service/tools"
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
@@ -35,7 +36,8 @@ func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhon
 	}
 
 	if req.Code == code {
-		rsp.Err = DB.RegisterByPhone(req)
+		u := &model.User{}
+		rsp.Err = u.RegisterByPhone(req)
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
@@ -46,19 +48,27 @@ func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhon
 }
 
 func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmailRequest, rsp *proto.CommonErrResponse) error {
-	rsp.Err = DB.RegisterByEmail(req)
+	u := &model.User{}
+	rsp.Err = u.RegisterByEmail(req)
 	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }
 
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
-	rsp.Err = DB.Login(req.Phone, req.Pwd)
-	rsp.Message = GetErrorMessage(rsp.Err)
+	u := &model.User{}
+	if req.Type == 1 {
+		rsp.Err = u.LoginByPhone(req.Phone, req.Pwd)
+		rsp.Message = GetErrorMessage(rsp.Err)
+	} else if req.Type == 2 {
+		rsp.Err = u.LoginByEmail(req.Email, req.Pwd)
+		rsp.Message = GetErrorMessage(rsp.Err)
+	}
 	return nil
 }
 
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
-	u, ret := DB.GetUserByPhone(req.Phone)
+	u := &model.User{}
+	u, ret := u.GetUserByPhone(req.Phone)
 	if ret != ERRCODE_SUCCESS {
 		rsp.Err = ret
 		rsp.Message = GetErrorMessage(ret)

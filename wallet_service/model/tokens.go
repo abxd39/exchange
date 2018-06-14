@@ -1,8 +1,9 @@
 package models
 
-import(
+import (
 	. "digicon/wallet_service/utils"
 )
+
 type Tokens struct {
 	Id      int    `xorm:"not null pk INT(11)"`
 	Name    string `xorm:"comment('货币名称') VARCHAR(180)"`
@@ -13,7 +14,6 @@ type Tokens struct {
 	Data    string `xorm:"comment('合约地址') CHAR(60)"`
 }
 
-
-func (this *Tokens) GetByid()(bool, error){
+func (this *Tokens) GetByid() (bool, error) {
 	return Engine.Id(this.Id).Get(this)
 }

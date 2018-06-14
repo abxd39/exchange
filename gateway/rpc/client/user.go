@@ -50,10 +50,12 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 	return
 }
 
-func (s *UserRPCCli) CallLogin(phone, pwd string) (rsp *proto.LoginResponse, err error) {
+func (s *UserRPCCli) CallLogin(phone, email, pwd string, ty int32) (rsp *proto.LoginResponse, err error) {
 	rsp, err = s.conn.Login(context.TODO(), &proto.LoginRequest{
 		Phone: phone,
+		Email: email,
 		Pwd:   pwd,
+		Type:  ty,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
