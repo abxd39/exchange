@@ -17,13 +17,13 @@ func (this *ArticlesGroup) Router(r *gin.Engine) {
 	{
 
 		Articles.GET("/des", this.ArticlesDetail)
-		Articles.POST("/list", this.ArticlesList)
+		Articles.GET("/list", this.ArticlesList)
 
 	}
 }
 
 type ArticlesDetailParam struct {
-	ID int32 `form:"id" binding:"required"`
+	Id int32 `form:"id" binding:"required"`
 }
 
 func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
@@ -41,7 +41,7 @@ func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
 		return
 	}
 	fmt.Println(param)
-	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.ID)
+	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.Id)
 
 	if err != nil {
 		ret[ErrCodeRet] = ERRCODE_UNKNOWN
