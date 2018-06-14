@@ -11,22 +11,22 @@ import (
 
 type UserGroup struct{}
 
-func (this *UserGroup) Router(r *gin.Engine) {
+func (s *UserGroup) Router(r *gin.Engine) {
 	user := r.Group("/user")
 	{
-		user.POST("/register", RegisterController)
+		user.POST("/register", s.RegisterController)
 		//user.POST("/register_phone", RegisterPhoneController)
 		//user.GET("/register_email", RegisterEmailController)
-		user.POST("/login", LoginController)
-		user.POST("/forget", ForgetPwdController)
-		user.POST("/auth", AuthSecurityController)
-		user.POST("/change_pwd", ChangePwdcontroller)
-		user.POST("/send_sms", SendPhoneSMSController)
-		user.POST("/send_email", SendEmailController)
+		user.POST("/login", s.LoginController)
+		user.POST("/forget", s.ForgetPwdController)
+		user.POST("/auth", s.AuthSecurityController)
+		user.POST("/change_pwd", s.ChangePwdcontroller)
+		user.POST("/send_sms", s.SendPhoneSMSController)
+		user.POST("/send_email", s.SendEmailController)
 	}
 }
 
-func RegisterController(c *gin.Context) {
+func (s *UserGroup) RegisterController(c *gin.Context) {
 	ty, ok := c.GetPostForm("type")
 	if !ok {
 		ret := NewErrorMessage()
@@ -38,27 +38,28 @@ func RegisterController(c *gin.Context) {
 		return
 	}
 	if ty == "1" { //1电话注册
-		RegisterPhoneController(c)
+		s.RegisterPhoneController(c)
 	} else if ty == "2" { //邮箱注册
-		RegisterEmailController(c)
+		s.RegisterEmailController(c)
 	}
 }
 
-type RegisterByPhoneParam struct {
-	Phone      string `form:"phone" binding:"required"`
-	Pwd        string `form:"pwd" binding:"required"`
-	Confirm    string `form:"confirm" binding:"required"`
-	InviteCode string `form:"invite_code" binding:"required"`
-	Country    int    `form:"country" binding:"required"`
-	Code       string `form:"code" binding:"required"`
-}
-
 //用户注册by phone
-func RegisterPhoneController(c *gin.Context) {
+func (s *UserGroup) RegisterPhoneController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
+	type RegisterByPhoneParam struct {
+		Phone      string `form:"phone" binding:"required"`
+		Pwd        string `form:"pwd" binding:"required"`
+		Confirm    string `form:"confirm" binding:"required"`
+		InviteCode string `form:"invite_code" binding:"required"`
+		Country    int    `form:"country" binding:"required"`
+		Code       string `form:"code" binding:"required"`
+	}
+
 	var param RegisterByPhoneParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
@@ -79,21 +80,23 @@ func RegisterPhoneController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-type RegisterByEmailParam struct {
-	Email      string `form:"email" binding:"required"`
-	Pwd        string `form:"pwd" binding:"required"`
-	Confirm    string `form:"confirm" binding:"required"`
-	InviteCode string `form:"invite_code" binding:"required"`
-	Country    int    `form:"country" binding:"required"`
-	Code       string `form:"code" binding:"required"`
-}
+
 
 //用户注册by email
-func RegisterEmailController(c *gin.Context) {
+func (s *UserGroup) RegisterEmailController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
+	type RegisterByEmailParam struct {
+		Email      string `form:"email" binding:"required"`
+		Pwd        string `form:"pwd" binding:"required"`
+		Confirm    string `form:"confirm" binding:"required"`
+		InviteCode string `form:"invite_code" binding:"required"`
+		Country    int    `form:"country" binding:"required"`
+		Code       string `form:"code" binding:"required"`
+	}
 
 	var param RegisterByEmailParam
 	if err := c.ShouldBindQuery(&param); err != nil {
@@ -115,18 +118,19 @@ func RegisterEmailController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-type LoginParam struct {
-	Phone string `form:"phone" binding:"required"`
-	Pwd   string `form:"pwd" binding:"required"`
-}
+
 
 //用户登陆
-func LoginController(c *gin.Context) {
+func (s *UserGroup) LoginController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
+	type LoginParam struct {
+		Phone string `form:"phone" binding:"required"`
+		Pwd   string `form:"pwd" binding:"required"`
+	}
 	var param LoginParam
 
 	if err := c.ShouldBind(&param); err != nil {
@@ -143,17 +147,18 @@ func LoginController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-type ForgetPwdParam struct {
-	Phone string `form:"phone" binding:"required"`
-}
 
 //忘记密码
-func ForgetPwdController(c *gin.Context) {
+func  (s *UserGroup) ForgetPwdController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret)
 	}()
 
+
+	type ForgetPwdParam struct {
+		Phone string `form:"phone" binding:"required"`
+	}
 	var param ForgetPwdParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
@@ -172,18 +177,20 @@ func ForgetPwdController(c *gin.Context) {
 	ret.SetDataSection("email", rsp.Email)
 }
 
-type AuthSecurityParam struct {
-	Phone     string `form:"phone" binding:"required"`
-	PhoneCode string `form:"phone_code" binding:"required"`
-	EmailCode string `form:"email_code" binding:"required"`
-}
-
 //提交手机验证
-func AuthSecurityController(c *gin.Context) {
+func (s *UserGroup) AuthSecurityController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
+
+	type AuthSecurityParam struct {
+		Phone     string `form:"phone" binding:"required"`
+		PhoneCode string `form:"phone_code" binding:"required"`
+		EmailCode string `form:"email_code" binding:"required"`
+	}
+
 	var param AuthSecurityParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
@@ -199,17 +206,19 @@ func AuthSecurityController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-type PhoneParam struct {
-	Phone string `form:"phone" binding:"required"`
-	Type  int32  `form:"type" binding:"required"`
-}
 
 //发生短信
-func SendPhoneSMSController(c *gin.Context) {
+func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
+	type PhoneParam struct {
+		Phone string `form:"phone" binding:"required"`
+		Type  int32  `form:"type" binding:"required"`
+	}
+
 	var param PhoneParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
@@ -225,18 +234,20 @@ func SendPhoneSMSController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-type ChangePwdParam struct {
-	SecurityKey string `form:"security_key" binding:"required"`
-	Phone       string `form:"phone" binding:"required"`
-	Pwd         string `form:"pwd" binding:"required"`
-}
 
 //改密码
-func ChangePwdcontroller(c *gin.Context) {
+func (s *UserGroup) ChangePwdcontroller(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
+	type ChangePwdParam struct {
+		SecurityKey string `form:"security_key" binding:"required"`
+		Phone       string `form:"phone" binding:"required"`
+		Pwd         string `form:"pwd" binding:"required"`
+	}
+
 	var param ChangePwdParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
@@ -246,16 +257,17 @@ func ChangePwdcontroller(c *gin.Context) {
 
 }
 
-type EamilParam struct {
-	Phone string `form:"phone" binding:"required"`
-}
-
 //发生邮箱验证
-func SendEmailController(c *gin.Context) {
+func (s *UserGroup) SendEmailController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
+
+	type EamilParam struct {
+		Phone string `form:"phone" binding:"required"`
+	}
 
 	var param EamilParam
 	if err := c.ShouldBind(&param); err != nil {
