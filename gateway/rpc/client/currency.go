@@ -39,3 +39,9 @@ func NewCurrencyRPCCli() (u *CurrencyRPCCli) {
 	}
 	return
 }
+
+// 调用 rpc 新增广告(买卖)
+func (s *CurrencyRPCCli) CallAddAds(req *proto.AdsRequest) (int, error) {
+	rsp, err := s.conn.AddAds(context.TODO(), req)
+	return int(rsp.Code), err
+}

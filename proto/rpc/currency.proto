@@ -3,6 +3,9 @@ package g2u;
 
 service CurrencyRPC {
     	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
+
+    	// 新增广告(买卖)
+    	rpc AddAds(AdsRequest) returns (CurrencyResponse){};
 }
 
 message AdminRequest {
@@ -15,3 +18,28 @@ message AdminResponse {
 	string data     =   3;
 }
 
+// 返回的状码
+message CurrencyResponse {
+	int32 code          =   1;
+}
+
+// 广告(买卖)
+message AdsRequest {
+    uint64 id           = 1;  // 用户ID
+    uint64 uid          = 2;  // 用户ID
+    uint32 type_id      = 3;  // 类型:1出售 2购买
+    uint32 token_id     = 4;  // 货币类型
+    string token_name   = 5;  // 货币名称
+    double price        = 6;  // 单价
+    double num          = 7;  // 数量
+    int32  premium      = 8;  // 溢价
+    double accept_price = 9;  // 可接受最低[高]单价
+    uint32 min_limit    = 10;  // 最小限额
+    uint32 max_limit    = 11;  // 最大限额
+    uint32 is_twolevel  = 12; // 是否要通过二级认证:0不通过 1通过
+    string pays         = 13; // 支付方式:以 , 分隔: 1,2,3
+    string remarks      = 14; // 交易备注
+    string reply        = 15; // 自动回复问候语
+    uint32 is_usd       = 16; // 是否美元支付:0否 1是
+    uint32 states       = 17; // 状态:0下架 1上架
+}

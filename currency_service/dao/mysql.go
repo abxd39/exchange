@@ -33,3 +33,7 @@ func NewMysql() (mysql *Mysql) {
 	}
 	return mysql
 }
+
+func (s *Dao) GetMysqlConn() *xorm.Engine {
+	return s.mysql.im
+}
