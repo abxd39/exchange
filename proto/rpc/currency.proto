@@ -8,6 +8,8 @@ service CurrencyRPC {
     	rpc AddAds(AdsRequest) returns (CurrencyResponse){};
     	// 修改广告(买卖)
     	rpc UpdatedAds(AdsRequest) returns (CurrencyResponse){};
+    	// 修改广告(买卖)状态
+    	rpc UpdatedAdsStatus(AdsStatusRequest) returns (CurrencyResponse){};
 }
 
 message AdminRequest {
@@ -22,12 +24,12 @@ message AdminResponse {
 
 // 返回的状码
 message CurrencyResponse {
-	int32 code          =   1;
+	int32 code      =   1;
 }
 
 // 广告(买卖)
 message AdsRequest {
-    uint64 id           = 1;  // 用户ID
+    uint64 id           = 1;  // 广告ID
     uint64 uid          = 2;  // 用户ID
     uint32 type_id      = 3;  // 类型:1出售 2购买
     uint32 token_id     = 4;  // 货币类型
@@ -46,4 +48,14 @@ message AdsRequest {
     uint32 states       = 17; // 状态:0下架 1上架
     string created_time = 18; // 创建时间
     string updated_time = 19; // 修改时间
+}
+
+message AdsIdRequest {
+    uint64 id           = 1;  // 广告ID
+}
+
+// 修改广告(买卖)状态
+message AdsStatusRequest {
+    uint64 id           = 1;  // 广告ID
+    uint32 status_id    = 2;  // 状态: 1下架 2上架 3正常(不删除) 4删除
 }

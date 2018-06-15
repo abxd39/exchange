@@ -40,6 +40,7 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsRequest, rsp *prot
 	ads.States = req.States
 	ads.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	ads.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
+	ads.IsDel = 0
 
 	code := ads.Add()
 	rsp.Code = int32(code)
@@ -69,5 +70,12 @@ func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsRequest, rsp *
 	code := ads.Update()
 	rsp.Code = int32(code)
 
+	return nil
+}
+
+// 修改广告(买卖)状态
+func (s *RPCServer) UpdatedAdsStatus(ctx context.Context, req *proto.AdsStatusRequest, rsp *proto.CurrencyResponse) error {
+	code := new(model.Ads).UpdatedAdsStatus(req.Id, req.StatusId)
+	rsp.Code = int32(code)
 	return nil
 }

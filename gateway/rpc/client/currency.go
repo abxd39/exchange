@@ -54,3 +54,9 @@ func (s *CurrencyRPCCli) CallUpdatedAds(req *proto.AdsRequest) (int, error) {
 	return int(rsp.Code), err
 }
 
+// 调用 rpc 修改广告(买卖)状态
+func (s *CurrencyRPCCli) CallUpdatedAdsStatus(req *proto.AdsStatusRequest) (int, error) {
+	rsp, err := s.conn.UpdatedAdsStatus(context.TODO(), req)
+	return int(rsp.Code), err
+}
+
