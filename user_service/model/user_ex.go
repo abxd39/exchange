@@ -8,3 +8,5 @@ type UserEx struct {
 	RealName     string `xorm:"comment(' 真名') VARCHAR(32)"`
 	IdentifyCard string `xorm:"comment('身份证号') VARCHAR(64)"`
 }
+
+

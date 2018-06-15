@@ -20,7 +20,13 @@ service UserRPC {
 	//发送邮箱验证码
     rpc SendEmail(EmailRequest) returns (CommonErrResponse) {}
     //获取谷歌验证密钥
-    rpc GetGoogleSecretKey(EmailRequest) returns (CommonErrResponse) {}
+    rpc GetGoogleSecretKey(GoogleAuthRequest) returns (GoogleAuthResponse) {}
+    //提交谷歌验证码
+    rpc AuthGoogleSecretKey(AuthGoogleSecretKeyRequest) returns (CommonErrResponse) {}
+}
+
+message NullRequest{
+
 }
 
 message CommonErrResponse{
@@ -103,5 +109,21 @@ message ChangePwdRequest {
 }
 
 
+message GoogleAuthRequest {
+    int32 uid       =1;
+}
+
+message GoogleAuthResponse {
+    int32 err               =1;
+    string message          =2;
+    string secret_key       =3;
+    string url              =4;
+}
+
+
+message AuthGoogleSecretKeyRequest {
+    int32 uid       =1;
+    uint32 code      =2;
+}
 
 

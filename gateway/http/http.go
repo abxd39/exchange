@@ -15,6 +15,9 @@ func initRouter() *gin.Engine {
 	new(controller.UserGroup).Router(r)
 	new(controller.WalletGroup).Router(r)
 	new(controller.ArticlesGroup).Router(r)
+	new(controller.ActionGroup).Router(r)
+	new(controller.CurrencyGroup).Router(r)
+
 	return r
 }
 

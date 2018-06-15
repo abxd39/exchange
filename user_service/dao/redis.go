@@ -43,7 +43,7 @@ func NewRedisCli() *RedisCli {
 
 func (s *Dao) GenSecurityKey(phone string) (security_key []byte, err error) {
 	security_key = encryption.Gensha256(phone, time.Now().Unix(), s.redis.salt)
-	err = s.redis.rcon.Set(tools.GetUserTagByLogic(phone, tools.LOGIC_SECURITY), security_key, s.redis.KeyTtl).Err()
+	err = s.redis.rcon.Set(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SECURITY), security_key, s.redis.KeyTtl).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -52,7 +52,7 @@ func (s *Dao) GenSecurityKey(phone string) (security_key []byte, err error) {
 }
 
 func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err error) {
-	security_key, err = s.redis.rcon.Get(tools.GetUserTagByLogic(phone, tools.LOGIC_SECURITY)).Bytes()
+	security_key, err = s.redis.rcon.Get(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SECURITY)).Bytes()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -61,7 +61,7 @@ func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err erro
 }
 
 func (s *Dao) SetSmsCode(phone string, code string, ty int32) (err error) {
-	err = s.redis.rcon.Set(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty), code, 600*time.Second).Err()
+	err = s.redis.rcon.Set(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SMS, ty), code, 600*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -70,8 +70,25 @@ func (s *Dao) SetSmsCode(phone string, code string, ty int32) (err error) {
 }
 
 func (s *Dao) GetSmsCode(phone string, ty int32) (code string, err error) {
+	code, err = s.redis.rcon.Get(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SMS, ty)).Result()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
 
-	code, err = s.redis.rcon.Get(tools.GetUserTagByLogic(phone, tools.LOGIC_SMS, ty)).Result()
+func (s *Dao) SetTmpGoogleSecertKey(uid int32, code string) (err error) {
+	err = s.redis.rcon.Set(tools.GetUserTagByLogic(uid, tools.UID_TAG_GOOGLE_SECERT_KEY), code, 600*time.Second).Err()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *Dao) GetTmpGoogleSecertKey(uid int32) (key string, err error) {
+	key, err = s.redis.rcon.Get(tools.GetUserTagByLogic(uid, tools.UID_TAG_GOOGLE_SECERT_KEY)).Result()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

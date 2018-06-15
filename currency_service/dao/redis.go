@@ -3,24 +3,32 @@ package dao
 import (
 	//"github.com/go-redis/redis"
 	// "github.com/golang/glog"
-	"fmt"
-	"github.com/garyburd/redigo/redis"
+	. "digicon/currency_service/log"
+	"github.com/go-redis/redis"
+	cf "digicon/currency_service/conf"
 )
 
 type RedisCli struct {
-	redis redis.Conn
+	rcon *redis.Client
 }
 
 func NewRedisCli() *RedisCli {
 
-	client, err := redis.Dial("tcp", "47.106.136.96:6379")
-	if err != nil {
-		fmt.Println("Connect to redis error", err)
-		return nil
-	}
+	addr := cf.Cfg.MustValue("redis", "addr")
 
-	defer client.Close()
+	client := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := client.Ping().Result()
+	if err != nil {
+		Log.Fatalf("redis connect faild ")
+	}
+	Log.Infoln(pong)
+
 	return &RedisCli{
-		redis: client,
+		rcon: client,
 	}
 }

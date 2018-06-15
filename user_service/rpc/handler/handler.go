@@ -22,7 +22,7 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 	rsp.Greeting = "Hello " + req.Name
 	return nil
 }
-
+//注册by手机
 func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhoneRequest, rsp *proto.CommonErrResponse) error {
 	code, err := DB.GetSmsCode(req.Phone, tools.SMS_REGISTER)
 	if err == redis.Nil {
@@ -47,6 +47,7 @@ func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhon
 	return nil
 }
 
+//注册by email
 func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmailRequest, rsp *proto.CommonErrResponse) error {
 	u := &model.User{}
 	rsp.Err = u.RegisterByEmail(req)
@@ -54,18 +55,20 @@ func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmai
 	return nil
 }
 
+//登陆
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
 	u := &model.User{}
-	if req.Type == 1 {
+	if req.Type == 1 {//手机登陆
 		rsp.Err = u.LoginByPhone(req.Phone, req.Pwd)
 		rsp.Message = GetErrorMessage(rsp.Err)
-	} else if req.Type == 2 {
+	} else if req.Type == 2 {//邮箱登陆
 		rsp.Err = u.LoginByEmail(req.Email, req.Pwd)
 		rsp.Message = GetErrorMessage(rsp.Err)
 	}
 	return nil
 }
 
+//忘记密码
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
 	u := &model.User{}
 	u, ret := u.GetUserByPhone(req.Phone)
@@ -81,6 +84,7 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 	return nil
 }
 
+//安全认证
 func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest, rsp *proto.SecurityResponse) error {
 	security_key, err := DB.GenSecurityKey(req.Phone)
 	if err != nil {
@@ -92,6 +96,8 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 	return nil
 }
 
+
+//发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
 	code := random.Random6dec()
 
@@ -113,10 +119,12 @@ func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *pro
 	return nil
 }
 
+//发送邮箱验证码
 func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp *proto.CommonErrResponse) error {
 	return nil
 }
 
+//改变密码
 func (s *RPCServer) ChangePwd(ctx context.Context, req *proto.ChangePwdRequest, rsp *proto.CommonErrResponse) error {
 	security_key, err := DB.GetSecurityKeyByPhone(req.Phone)
 	if err != nil {
