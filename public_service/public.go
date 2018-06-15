@@ -3,7 +3,7 @@ package main
 import (
 	cf "digicon/public_service/conf"
 	"digicon/public_service/dao"
-	. "digicon/public_service/log"
+	plog "digicon/public_service/log"
 	"digicon/public_service/rpc"
 	"flag"
 	"os"
@@ -14,8 +14,8 @@ import (
 func main() {
 	flag.Parse()
 	cf.Init()
-	InitLog()
-	Log.Infof("begin run server")
+	plog.InitLog()
+	plog.Log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
 
@@ -27,5 +27,5 @@ func main() {
 	)
 
 	sig := <-quitChan
-	Log.Infof("server close by sig %s", sig.String())
+	plog.Log.Infof("server close by sig %s", sig.String())
 }

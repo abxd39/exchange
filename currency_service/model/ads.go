@@ -38,3 +38,13 @@ func (this *Ads) Add() int {
 
 	return ERRCODE_SUCCESS
 }
+
+func (this *Ads) Update() int {
+	_, err := dao.DB.GetMysqlConn().Id(this.Id).Update(this)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	return ERRCODE_SUCCESS
+}
