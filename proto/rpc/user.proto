@@ -23,6 +23,8 @@ service UserRPC {
     rpc GetGoogleSecretKey(GoogleAuthRequest) returns (GoogleAuthResponse) {}
     //提交谷歌验证码
     rpc AuthGoogleSecretKey(AuthGoogleSecretKeyRequest) returns (CommonErrResponse) {}
+    //删除谷歌验证码
+    rpc DelGoogleSecretKey(DelGoogleSecretKeyRequest) returns (CommonErrResponse) {}
 }
 
 message NullRequest{
@@ -120,10 +122,13 @@ message GoogleAuthResponse {
     string url              =4;
 }
 
-
 message AuthGoogleSecretKeyRequest {
     int32 uid       =1;
     uint32 code      =2;
 }
 
+message DelGoogleSecretKeyRequest {
+    int32 uid       =1;
+    uint32 code      =2;
+}
 

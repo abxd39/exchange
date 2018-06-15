@@ -3,9 +3,9 @@ package dao
 import (
 	//"github.com/go-redis/redis"
 	// "github.com/golang/glog"
+	cf "digicon/currency_service/conf"
 	. "digicon/currency_service/log"
 	"github.com/go-redis/redis"
-	cf "digicon/currency_service/conf"
 )
 
 type RedisCli struct {

@@ -147,6 +147,18 @@ func (s *UserRPCCli) CallAuthGoogleSecretKey(uid int32, code uint32) (rsp *proto
 	return
 }
 
+func (s *UserRPCCli) CallDelGoogleSecretKey(uid int32, code uint32) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.DelGoogleSecretKey(context.TODO(), &proto.DelGoogleSecretKeyRequest{
+		Uid:  uid,
+		Code: code,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))
