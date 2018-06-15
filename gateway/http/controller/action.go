@@ -15,6 +15,7 @@ func (s *ActionGroup) Router(r *gin.Engine) {
 	{
 		action.POST("/get_google_key", s.GetGoogleAuthCode)
 		action.POST("/auth_google_code", s.AuthGoogleCode)
+		action.POST("/del_google_code", s.DelGoogleCode)
 	}
 }
 
@@ -64,6 +65,30 @@ func (s *ActionGroup) AuthGoogleCode(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallAuthGoogleSecretKey(param.Uid, param.Code)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+}
+
+func (s *ActionGroup) DelGoogleCode(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type GoogleDelCodeParam struct {
+		Uid  int32  `form:"uid" binding:"required"`
+		Code uint32 `form:"code" binding:"required"`
+	}
+	var param GoogleDelCodeParam
+
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallDelGoogleSecretKey(param.Uid, param.Code)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return

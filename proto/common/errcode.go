@@ -28,8 +28,9 @@ const (
 	ERRCODE_SMS_PHONE_FORMAT  = 212
 	ERRCODE_SMS_EMAIL_FORMAT  = 213
 
-	ERRCODE_GOOGLE_CODE 	   = 214
-	ERRCODE_GOOGLE_CODE_EXIST  = 215
+	ERRCODE_GOOGLE_CODE           = 214
+	ERRCODE_GOOGLE_CODE_EXIST     = 215
+	ERRCODE_GOOGLE_CODE_NOT_EXIST = 216
 	//300-
 )
 
@@ -74,7 +75,7 @@ func init() {
 	message[ERRCODE_SMS_EMAIL_FORMAT] = "邮箱格式错误"
 	message[ERRCODE_GOOGLE_CODE] = "谷歌验证码错误"
 	message[ERRCODE_GOOGLE_CODE_EXIST] = "谷歌验证码已经存在无法重复拉取"
-
+	message[ERRCODE_GOOGLE_CODE_NOT_EXIST] = "谷歌验证码不存在无法删除"
 
 }
 

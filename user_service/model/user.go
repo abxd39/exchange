@@ -2,11 +2,13 @@ package model
 
 import (
 	"digicon/common/check"
+	"digicon/common/google"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -22,12 +24,12 @@ type User struct {
 	GoogleVerifyTime int    `xorm:"INT(255)"`
 }
 
-
 func GetUser(uid int32) *User {
 	u := &User{}
 	DB.GetMysqlConn().Where("uid=?", uid).Get(u)
 	return u
 }
+
 //通过手机注册
 func (s *User) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 	if ret := s.CheckUserExist(req.Phone, "phone"); ret != ERRCODE_SUCCESS {
@@ -176,7 +178,6 @@ func (s *User) GetUserByPhone(phone string) (u *User, ret int32) {
 	return
 }
 
-
 //修改密码
 func (s *User) ModifyPwd(phone string, pwd string) (ret int32) {
 	return 0
@@ -195,9 +196,46 @@ func (s *User) SetGoogleSecertKey(uid int32, secert_key string) (ret int32) {
 	return ERRCODE_SUCCESS
 }
 
-func (s *User) CheckGoogleExist() bool  {
-	if s.GoogleVerifyId=="" {
+func (s *User) CheckGoogleExist() bool {
+	if s.GoogleVerifyId == "" {
 		return false
 	}
 	return true
+}
+
+//验证谷歌验证码
+func (s *User) AuthGoogleCode(key string, input uint32) (ret int32, err error) {
+	code, _ := google.GenGoogleCode(key)
+	//code是16进制数据需要转成10进制
+	g := strconv.Itoa(int(code))
+	r, err := strconv.Atoi(g)
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if input == uint32(r) {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+	ret = ERRCODE_GOOGLE_CODE
+	return
+}
+
+//解绑谷歌私钥
+func (s *User) DelGoogleCode(input uint32) (ret int32, err error) {
+	ret, err = s.AuthGoogleCode(s.GoogleVerifyId, input)
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	s.GoogleVerifyId = ""
+	if ret == ERRCODE_SUCCESS {
+		_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("google_verify_id").Update(s)
+		if err != nil {
+			ret = ERRCODE_UNKNOWN
+			return
+		}
+	}
+	return
 }

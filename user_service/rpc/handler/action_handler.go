@@ -5,20 +5,21 @@ import (
 	"digicon/common/random"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
+	. "digicon/user_service/dao"
 	"digicon/user_service/model"
 	"fmt"
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 	"strconv"
-	. "digicon/user_service/dao"
+	"github.com/liudng/godump"
 )
 
 //提交谷歌验证码
 func (s *RPCServer) GetGoogleSecretKey(ctx context.Context, req *proto.GoogleAuthRequest, rsp *proto.GoogleAuthResponse) error {
 	u := model.GetUser(req.Uid)
-	if u.CheckGoogleExist() {//检查是否已经有谷歌私钥，有的话不能再次申请
-		rsp.Err=ERRCODE_GOOGLE_CODE_EXIST
-		rsp.Message=GetErrorMessage(rsp.Err)
+	if u.CheckGoogleExist() { //检查是否已经有谷歌私钥，有的话不能再次申请
+		rsp.Err = ERRCODE_GOOGLE_CODE_EXIST
+		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
 
@@ -39,13 +40,14 @@ func (s *RPCServer) AuthGoogleSecretKey(ctx context.Context, req *proto.AuthGoog
 		rsp.Err = ERRCODE_SMS_CODE_NIL
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
-	}else if err!=nil {
+	} else if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
 		rsp.Message = err.Error()
 		return nil
 	}
 
 	code, _ := google.GenGoogleCode(key)
+	//code是16进制数据需要转成10进制
 	g := strconv.Itoa(int(code))
 	r, err := strconv.Atoi(g)
 	if err != nil {
@@ -60,5 +62,26 @@ func (s *RPCServer) AuthGoogleSecretKey(ctx context.Context, req *proto.AuthGoog
 	} else {
 		rsp.Err = ERRCODE_GOOGLE_CODE
 	}
+	return nil
+}
+
+//解绑谷歌接口
+func (s *RPCServer) DelGoogleSecretKey(ctx context.Context, req *proto.DelGoogleSecretKeyRequest, rsp *proto.CommonErrResponse) error {
+	u := model.GetUser(req.Uid)
+	godump.Dump(u)
+	if !u.CheckGoogleExist() {
+		rsp.Err = ERRCODE_GOOGLE_CODE_NOT_EXIST
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
+
+	ret, err := u.DelGoogleCode(req.Code)
+	if err != nil {
+		rsp.Err = ret
+		rsp.Message = err.Error()
+		return err
+	}
+	rsp.Err = ret
+	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }

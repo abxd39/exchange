@@ -22,6 +22,7 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 	rsp.Greeting = "Hello " + req.Name
 	return nil
 }
+
 //注册by手机
 func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhoneRequest, rsp *proto.CommonErrResponse) error {
 	code, err := DB.GetSmsCode(req.Phone, tools.SMS_REGISTER)
@@ -58,10 +59,10 @@ func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmai
 //登陆
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
 	u := &model.User{}
-	if req.Type == 1 {//手机登陆
+	if req.Type == 1 { //手机登陆
 		rsp.Err = u.LoginByPhone(req.Phone, req.Pwd)
 		rsp.Message = GetErrorMessage(rsp.Err)
-	} else if req.Type == 2 {//邮箱登陆
+	} else if req.Type == 2 { //邮箱登陆
 		rsp.Err = u.LoginByEmail(req.Email, req.Pwd)
 		rsp.Message = GetErrorMessage(rsp.Err)
 	}
@@ -95,7 +96,6 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 	rsp.SecurityKey = security_key
 	return nil
 }
-
 
 //发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
