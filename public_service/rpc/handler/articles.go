@@ -15,7 +15,7 @@ func (s *RPCServer) ArticlesList(ctx context.Context, req *proto.ArticlesListReq
 	result := make([]model.Articles_list, 0)
 	rsp.Err = DB.ArticlesList(req.ArticlesType, req.Page, req.PageNum, &result)
 	ntc := proto.ArticlesListResponse_Articles{}
-	fmt.Println("00000001", result)
+	//fmt.Println("00000001", result)
 	for _, value := range result {
 		ntc.Id = int32(value.Id)
 		ntc.Title = value.Title
@@ -23,7 +23,7 @@ func (s *RPCServer) ArticlesList(ctx context.Context, req *proto.ArticlesListReq
 		ntc.CreateDateTime = value.CreateTime
 		rsp.Articles = append(rsp.Articles, &ntc)
 	}
-	fmt.Println("ArticlesList 列表为", ntc)
+	//fmt.Println("ArticlesList 列表为", ntc)
 	return nil
 }
 
@@ -36,8 +36,7 @@ func (s *RPCServer) ArticlesDetail(ctx context.Context, req *proto.ArticlesDetai
 		log.Fatalf("struct model.Articlescopy Marshal Fatalf!!")
 	}
 	//json.Unmarshal
-	//ntc := proto.ArticlesDetailResponse{}
 	rsp.Data = string(js)
-	fmt.Println(rsp.Data)
+	//fmt.Println(rsp.Data)
 	return nil
 }
