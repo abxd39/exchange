@@ -30,6 +30,22 @@ type Ads struct {
 	IsDel       uint32  `xorm:"TINYINT(1)" json:"is_del"`          // 是否删除:0不删除 1删除
 }
 
+func (this *Ads)Get(id uint64) *Ads {
+
+	data := new(Ads)
+	isdata, err := dao.DB.GetMysqlConn().Id(id).Get(data)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil
+	}
+
+	if !isdata {
+		return nil
+	}
+
+	return data
+}
+
 func (this *Ads) Add() int {
 	_, err := dao.DB.GetMysqlConn().Insert(this)
 	if err != nil {
@@ -41,6 +57,12 @@ func (this *Ads) Add() int {
 }
 
 func (this *Ads) Update() int {
+
+	isGet := this.Get(this.Id)
+	if isGet == nil {
+		return ERRCODE_ADS_NOTEXIST
+	}
+
 	_, err := dao.DB.GetMysqlConn().Id(this.Id).Update(this)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -56,6 +78,11 @@ func (this *Ads) Update() int {
 func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 
 	var err error
+
+	isGet := this.Get(id)
+	if isGet == nil {
+		return ERRCODE_ADS_NOTEXIST
+	}
 
 	if status_id == 1 || status_id == 2 {
 		_, err = dao.DB.GetMysqlConn().Exec("UPDATE `ads` SET `states`=? WHERE `id`=?", status_id-1, id)

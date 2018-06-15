@@ -91,22 +91,13 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 
 }
 
-<<<<<<< HEAD
-// 新增广告(买卖)
-=======
-// 修改广告(买卖)
->>>>>>> 9fbea3a28b7b687c6c8e3f5b7256cc587aec0938
 func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	ret := NewErrorMessage()
 
 	// 请求的数据结构
 	req := struct {
-<<<<<<< HEAD
-		Id          uint64  `form:"id" json:"id"`
-=======
 		Id          uint64  `form:"id" json:"id" binding:"required"`       // 广告ID
->>>>>>> 9fbea3a28b7b687c6c8e3f5b7256cc587aec0938
 		Price       float64 `form:"price" json:"price" binding:"required"` // 单价
 		Num         float64 `form:"num" json:"num" binding:"required"`     // 数量
 		Premium     int32   `form:"premium" json:"premium"`                // 溢价
@@ -145,8 +136,8 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	})
 
 	if err != nil || code != 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		ret[ERR_CODE_RET] = code
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(int32(code))
 		c.JSON(http.StatusOK, ret)
 		return
 	}
@@ -183,8 +174,8 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 	})
 
 	if err != nil || code != 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		ret[ERR_CODE_RET] = code
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(int32(code))
 		c.JSON(http.StatusOK, ret)
 		return
 	}
