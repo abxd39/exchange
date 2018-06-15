@@ -14,8 +14,12 @@ const (
 	LOGIC_SECURITY = 2 //重置密码业务
 )
 
+const (
+	UID_TAG_GOOGLE_SECERT_KEY = "google_secert"
+)
+
 //获取用户redis中逻辑标签信息
-func GetUserTagByLogic(phone string, logic int, others ...interface{}) string {
+func GetPhoneTagByLogic(phone string, logic int, others ...interface{}) string {
 	switch logic {
 	case LOGIC_SMS:
 		if len(others) > 0 {
@@ -41,4 +45,8 @@ func getUserTagSecurity(phone string) string {
 
 func getUserTagSms(phone string, ty int32) string {
 	return fmt.Sprintf("%s:Sms:%d", phone, ty)
+}
+
+func GetUserTagByLogic(uid int32, tag string) string {
+	return fmt.Sprintf("%s:%s", uid, tag)
 }

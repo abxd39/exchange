@@ -27,6 +27,8 @@ const (
 	ERRCODE_SMS_MONEY_ENGOUGE = 211
 	ERRCODE_SMS_PHONE_FORMAT  = 212
 	ERRCODE_SMS_EMAIL_FORMAT  = 213
+
+	ERRCODE_GOOGLE_CODE = 214
 	//300-
 )
 
@@ -69,6 +71,8 @@ func init() {
 	message[ERRCODE_SMS_MONEY_ENGOUGE] = "无发送额度"
 	message[ERRCODE_SMS_PHONE_FORMAT] = "手机号格式错误"
 	message[ERRCODE_SMS_EMAIL_FORMAT] = "邮箱格式错误"
+	message[ERRCODE_GOOGLE_CODE] = "谷歌验证码错误"
+
 }
 
 type PublicErrorType struct {
@@ -95,10 +99,13 @@ func (s *PublicErrorType) init() {
 //设置错误代码，如果有自定义错误信息填写err_msg参数
 func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
 	s.ret[ERR_CODE_RET] = code
-	if len(err_msg) > 0 {
-		s.ret[ERR_CODE_MESSAGE] = err_msg[0]
-	} else {
+
+	if code != ERRCODE_UNKNOWN {
 		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
+	} else {
+		if len(err_msg) > 0 {
+			s.ret[ERR_CODE_MESSAGE] = err_msg[0]
+		}
 	}
 }
 

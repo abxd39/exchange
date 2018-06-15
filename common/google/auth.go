@@ -66,5 +66,3 @@ func GenGoogleCode(input string) (pwd uint32, secondsRemaining int64) {
 	secondsRemaining = 30 - (epochSeconds % 30)
 	return
 }
-
-
