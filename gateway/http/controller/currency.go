@@ -13,8 +13,14 @@ type CurrencyGroup struct{}
 func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency")
 	{
+
 		Currency.POST("/add_ads", this.AddAds)         // 新增广告(买卖)
 		Currency.POST("/updated_ads", this.UpdatedAds) // 修改广告(买卖)
+
+		Currency.POST("/add_ads", this.AddAds)                      // 新增广告(买卖)
+		Currency.POST("/updated_ads", this.UpdatedAds)              // 修改广告(买卖)
+		Currency.POST("/updated_ads_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
+
 	}
 }
 
@@ -85,14 +91,22 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 
 }
 
+<<<<<<< HEAD
 // 新增广告(买卖)
+=======
+// 修改广告(买卖)
+>>>>>>> 9fbea3a28b7b687c6c8e3f5b7256cc587aec0938
 func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	ret := NewErrorMessage()
 
 	// 请求的数据结构
 	req := struct {
+<<<<<<< HEAD
 		Id          uint64  `form:"id" json:"id"`
+=======
+		Id          uint64  `form:"id" json:"id" binding:"required"`       // 广告ID
+>>>>>>> 9fbea3a28b7b687c6c8e3f5b7256cc587aec0938
 		Price       float64 `form:"price" json:"price" binding:"required"` // 单价
 		Num         float64 `form:"num" json:"num" binding:"required"`     // 数量
 		Premium     int32   `form:"premium" json:"premium"`                // 溢价
@@ -106,7 +120,7 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	}{}
 
 	err := c.ShouldBind(&req)
-	if err != nil {
+	if err != nil || req.Id == 0 {
 		ret[ERR_CODE_RET] = ERRCODE_PARAM
 		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
 		c.JSON(http.StatusOK, ret)
@@ -128,6 +142,44 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 		Pays:        req.Pays,
 		Remarks:     req.Remarks,
 		Reply:       req.Reply,
+	})
+
+	if err != nil || code != 0 {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
+	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
+	c.JSON(http.StatusOK, ret)
+
+}
+
+// 修改广告(买卖)状态
+func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
+
+	ret := NewErrorMessage()
+
+	// 请求的数据结构
+	req := struct {
+		Id       uint64 `form:"id" json:"id" binding:"required"`               // 广告ID
+		StatusId uint32 `form:"status_id" json:"status_id" binding:"required"` // 状态: 1下架 2上架 3正常(不删除) 4删除
+	}{}
+
+	err := c.ShouldBind(&req)
+	if err != nil || req.Id == 0 || req.StatusId == 0 || req.StatusId >= 5 {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	// 调用 rpc 修改广告(买卖)状态
+	code, err := rpc.InnerService.CurrencyService.CallUpdatedAdsStatus(&proto.AdsStatusRequest{
+		Id:       req.Id,
+		StatusId: req.StatusId,
 	})
 
 	if err != nil || code != 0 {
