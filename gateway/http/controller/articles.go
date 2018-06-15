@@ -22,84 +22,57 @@ func (this *ArticlesGroup) Router(r *gin.Engine) {
 	}
 }
 
-type ArticlesDetailParam struct {
-	Id int32 `form:"id" binding:"required"`
-}
-
 func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
-	ret := NewErrorMessage()
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-
+	type ArticlesDetailParam struct {
+		Id int32 `form:"id" binding:"required"`
+	}
 	var param ArticlesDetailParam
-	if err := c.ShouldBind(&param); err != nil {
+	if err := c.ShouldBindQuery(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = err.Error()
-
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	fmt.Println(param)
+
 	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.Id)
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_UNKNOWN
-		ret[ERR_CODE_MESSAGE] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	ret[ERR_CODE_RET] = rsp.Err
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(rsp.Err)
-	d := ret[RET_DATA].(map[string]interface{})
-	d["Id"] = rsp.Id
-	d["Title"] = rsp.Title
-	d["Description"] = rsp.Description
-	d["Content"] = rsp.Content
-	d["Covers"] = rsp.Covers
-	d["ContentImages"] = rsp.ContentImages
-	d["Type"] = rsp.Type
-	d["TypeName"] = rsp.TypeName
-	d["Author"] = rsp.Author
-	d["Weight"] = rsp.Weight
-	d["Shares"] = rsp.Shares
-	d["Hits"] = rsp.Hits
-	d["Comments"] = rsp.Comments
-	d["DisplayMark"] = rsp.DisplayMark
-	d["CreateTime"] = rsp.CreateTime
-	d["UpdateTime"] = rsp.UpdateTime
-	d["AdminId"] = rsp.AdminId
-	d["AdminNickname"] = rsp.AdminNickname
-}
-
-type ArticlesListParam struct {
-	ArticlesType int32 `form:"ArticlesType" binding:"required"`
-	StartRow     int32 `form:"StartRow" binding:"required"`
-	EndRow       int32 `form:"EndRow" binding:"required"`
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("articles", rsp.Data)
+	fmt.Println("gatway ", rsp)
 }
 
 func (this *ArticlesGroup) ArticlesList(c *gin.Context) {
-	ret := NewErrorMessage()
+
+	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+	type ArticlesListParam struct {
+		ArticlesType int32 `form:"type" binding:"required"`
+		Page         int32 `form:"page" binding:"required"`
+		PageNum      int32 `form:"page_num" binding:""`
+	}
 	var param ArticlesListParam
-	if err := c.ShouldBind(&param); err != nil {
+	//fmt.Println("param1:", param)
+	if err := c.ShouldBindQuery(&param); err != nil {
 		Log.Errorf(err.Error())
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = err.Error()
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-
-	rsp, err := rpc.InnerService.PublicService.CallArticlesList()
+	//fmt.Println("param2:", param)
+	rsp, err := rpc.InnerService.PublicService.CallArticlesList(param.ArticlesType, param.Page, param.PageNum)
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_UNKNOWN
-		ret[ERR_CODE_MESSAGE] = err.Error()
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-
-	ret[ERR_CODE_RET] = rsp.Err
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(rsp.Err)
-
-	d := ret[RET_DATA].(map[string]interface{})
-	d["Articles"] = rsp.Articles
+	//fmt.Println("gatway return value ", rsp.Articles)
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list", rsp.Articles)
 }

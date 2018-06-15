@@ -11,9 +11,9 @@ service PublicRPC {
 
 
 message ArticlesListRequest{
-	int32 ArticlesType=1;
-	int32 StartRow=2;
-	int32 EndRow=3; 
+	int32 articles_type=1;
+	int32 page=2;
+	int32 page_num=3; 
 }
 
 message ArticlesListResponse{ 
@@ -35,22 +35,5 @@ message ArticlesDetailRequest{
 message ArticlesDetailResponse{
 	int32 err               =1;
     string message          =2;
-	int32 id 				=3;
-	string title			=4;
-	string description		=5;       
-	string content 			=6;
-	bytes  covers			=7;
-	bytes content_images	=8;
-	int32 type				=9;
-	string type_name		=10;
-	string author			=11;
-	int32 weight			=12;
-	int32 shares			=13;
-	int32 hits				=14;
-	int32 comments			=15;
-	bool displayMark		=16;
-	string create_time		=17;
-	string update_time		=18;    
-	int32 adminId 			=19;
-	string admin_nickname	=20;     
+	string data				=3;
 }
