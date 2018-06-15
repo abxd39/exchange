@@ -25,8 +25,25 @@ type Ads struct {
 	Reply       string  `xorm:"VARBINARY(512)" json:"reply"`       // 自动回复问候语
 	IsUsd       uint32  `xorm:"TINYINT(1)" json:"is_usd"`          // 是否美元支付:0否 1是
 	States      uint32  `xorm:"TINYINT(1)" json:"states"`          // 状态:0下架 1上架
-	CreatedTime string  `xorm:"DATETIME" json:"created_time"`
-	UpdatedTime string  `xorm:"DATETIME" json:"updated_time"`
+	CreatedTime string  `xorm:"DATETIME" json:"created_time"`      // 创建时间
+	UpdatedTime string  `xorm:"DATETIME" json:"updated_time"`      // 修改时间
+	IsDel       uint32  `xorm:"TINYINT(1)" json:"is_del"`          // 是否删除:0不删除 1删除
+}
+
+func (this *Ads)Get(id uint64) *Ads {
+
+	data := new(Ads)
+	isdata, err := dao.DB.GetMysqlConn().Id(id).Get(data)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil
+	}
+
+	if !isdata {
+		return nil
+	}
+
+	return data
 }
 
 func (this *Ads) Add() int {
@@ -40,7 +57,39 @@ func (this *Ads) Add() int {
 }
 
 func (this *Ads) Update() int {
+
+	isGet := this.Get(this.Id)
+	if isGet == nil {
+		return ERRCODE_ADS_NOTEXIST
+	}
+
 	_, err := dao.DB.GetMysqlConn().Id(this.Id).Update(this)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	return ERRCODE_SUCCESS
+}
+
+// 修改广告(买卖)状态
+// id        uint64  广告ID
+// status_id uint32  状态: 1下架 2上架 3正常(不删除) 4删除
+func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
+
+	var err error
+
+	isGet := this.Get(id)
+	if isGet == nil {
+		return ERRCODE_ADS_NOTEXIST
+	}
+
+	if status_id == 1 || status_id == 2 {
+		_, err = dao.DB.GetMysqlConn().Exec("UPDATE `ads` SET `states`=? WHERE `id`=?", status_id-1, id)
+	} else if status_id == 3 || status_id == 4 {
+		_, err = dao.DB.GetMysqlConn().Exec("UPDATE `ads` SET `is_del`=? WHERE `id`=?", status_id-3, id)
+	}
+
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN

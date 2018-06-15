@@ -7,4 +7,6 @@ type UserEx struct {
 	InviteCode   string `xorm:"comment('邀请码') VARCHAR(64)"`
 	RealName     string `xorm:"comment(' 真名') VARCHAR(32)"`
 	IdentifyCard string `xorm:"comment('身份证号') VARCHAR(64)"`
+	InviteId     int    `xorm:"comment('邀请者') INT(20)"`
+	Invites      int    `xorm:"comment('邀请人数') INT(20)"`
 }

@@ -23,12 +23,14 @@ func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse, err error
 	return
 }
 
-func (s *UserRPCCli) CallRegisterByPhone(phone, pwd, invite_code string, country int, code string) (rsp *proto.CommonErrResponse, err error) {
-	rsp, err = s.conn.RegisterByPhone(context.TODO(), &proto.RegisterPhoneRequest{
-		Phone:      phone,
+func (s *UserRPCCli) CallRegister(ukey string, pwd, invite_code string, country int32, code string, ty int32) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.Register(context.TODO(), &proto.RegisterRequest{
+		Ukey:       ukey,
 		Pwd:        pwd,
 		InviteCode: invite_code,
 		Code:       code,
+		Type:       ty,
+		Country:    country,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -50,12 +52,11 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 	return
 }
 
-func (s *UserRPCCli) CallLogin(phone, email, pwd string, ty int32) (rsp *proto.LoginResponse, err error) {
+func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32) (rsp *proto.LoginResponse, err error) {
 	rsp, err = s.conn.Login(context.TODO(), &proto.LoginRequest{
-		Phone: phone,
-		Email: email,
-		Pwd:   pwd,
-		Type:  ty,
+		Ukey: ukey,
+		Pwd:  pwd,
+		Type: ty,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -64,9 +65,12 @@ func (s *UserRPCCli) CallLogin(phone, email, pwd string, ty int32) (rsp *proto.L
 	return
 }
 
-func (s *UserRPCCli) CallForgetPwd(phone string) (rsp *proto.ForgetResponse, err error) {
+func (s *UserRPCCli) CallForgetPwd(ukey, pwd, code string, ty int32) (rsp *proto.ForgetResponse, err error) {
 	rsp, err = s.conn.ForgetPwd(context.TODO(), &proto.ForgetRequest{
-		Phone: phone,
+		Ukey: ukey,
+		Type: ty,
+		Pwd:  pwd,
+		Code: code,
 	})
 
 	if err != nil {

@@ -51,6 +51,7 @@ func (s *Dao) GenSecurityKey(phone string) (security_key []byte, err error) {
 	return
 }
 
+//func (s *Dao) GetSecurityKey(uid int32) (security_key []byte, err error) {
 func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err error) {
 	security_key, err = s.redis.rcon.Get(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SECURITY)).Bytes()
 	if err != nil {
@@ -61,7 +62,7 @@ func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err erro
 }
 
 func (s *Dao) SetSmsCode(phone string, code string, ty int32) (err error) {
-	err = s.redis.rcon.Set(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SMS, ty), code, 600*time.Second).Err()
+	err = s.redis.rcon.Set(tools.GetPhoneTagByLogic(phone, ty), code, 600*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -70,7 +71,7 @@ func (s *Dao) SetSmsCode(phone string, code string, ty int32) (err error) {
 }
 
 func (s *Dao) GetSmsCode(phone string, ty int32) (code string, err error) {
-	code, err = s.redis.rcon.Get(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SMS, ty)).Result()
+	code, err = s.redis.rcon.Get(tools.GetPhoneTagByLogic(phone, ty)).Result()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

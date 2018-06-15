@@ -31,7 +31,10 @@ const (
 	ERRCODE_GOOGLE_CODE           = 214
 	ERRCODE_GOOGLE_CODE_EXIST     = 215
 	ERRCODE_GOOGLE_CODE_NOT_EXIST = 216
+
+
 	//300-
+	ERRCODE_ADS_NOTEXIST = 301
 )
 
 func GetErrorMessage(code int32) string {
@@ -76,6 +79,8 @@ func init() {
 	message[ERRCODE_GOOGLE_CODE] = "谷歌验证码错误"
 	message[ERRCODE_GOOGLE_CODE_EXIST] = "谷歌验证码已经存在无法重复拉取"
 	message[ERRCODE_GOOGLE_CODE_NOT_EXIST] = "谷歌验证码不存在无法解绑"
+
+	message[ERRCODE_ADS_NOTEXIST] = "广告不存在"
 
 }
 

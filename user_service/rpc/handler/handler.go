@@ -6,13 +6,10 @@ import (
 	. "digicon/user_service/dao"
 	"golang.org/x/net/context"
 
-	"digicon/common/random"
-	cf "digicon/user_service/conf"
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
 	"digicon/user_service/tools"
 	"github.com/go-redis/redis"
-	"github.com/sirupsen/logrus"
 )
 
 type RPCServer struct{}
@@ -23,24 +20,32 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 	return nil
 }
 
-//注册by手机
-func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhoneRequest, rsp *proto.CommonErrResponse) error {
-	code, err := DB.GetSmsCode(req.Phone, tools.SMS_REGISTER)
-	if err == redis.Nil {
-		rsp.Err = ERRCODE_SMS_CODE_NIL
-		rsp.Message = GetErrorMessage(rsp.Err)
-		return nil
-	} else if err != nil {
-		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message = err.Error()
-		return nil
-	}
+//注册
+func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
+	if req.Type == 1 {
+		code, err := DB.GetSmsCode(req.Ukey, tools.SMS_REGISTER)
+		if err == redis.Nil {
+			rsp.Err = ERRCODE_SMS_CODE_NIL
+			rsp.Message = GetErrorMessage(rsp.Err)
+			return nil
+		} else if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
+			return nil
+		}
 
-	if req.Code == code {
-		u := &model.User{}
-		rsp.Err = u.RegisterByPhone(req)
+		if req.Code == code {
+			u := &model.User{}
+			rsp.Err = u.Register(req, "phone")
+			rsp.Message = GetErrorMessage(rsp.Err)
+			return nil
+		}
+
+		rsp.Err = ERRCODE_SMS_CODE_DIFF
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
+	} else if req.Type == 2 {
+
 	}
 
 	rsp.Err = ERRCODE_SMS_CODE_DIFF
@@ -50,9 +55,6 @@ func (s *RPCServer) RegisterByPhone(ctx context.Context, req *proto.RegisterPhon
 
 //注册by email
 func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmailRequest, rsp *proto.CommonErrResponse) error {
-	u := &model.User{}
-	rsp.Err = u.RegisterByEmail(req)
-	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }
 
@@ -60,10 +62,10 @@ func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmai
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
 	u := &model.User{}
 	if req.Type == 1 { //手机登陆
-		rsp.Err = u.LoginByPhone(req.Phone, req.Pwd)
+		rsp.Err = u.LoginByPhone(req.Ukey, req.Pwd)
 		rsp.Message = GetErrorMessage(rsp.Err)
 	} else if req.Type == 2 { //邮箱登陆
-		rsp.Err = u.LoginByEmail(req.Email, req.Pwd)
+		rsp.Err = u.LoginByEmail(req.Ukey, req.Pwd)
 		rsp.Message = GetErrorMessage(rsp.Err)
 	}
 	return nil
@@ -71,17 +73,46 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 
 //忘记密码
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
-	u := &model.User{}
-	u, ret := u.GetUserByPhone(req.Phone)
-	if ret != ERRCODE_SUCCESS {
-		rsp.Err = ret
-		rsp.Message = GetErrorMessage(ret)
-		return nil
+	if req.Type == 1 { //电话找回
+		code, err := DB.GetSmsCode(req.Ukey, tools.SMS_FORGET)
+		if err == redis.Nil {
+			rsp.Err = ERRCODE_SMS_CODE_NIL
+			rsp.Message = GetErrorMessage(rsp.Err)
+			return nil
+		} else if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
+			return nil
+		}
+		if code == req.Code {
+			u := model.User{}
+			ret := u.GetUserByPhone(req.Ukey)
+			if ret != ERRCODE_SUCCESS {
+				rsp.Err = ret
+				rsp.Message = GetErrorMessage(rsp.Err)
+				return nil
+			}
+			err = u.ModifyPwd(req.Pwd)
+			if err != nil {
+				rsp.Err = ERRCODE_UNKNOWN
+				rsp.Message = err.Error()
+				return nil
+			}
+			rsp.Err = ERRCODE_SUCCESS
+			rsp.Message = GetErrorMessage(rsp.Err)
+			return nil
+		} else {
+			rsp.Err = ERRCODE_SMS_CODE_DIFF
+			rsp.Message = GetErrorMessage(rsp.Err)
+			return nil
+		}
+
+	} else if req.Type == 2 { //邮箱找回
+
 	}
-	rsp.Err = ret
-	rsp.Message = GetErrorMessage(ret)
-	rsp.Email = u.Email
-	rsp.Phone = u.Phone
+
+	rsp.Err = ERRCODE_PARAM
+	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }
 
@@ -99,23 +130,16 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 
 //发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
-	code := random.Random6dec()
-
-	err := DB.SetSmsCode(req.Phone, code, req.Type)
-	if err != nil {
-		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message = err.Error()
-		return nil
+	if req.Type == tools.SMS_REGISTER {
+		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
+	} else if req.Type == tools.SMS_FORGET {
+		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
+	} else if req.Type == tools.SMS_CHANGE_PWD {
+		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
+	} else {
+		rsp.Err = ERRCODE_PARAM
+		rsp.Message = GetErrorMessage(rsp.Err)
 	}
-	Log.WithFields(logrus.Fields{
-		"account": cf.SmsAccount,
-		"pwd":     cf.SmsPwd,
-		"code":    code,
-	}).Info("print data")
-
-	ret, msg := tools.Send253YunSms(req.Phone, code)
-	rsp.Err = ret
-	rsp.Message = msg
 	return nil
 }
 
@@ -131,6 +155,20 @@ func (s *RPCServer) ChangePwd(ctx context.Context, req *proto.ChangePwdRequest, 
 		return nil
 	}
 	if string(security_key) == string(req.SecurityKey) {
+		u := model.User{}
+		ret := u.GetUserByPhone(req.Phone)
+		if ret != ERRCODE_SUCCESS {
+			rsp.Err = ret
+			rsp.Message = GetErrorMessage(rsp.Err)
+			return nil
+		}
+
+		err = u.ModifyPwd(req.Pwd)
+		if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
+			return nil
+		}
 		rsp.Err = ERRCODE_SUCCESS
 		rsp.Message = GetErrorMessage(rsp.Err)
 	} else {
