@@ -139,8 +139,8 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	})
 
 	if err != nil || code != 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		ret[ERR_CODE_RET] = code
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(int32(code))
 		c.JSON(http.StatusOK, ret)
 		return
 	}
@@ -177,8 +177,8 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 	})
 
 	if err != nil || code != 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		ret[ERR_CODE_RET] = code
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(int32(code))
 		c.JSON(http.StatusOK, ret)
 		return
 	}
