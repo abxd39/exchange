@@ -194,3 +194,10 @@ func (s *User) SetGoogleSecertKey(uid int32, secert_key string) (ret int32) {
 	}
 	return ERRCODE_SUCCESS
 }
+
+func (s *User) CheckGoogleExist() bool  {
+	if s.GoogleVerifyId=="" {
+		return false
+	}
+	return true
+}
