@@ -49,5 +49,25 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsRequest, rsp *prot
 
 // 修改广告(买卖)
 func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsRequest, rsp *proto.CurrencyResponse) error {
+
+	// 数据过虑暂不做
+
+	ads := new(model.Ads)
+	ads.Id = req.Id
+	ads.Price = req.Price
+	ads.Num = req.Num
+	ads.Premium = req.Premium
+	ads.AcceptPrice = req.AcceptPrice
+	ads.MinLimit = req.MinLimit
+	ads.MaxLimit = req.MaxLimit
+	ads.IsTwolevel = req.IsTwolevel
+	ads.Pays = req.Pays
+	ads.Remarks = req.Remarks
+	ads.Reply = req.Reply
+	ads.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
+
+	code := ads.Update()
+	rsp.Code = int32(code)
+
 	return nil
 }
