@@ -8,15 +8,12 @@ import (
 	"time"
 )
 
-type RPCServer struct{}
 
-func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *proto.AdminResponse) error {
-	Log.Println("Received Say.Hello request ")
-	return nil
-}
 
 //获取订单列表
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrdersListResponse) error {
+
+
 	Log.Println("Received Order request ...")
 	result := []model.Order{}
 	o := model.Order{}
@@ -60,8 +57,8 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.States = req.States
 	od.PayStatus = req.PayStatus
 	od.CancelType = req.CancelType
-	od.CreatedTime = time.Now()
-	od.UpdatedTime = time.Now()
+	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
+	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
 
 	rsp.Code = od.Add()
 	return nil
@@ -85,8 +82,10 @@ func (s *RPCServer) UpdateOrder(ctex context.Context, req *proto.AddOrderRequest
 	od.States = req.States
 	od.PayStatus = req.PayStatus
 	od.CancelType = req.CancelType
-	od.UpdatedTime = time.Now()
+	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
 
 	rsp.Code = od.Update()
 	return nil
 }
+
+

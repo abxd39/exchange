@@ -4,7 +4,6 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
 	. "digicon/proto/common"
-	"time"
 )
 
 // 订单表
@@ -24,8 +23,8 @@ type Order struct {
 	States      uint32       `xorm:"not null default 0 comment('订单状态: 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消') TINYINT(1)"`
 	PayStatus   uint32       `xorm:"not null default 0 comment('支付状态: 1待支付 2待放行(已支付) 3确认支付(已完成)') TINYINT(1)"`
 	CancelType  uint32       `xorm:"not null default 0 comment('取消类型: 1卖方 2 买方') TINYINT(1)"`
-	CreatedTime time.Time    `xorm:"not null comment('创建时间') DATETIME"`
-	UpdatedTime time.Time    `xorm:"comment('修改时间') DATETIME"`
+	CreatedTime string       `xorm:"not null comment('创建时间') DATETIME"`
+	UpdatedTime string       `xorm:"comment('修改时间') DATETIME"`
 }
 
 
@@ -55,7 +54,7 @@ func (this *Order) Add() int32 {
 
 //更新订单
 func (this *Order) Update() int32 {
-	_, err := dao.DB.GetMysqlConn().Id(this.Id).Update(this)
+	_, err := dao.DB.GetMysqlConn().Id(this.OrderId).Update(this)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
