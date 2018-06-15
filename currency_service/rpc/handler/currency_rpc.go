@@ -46,3 +46,8 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsRequest, rsp *prot
 
 	return nil
 }
+
+// 修改广告(买卖)
+func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsRequest, rsp *proto.CurrencyResponse) error {
+	return nil
+}
