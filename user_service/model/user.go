@@ -196,6 +196,7 @@ func (s *User) SetGoogleSecertKey(uid int32, secert_key string) (ret int32) {
 	return ERRCODE_SUCCESS
 }
 
+//检查谷歌私钥存在
 func (s *User) CheckGoogleExist() bool {
 	if s.GoogleVerifyId == "" {
 		return false
