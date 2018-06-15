@@ -5,6 +5,7 @@ import (
 	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
