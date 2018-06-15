@@ -21,11 +21,13 @@ message ArticlesListResponse{
 		int32 id 				=1;
 		string title 			=2;
 		string description 		=3;
-		string createDateTime 	=4; 
+		string create_dateTime 	=4;
+		
 	} 
 	repeated Articles  articles =1;
 	int32 err               =2;
-    string message          =3;
+	string message          =3;
+	int32 total_page		=4; 
 }
 
 message ArticlesDetailRequest{

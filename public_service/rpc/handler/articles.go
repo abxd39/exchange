@@ -12,16 +12,19 @@ import (
 )
 
 func (s *RPCServer) ArticlesList(ctx context.Context, req *proto.ArticlesListRequest, rsp *proto.ArticlesListResponse) error {
+	var total int
 	result := make([]model.Articles_list, 0)
-	rsp.Err = DB.ArticlesList(req.ArticlesType, req.Page, req.PageNum, &result)
-	ntc := proto.ArticlesListResponse_Articles{}
-	//fmt.Println("00000001", result)
+
+	total, rsp.Err = DB.ArticlesList(req.ArticlesType, req.Page, req.PageNum, &result)
+	rsp.TotalPage = int32(total)
 	for _, value := range result {
+		ntc := proto.ArticlesListResponse_Articles{}
 		ntc.Id = int32(value.Id)
 		ntc.Title = value.Title
 		ntc.Description = value.Description
 		ntc.CreateDateTime = value.CreateTime
 		rsp.Articles = append(rsp.Articles, &ntc)
+
 	}
 	//fmt.Println("ArticlesList 列表为", ntc)
 	return nil
