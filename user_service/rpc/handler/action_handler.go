@@ -11,9 +11,16 @@ import (
 	"golang.org/x/net/context"
 )
 
-//提交谷歌验证码
+//获取谷歌验密钥
 func (s *RPCServer) GetGoogleSecretKey(ctx context.Context, req *proto.GoogleAuthRequest, rsp *proto.GoogleAuthResponse) error {
-	u := model.GetUser(req.Uid)
+	u := model.User{}
+	ret := u.GetUser(req.Uid)
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
+
 	if u.CheckGoogleExist() { //检查是否已经有谷歌私钥，有的话不能再次申请
 		rsp.Err = ERRCODE_GOOGLE_CODE_EXIST
 		rsp.Message = GetErrorMessage(rsp.Err)
@@ -43,8 +50,15 @@ func (s *RPCServer) AuthGoogleSecretKey(ctx context.Context, req *proto.AuthGoog
 		return nil
 	}
 
-	u := model.GetUser(req.Uid)
-	ret, err := u.AuthGoogleCode(key, req.Code)
+	u := model.User{}
+	ret := u.GetUser(req.Uid)
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
+
+	ret, err = u.AuthGoogleCode(key, req.Code)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
 		rsp.Message = err.Error()
@@ -80,7 +94,13 @@ func (s *RPCServer) AuthGoogleSecretKey(ctx context.Context, req *proto.AuthGoog
 
 //解绑谷歌接口
 func (s *RPCServer) DelGoogleSecretKey(ctx context.Context, req *proto.DelGoogleSecretKeyRequest, rsp *proto.CommonErrResponse) error {
-	u := model.GetUser(req.Uid)
+	u := model.User{}
+	ret := u.GetUser(req.Uid)
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
 
 	if !u.CheckGoogleExist() {
 		rsp.Err = ERRCODE_GOOGLE_CODE_NOT_EXIST

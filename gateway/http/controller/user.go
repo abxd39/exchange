@@ -9,6 +9,7 @@ import (
 
 	"digicon/common/check"
 	"github.com/gin-gonic/gin"
+	"github.com/liudng/godump"
 )
 
 type UserGroup struct{}
@@ -29,24 +30,64 @@ func (s *UserGroup) Router(r *gin.Engine) {
 }
 
 func (s *UserGroup) RegisterController(c *gin.Context) {
-	ty, ok := c.GetPostForm("type")
-	if !ok {
-		ret := NewErrorMessage()
-		defer func() {
-			c.JSON(http.StatusOK, ret)
-		}()
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type RegisterParam struct {
+		Ukey       string `form:"ukey" binding:"required"`
+		Pwd        string `form:"pwd" binding:"required"`
+		Confirm    string `form:"confirm" binding:"required"`
+		InviteCode string `form:"invite_code" binding:"required"`
+		Country    int32  `form:"country" binding:"required"`
+		Code       string `form:"code" binding:"required"`
+		Type       int32  `form:"type" binding:"required"`
+	}
+
+	var param RegisterParam
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	if ty == "1" { //1电话注册
-		s.RegisterPhoneController(c)
-	} else if ty == "2" { //邮箱注册
-		s.RegisterEmailController(c)
+
+	if param.Pwd != param.Confirm {
+		ret.SetErrCode(ERRCODE_PWD_COMFIRM)
+		return
 	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallRegister(param.Ukey, param.Pwd, param.InviteCode, param.Country, param.Code, param.Type)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	/*
+		ty, ok := c.GetPostForm("type")
+		if !ok {
+			ret := NewErrorMessage()
+			defer func() {
+				c.JSON(http.StatusOK, ret)
+			}()
+			ret[ERR_CODE_RET] = ERRCODE_PARAM
+			ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+			return
+		}
+
+
+
+		if ty == "1" { //1电话注册
+			s.RegisterPhoneController(c)
+		} else if ty == "2" { //邮箱注册
+			s.RegisterEmailController(c)
+		}
+	*/
 }
 
 //用户注册by phone
+
+/*
 func (s *UserGroup) RegisterPhoneController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -117,7 +158,7 @@ func (s *UserGroup) RegisterEmailController(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
-
+*/
 //用户登陆
 func (s *UserGroup) LoginController(c *gin.Context) {
 	ret := NewPublciError()
@@ -126,10 +167,9 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 	}()
 
 	type LoginParam struct {
-		Phone string `form:"phone" `
-		Email string `form:"email" `
-		Pwd   string `form:"pwd" binding:"required"`
-		Type  int32  `form:"type" binding:"required"`
+		Ukey string `form:"ukey" binding:"required"`
+		Pwd  string `form:"pwd" binding:"required"`
+		Type int32  `form:"type" binding:"required"`
 	}
 	var param LoginParam
 
@@ -139,21 +179,12 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 
-	if param.Type == 1 && param.Phone == "" || param.Type == 2 && param.Email == "" {
-		ret.SetErrCode(ERRCODE_PARAM)
+	rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Ukey, param.Pwd, param.Type)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-
-	if param.Type == 1 || param.Type == 2 {
-		rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Phone, param.Email, param.Pwd, param.Type)
-		if err != nil {
-			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
-			return
-		}
-		ret.SetErrCode(rsp.Err, rsp.Message)
-	} else {
-		ret.SetErrCode(ERRCODE_PARAM)
-	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
 
 }
 
@@ -161,12 +192,16 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 func (s *UserGroup) ForgetPwdController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret)
+		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
 	type ForgetPwdParam struct {
-		Phone string `form:"phone" binding:"required"`
+		Ukey string `form:"ukey" binding:"required"`
+		Type int32  `form:"type" binding:"required"`
+		Code string `form:"code" binding:"required"`
+		Pwd  string `form:"pwd" binding:"required"`
 	}
+
 	var param ForgetPwdParam
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
@@ -174,15 +209,13 @@ func (s *UserGroup) ForgetPwdController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallForgetPwd(param.Phone)
+	rsp, err := rpc.InnerService.UserSevice.CallForgetPwd(param.Ukey, param.Pwd, param.Code, param.Type)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-
+	godump.Dump(rsp)
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("phone", rsp.Phone)
-	ret.SetDataSection("email", rsp.Email)
 }
 
 //提交手机验证

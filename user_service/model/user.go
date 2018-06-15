@@ -3,6 +3,7 @@ package model
 import (
 	"digicon/common/check"
 	"digicon/common/google"
+	"digicon/common/random"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
@@ -24,22 +25,121 @@ type User struct {
 	GoogleVerifyTime int    `xorm:"INT(255)"`
 }
 
-func GetUser(uid int32) *User {
-	u := &User{}
-	DB.GetMysqlConn().Where("uid=?", uid).Get(u)
-	return u
+func (s *User) GetUser(uid int32) (ret int32) {
+	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
 }
 
-//通过手机注册
-func (s *User) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
-	if ret := s.CheckUserExist(req.Phone, "phone"); ret != ERRCODE_SUCCESS {
+//根据手机查询用户
+func (s *User) GetUserByPhone(phone string) (ret int32) {
+	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+
+func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
+	if ret := s.CheckUserExist(req.Ukey, filed); ret != ERRCODE_SUCCESS {
 		return ret
 	}
 
 	e := &User{
 		Pwd:     req.Pwd,
-		Phone:   req.Phone,
-		Account: req.Phone,
+		Phone:   req.Ukey,
+		Account: req.Ukey,
+	}
+	_, err := DB.GetMysqlConn().Cols("pwd", filed, "account").Insert(e)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	sql := fmt.Sprintf("%s=?", filed)
+	_, err = DB.GetMysqlConn().Where(sql, req.Ukey).Get(e)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	code := random.Krand(6, random.KC_RAND_KIND_UPPER)
+	str_code := string(code)
+	d := &UserEx{}//主邀请人
+	if req.InviteCode != "" {
+		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return ERRCODE_UNKNOWN
+		}
+		if !ok {
+			return ERRCODE_UNKNOWN
+		}
+		m := &UserEx{
+			Uid:          e.Uid,
+			RegisterTime: time.Now().Unix(),
+			InviteCode:   str_code,
+			InviteId:     d.Uid,
+		}
+
+		_, err = DB.GetMysqlConn().Insert(m)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return ERRCODE_UNKNOWN
+		}
+
+		d.Invites+=1
+		_, err=DB.GetMysqlConn().Where("uid=?",d.Uid).Cols("invites").Update(d)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return ERRCODE_UNKNOWN
+		}
+	}else {
+		m := &UserEx{
+			Uid:          e.Uid,
+			RegisterTime: time.Now().Unix(),
+			InviteCode:   str_code,
+		}
+
+		_, err = DB.GetMysqlConn().Insert(m)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return ERRCODE_UNKNOWN
+		}
+	}
+
+	return ERRCODE_SUCCESS
+
+}
+
+/*
+//通过手机注册
+func (s *User) RegisterByPhone(req *proto.RegisterRequest) int32 {
+	if ret := s.CheckUserExist(req.Ukey, "phone"); ret != ERRCODE_SUCCESS {
+		return ret
+	}
+
+	e := &User{
+		Pwd:     req.Pwd,
+		Phone:   req.Ukey,
+		Account: req.Ukey,
 	}
 	_, err := DB.GetMysqlConn().Cols("pwd", "phone", "account").Insert(e)
 	if err != nil {
@@ -47,7 +147,7 @@ func (s *User) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 		return ERRCODE_UNKNOWN
 	}
 
-	_, err = DB.GetMysqlConn().Where("phone=?", req.Phone).Get(e)
+	_, err = DB.GetMysqlConn().Where("phone=?", req.Ukey).Get(e)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -69,6 +169,8 @@ func (s *User) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 }
 
 //通过邮箱注册
+
+
 func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 	if ret := s.CheckUserExist(req.Email, "email"); ret != ERRCODE_SUCCESS {
 		return ret
@@ -105,6 +207,7 @@ func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 
 	return ERRCODE_SUCCESS
 }
+*/
 
 //检查用户注册过没
 func (s *User) CheckUserExist(param string, col string) int32 {
@@ -160,27 +263,15 @@ func (s *User) LoginByEmail(eamil, pwd string) int32 {
 	return ERRCODE_ACCOUNT_NOTEXIST
 }
 
-//根据手机查询用户
-func (s *User) GetUserByPhone(phone string) (u *User, ret int32) {
-	u = &User{}
-	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(u)
+//修改密码
+func (s *User) ModifyPwd(newpwd string) (err error) {
+	s.Pwd = newpwd
+	_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("pwd").Update(s)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret = ERRCODE_UNKNOWN
 		return
 	}
-
-	if ok {
-		ret = ERRCODE_SUCCESS
-		return
-	}
-	ret = ERRCODE_ACCOUNT_NOTEXIST
 	return
-}
-
-//修改密码
-func (s *User) ModifyPwd(phone string, pwd string) (ret int32) {
-	return 0
 }
 
 //修改谷歌验证密钥

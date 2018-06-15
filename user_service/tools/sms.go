@@ -8,10 +8,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"github.com/liudng/godump"
 )
 
 func Send253YunSms(phone, code string) (rcode int32, msg string) {
+
 	content := fmt.Sprintf("【253云通讯】您好，您的验证码是%s", code)
+	godump.Dump(content)
 	ret, err := sms.Send253Sms(phone, cf.SmsAccount, cf.SmsPwd, content, cf.SmsWebUrl)
 	if err != nil {
 		rcode = ERRCODE_UNKNOWN
@@ -36,6 +39,7 @@ func Send253YunSms(phone, code string) (rcode int32, msg string) {
 
 	code_, _ := strconv.Atoi(p.Code)
 	//msg, ok := CheckErrorMessage(int32(code_))
+	godump.Dump(p)
 	switch int32(code_) {
 	case 0:
 		rcode = ERRCODE_SUCCESS

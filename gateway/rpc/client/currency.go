@@ -47,10 +47,8 @@ func (s *CurrencyRPCCli) CallAddAds(req *proto.AdsRequest) (int, error) {
 	return int(rsp.Code), err
 }
 
-
 // 调用 rpc 修改广告(买卖)
 func (s *CurrencyRPCCli) CallUpdatedAds(req *proto.AdsRequest) (int, error) {
 	rsp, err := s.conn.UpdatedAds(context.TODO(), req)
 	return int(rsp.Code), err
 }
-
