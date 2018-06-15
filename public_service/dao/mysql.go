@@ -5,6 +5,7 @@ import (
 	"digicon/public_service/conf"
 	. "digicon/public_service/log"
 	"digicon/public_service/model"
+	"fmt"
 	"log"
 	"time"
 
@@ -38,29 +39,44 @@ func NewMysql() (mysql *Mysql) {
 	return mysql
 }
 
-func (s *Dao) ArticlesList(tp, page, page_num int32, u *[]model.Articles_list) int32 {
+func (s *Dao) ArticlesList(tp, page, page_num int32, u *[]model.Articles_list) (int, int32) {
 	//err := s.mysql.im.Find(&u)
-	default_page := int32(10)
+	//default_page_count := int(10)
+	var total_page int
+	pagenum := int(page_num)
 	list := new(model.Articles_list)
-	if page_num <= 0 {
-		page_num = default_page
+	if page <= 0 {
+		page = 1
 	}
+	if page_num <= 0 {
+		pagenum = 10
+	}
+	//没有指定 每页的行数
+	var star_row int
+	star_row = (int(page) - 1) * int(pagenum)
+
 	total, err := s.mysql.im.Where("type =?", tp).Count(list)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return 0, ERRCODE_UNKNOWN
 	}
-	var count int32
-	if int32(total) <= default_page || page == 1 {
-		count = 1
-	} else {
-		count = page * page_num
-	}
-	err = s.mysql.im.Where("type=?", tp).Limit(int(page_num), int(count)).Find(u)
+	// var count int32
+	// if int32(total) <=  || page == 1 {
+	// 	count = 0
+	// } else {
+	// 	count = (page-1)*page_num - 1
+	// }
+
+	fmt.Println("total=", total, "type=", tp, "page=", page, "起始行star_row=", star_row, "page_num=", page_num)
+	err = s.mysql.im.Where("type=?", tp).Limit(int(pagenum), int(star_row)).Find(u)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	return ERRCODE_SUCCESS
+
+	total_page = int(total)
+	total_page = total_page / pagenum
+	fmt.Println("total_page=", total_page)
+	return total_page, ERRCODE_SUCCESS
 
 }
 
