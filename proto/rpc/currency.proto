@@ -17,9 +17,11 @@ service CurrencyRPC {
         // 获取订单列表
     	rpc OrdersList(OrdersListRequest) returns(OrdersListResponse){};
         // 取消订单
-        rpc CancelOrder(OrderRequest) returns(OrderResponse){};
+        rpc CancelOrder(CancelOrderRequest) returns(OrderResponse){};
         // 删除订单
         rpc DeleteOrder(OrderRequest) returns(OrderResponse){};
+        // 确认放行
+        rpc ConfirmOrder(OrderRequest) returns (OrderResponse) {};
 
 }
 
@@ -84,7 +86,12 @@ message OrderResponse {
 
 
 message OrderRequest {
-    int64  id  = 1;       // 交易订单
+    uint64  id  = 1;       // 交易订单
+}
+
+message CancelOrderRequest {
+    uint64  id              = 1;
+    uint32  cancel_type     = 2;
 }
 
 
