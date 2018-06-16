@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/liudng/godump"
 	"golang.org/x/net/context"
 )
 
@@ -132,6 +131,8 @@ func (s *RPCServer) DelGoogleSecretKey(ctx context.Context, req *proto.DelGoogle
 	return nil
 }
 
+
+//获取用户基础信息
 func (s *RPCServer) GetUserInfo(ctx context.Context, req *proto.UserInfoRequest, rsp *proto.UserInfoResponse) error {
 	u := &model.User{}
 	d, ret, err := u.RefreshCache(req.Uid)
@@ -147,8 +148,7 @@ func (s *RPCServer) GetUserInfo(ctx context.Context, req *proto.UserInfoRequest,
 	if err != nil {
 		return nil
 	}
-	godump.Dump("ff")
-	godump.Dump(data)
+
 	rsp.Src = data
 	rsp.Data = d.Base
 	rsp.Err = ERRCODE_SUCCESS
@@ -156,6 +156,7 @@ func (s *RPCServer) GetUserInfo(ctx context.Context, req *proto.UserInfoRequest,
 	return nil
 }
 
+//获取实名信息
 func (s *RPCServer) GetUserRealName(ctx context.Context, req *proto.UserInfoRequest, rsp *proto.UserRealNameResponse) error {
 	u := &model.User{}
 	d, ret, err := u.RefreshCache(req.Uid)
@@ -179,6 +180,7 @@ func (s *RPCServer) GetUserRealName(ctx context.Context, req *proto.UserInfoRequ
 	return nil
 }
 
+//邀请信息
 func (s *RPCServer) GetUserInvite(ctx context.Context, req *proto.UserInfoRequest, rsp *proto.UserInviteResponse) error {
 	u := &model.User{}
 	d, ret, err := u.RefreshCache(req.Uid)
