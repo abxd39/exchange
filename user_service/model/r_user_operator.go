@@ -47,7 +47,7 @@ func (s *RedisOp) GetTmpGoogleSecertKey(uid int32) (key string, err error) {
 }
 
 func (s *RedisOp) SetUserBaseInfo(uid int32, data string) (err error) {
-	err = DB.GetRedisConn().Set(tools.GetUserTagByLogic(uid, tools.UID_TAG_BASE_INFO), data, 60*time.Second).Err()
+	err = DB.GetRedisConn().Set(tools.GetUserTagByLogic(uid, tools.UID_TAG_BASE_INFO), data, 1800*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
