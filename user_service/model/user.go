@@ -9,6 +9,8 @@ import (
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
 	"fmt"
+	"github.com/go-redis/redis"
+	"github.com/golang/protobuf/jsonpb"
 	"strconv"
 	"time"
 )
@@ -23,9 +25,13 @@ type User struct {
 	EmailVerifyTime  int    `xorm:"INT(11)"`
 	GoogleVerifyId   string `xorm:"VARCHAR(128)"`
 	GoogleVerifyTime int    `xorm:"INT(255)"`
+	SmsTip           bool   `xorm:"INT(4)"`
+	PayPwd           string `xorm:"comment('支付密码') VARCHAR(255)"`
+	NeedPwd          bool   `xorm:"INT(4)"`
+	NeedPwdTime      int    `xorm:"INT(11)"`
 }
 
-func (s *User) GetUser(uid int32) (ret int32) {
+func (s *User) GetUser(uid int32) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -42,7 +48,7 @@ func (s *User) GetUser(uid int32) (ret int32) {
 }
 
 //根据手机查询用户
-func (s *User) GetUserByPhone(phone string) (ret int32) {
+func (s *User) GetUserByPhone(phone string) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -58,6 +64,126 @@ func (s *User) GetUserByPhone(phone string) (ret int32) {
 	return
 }
 
+//序列化用户基础数据
+func (s *User) SerialJsonData() (data string, err error) {
+	var (
+		google_switch bool
+		pay_switch    bool
+		pwd_level     int32
+	)
+	if s.GoogleVerifyId != "" {
+		google_switch = true
+	}
+	if s.PayPwd != "" {
+		pay_switch = true
+	}
+	pwd_level = 1
+
+	ex := &UserEx{}
+	ret, err := ex.GetUserEx(s.Uid)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	if ret != ERRCODE_SUCCESS {
+		Log.Errorln("db err when find user_ex,uid=?", s.Uid)
+		return
+	}
+
+	r := &proto.UserAllData{
+		Base: &proto.UserBaseData{
+			Uid:            int32(s.Uid),
+			Account:        s.Account,
+			Phone:          s.Phone,
+			Email:          s.Email,
+			SmsTip:         s.SmsTip,
+			GoogleVerifyId: google_switch,
+			PaySwitch:      pay_switch,
+			NeedPwd:        s.NeedPwd,
+			NeedPwdTime:    int32(s.NeedPwdTime),
+			LoginPwdLevel:  pwd_level,
+		},
+
+		Real: &proto.UserRealData{
+			RealName:     ex.RealName,
+			IdentifyCard: ex.IdentifyCard,
+		},
+
+		Invite: &proto.UserInviteData{
+			InviteCode: ex.InviteCode,
+			Invites:    int32(ex.Invites),
+		},
+	}
+	m := jsonpb.Marshaler{EmitDefaults: true}
+
+	data, err = m.MarshalToString(r)
+	if err != nil {
+		Log.Errorln(err.Error())
+	}
+
+	/*
+		b,err:=json.Marshal(r)
+		if err != nil {
+			Log.Errorln(err.Error())
+		}
+		data=string(b)
+	*/
+	return
+}
+
+//刷新用户缓存
+func (s *User) RefreshCache(uid int32) (out *proto.UserAllData, ret int32, err error) {
+	r := RedisOp{}
+	d, err := r.GetUserBaseInfo(uid)
+
+	if err == redis.Nil { //找不到缓存记录则取mysql数据
+		u := &User{}
+		ret, err = u.GetUser(uid)
+		if err != nil {
+			ret = ERRCODE_UNKNOWN
+			return
+		}
+		if ret != ERRCODE_SUCCESS {
+			return
+		}
+
+		d, err = u.SerialJsonData()
+		if err != nil {
+			ret = ERRCODE_UNKNOWN
+			return
+		}
+
+		err = r.SetUserBaseInfo(uid, d)
+		if err != nil {
+			ret = ERRCODE_UNKNOWN
+			return
+		}
+
+	} else if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	/*
+	   	out = &proto.UserAllData{}
+
+	   	err = json.Unmarshal([]byte(d), out)
+	   	if err != nil {
+	   		ret = ERRCODE_UNKNOWN
+	   		return
+	   	}
+	   	godump.Dump("ll")
+	   godump.Dump(out)
+	*/
+	out = &proto.UserAllData{}
+	err = jsonpb.UnmarshalString(d, out)
+	if err != nil {
+		return
+	}
+	ret = ERRCODE_SUCCESS
+	return
+}
+
+//通用注册
 func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 	if ret := s.CheckUserExist(req.Ukey, filed); ret != ERRCODE_SUCCESS {
 		return ret
@@ -82,7 +208,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 
 	code := random.Krand(6, random.KC_RAND_KIND_UPPER)
 	str_code := string(code)
-	d := &UserEx{}//主邀请人
+	d := &UserEx{} //主邀请人
 	if req.InviteCode != "" {
 		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
 		if err != nil {
@@ -105,13 +231,13 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 			return ERRCODE_UNKNOWN
 		}
 
-		d.Invites+=1
-		_, err=DB.GetMysqlConn().Where("uid=?",d.Uid).Cols("invites").Update(d)
+		d.Invites += 1
+		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Update(d)
 		if err != nil {
 			Log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN
 		}
-	}else {
+	} else {
 		m := &UserEx{
 			Uid:          e.Uid,
 			RegisterTime: time.Now().Unix(),

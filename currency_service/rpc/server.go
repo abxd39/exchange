@@ -26,7 +26,6 @@ func RPCServerInit() {
 	service.Init()
 	proto.RegisterCurrencyRPCHandler(service.Server(), new(handler.RPCServer))
 
-
 	if err := service.Run(); err != nil {
 		fmt.Println(err.Error())
 		log.Fatal(err)

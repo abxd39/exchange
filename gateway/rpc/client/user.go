@@ -5,6 +5,7 @@ import (
 	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
@@ -160,6 +161,109 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid int32, code uint32) (rsp *proto.
 		Log.Errorln(err.Error())
 		return
 	}
+	return
+}
+
+type UserBaseData struct {
+	Uid            int32  `json:"uid"`
+	Account        string `json:"account"`
+	Phone          string `json:"phone"`
+	Email          string `json:"email"`
+	GoogleVerifyId bool   `json:"google_verify_id"`
+	LoginPwdLevel  int32  `json:"login_pwd_level"`
+	SmsTip         bool   `json:"sms_tip"`
+	PaySwitch      bool   `json:"pay_switch"`
+	NeedPwd        bool   `json:"need_pwd"`
+	NeedPwdTime    int32  `json:"need_pwd_time"`
+}
+
+func (s *UserRPCCli) CallGetUserBaseInfo(uid int32) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
+	rsp, err = s.conn.GetUserInfo(context.TODO(), &proto.UserInfoRequest{
+		Uid: uid,
+	})
+
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+	out := &proto.UserBaseData{}
+	err = jsonpb.UnmarshalString(rsp.Src, out)
+	if err != nil {
+		return
+	}
+
+	u = &UserBaseData{
+		Uid:            out.Uid,
+		Account:        out.Account,
+		Phone:          out.Phone,
+		Email:          out.Email,
+		GoogleVerifyId: out.GoogleVerifyId,
+		LoginPwdLevel:  out.LoginPwdLevel,
+		SmsTip:         out.SmsTip,
+		PaySwitch:      out.PaySwitch,
+		NeedPwd:        out.NeedPwd,
+		NeedPwdTime:    out.NeedPwdTime,
+	}
+
+	return
+}
+
+type UserRealData struct {
+	RealName     string `json:"real_name"`
+	IdentifyCard string `json:"identify_card"`
+}
+
+func (s *UserRPCCli) CallGetUserRealName(uid int32) (rsp *proto.UserRealNameResponse, u *UserRealData, err error) {
+	rsp, err = s.conn.GetUserRealName(context.TODO(), &proto.UserInfoRequest{
+		Uid: uid,
+	})
+
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+	out := &proto.UserRealData{}
+	err = jsonpb.UnmarshalString(rsp.Src, out)
+	if err != nil {
+		return
+	}
+
+	u = &UserRealData{
+		RealName:     out.RealName,
+		IdentifyCard: out.IdentifyCard,
+	}
+
+	return
+}
+
+type UserInviteData struct {
+	InviteCode string `json:"invite_code"`
+	Invites    int32  `json:"invites"`
+}
+
+func (s *UserRPCCli) CallGetUserInvite(uid int32) (rsp *proto.UserInviteResponse, u *UserInviteData, err error) {
+	rsp, err = s.conn.GetUserInvite(context.TODO(), &proto.UserInfoRequest{
+		Uid: uid,
+	})
+
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+	out := &proto.UserInviteData{}
+	err = jsonpb.UnmarshalString(rsp.Src, out)
+	if err != nil {
+		return
+	}
+
+	u = &UserInviteData{
+		InviteCode: out.InviteCode,
+		Invites:    out.Invites,
+	}
+
 	return
 }
 

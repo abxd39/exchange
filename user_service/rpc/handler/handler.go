@@ -3,7 +3,7 @@ package handler
 import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	. "digicon/user_service/dao"
+	//. "digicon/user_service/dao"
 	"golang.org/x/net/context"
 
 	. "digicon/user_service/log"
@@ -23,7 +23,8 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 //注册
 func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
 	if req.Type == 1 {
-		code, err := DB.GetSmsCode(req.Ukey, tools.SMS_REGISTER)
+		r := model.RedisOp{}
+		code, err := r.GetSmsCode(req.Ukey, tools.SMS_REGISTER)
 		if err == redis.Nil {
 			rsp.Err = ERRCODE_SMS_CODE_NIL
 			rsp.Message = GetErrorMessage(rsp.Err)
@@ -74,7 +75,8 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 //忘记密码
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
 	if req.Type == 1 { //电话找回
-		code, err := DB.GetSmsCode(req.Ukey, tools.SMS_FORGET)
+		r := model.RedisOp{}
+		code, err := r.GetSmsCode(req.Ukey, tools.SMS_FORGET)
 		if err == redis.Nil {
 			rsp.Err = ERRCODE_SMS_CODE_NIL
 			rsp.Message = GetErrorMessage(rsp.Err)
@@ -86,7 +88,12 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		}
 		if code == req.Code {
 			u := model.User{}
-			ret := u.GetUserByPhone(req.Ukey)
+			ret, err := u.GetUserByPhone(req.Ukey)
+			if err != nil {
+				rsp.Err = ret
+				rsp.Message = err.Error()
+				return err
+			}
 			if ret != ERRCODE_SUCCESS {
 				rsp.Err = ret
 				rsp.Message = GetErrorMessage(rsp.Err)
@@ -118,23 +125,28 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 
 //安全认证
 func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest, rsp *proto.SecurityResponse) error {
-	security_key, err := DB.GenSecurityKey(req.Phone)
-	if err != nil {
-		return nil
-	}
-	rsp.Err = ERRCODE_SUCCESS
-	rsp.Message = GetErrorMessage(rsp.Err)
-	rsp.SecurityKey = security_key
+	/*
+		security_key, err := DB.GenSecurityKey(req.Phone)
+		if err != nil {
+			return nil
+		}
+		rsp.Err = ERRCODE_SUCCESS
+		rsp.Message = GetErrorMessage(rsp.Err)
+		rsp.SecurityKey = security_key
+	*/
 	return nil
 }
 
 //发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
 	if req.Type == tools.SMS_REGISTER {
+		//TODO判断
 		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
 	} else if req.Type == tools.SMS_FORGET {
+		//TODO判断
 		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
 	} else if req.Type == tools.SMS_CHANGE_PWD {
+		//TODO判断
 		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
 	} else {
 		rsp.Err = ERRCODE_PARAM
@@ -150,30 +162,32 @@ func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp 
 
 //改变密码
 func (s *RPCServer) ChangePwd(ctx context.Context, req *proto.ChangePwdRequest, rsp *proto.CommonErrResponse) error {
-	security_key, err := DB.GetSecurityKeyByPhone(req.Phone)
-	if err != nil {
-		return nil
-	}
-	if string(security_key) == string(req.SecurityKey) {
-		u := model.User{}
-		ret := u.GetUserByPhone(req.Phone)
-		if ret != ERRCODE_SUCCESS {
-			rsp.Err = ret
-			rsp.Message = GetErrorMessage(rsp.Err)
-			return nil
-		}
-
-		err = u.ModifyPwd(req.Pwd)
+	/*
+		security_key, err := DB.GetSecurityKeyByPhone(req.Phone)
 		if err != nil {
-			rsp.Err = ERRCODE_UNKNOWN
-			rsp.Message = err.Error()
 			return nil
 		}
-		rsp.Err = ERRCODE_SUCCESS
-		rsp.Message = GetErrorMessage(rsp.Err)
-	} else {
-		rsp.Err = ERRCODE_SECURITY_KEY
-		rsp.Message = GetErrorMessage(rsp.Err)
-	}
+		if string(security_key) == string(req.SecurityKey) {
+			u := model.User{}
+			ret := u.GetUserByPhone(req.Phone)
+			if ret != ERRCODE_SUCCESS {
+				rsp.Err = ret
+				rsp.Message = GetErrorMessage(rsp.Err)
+				return nil
+			}
+
+			err = u.ModifyPwd(req.Pwd)
+			if err != nil {
+				rsp.Err = ERRCODE_UNKNOWN
+				rsp.Message = err.Error()
+				return nil
+			}
+			rsp.Err = ERRCODE_SUCCESS
+			rsp.Message = GetErrorMessage(rsp.Err)
+		} else {
+			rsp.Err = ERRCODE_SECURITY_KEY
+			rsp.Message = GetErrorMessage(rsp.Err)
+		}
+	*/
 	return nil
 }

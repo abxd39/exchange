@@ -25,6 +25,15 @@ service UserRPC {
     rpc AuthGoogleSecretKey(AuthGoogleSecretKeyRequest) returns (CommonErrResponse) {}
     //删除谷歌验证码
     rpc DelGoogleSecretKey(DelGoogleSecretKeyRequest) returns (CommonErrResponse) {}
+
+    //获取个人基础信息
+    rpc GetUserInfo(UserInfoRequest) returns (UserInfoResponse) {}
+
+    //获取实名信息
+    rpc GetUserRealName(UserInfoRequest) returns (UserRealNameResponse) {}
+
+    //
+    rpc GetUserInvite(UserInfoRequest) returns (UserInviteResponse) {}
 }
 
 message NullRequest{
@@ -136,3 +145,59 @@ message DelGoogleSecretKeyRequest {
     uint32 code      =2;
 }
 
+message UserInfoRequest{
+    int32 uid       =1;
+}
+
+message UserBaseData{
+    int32 uid                   =1;
+    string account              =2;
+    string phone                =3;
+    string email                =4;
+    bool google_verify_id     =5;
+    int32 login_pwd_level    =6;
+    bool sms_tip       =7;
+    bool pay_switch             =8;
+    bool need_pwd               =9;
+    int32 need_pwd_time         =10;
+}
+
+message UserRealData{
+    string real_name            =1;
+    string identify_card        =2;
+}
+
+
+message UserInviteData{
+    string invite_code            =1;
+    int32 invites          =2;
+}
+
+message UserAllData{
+    UserBaseData base       =1;
+    UserRealData real       =2;
+    UserInviteData invite   =3;
+}
+
+message UserInfoResponse{
+    int32 err               =1;
+    string message          =2;
+    UserBaseData data        =3;
+    string src              =4;
+}
+
+
+message UserRealNameResponse{
+    int32 err                      =1;
+    string message              =2;
+    UserRealData data=3;
+    string src              =4;
+}
+
+
+message UserInviteResponse{
+    int32 err                      =1;
+    string message              =2;
+    UserInviteData      data    =3;
+    string src                  =4;
+}

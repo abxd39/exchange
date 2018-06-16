@@ -7,14 +7,13 @@ import (
 	//"digicon/user_service/model"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"github.com/liudng/godump"
+	"strconv"
 )
 
 func Send253YunSms(phone, code string) (rcode int32, msg string) {
 
 	content := fmt.Sprintf("【253云通讯】您好，您的验证码是%s", code)
-	godump.Dump(content)
 	ret, err := sms.Send253Sms(phone, cf.SmsAccount, cf.SmsPwd, content, cf.SmsWebUrl)
 	if err != nil {
 		rcode = ERRCODE_UNKNOWN

@@ -30,7 +30,7 @@ type Ads struct {
 	IsDel       uint32  `xorm:"TINYINT(1)" json:"is_del"`          // 是否删除:0不删除 1删除
 }
 
-func (this *Ads)Get(id uint64) *Ads {
+func (this *Ads) Get(id uint64) *Ads {
 
 	data := new(Ads)
 	isdata, err := dao.DB.GetMysqlConn().Id(id).Get(data)

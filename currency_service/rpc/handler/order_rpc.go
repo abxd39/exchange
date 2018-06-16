@@ -8,11 +8,8 @@ import (
 	"time"
 )
 
-
-
 //获取订单列表
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrdersListResponse) error {
-
 
 	Log.Println("Received Order request ...")
 	result := []model.Order{}
@@ -87,5 +84,3 @@ func (s *RPCServer) UpdateOrder(ctex context.Context, req *proto.AddOrderRequest
 	rsp.Code = od.Update()
 	return nil
 }
-
-

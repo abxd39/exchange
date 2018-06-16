@@ -13,10 +13,6 @@ type CurrencyGroup struct{}
 func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency")
 	{
-
-		Currency.POST("/add_ads", this.AddAds)         // 新增广告(买卖)
-		Currency.POST("/updated_ads", this.UpdatedAds) // 修改广告(买卖)
-
 		Currency.POST("/add_ads", this.AddAds)                      // 新增广告(买卖)
 		Currency.POST("/updated_ads", this.UpdatedAds)              // 修改广告(买卖)
 		Currency.POST("/updated_ads_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
@@ -90,7 +86,6 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 	c.JSON(http.StatusOK, ret)
 
 }
-
 
 // 修改广告(买卖)
 
