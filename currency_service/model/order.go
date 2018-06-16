@@ -4,11 +4,13 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
 	. "digicon/proto/common"
+	"fmt"
 )
 
 // 订单表
 type Order struct {
-	OrderId     uint64       `xorm:"not null pk autoincr comment('订单ID') INT(10)"`
+	Id          uint64       `xorm:"not null pk autoincr comment('ID')  INT(10)"`
+	OrderId     uint64       `xorm:"not null pk comment('订单ID') INT(10)"`  // hash( type_id, 6( user_id, + 时间秒）
 	AdId        uint64       `xorm:"not null default 0 comment('广告ID') index INT(10)"`
 	AdType      uint32       `xorm:"not null default 0 comment('广告类型:1出售 2购买') TINYINT(1)"`
 	Price       float64      `xorm:"not null default 0.000000 comment('价格') DECIMAL(20,6)"`
@@ -30,9 +32,50 @@ type Order struct {
 
 
 //列出订单
-func (this *Order)  List(startRow, endRow int32, o *[]Order) int32 {
+func (this *Order)  List(Page, PageNum int32,
+	AdType, Status uint32,
+	TokenId float64, CreatedTime string, o *[]Order) (int64,int32, int32, int32) {
+
 	 engine := dao.DB.GetMysqlConn()
-	 err := engine.Limit(int(endRow), int(startRow)).Find(o)
+	 fmt.Println(TokenId, AdType, Status, CreatedTime, Page, PageNum)
+	 if Page <= 0 {
+	 	Page = 0
+	 }
+	 if PageNum <= 0{
+	 	PageNum = 10
+	 }
+	 query := engine.Desc(`id`)
+	 if AdType != 0 {
+	 	query = query.Where("ad_type = ?", AdType)
+	 }
+	 if TokenId != 0 {
+	 	query = query.Where("token_id = ?", TokenId)
+	 }
+	 if Status != 0 {
+	 	query = query.Where("status = ?", Status)
+	 }
+	 if CreatedTime !=  ``  {
+	 	query = query.Where("created_time = ?", CreatedTime)
+	 }
+	orderModel := new(Order)
+	total, _:= query.Count(orderModel)
+	err := query.Limit(int(PageNum), int(Page)).Find(o)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return 0,0, 0, ERRCODE_UNKNOWN
+	}
+	return total, Page, PageNum, ERRCODE_SUCCESS
+}
+
+
+
+// 删除订单(实际上是隐藏订单)
+// id     uint64
+//
+func (this *Order) Delete(Id int64) int32 {
+	var err error
+	sql := "UPDATE   `order`   SET   `states`=? WHERE  `id`=?"
+	_, err = dao.DB.GetMysqlConn().Exec(sql,0, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -41,9 +84,11 @@ func (this *Order)  List(startRow, endRow int32, o *[]Order) int32 {
 }
 
 
-//添加订单
-func (this *Order) Add() int32 {
-	_, err := dao.DB.GetMysqlConn().Insert(this)
+// 取消订单
+func (this *Order) Cancel(Id int64) int32 {
+	var err error
+	sql := "UPDATE   `order`   SET   `states`=? WHERE  `id`=?"
+	_, err = dao.DB.GetMysqlConn().Exec(sql, 0, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -51,26 +96,6 @@ func (this *Order) Add() int32 {
 	return ERRCODE_SUCCESS
 }
 
-
-//更新订单
-func (this *Order) Update() int32 {
-	_, err := dao.DB.GetMysqlConn().Id(this.OrderId).Update(this)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-	return ERRCODE_SUCCESS
-}
-
-func (this *Order) Delete() int32 {
-	//_, err := dao.DB.GetMysqlConn().Id(this.Id).Delete(this)
-	//if err != nil {
-	//	Log.Errorln(err.Error())
-	//	return ERRCODE_UNKNOWN
-	//}
-
-	return ERRCODE_SUCCESS
-}
 
 
 

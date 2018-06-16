@@ -2,25 +2,24 @@ package handler
 
 import (
 	"context"
-	. "digicon/currency_service/log"
 	"digicon/currency_service/model"
 	proto "digicon/proto/rpc"
-	"time"
+	"fmt"
 )
 
 
 
 //获取订单列表
-func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrdersListResponse) error {
-
-
-	Log.Println("Received Order request ...")
+func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest, rsp *proto.OrdersListResponse) error {
 	result := []model.Order{}
-	o := model.Order{}
-	rsp.Err = o.List(req.Page, req.PageNum, &result)
-	odc := proto.OrdersListResponse_Orders{}
-	for i := 0; i < len(result); i++ {
+
+	o := new(model.Order)
+	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.Status, req.TokenId, req.CreatedTime, &result)
+
+	for i := 0; i< len(result);i++{
 		value := result[i]
+		odc := proto.OrdersListResponse_Orders{}
+		odc.Id = value.Id
 		odc.OrderId = value.OrderId
 		odc.AdId = value.AdId
 		odc.AdType = value.AdType
@@ -33,59 +32,30 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrderRequest, rsp
 		odc.CancelType = value.CancelType
 		odc.CreatedTime = value.CreatedTime
 		odc.UpdatedTime = value.UpdatedTime
+		//fmt.Println(value)
 		rsp.Orders = append(rsp.Orders, &odc)
+		fmt.Println(rsp.Orders)
 	}
 	return nil
 }
 
-//产生订单
-func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rsp *proto.OrderResponse) error {
-
-	od := new(model.Order)
-	od.OrderId = req.OrderId
-	od.AdId = req.AdId
-	od.AdType = req.AdType
-	od.Price = req.Price
-	od.Num = req.Num
-	od.TokenId = req.TokenId
-	od.PayId = req.PayId
-	od.SellId = req.SellId
-	od.SellName = req.SellName
-	od.BuyId = req.BuyId
-	od.BuyName = req.BuyName
-	od.Fee = req.Fee
-	od.States = req.States
-	od.PayStatus = req.PayStatus
-	od.CancelType = req.CancelType
-	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
-	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
-
-	rsp.Code = od.Add()
+// 取消订单
+func (s *RPCServer) CancelOrder( ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
+	code := new(model.Order).Cancel(req.Id)
+	rsp.Code = code
 	return nil
 }
 
-//更新
-func (s *RPCServer) UpdateOrder(ctex context.Context, req *proto.AddOrderRequest, rsp *proto.OrderResponse) error {
-	od := new(model.Order)
-	od.OrderId = req.OrderId
-	od.AdId = req.AdId
-	od.AdType = req.AdType
-	od.Price = req.Price
-	od.Num = req.Num
-	od.TokenId = req.TokenId
-	od.PayId = req.PayId
-	od.SellId = req.SellId
-	od.SellName = req.SellName
-	od.BuyId = req.BuyId
-	od.BuyName = req.BuyName
-	od.Fee = req.Fee
-	od.States = req.States
-	od.PayStatus = req.PayStatus
-	od.CancelType = req.CancelType
-	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
-
-	rsp.Code = od.Update()
+// 删除订单
+func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
+	code := new(model.Order).Delete(req.Id)
+	rsp.Code = code
 	return nil
 }
+
+
+
+
+
 
 
