@@ -12,7 +12,7 @@ service KlineRPC {
 }
 
 message KineRequest {
-	 string value   = "hello";  // huan
+	 string value   = "hello";  // hua
 }
 
 // 返回的状码
