@@ -16,6 +16,7 @@ type RedisOp struct {
 const (
 	UID_TAG_BASE_INFO         = "base"
 	UID_TAG_GOOGLE_SECERT_KEY = "google_key"
+	UID_TAG_TOKEN         = "token"
 )
 
 //获取手机redis中逻辑标签信息
@@ -88,6 +89,24 @@ func (s *RedisOp) SetUserBaseInfo(uid int32, data string) (err error) {
 
 func (s *RedisOp) GetUserBaseInfo(uid int32) (rsp string, err error) {
 	rsp, err = DB.GetRedisConn().Get(GetUserTagByLogic(uid, UID_TAG_BASE_INFO)).Result()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *RedisOp) SetUserToken(uid int32,token []byte) (err error) {
+	err = DB.GetRedisConn().Set(GetUserTagByLogic(uid, UID_TAG_TOKEN), token, 604800*time.Second).Err()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *RedisOp) GetUserToken(uid int32) (token []byte ,err error) {
+	token,err = DB.GetRedisConn().Get(GetUserTagByLogic(uid, UID_TAG_TOKEN)).Bytes()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

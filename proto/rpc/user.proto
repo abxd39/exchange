@@ -76,9 +76,15 @@ message LoginRequest {
     int32  type       =4;
 }
 
+message LoginUserBaseData{
+    int32 uid       =1;
+    bytes token    =2;
+}
+
 message LoginResponse {
 	int32 err = 1;
 	string message  =2;
+    LoginUserBaseData data   =3;
 }
 
 message ForgetRequest {

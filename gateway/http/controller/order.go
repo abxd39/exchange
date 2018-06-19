@@ -77,7 +77,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		PageNum:     param.PageNum,
 		TokenId:     param.TokenId,
 		AdType:      param.AdType,
-		States:      tmpStates,
+		Status:      tmpStates,
 		CreatedTime: param.CreatedTime,
 	})
 	if err != nil{

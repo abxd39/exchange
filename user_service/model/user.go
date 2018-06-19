@@ -13,6 +13,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"strconv"
 	"time"
+	"digicon/common/encryption"
 )
 
 type User struct {
@@ -353,43 +354,92 @@ func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 }
 
 //通过手机登陆
-func (s *User) LoginByPhone(phone, pwd string) int32 {
+func (s *User) LoginByPhone(phone, pwd string) (ret int32) {
 	if ok := check.CheckPhone(phone); !ok {
-		return ERRCODE_SMS_PHONE_FORMAT
+		ret= ERRCODE_SMS_PHONE_FORMAT
+		return
 	}
-	m := &User{}
-	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(m)
+
+	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		 ret=ERRCODE_UNKNOWN
+		return
 	}
 	if ok {
-		if m.Pwd == pwd {
-			return ERRCODE_SUCCESS
+		if s.Pwd == pwd {
+			err =s.refreshToken()
+			if err != nil {
+				Log.Errorln(err.Error())
+				ret=ERRCODE_UNKNOWN
+				return
+			}
+
+			ret= ERRCODE_SUCCESS
+			return
 		}
-		return ERRCODE_PWD
+		ret= ERRCODE_PWD
+		return
 	}
-	return ERRCODE_ACCOUNT_NOTEXIST
+	ret= ERRCODE_ACCOUNT_NOTEXIST
+	return
 }
 
 //通过邮箱登陆
-func (s *User) LoginByEmail(eamil, pwd string) int32 {
+func (s *User) LoginByEmail(eamil, pwd string)  (ret int32) {
 	if ok := check.CheckEmail(eamil); !ok {
-		return ERRCODE_SMS_EMAIL_FORMAT
+		 ret= ERRCODE_SMS_EMAIL_FORMAT
+		return
 	}
-	m := &User{}
-	ok, err := DB.GetMysqlConn().Where("email=?", eamil).Get(m)
+
+	ok, err := DB.GetMysqlConn().Where("email=?", eamil).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		 ret= ERRCODE_UNKNOWN
+		return
 	}
 	if ok {
-		if m.Pwd == pwd {
-			return ERRCODE_SUCCESS
+		if s.Pwd == pwd {
+			err =s.refreshToken()
+			if err != nil {
+				Log.Errorln(err.Error())
+				ret=ERRCODE_UNKNOWN
+				return
+			}
+			 ret= ERRCODE_SUCCESS
+			return
 		}
-		return ERRCODE_PWD
+		 ret= ERRCODE_PWD
+		return
 	}
-	return ERRCODE_ACCOUNT_NOTEXIST
+	 ret= ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+
+//更新token
+func  (s *User) refreshToken()  (err error){
+	uid_:=fmt.Sprintf("%d",s.Uid)
+	salt:=random.Krand(6,random.KC_RAND_KIND_NUM)
+	b:=encryption.Gensha256(uid_,time.Now().Unix(),string(salt))
+
+	//_,err:=DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("token").Update(s)
+	err=new(RedisOp).SetUserToken(int32(s.Uid),b)
+	if err!=nil {
+		return
+	}
+	return
+}
+
+func (s *User) GetLoginUser(p *proto.LoginUserBaseData) (err error) {
+	t,err:=new(RedisOp).GetUserToken(int32(s.Uid))
+	if err!=nil {
+		return
+	}
+
+	p.Uid=int32(s.Uid)
+	p.Token=t
+
+	return
 }
 
 //修改密码
