@@ -79,3 +79,37 @@ func (s *RPCServer) UpdatedAdsStatus(ctx context.Context, req *proto.AdsStatusRe
 	rsp.Code = int32(code)
 	return nil
 }
+
+// 法币交易列表 (广告(买卖))
+func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp *proto.AdsListResponse) error {
+	data, total := new(model.Ads).AdsList(req.TypeId, req.TokenId, req.Page, req.PageNum)
+	if data == nil || total <= 0 {
+		return nil
+	}
+
+	listLen := len(data)
+	listData := make([]*proto.AdsLists, listLen)
+	for i := 0; i < listLen; i++ {
+		adsLists := &proto.AdsLists{
+			Id:          data[i].Id,
+			Uid:         data[i].Uid,
+			Price:       data[i].Price,
+			Num:         data[i].Num,
+			MinLimit:    data[i].MinLimit,
+			MaxLimit:    data[i].MaxLimit,
+			Pays:        data[i].Pays,
+			CreatedTime: data[i].CreatedTime,
+			UpdatedTime: data[i].UpdatedTime,
+			UserVolume:  data[i].Success,
+		}
+		listData[i] = adsLists
+	}
+
+	rsp.Page = req.Page
+	rsp.PageNum = req.PageNum
+	rsp.Total = uint64(total)
+	rsp.Data = listData
+	log.Println(rsp.Data)
+	log.Println(data)
+	return nil
+}

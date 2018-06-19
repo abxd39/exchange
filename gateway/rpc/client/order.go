@@ -27,7 +27,11 @@ func (s *CurrencyRPCCli) CallDeleteOrder(req *proto.OrderRequest) (rsp *proto.Or
 	return
 }
 
+<<<<<<< HEAD
 func (s *CurrencyRPCCli) CallCancelOrder(req *proto.OrderRequest) (rsp *proto.OrderResponse, err error) {
+=======
+func (s *CurrencyRPCCli) CallCancelOrder(req *proto.CancelOrderRequest)(rsp *proto.OrderResponse, err error){
+>>>>>>> efbae774ef18301514fd2b43f7d2dbf165bb5624
 	rsp, err = s.conn.CancelOrder(context.TODO(), req)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -35,3 +39,23 @@ func (s *CurrencyRPCCli) CallCancelOrder(req *proto.OrderRequest) (rsp *proto.Or
 	}
 	return
 }
+<<<<<<< HEAD
+=======
+
+func (s *CurrencyRPCCli) CallConfirmOrder(req *proto.OrderRequest)(rsp *proto.OrderResponse, err error) {
+	rsp, err = s.conn.ConfirmOrder(context.TODO(), req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
+
+
+
+
+
+
+>>>>>>> efbae774ef18301514fd2b43f7d2dbf165bb5624

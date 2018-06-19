@@ -9,8 +9,20 @@ import (
 	"net/http"
 )
 
+<<<<<<< HEAD
 type OrderRequest struct {
 	Id int64 `form:"id" json:"id"  binding:"required"` //order 表Id
+=======
+
+type OrderRequest  struct {
+	Id    uint64  `form:"id" json:"id"  binding:"required"`     //order 表Id
+}
+
+
+type CancelOrderRequest  struct {
+	Id         uint64  `form:"id" json:"id"  binding:"required"`          //order 表Id
+	CancelType uint32  `form:"id" json:"cancel_type" binding:"required"`  //取消类型: 1卖方 2 买方
+>>>>>>> efbae774ef18301514fd2b43f7d2dbf165bb5624
 }
 
 func (this *CurrencyGroup) OrdersList(c *gin.Context) {
@@ -58,15 +70,21 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-	var param OrderRequest
+	var param CancelOrderRequest
 	err := c.ShouldBind(&param)
 	if err != nil {
 		Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+<<<<<<< HEAD
 	rsp, err := rpc.InnerService.CurrencyService.CallCancelOrder(&proto.OrderRequest{
 		Id: param.Id,
+=======
+	rsp, err := rpc.InnerService.CurrencyService.CallCancelOrder(&proto.CancelOrderRequest{
+		Id:param.Id,
+		CancelType:param.CancelType,
+>>>>>>> efbae774ef18301514fd2b43f7d2dbf165bb5624
 	})
 	ret.SetErrCode(rsp.Code, rsp.Message)
 }
@@ -90,3 +108,29 @@ func (this CurrencyGroup) DeleteOrder(c *gin.Context) {
 	})
 	ret.SetErrCode(rsp.Code, rsp.Message)
 }
+<<<<<<< HEAD
+=======
+
+
+
+// 确认放行
+func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	var param OrderRequest
+	err := c.ShouldBind(&param)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.OrderRequest{
+		Id:param.Id,
+	})
+	ret.SetErrCode(rsp.Code, rsp.Message)
+}
+
+>>>>>>> efbae774ef18301514fd2b43f7d2dbf165bb5624

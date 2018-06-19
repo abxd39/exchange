@@ -1,0 +1,28 @@
+syntax = "proto3";
+package g2u;
+
+service KlineRPC {
+
+        //測試
+    	rpc Hline(KineRequest) returns (KlineResponse){};
+
+
+
+
+}
+
+message KineRequest {
+	 string value   = "hello";  // hua
+}
+
+// 返回的状码
+message KlineResponse {
+	int32 code      =   1;
+}
+
+
+
+
+
+
+

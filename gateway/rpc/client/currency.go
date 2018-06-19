@@ -58,3 +58,9 @@ func (s *CurrencyRPCCli) CallUpdatedAdsStatus(req *proto.AdsStatusRequest) (int,
 	rsp, err := s.conn.UpdatedAdsStatus(context.TODO(), req)
 	return int(rsp.Code), err
 }
+
+// 调用 rpc 法币交易列表 - (广告(买卖))
+func (s *CurrencyRPCCli) CallAdsList(req *proto.AdsListRequest) (*proto.AdsListResponse, error) {
+	rsp, err := s.conn.AdsList(context.TODO(), req)
+	return rsp, err
+}

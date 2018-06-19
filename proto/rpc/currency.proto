@@ -10,16 +10,19 @@ service CurrencyRPC {
     	rpc UpdatedAds(AdsRequest) returns (CurrencyResponse){};
     	// 修改广告(买卖)状态
     	rpc UpdatedAdsStatus(AdsStatusRequest) returns (CurrencyResponse){};
-
+    	// 法币交易列表 - (广告(买卖))
+    	rpc AdsList(AdsListRequest) returns (AdsListResponse){};
 
 
         /// Order ///
         // 获取订单列表
     	rpc OrdersList(OrdersListRequest) returns(OrdersListResponse){};
         // 取消订单
-        rpc CancelOrder(OrderRequest) returns(OrderResponse){};
+        rpc CancelOrder(CancelOrderRequest) returns(OrderResponse){};
         // 删除订单
         rpc DeleteOrder(OrderRequest) returns(OrderResponse){};
+        // 确认放行
+        rpc ConfirmOrder(OrderRequest) returns (OrderResponse) {};
 
 }
 
@@ -71,6 +74,41 @@ message AdsStatusRequest {
     uint32 status_id    = 2;  // 状态: 1下架 2上架 3正常(不删除) 4删除
 }
 
+//===
+
+// 法币交易列表 - (广告(买卖))
+message AdsLists {
+    uint64 id           = 1;  // 广告ID
+    uint64 uid          = 2;  // 用户ID
+    double price        = 3;  // 单价
+    double num          = 4;  // 数量
+    uint32 min_limit    = 5;  // 最小限额
+    uint32 max_limit    = 6;  // 最大限额
+    string pays         = 7;  // 支付方式:以 , 分隔: 1,2,3
+    string created_time = 8;  // 创建时间
+    string updated_time = 9;  // 修改时间
+    string user_name    = 10; // 用户名
+    string user_face    = 11; // 用户头像
+    uint32 user_volume  = 12; // 用户成交量
+}
+
+message AdsListRequest {
+    uint32 type_id       = 1;  // 类型:1出售 2购买
+    uint32 token_id      = 2;  // 货币类型
+    string token_name    = 3;  // 货币名称
+    uint32 page          = 4;  // 指定第几页
+    uint32 page_num      = 5;  // 指定每页的记录数
+    string fiat_currency = 6;  // 指定 CNY | USD
+}
+
+message AdsListResponse {
+    int32 code          = 1; // 返回的状码
+    uint32 page         = 2; // 指定第几页
+    uint32 page_num     = 3; // 指定每页的记录数
+    uint64 total        = 4; // 总记录数
+    repeated AdsLists data = 5;
+}
+
 
 
 ////////////////////////// Order ////////////////////////////
@@ -84,7 +122,12 @@ message OrderResponse {
 
 
 message OrderRequest {
-    int64  id  = 1;       // 交易订单
+    uint64  id  = 1;       // 交易订单
+}
+
+message CancelOrderRequest {
+    uint64  id              = 1;
+    uint32  cancel_type     = 2;
 }
 
 
