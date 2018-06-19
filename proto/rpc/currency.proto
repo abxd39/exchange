@@ -16,7 +16,14 @@ service CurrencyRPC {
     	rpc AdsList(AdsListRequest) returns (AdsListResponse){};
     	// 个人法币交易列表 - (广告(买卖))
         rpc AdsUserList(AdsListRequest) returns (AdsListResponse){};
-
+        // 获取货币类型
+        rpc GetCurrencyTokens(CurrencyTokensRequest) returns (CurrencyTokens){}
+        // 获取货币类型列表
+        rpc CurrencyTokensList(CurrencyTokensRequest) returns (CurrencyTokensListResponse){}
+        // 获取支付方式
+        rpc GetCurrencyPays(CurrencyPaysRequest) returns (CurrencyPays){}
+        // 获取支付方式列表
+        rpc CurrencyPaysList(CurrencyPaysRequest) returns (CurrencyPaysListResponse){}
 
         /// Order ///
         // 获取订单列表
@@ -119,6 +126,39 @@ message AdsListResponse {
     repeated AdsLists data = 5;
 }
 
+//===
+
+// 货币类型
+message CurrencyTokens {
+    uint32 id       = 1;
+    string name     = 2;
+    string cn_name  = 3;
+}
+message CurrencyTokensRequest {
+    uint32 id       = 1;
+    string name     = 2;
+}
+message CurrencyTokensListResponse {
+    repeated CurrencyTokens data = 1;
+}
+
+//===
+
+// 支付方式
+message CurrencyPays {
+    uint32 id      = 1;
+    uint32 type_id = 2;
+    string zh_pay  = 3;
+    string en_pay  = 4;
+    uint32 states  = 5;
+}
+message CurrencyPaysRequest {
+    uint32 id       = 1;
+    string en_pay   = 2;
+}
+message CurrencyPaysListResponse {
+    repeated CurrencyPays data = 1;
+}
 
 ////////////////////////// Order ////////////////////////////
 

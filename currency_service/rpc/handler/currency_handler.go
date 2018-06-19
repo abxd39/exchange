@@ -181,3 +181,76 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 
 	return nil
 }
+
+// 获取货币类型
+func (s *RPCServer) GetCurrencyTokens(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokens) error {
+	data := new(model.Tokens).Get(req.Id, req.Name)
+	if data == nil{
+		return nil
+	}
+
+	rsp.Id = data.Id
+	rsp.Name = data.Name
+	rsp.CnName = data.CnName
+
+	return nil
+}
+
+// 获取货币类型列表
+func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokensListResponse) error {
+	data := new(model.Tokens).List()
+	if data == nil{
+		return nil
+	}
+
+	listLen := len(data)
+	listData := make([]*proto.CurrencyTokens, listLen)
+	for i := 0; i < listLen; i++ {
+		adsLists := &proto.CurrencyTokens{
+			Id:data[i].Id,
+			Name:data[i].Name,
+			CnName:data[i].CnName,
+		}
+		listData[i] = adsLists
+	}
+
+	return nil
+}
+
+// 获取支付方式
+func (s *RPCServer) GetCurrencyPays(ctx context.Context, req *proto.CurrencyPaysRequest, rsp *proto.CurrencyPays) error {
+	data := new(model.Pays).Get(req.Id, req.EnPay)
+	if data == nil{
+		return nil
+	}
+
+	rsp.Id = data.Id
+	rsp.TypeId = data.TypeId
+	rsp.ZhPay = data.ZhPay
+	rsp.EnPay = data.EnPay
+	rsp.States = data.States
+
+	return nil
+}
+
+// 获取支付方式列表
+func (s *RPCServer) CurrencyPaysList(ctx context.Context, req *proto.CurrencyPaysRequest, rsp *proto.CurrencyPaysListResponse) error {
+	data := new(model.Pays).List()
+	if data == nil{
+		return nil
+	}
+
+	listLen := len(data)
+	listData := make([]*proto.CurrencyPays, listLen)
+	for i := 0; i < listLen; i++ {
+		adsLists := &proto.CurrencyPays{
+			Id:data[i].Id,
+			ZhPay:data[i].ZhPay,
+			EnPay:data[i].EnPay,
+			States:data[i].States,
+		}
+		listData[i] = adsLists
+	}
+
+	return nil
+}
