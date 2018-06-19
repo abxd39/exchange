@@ -336,19 +336,19 @@ func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 */
 
 //检查用户注册过没
-func (s *User) CheckUserExist(param string, col string) (ret int32,err error) {
+func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 	sql := fmt.Sprintf("%s=?", col)
 	ok, err := DB.GetMysqlConn().Where(sql, param).Get(&User{})
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret= ERRCODE_UNKNOWN
+		ret = ERRCODE_UNKNOWN
 		return
 	}
 	if ok {
-		ret= ERRCODE_ACCOUNT_EXIST
+		ret = ERRCODE_ACCOUNT_EXIST
 		return
 	}
-	ret= ERRCODE_SUCCESS
+	ret = ERRCODE_SUCCESS
 	return
 }
 

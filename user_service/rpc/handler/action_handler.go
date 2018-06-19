@@ -131,7 +131,6 @@ func (s *RPCServer) DelGoogleSecretKey(ctx context.Context, req *proto.DelGoogle
 	return nil
 }
 
-
 //获取用户基础信息
 func (s *RPCServer) GetUserInfo(ctx context.Context, req *proto.UserInfoRequest, rsp *proto.UserInfoResponse) error {
 	u := &model.User{}

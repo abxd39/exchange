@@ -141,9 +141,9 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
 	if req.Type == tools.SMS_REGISTER {
 		//TODO判断
-		u:=model.User{}
-		ret,err:=u.CheckUserExist(req.Phone,"phone")
-		if err!=nil {
+		u := model.User{}
+		ret, err := u.CheckUserExist(req.Phone, "phone")
+		if err != nil {
 			rsp.Err = ERRCODE_UNKNOWN
 			rsp.Message = err.Error()
 			return nil

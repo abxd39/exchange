@@ -1,33 +1,30 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
-	. "digicon/proto/common"
-	"digicon/gateway/rpc"
 	. "digicon/gateway/log"
-	"net/http"
+	"digicon/gateway/rpc"
+	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
-
-type OrderRequest  struct {
-	Id    int64  `form:"id" json:"id"  binding:"required"`     //order 表Id
+type OrderRequest struct {
+	Id int64 `form:"id" json:"id"  binding:"required"` //order 表Id
 }
-
-
 
 func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	type OrderListParam  struct {
-		Page        int32       `form:"page" `
-		PageNum     int32       `form:"page_num" `
-		TokenId     float64   	`form:"token_id"`
-		AdType      uint32      `form:"ad_type"`
-		Status      uint32      `form:"status"`
-		CreatedTime string      `form:"created_time"`
+	type OrderListParam struct {
+		Page        int32   `form:"page" `
+		PageNum     int32   `form:"page_num" `
+		TokenId     float64 `form:"token_id"`
+		AdType      uint32  `form:"ad_type"`
+		Status      uint32  `form:"status"`
+		CreatedTime string  `form:"created_time"`
 	}
 	var param OrderListParam
 	if err := c.ShouldBindQuery(&param); err != nil {
@@ -36,14 +33,14 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallOrdersList(&proto.OrdersListRequest{
-		Page :       param.Page,
+		Page:        param.Page,
 		PageNum:     param.PageNum,
 		TokenId:     param.TokenId,
 		AdType:      param.AdType,
 		Status:      param.Status,
 		CreatedTime: param.CreatedTime,
 	})
-	if err != nil{
+	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -55,9 +52,9 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 }
 
 // 取消订单
-func (this CurrencyGroup) CancelOrder(c *gin.Context){
+func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
@@ -69,16 +66,15 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context){
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallCancelOrder(&proto.OrderRequest{
-		Id:param.Id,
+		Id: param.Id,
 	})
 	ret.SetErrCode(rsp.Code, rsp.Message)
 }
 
-
 // 删除订单
 func (this CurrencyGroup) DeleteOrder(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
@@ -90,8 +86,7 @@ func (this CurrencyGroup) DeleteOrder(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallDeleteOrder(&proto.OrderRequest{
-		Id:param.Id,
+		Id: param.Id,
 	})
 	ret.SetErrCode(rsp.Code, rsp.Message)
 }
-
