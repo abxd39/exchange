@@ -19,7 +19,30 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 // 获取广告(买卖)
 func (s *RPCServer) GetAds(ctx context.Context, req *proto.AdsGetRequest, rsp *proto.AdsModel) error {
 
-	log.Println(req)
+	data := new(model.Ads).Get(req.Id)
+	if data == nil {
+		return nil
+	}
+
+	rsp.Id = data.Id
+	rsp.Uid = data.Uid
+	rsp.TypeId = data.TypeId
+	rsp.TokenId = data.TokenId
+	rsp.TokenName = data.TokenName
+	rsp.Price = data.Price
+	rsp.Num = data.Num
+	rsp.Premium = data.Premium
+	rsp.AcceptPrice = data.AcceptPrice
+	rsp.MinLimit = data.MinLimit
+	rsp.MaxLimit = data.MaxLimit
+	rsp.IsTwolevel = data.IsTwolevel
+	rsp.Pays = data.Pays
+	rsp.Remarks = data.Remarks
+	rsp.Reply = data.Reply
+	rsp.IsUsd = data.IsUsd
+	rsp.States = data.States
+	rsp.CreatedTime = data.CreatedTime
+	rsp.UpdatedTime = data.UpdatedTime
 
 	return nil
 }
