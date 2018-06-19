@@ -12,7 +12,7 @@ import (
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest, rsp *proto.OrdersListResponse) error {
 	result := []model.Order{}
 	o := new(model.Order)
-	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.Status, req.TokenId, req.CreatedTime, &result)
+	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.States, req.TokenId, req.CreatedTime, &result)
 
 	orders , err := json.Marshal(result)
 	if err != nil {

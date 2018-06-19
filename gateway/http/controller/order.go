@@ -8,6 +8,7 @@ import (
 	"net/http"
 	proto "digicon/proto/rpc"
 	"encoding/json"
+	"fmt"
 )
 
 
@@ -55,7 +56,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		PageNum     int32       `form:"page_num" `
 		TokenId     float64   	`form:"token_id"`
 		AdType      uint32      `form:"ad_type"`
-		Status      uint32      `form:"status"`
+		States      uint32      `form:"states"`
 		CreatedTime string      `form:"created_time"`
 	}
 	var param OrderListParam
@@ -64,12 +65,22 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+
+	fmt.Println("param.States:", param.States == 0)
+
+	var tmpStates uint32
+	if param.States != 0{
+		tmpStates = param.States
+	}else{
+		tmpStates = 100
+	}
+
 	rsp, err := rpc.InnerService.CurrencyService.CallOrdersList(&proto.OrdersListRequest{
 		Page :       param.Page,
 		PageNum:     param.PageNum,
 		TokenId:     param.TokenId,
 		AdType:      param.AdType,
-		Status:      param.Status,
+		States:      tmpStates,
 		CreatedTime: param.CreatedTime,
 	})
 	if err != nil{

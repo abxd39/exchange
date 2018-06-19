@@ -45,11 +45,18 @@ func (this *Order)  List(Page, PageNum int32,
 		PageNum = 10
 	}
 
-	displaySql := "states != 0"        // 0 为已删除，不显示
+	query := engine.Desc("id")
 
-	query := engine.Where(displaySql)
 	orderModel := new(Order)
-	total, _:= query.Count(orderModel)
+	fmt.Println("States:", States)
+
+	if States == 0 {                            // 状态为0，表示已经删除
+		return 0, 0, 0, ERRCODE_SUCCESS
+	}else if States == 100{                     // 默认传递的States
+		query = query.Where("states != 0")
+	}else{
+		query = query.Where("states = ?", States)
+	}
 
 	if AdType != 0 {
 		query = query.Where("ad_type = ?", AdType)
@@ -57,14 +64,14 @@ func (this *Order)  List(Page, PageNum int32,
 	if TokenId != 0 {
 		query = query.Where("token_id = ?", TokenId)
 	}
-	if States != 0 {
-		fmt.Println("States:", States)
-		query = query.Where("states = ?", States)
-	}
+
 	if CreatedTime !=  ``  {
 		query = query.Where("created_time = ?", CreatedTime)
 	}
-	err := query.Where(displaySql).Limit(int(PageNum), int(Page)).Find(o)
+	tmpQuery := *query
+	countQuery := &tmpQuery
+	total, _:= countQuery.Count(orderModel)
+	err := query.Limit(int(PageNum), int(Page)).Find(o)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return 0,0, 0, ERRCODE_UNKNOWN
