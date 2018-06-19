@@ -8,7 +8,6 @@ import (
 	"net/http"
 	proto "digicon/proto/rpc"
 	"encoding/json"
-	"fmt"
 )
 
 
@@ -65,8 +64,6 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-
-	fmt.Println("param.States:", param.States == 0)
 
 	var tmpStates uint32
 	if param.States != 0{
