@@ -9,6 +9,17 @@ import (
 	. "digicon/proto/common"
 )
 
+
+
+const (
+	SMS_REGISTER   = 1 //注册业务
+	SMS_FORGET     = 2
+	SMS_CHANGE_PWD = 3
+	SMS_MAX        = 4
+)
+
+
+//发送短信
 func SendSms(phone string, ty int32) (ret int32, err_msg string) {
 	code := random.Random6dec()
 	r := &RedisOp{}
@@ -23,6 +34,7 @@ func SendSms(phone string, ty int32) (ret int32, err_msg string) {
 	return
 }
 
+//验证短信
 func AuthSms(phone string, ty int32,code string) (ret int32, err error) {
 	r := RedisOp{}
 	auth_code, err := r.GetSmsCode(phone, ty)

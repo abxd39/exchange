@@ -8,7 +8,6 @@ import (
 
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
-	"digicon/user_service/tools"
 	"github.com/go-redis/redis"
 )
 
@@ -24,7 +23,7 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
 	if req.Type == 1 {
 		r := model.RedisOp{}
-		code, err := r.GetSmsCode(req.Ukey, tools.SMS_REGISTER)
+		code, err := r.GetSmsCode(req.Ukey, model.SMS_REGISTER)
 		if err == redis.Nil {
 			rsp.Err = ERRCODE_SMS_CODE_NIL
 			rsp.Message = GetErrorMessage(rsp.Err)
@@ -176,7 +175,7 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 
 //发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
-	if req.Type == tools.SMS_REGISTER {
+	if req.Type == model.SMS_REGISTER {
 		//TODO判断
 		u := model.User{}
 		ret, err := u.CheckUserExist(req.Phone, "phone")
@@ -193,10 +192,10 @@ func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *pro
 		}
 
 		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
-	} else if req.Type == tools.SMS_FORGET {
+	} else if req.Type == model.SMS_FORGET {
 		//TODO判断
 		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
-	} else if req.Type == tools.SMS_CHANGE_PWD {
+	} else if req.Type == model.SMS_CHANGE_PWD {
 		//TODO判断
 		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
 	} else {
