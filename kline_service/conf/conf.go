@@ -20,7 +20,7 @@ func NewConfig(path string) *goconfig.ConfigFile {
 }
 
 func init() {
-	flag.StringVar(&confPath, "conf", "currency.ini", "config path")
+	flag.StringVar(&confPath, "conf", "kline.ini", "config path")
 }
 
 func Init() {
