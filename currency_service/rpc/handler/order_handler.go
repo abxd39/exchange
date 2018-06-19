@@ -6,9 +6,35 @@ import (
 	proto "digicon/proto/rpc"
 	"encoding/json"
 	. "digicon/currency_service/log"
+	"time"
+	"fmt"
+	"strconv"
+	"bytes"
 )
 
-//获取订单列表
+
+// 产生订单 ID
+// 币种 , 年月,  时间秒, 用户id
+func createOrderId(userId int32) (orderId string) {
+	var buffer bytes.Buffer
+	tn := time.Now()
+	tnn := tn.UnixNano()
+	tnns := strconv.FormatInt(tnn, 10)       // 获取微秒时间
+	tnstr  := tn.Format("2006-01-02")
+	tnYear := tnstr[:4]
+	tnMonth := tnstr[5:7]
+	buffer.WriteString(tnYear)
+	buffer.WriteString(tnMonth)
+	buffer.WriteString(tnns[len(tnns) - 6:])
+	buffer.WriteString(strconv.FormatInt(int64(userId), 10))
+	orderId = buffer.String()
+	return
+}
+
+
+
+
+// 获取订单列表
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest, rsp *proto.OrdersListResponse) error {
 	result := []model.Order{}
 	o := new(model.Order)
@@ -17,6 +43,9 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 	orders , err := json.Marshal(result)
 	if err != nil {
 		Log.Errorln(err.Error())
+		rsp.Orders = "[]"
+		rsp.Message = err.Error()
+		return err
 	}
 	rsp.Orders = string(orders)
 	return nil
@@ -44,6 +73,26 @@ func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, r
 	rsp.Code = code
 	return nil
 }
+
+// 添加订单
+func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rsp *proto.OrderResponse) error {
+	od := new(model.Order)
+	if err := json.Unmarshal([]byte(req.Order), &od); err != nil {
+		Log.Println(err.Error())
+		fmt.Println(err.Error())
+	}
+
+	od.OrderId = createOrderId(req.Uid)
+	od.States = 1
+	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
+	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
+
+	id, code := od.Add()
+	rsp.Code = code
+	rsp.Data = strconv.FormatUint(id,10)
+	return nil
+}
+
 
 
 

@@ -29,6 +29,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
 		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
 		Currency.POST("/confirm_order", this.ConfirmOrder) // 确认放行
+		Currency.POST("/add_order", this.AddOrder)         // 添加订单	
 
 	}
 }

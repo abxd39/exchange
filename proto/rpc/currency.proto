@@ -34,7 +34,8 @@ service CurrencyRPC {
         rpc DeleteOrder(OrderRequest) returns(OrderResponse){};
         // 确认放行
         rpc ConfirmOrder(OrderRequest) returns (OrderResponse) {};
-
+        // 添加订单
+        rpc AddOrder(AddOrderRequest) returns (OrderResponse ) {};
 }
 
 message AdminRequest {
@@ -179,6 +180,11 @@ message CancelOrderRequest {
     uint32  cancel_type     = 2;
 }
 
+
+message AddOrderRequest {
+    string  order       = 1;   // 添加订单 的表单
+    int32    uid        = 2;   // 用户 id
+}
 
 
 message OrdersListRequest {

@@ -17,14 +17,13 @@ type OrderRequest  struct {
 
 
 type CancelOrderRequest  struct {
-	Id         uint64  `form:"id" json:"id"  binding:"required"`          //order 表Id
+	//Id         uint64  `form:"id" json:"id"  binding:"required"`          //order 表Id
+	OrderRequest
 	CancelType uint32  `form:"id" json:"cancel_type" binding:"required"`  //取消类型: 1卖方 2 买方
 }
 
 
-type Order struct {
-	Id          uint64       `json:"id"`                      // id
-	OrderId     uint64       `json:"order_id" `               // 订单id
+type OneOrder struct {
 	AdId        uint64       `json:"ad_id"  `                 // 广告id
 	AdType      uint32       `json:"ad_type"`                 // 广告类型
 	Price       float64      `json:"price"  `                 // 单价
@@ -39,6 +38,15 @@ type Order struct {
 	States      uint32       `json:"states"`                  // 订单状态 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消
 	PayStatus   uint32       `json:"pay_status"`			  // 支付状态 1待支付 2待放行(已支付) 3确认支付(已完成)
 	CancelType  uint32       `json:"cancel_type"`             // 取消类型 1卖方 2 买方
+
+}
+
+
+
+type Order struct {
+	OrderRequest
+	OneOrder
+	OrderId     string       `json:"order_id" `               // 订单id
 	CreatedTime string       `json:"created_time"`            //
 	UpdatedTime string       `json:"updated_time"`
 }
@@ -77,7 +85,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		PageNum:     param.PageNum,
 		TokenId:     param.TokenId,
 		AdType:      param.AdType,
-		Status:      tmpStates,
+		States:      tmpStates,
 		CreatedTime: param.CreatedTime,
 	})
 	if err != nil{
@@ -159,5 +167,31 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 		Id:param.Id,
 	})
 	ret.SetErrCode(rsp.Code, rsp.Message)
+}
+
+
+// 添加订单
+func (this CurrencyGroup) AddOrder(c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	var param OneOrder
+	err := c.ShouldBind(&param)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	orderStr, _ := json.Marshal(param)
+
+	rsp, err := rpc.InnerService.CurrencyService.CallAddOrder(&proto.AddOrderRequest{
+		Order: string(orderStr),
+	})
+	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetDataSection("id", rsp.Data)
+
+
 }
 
