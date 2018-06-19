@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	. "digicon/gateway/log"
+	//. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
 
 	"github.com/micro/go-micro"
@@ -12,7 +12,7 @@ import (
 )
 
 type KlineRPCCli struct {
-	conn proto.KineRPCService
+	conn proto.KlineRPCService
 }
 
 //func (s *KlineRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err error) {
@@ -34,7 +34,7 @@ func NewKlineRPCCli() (u *KlineRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_client_currency")
-	greeter := proto.NewKineRPCService(service_name, service.Client())
+	greeter := proto.NewKlineRPCService(service_name, service.Client())
 	u = &KlineRPCCli{
 		conn: greeter,
 	}
@@ -42,7 +42,7 @@ func NewKlineRPCCli() (u *KlineRPCCli) {
 }
 
 // 调用 hello
-func (s *CurrencyRPCCli) CallHline(req *proto.KineRequest) (int, error) {
+func (s *KlineRPCCli) CallHline(req *proto.KineRequest) (int, error) {
 	rsp, err := s.conn.Hline(context.TODO(), req)
 	return int(rsp.Code), err
 }
