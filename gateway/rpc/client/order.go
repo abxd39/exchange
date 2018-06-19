@@ -4,13 +4,10 @@ import (
 	proto "digicon/proto/rpc"
 	"context"
 	. "digicon/gateway/log"
-	"fmt"
 )
 
 func (s *CurrencyRPCCli) CallOrdersList(req *proto.OrdersListRequest)(rsp *proto.OrdersListResponse, err error) {
 	rsp, err = s.conn.OrdersList(context.TODO(), req)
-	fmt.Println(len(rsp.Orders))
-	fmt.Println(rsp.Orders)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

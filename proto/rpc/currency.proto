@@ -4,14 +4,18 @@ package g2u;
 service CurrencyRPC {
     	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
 
+        // 获取广告(买卖)
+        rpc GetAds(AdsGetRequest) returns (AdsModel){};
     	// 新增广告(买卖)
-    	rpc AddAds(AdsRequest) returns (CurrencyResponse){};
+    	rpc AddAds(AdsModel) returns (CurrencyResponse){};
     	// 修改广告(买卖)
-    	rpc UpdatedAds(AdsRequest) returns (CurrencyResponse){};
+    	rpc UpdatedAds(AdsModel) returns (CurrencyResponse){};
     	// 修改广告(买卖)状态
     	rpc UpdatedAdsStatus(AdsStatusRequest) returns (CurrencyResponse){};
     	// 法币交易列表 - (广告(买卖))
     	rpc AdsList(AdsListRequest) returns (AdsListResponse){};
+    	// 个人法币交易列表 - (广告(买卖))
+        rpc AdsUserList(AdsListRequest) returns (AdsListResponse){};
 
 
         /// Order ///
@@ -42,7 +46,7 @@ message CurrencyResponse {
 }
 
 // 广告(买卖)
-message AdsRequest {
+message AdsModel {
     uint64 id           = 1;  // 广告ID
     uint64 uid          = 2;  // 用户ID
     uint32 type_id      = 3;  // 类型:1出售 2购买
@@ -64,8 +68,10 @@ message AdsRequest {
     string updated_time = 19; // 修改时间
 }
 
-message AdsIdRequest {
+message AdsGetRequest {
     uint64 id           = 1;  // 广告ID
+    uint64 uid          = 2;  // 用户ID
+    uint32 type_id      = 3;  // 类型:1出售 2购买
 }
 
 // 修改广告(买卖)状态
@@ -90,6 +96,9 @@ message AdsLists {
     string user_name    = 10; // 用户名
     string user_face    = 11; // 用户头像
     uint32 user_volume  = 12; // 用户成交量
+    uint32 type_id      = 13; // 类型:1出售 2购买
+    uint32 token_id     = 14; // 货币类型
+    string token_name   = 15; // 货币名称
 }
 
 message AdsListRequest {
@@ -99,6 +108,7 @@ message AdsListRequest {
     uint32 page          = 4;  // 指定第几页
     uint32 page_num      = 5;  // 指定每页的记录数
     string fiat_currency = 6;  // 指定 CNY | USD
+    uint64 uid           = 7;  // 用户ID
 }
 
 message AdsListResponse {
@@ -108,7 +118,6 @@ message AdsListResponse {
     uint64 total        = 4; // 总记录数
     repeated AdsLists data = 5;
 }
-
 
 
 ////////////////////////// Order ////////////////////////////
@@ -143,25 +152,9 @@ message OrdersListRequest {
 
 
 message OrdersListResponse{
-    message Orders {
-        uint64   id          = 1;
-        uint64   order_id    = 2;
-        uint64   ad_id       = 3;
-        uint32   ad_type     = 4;
-        double    price      = 5;
-        double    num        = 6;
-        uint64   token_id    = 7;
-        uint64   pay_id      = 8;
-        uint32   states      = 9;
-        uint32   pay_status  = 10;
-        uint32   cancel_type = 11;
-        string   created_time = 12;
-        string   updated_time = 13;
-    }
-
-    repeated Orders  orders =1;
-    int32 err               =2;
-    string message          =3;
+    string orders          = 1;
+    int32  err             =2;
+    string message         =3;
 
     int64  total           =4;
     int32  page            =5;

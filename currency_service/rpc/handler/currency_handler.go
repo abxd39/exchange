@@ -16,8 +16,39 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 	return nil
 }
 
+// 获取广告(买卖)
+func (s *RPCServer) GetAds(ctx context.Context, req *proto.AdsGetRequest, rsp *proto.AdsModel) error {
+
+	data := new(model.Ads).Get(req.Id)
+	if data == nil {
+		return nil
+	}
+
+	rsp.Id = data.Id
+	rsp.Uid = data.Uid
+	rsp.TypeId = data.TypeId
+	rsp.TokenId = data.TokenId
+	rsp.TokenName = data.TokenName
+	rsp.Price = data.Price
+	rsp.Num = data.Num
+	rsp.Premium = data.Premium
+	rsp.AcceptPrice = data.AcceptPrice
+	rsp.MinLimit = data.MinLimit
+	rsp.MaxLimit = data.MaxLimit
+	rsp.IsTwolevel = data.IsTwolevel
+	rsp.Pays = data.Pays
+	rsp.Remarks = data.Remarks
+	rsp.Reply = data.Reply
+	rsp.IsUsd = data.IsUsd
+	rsp.States = data.States
+	rsp.CreatedTime = data.CreatedTime
+	rsp.UpdatedTime = data.UpdatedTime
+
+	return nil
+}
+
 // 新增广告(买卖)
-func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsRequest, rsp *proto.CurrencyResponse) error {
+func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
 
@@ -49,7 +80,7 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsRequest, rsp *prot
 }
 
 // 修改广告(买卖)
-func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsRequest, rsp *proto.CurrencyResponse) error {
+func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
 
@@ -101,6 +132,9 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 			CreatedTime: data[i].CreatedTime,
 			UpdatedTime: data[i].UpdatedTime,
 			UserVolume:  data[i].Success,
+			TypeId:      data[i].TypeId,
+			TokenId:     data[i].TokenId,
+			TokenName:   data[i].TokenName,
 		}
 		listData[i] = adsLists
 	}
@@ -109,7 +143,41 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 	rsp.PageNum = req.PageNum
 	rsp.Total = uint64(total)
 	rsp.Data = listData
-	log.Println(rsp.Data)
-	log.Println(data)
+
+	return nil
+}
+
+// 个人法币交易列表 (广告(买卖))
+func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, rsp *proto.AdsListResponse) error {
+	data, total := new(model.Ads).AdsUserList(req.Uid, req.TypeId, req.Page, req.PageNum)
+	if data == nil || total <= 0 {
+		return nil
+	}
+
+	listLen := len(data)
+	listData := make([]*proto.AdsLists, listLen)
+	for i := 0; i < listLen; i++ {
+		adsLists := &proto.AdsLists{
+			Id:          data[i].Id,
+			Uid:         data[i].Uid,
+			Price:       data[i].Price,
+			Num:         data[i].Num,
+			MinLimit:    data[i].MinLimit,
+			MaxLimit:    data[i].MaxLimit,
+			Pays:        data[i].Pays,
+			CreatedTime: data[i].CreatedTime,
+			UpdatedTime: data[i].UpdatedTime,
+			TypeId:      data[i].TypeId,
+			TokenId:     data[i].TokenId,
+			TokenName:   data[i].TokenName,
+		}
+		listData[i] = adsLists
+	}
+
+	rsp.Page = req.Page
+	rsp.PageNum = req.PageNum
+	rsp.Total = uint64(total)
+	rsp.Data = listData
+
 	return nil
 }

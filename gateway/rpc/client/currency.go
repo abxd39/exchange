@@ -41,14 +41,20 @@ func NewCurrencyRPCCli() (u *CurrencyRPCCli) {
 	return
 }
 
+// 调用 rpc 获取广告(买卖)
+func (s *CurrencyRPCCli) CallGetAds(req *proto.AdsGetRequest) (*proto.AdsModel, error) {
+	rsp, err := s.conn.GetAds(context.TODO(), req)
+	return rsp, err
+}
+
 // 调用 rpc 新增广告(买卖)
-func (s *CurrencyRPCCli) CallAddAds(req *proto.AdsRequest) (int, error) {
+func (s *CurrencyRPCCli) CallAddAds(req *proto.AdsModel) (int, error) {
 	rsp, err := s.conn.AddAds(context.TODO(), req)
 	return int(rsp.Code), err
 }
 
 // 调用 rpc 修改广告(买卖)
-func (s *CurrencyRPCCli) CallUpdatedAds(req *proto.AdsRequest) (int, error) {
+func (s *CurrencyRPCCli) CallUpdatedAds(req *proto.AdsModel) (int, error) {
 	rsp, err := s.conn.UpdatedAds(context.TODO(), req)
 	return int(rsp.Code), err
 }
@@ -62,5 +68,11 @@ func (s *CurrencyRPCCli) CallUpdatedAdsStatus(req *proto.AdsStatusRequest) (int,
 // 调用 rpc 法币交易列表 - (广告(买卖))
 func (s *CurrencyRPCCli) CallAdsList(req *proto.AdsListRequest) (*proto.AdsListResponse, error) {
 	rsp, err := s.conn.AdsList(context.TODO(), req)
+	return rsp, err
+}
+
+// 调用 rpc 个人法币交易列表 - (广告(买卖))
+func (s *CurrencyRPCCli) CallAdsUserList(req *proto.AdsListRequest) (*proto.AdsListResponse, error) {
+	rsp, err := s.conn.AdsUserList(context.TODO(), req)
 	return rsp, err
 }
