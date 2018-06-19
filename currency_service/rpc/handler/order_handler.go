@@ -4,6 +4,8 @@ import (
 	"context"
 	"digicon/currency_service/model"
 	proto "digicon/proto/rpc"
+	"encoding/json"
+	. "digicon/currency_service/log"
 )
 
 //获取订单列表
@@ -12,26 +14,15 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 	o := new(model.Order)
 	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.Status, req.TokenId, req.CreatedTime, &result)
 
-	for i := 0; i < len(result);i++{
-		value := result[i]
-		od := proto.OrdersListResponse_Orders{}
-		od.Id          = value.Id
-		od.OrderId     = value.OrderId
-		od.AdId        = value.AdId
-		od.AdType      = value.AdType
-		od.Price       = value.Price
-		od.Num         = value.Num
-		od.TokenId     = value.TokenId
-		od.PayId       = value.PayId
-		od.States      = value.States
-		od.PayStatus   = value.PayStatus
-		od.CancelType  = value.CancelType
-		od.CreatedTime = value.CreatedTime
-		od.UpdatedTime = value.UpdatedTime
-		rsp.Orders = append(rsp.Orders, &od)
+	orders , err := json.Marshal(result)
+	if err != nil {
+		Log.Errorln(err.Error())
 	}
+	rsp.Orders = string(orders)
 	return nil
 }
+
+
 
 // 取消订单
 func (s *RPCServer) CancelOrder( ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) error {
