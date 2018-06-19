@@ -196,7 +196,7 @@ message UserRealNameResponse{
 
 
 message UserInviteResponse{
-    int32 err                      =1;
+    int32 err                    =1;
     string message              =2;
     UserInviteData      data    =3;
     string src                  =4;

@@ -13,3 +13,7 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 	rsp.Data = "Hello " + req.Cmd
 	return nil
 }
+
+func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderRequest, rsp *proto.EntrustOrderResponse) error {
+	return nil
+}

@@ -75,6 +75,41 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 //忘记密码
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
 	if req.Type == 1 { //电话找回
+		ret,err:=model.AuthSms(req.Ukey,req.Type,req.Code)
+		if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
+			return nil
+		}
+
+		if ret!=ERRCODE_SUCCESS {
+			rsp.Err =ret
+			rsp.Message=GetErrorMessage(ret)
+		}
+
+		u := model.User{}
+		ret, err = u.GetUserByPhone(req.Ukey)
+		if err != nil {
+			rsp.Err = ret
+			rsp.Message = err.Error()
+			return err
+		}
+
+		if ret != ERRCODE_SUCCESS {
+			rsp.Err = ret
+			rsp.Message = GetErrorMessage(rsp.Err)
+			return nil
+		}
+		err = u.ModifyPwd(req.Pwd)
+		if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
+			return nil
+		}
+		rsp.Err = ERRCODE_SUCCESS
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+		/*
 		r := model.RedisOp{}
 		code, err := r.GetSmsCode(req.Ukey, tools.SMS_FORGET)
 		if err == redis.Nil {
@@ -108,11 +143,13 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 			rsp.Err = ERRCODE_SUCCESS
 			rsp.Message = GetErrorMessage(rsp.Err)
 			return nil
+
 		} else {
 			rsp.Err = ERRCODE_SMS_CODE_DIFF
 			rsp.Message = GetErrorMessage(rsp.Err)
 			return nil
 		}
+		*/
 
 	} else if req.Type == 2 { //邮箱找回
 

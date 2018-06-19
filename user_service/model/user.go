@@ -185,7 +185,7 @@ func (s *User) RefreshCache(uid int32) (out *proto.UserAllData, ret int32, err e
 
 //通用注册
 func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
-	if ret := s.CheckUserExist(req.Ukey, filed); ret != ERRCODE_SUCCESS {
+	if ret,err := s.CheckUserExist(req.Ukey, filed);err!=nil || ret != ERRCODE_SUCCESS {
 		return ret
 	}
 

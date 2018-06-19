@@ -11,11 +11,11 @@ import (
 )
 
 type UserRPCCli struct {
-	conn proto.Gateway2WallerService
+	conn proto.TokenRPCService
 }
 
-func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
-	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{})
+func (s *UserRPCCli) CallGreet(name string) (rsp *proto.AdminResponse, err error) {
+	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -33,7 +33,7 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_name")
-	greeter := proto.NewGateway2WallerService(service_name, service.Client())
+	greeter := proto.NewTokenRPCService(service_name, service.Client())
 	u = &UserRPCCli{
 		conn: greeter,
 	}
