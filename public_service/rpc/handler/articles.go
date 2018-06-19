@@ -2,7 +2,6 @@ package handler
 
 import (
 	proto "digicon/proto/rpc"
-	. "digicon/public_service/dao"
 	"digicon/public_service/model"
 	"encoding/json"
 	"fmt"
@@ -15,7 +14,7 @@ func (s *RPCServer) ArticlesList(ctx context.Context, req *proto.ArticlesListReq
 	var total int
 	result := make([]model.Articles_list, 0)
 
-	total, rsp.Err = DB.ArticlesList(req.ArticlesType, req.Page, req.PageNum, &result)
+	total, rsp.Err = new(model.Articles_list).ArticlesList(req, &result)
 	rsp.TotalPage = int32(total)
 	for _, value := range result {
 		ntc := proto.ArticlesListResponse_Articles{}
@@ -32,7 +31,7 @@ func (s *RPCServer) ArticlesList(ctx context.Context, req *proto.ArticlesListReq
 
 func (s *RPCServer) ArticlesDetail(ctx context.Context, req *proto.ArticlesDetailRequest, rsp *proto.ArticlesDetailResponse) error {
 	result := &model.ArticlesCopy1{}
-	rsp.Err = DB.ArticlesDescription(req.Id, result)
+	rsp.Err = new(model.ArticlesCopy1).ArticlesDescription(req.Id, result)
 	fmt.Println(result)
 	js, err := json.Marshal(result)
 	if err != nil {

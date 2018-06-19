@@ -1,12 +1,8 @@
 package dao
 
 import (
-	. "digicon/proto/common"
 	"digicon/public_service/conf"
 	. "digicon/public_service/log"
-	"digicon/public_service/model"
-	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -39,3 +35,6 @@ func NewMysql() (mysql *Mysql) {
 	return mysql
 }
 
+func (s *Dao) GetMysqlConn() *xorm.Engine {
+	return s.mysql.im
+}
