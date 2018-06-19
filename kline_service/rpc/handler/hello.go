@@ -10,6 +10,6 @@ type RPCServer struct{}
 
 func (s *RPCServer) Hline(ctx context.Context, req *proto.KineRequest, rsp *proto.KlineResponse) error {
 	log.Print("Received Say.Hello request")
-	rsp.Data = "Hello " + req.Cmd
+	//rsp.Data = "Hello " + req.Cmd
 	return nil
 }
