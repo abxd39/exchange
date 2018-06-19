@@ -97,3 +97,39 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 
 	return ERRCODE_SUCCESS
 }
+
+
+type AdsUserCurrencyCount struct {
+	Ads `xorm:"extends"`
+	Success uint32
+}
+func (AdsUserCurrencyCount) TableName() string {
+	return "ads"
+}
+
+// 法币交易列表 - (广告(买卖))
+func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurrencyCount, int64) {
+
+	total, err := dao.DB.GetMysqlConn().Where("type_id=? AND token_id=?", TypeId, TokenId).Count(new(Ads))
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil, 0
+	}
+	if total <= 0 {
+		return nil, 0
+	}
+
+	limit := 0
+	if Page > 0 {
+		limit = int((Page - 1) * PageNum)
+	}
+
+	data := make([]AdsUserCurrencyCount, 0)
+	err = dao.DB.GetMysqlConn().Join("LEFT", "user_currency_count", "ads.uid=user_currency_count.uid").Where("type_id=? AND token_id=?", TypeId, TokenId).Desc("updated_time").Limit(int(PageNum), limit).Find(&data)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil, 0
+	}
+
+	return data, total
+}
