@@ -220,10 +220,11 @@ message UserInviteResponse{
 message UserChangeLoginPwdRequest{
     int32 uid           =1;
     string token        =2;
-    string oldPwd       =3;
-    string newPwd       =4;
-    string confirmPwd   =5;
-    string verify       =6;
+    string phone        =3;
+    string oldPwd       =4;
+    string newPwd       =5;
+    string confirmPwd   =6;
+    string verify       =7;
 }
 
 message UserChangeLoginPwdResponse{
@@ -263,9 +264,10 @@ message UserSetNewPhoneResponse{
 message UserChangeTradePwdRequest{
     int32 uid           =1;
     string token        =2;
-    string newPwd       =3;
-    string confirmPwd   =4;
-    string verify       =5;
+    string phone        =3;
+    string newPwd       =4;
+    string confirmPwd   =5;
+    string verify       =6;
 } 
 
 message UserChangeTradePwdResponse{
