@@ -4,6 +4,7 @@ import (
 	cf "digicon/token_service/conf"
 	"digicon/token_service/dao"
 	. "digicon/token_service/log"
+	"digicon/token_service/model"
 	"digicon/token_service/rpc"
 	"flag"
 	"os"
@@ -19,6 +20,7 @@ func main() {
 	dao.InitDao()
 	go rpc.RPCServerInit()
 
+	model.GetQueneMgr().Init()
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,

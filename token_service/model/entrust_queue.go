@@ -4,6 +4,7 @@ import (
 	. "digicon/proto/common"
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
+	"fmt"
 	"github.com/go-redis/redis"
 	"strconv"
 	"sync/atomic"
@@ -13,7 +14,9 @@ type EntrustQuene struct {
 	//币币队列ID
 	TokenQueneId string
 
+	//卖出队列key
 	SellQueneId string
+	//买入队列key
 	BuyQueneId  string
 
 	//当前队列自增ID
@@ -22,6 +25,7 @@ type EntrustQuene struct {
 	//key 是委托ID
 	sourceData map[string]*EntrustDetail
 
+	//缓存将要保存的DB的委托请求
 	pushOrderDetail chan *EntrustDetail
 }
 
@@ -41,8 +45,15 @@ type OrderDetail struct {
 }
 */
 
-func NewEntrustQuene() *EntrustQuene {
-	m := &EntrustQuene{}
+func NewEntrustQuene(quene_id string) *EntrustQuene {
+	m := &EntrustQuene{
+		TokenQueneId:    quene_id,
+		BuyQueneId:      fmt.Sprintf("%s:0", quene_id),
+		SellQueneId:     fmt.Sprintf("%s:1", quene_id),
+		UUID:            1,
+		sourceData:      make(map[string]*EntrustDetail),
+		pushOrderDetail: make(chan *EntrustDetail),
+	}
 	go m.process()
 	return m
 }
@@ -114,7 +125,7 @@ func (s *EntrustQuene) insertOrderDetail(d *EntrustDetail) bool {
 
 //
 func (s *EntrustQuene) process() {
-	var d EntrustDetail
+	var d *EntrustDetail
 	for {
 		select {
 		case d = <-s.pushOrderDetail:
