@@ -10,10 +10,11 @@ import (
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
 	"fmt"
-	"github.com/go-redis/redis"
-	"github.com/golang/protobuf/jsonpb"
 	"strconv"
 	"time"
+
+	"github.com/go-redis/redis"
+	"github.com/golang/protobuf/jsonpb"
 )
 
 type User struct {
@@ -354,7 +355,7 @@ func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 }
 
 //通过手机登陆
-func (s *User) LoginByPhone(phone, pwd string) (token string,ret int32) {
+func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 	if ok := check.CheckPhone(phone); !ok {
 		ret = ERRCODE_SMS_PHONE_FORMAT
 		return
@@ -368,7 +369,7 @@ func (s *User) LoginByPhone(phone, pwd string) (token string,ret int32) {
 	}
 	if ok {
 		if s.Pwd == pwd {
-			token,err = s.refreshToken()
+			token, err = s.refreshToken()
 			if err != nil {
 				Log.Errorln(err.Error())
 				ret = ERRCODE_UNKNOWN
@@ -386,7 +387,7 @@ func (s *User) LoginByPhone(phone, pwd string) (token string,ret int32) {
 }
 
 //通过邮箱登陆
-func (s *User) LoginByEmail(eamil, pwd string) (token string,ret int32) {
+func (s *User) LoginByEmail(eamil, pwd string) (token string, ret int32) {
 	if ok := check.CheckEmail(eamil); !ok {
 		ret = ERRCODE_SMS_EMAIL_FORMAT
 		return
@@ -400,7 +401,7 @@ func (s *User) LoginByEmail(eamil, pwd string) (token string,ret int32) {
 	}
 	if ok {
 		if s.Pwd == pwd {
-			token,err = s.refreshToken()
+			token, err = s.refreshToken()
 			if err != nil {
 				Log.Errorln(err.Error())
 				ret = ERRCODE_UNKNOWN
@@ -417,21 +418,20 @@ func (s *User) LoginByEmail(eamil, pwd string) (token string,ret int32) {
 }
 
 //更新token
-func (s *User) refreshToken() (token string,err error)  {
+func (s *User) refreshToken() (token string, err error) {
 	uid_ := fmt.Sprintf("%d", s.Uid)
 	salt := random.Krand(6, random.KC_RAND_KIND_NUM)
 	b := encryption.Gensha256(uid_, time.Now().Unix(), string(salt))
 
 	//_,err:=DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("token").Update(s)
-	err = new(RedisOp).SetUserToken(string(b),int32(s.Uid))
+	err = new(RedisOp).SetUserToken(string(b), int32(s.Uid))
 	if err != nil {
 		return
 	}
 
-	token=string(b)
+	token = string(b)
 	return
 }
-
 
 func (s *User) GetLoginUser(p *proto.LoginUserBaseData) (err error) {
 	p.Uid = int32(s.Uid)
