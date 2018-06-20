@@ -118,7 +118,7 @@ func (this *Order) Cancel(Id uint64, CancelType uint32,  updateTimeStr string) (
 // 确认放行(支付完成)
 // set state = 3
 func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
-	//  去调用
+	//  去调用区块链 划分
 
 	var err error
 	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"

@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"digicon/currency_service/model"
-	"digicon/currency_service/conf"
 	proto "digicon/proto/rpc"
 	"encoding/json"
 	. "digicon/currency_service/log"
@@ -84,9 +83,8 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	}
 
 	od.OrderId = createOrderId(req.Uid, od.TokenId)
-	od.Fee    =  getOrderFee(od.Num, od.Price)
+	//od.Fee    =  getOrderFee(od.Num, od.Price)
 	od.States = 1
-	od.PayStatus = 1
 	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
 
@@ -122,12 +120,12 @@ func createOrderId(userId int32, tokenId uint64) (orderId string) {
 }
 
 
-// 获取费用
-func getOrderFee(Num, Price float64) (Fee float64) {
-	rate := conf.Cfg.MustValue("rate", "fee_rate")
-	rateFloat, _ := strconv.ParseFloat(rate, 64)
-	Fee = (Num * Price ) * rateFloat
-	return
-}
+//// 获取费用
+//func getOrderFee(Num, Price float64) (Fee float64) {
+//	rate := conf.Cfg.MustValue("rate", "fee_rate")
+//	rateFloat, _ := strconv.ParseFloat(rate, 64)
+//	Fee = (Num * Price ) * rateFloat
+//	return
+//}
 
 
