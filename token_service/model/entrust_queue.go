@@ -8,16 +8,18 @@ import (
 	"github.com/go-redis/redis"
 	"strconv"
 	"sync/atomic"
+	"errors"
+	"github.com/sirupsen/logrus"
 )
 
 type EntrustQuene struct {
-	//币币队列ID
+	//币币队列ID  格式主要货币_交易货币
 	TokenQueneId string
 
 	//卖出队列key
 	SellQueneId string
 	//买入队列key
-	BuyQueneId  string
+	BuyQueneId string
 
 	//当前队列自增ID
 	UUID int64
@@ -136,28 +138,39 @@ func (s *EntrustQuene) process() {
 }
 
 //获取队列首位交易单
-func (s *EntrustQuene) GetFirstEntrust(opt int) (en string, ret int32, err error) {
+func (s *EntrustQuene) GetFirstEntrust(opt int) (en *EntrustDetail, err error) {
 	var z []redis.Z
-
+	var ok bool
 	if opt == 1 { //买入类型
 		z, err = DB.GetRedisConn().ZRangeWithScores(s.BuyQueneId, 0, 1).Result()
 	} else if opt == 2 { //卖出类型
 		z, err = DB.GetRedisConn().ZRevRangeWithScores(s.BuyQueneId, 0, 1).Result()
 	}
 
-	if err == redis.Nil {
-		ret = ERR_TOKEN_QUENE_NIL
-	} else if err != nil {
+	if err != nil {
 		Log.Errorln(err)
 		return
 	}
 
 	if len(z) > 0 {
-		en = z[0].Member.(string)
-		ret = ERRCODE_SUCCESS
+		d := z[0].Member.(string)
+		en,ok = s.GetOrderDetail(d)
+		if ok {
+			return
+		}
+		err =errors.New("this is unrealize err when get order detail  ")
+		Log.WithFields(logrus.Fields{
+			"quene_id": s.TokenQueneId,
+			"opt":     opt,
+			"member": d,
+		}).Errorln(err.Error())
 		return
 	}
 
-	ret = ERRCODE_UNKNOWN
+	err =errors.New("this is sync data err ")
+	Log.WithFields(logrus.Fields{
+		"quene_id": s.TokenQueneId,
+		"opt":     opt,
+	}).Errorln(err.Error())
 	return
 }

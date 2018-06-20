@@ -19,6 +19,7 @@ func GetQueneMgr() *EntrustQueneMgr {
 	return ins
 }
 
+//币币交易管理器
 type EntrustQueneMgr struct {
 	dataMgr map[string]*EntrustQuene
 }
@@ -39,6 +40,12 @@ func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
 	}
 	s.dataMgr[e.TokenQueneId] = e
 	return ok
+}
+
+func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene))  {
+	for _,v:=range s.dataMgr {
+		f(v)
+	}
 }
 
 //初始化配置
