@@ -1,21 +1,152 @@
 package model
 
 import (
+	. "digicon/proto/common"
 	. "digicon/user_service/dao"
+	. "digicon/user_service/log"
+	"github.com/go-redis/redis"
+	"strconv"
+	"sync/atomic"
 )
-type EntrustQuene struct{
-	
+
+type EntrustQuene struct {
+	//币币队列ID
+	TokenQueneId string
+
+	SellQueneId string
+	BuyQueneId  string
+
+	//当前队列自增ID
+	UUID int64
+
+	//key 是委托ID
+	sourceData map[string]*EntrustDetail
+
+	pushOrderDetail chan *EntrustDetail
 }
 
+const (
+	ORDER_OPT_SELL = 0
+	ORDER_OPT_BUY  = 1
+)
+
+/*
+//委托单详情
 type OrderDetail struct {
-	Uid int32
-} 
+	OrderId string
+	Uid     int32
+	Price   float64
+	Num     float64
+	Opt     int32 //0买1卖
+}
+*/
 
-//限价委托入队列
-func (s *EntrustQuene) JoinSellQuene(token_quene_id string,uid int32,)  {
-
-	DB.GetRedisConn().ZAdd(token_quene_id,)
+func NewEntrustQuene() *EntrustQuene {
+	m := &EntrustQuene{}
+	go m.process()
+	return m
 }
 
+//获取自增ID
+func (s *EntrustQuene) GetUUID() int64 {
+	return atomic.AddInt64(&s.UUID, 1)
+}
 
+/*
+	m := &EntrustDetail{
+		EntrustId: fmt.Sprintf("%d_%d", time.Now().Unix(), s.GetUUID()),
+		Uid:     uid,
+		Price:   price,
+		AllNum:  num,
+		SurplusNum:num,
+		Opt:     opt,
+	}
+*/
+//限价委托入队列 opt 0 sell ,1 buy
+func (s *EntrustQuene) JoinSellQuene(p *EntrustDetail) (ret int, err error) {
 
+	if p.Opt > 2 {
+		ret = ERRCODE_PARAM
+		return
+	}
+
+	var quene_id string
+	if p.Opt == 0 {
+		quene_id = s.BuyQueneId
+	} else if p.Opt == 1 {
+		quene_id = s.SellQueneId
+	}
+
+	a, _ := strconv.ParseFloat(p.Price, 8)
+
+	err = DB.GetRedisConn().ZAdd(quene_id, redis.Z{
+		Member: p.Uid,
+		Score:  a,
+	}).Err()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+	if ok := s.insertOrderDetail(p); ok {
+		s.pushOrderDetail <- p
+	}
+	return
+}
+
+//获取订单详情
+func (s *EntrustQuene) GetOrderDetail(order_id string) (d *EntrustDetail, ok bool) {
+	d, ok = s.sourceData[order_id]
+	if !ok {
+		return
+	}
+	return
+}
+
+//保存订单详情
+func (s *EntrustQuene) insertOrderDetail(d *EntrustDetail) bool {
+	if _, ok := s.GetOrderDetail(d.EntrustId); ok {
+		return false
+	}
+	s.sourceData[d.EntrustId] = d
+	return true
+}
+
+//
+func (s *EntrustQuene) process() {
+	var d EntrustDetail
+	for {
+		select {
+		case d = <-s.pushOrderDetail:
+			d.Save()
+		}
+	}
+
+}
+
+//获取队列首位交易单
+func (s *EntrustQuene) GetFirstEntrust(opt int) (en string, ret int32, err error) {
+	var z []redis.Z
+
+	if opt == 1 { //买入类型
+		z, err = DB.GetRedisConn().ZRangeWithScores(s.BuyQueneId, 0, 1).Result()
+	} else if opt == 2 { //卖出类型
+		z, err = DB.GetRedisConn().ZRevRangeWithScores(s.BuyQueneId, 0, 1).Result()
+	}
+
+	if err == redis.Nil {
+		ret = ERR_TOKEN_QUENE_NIL
+	} else if err != nil {
+		Log.Errorln(err)
+		return
+	}
+
+	if len(z) > 0 {
+		en = z[0].Member.(string)
+		ret = ERRCODE_SUCCESS
+		return
+	}
+
+	ret = ERRCODE_UNKNOWN
+	return
+}

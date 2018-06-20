@@ -20,3 +20,4 @@ message EntrustOrderResponse{
     int32 err                       =1;
     string message                  =2;
 }
+

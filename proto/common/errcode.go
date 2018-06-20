@@ -36,6 +36,10 @@ const (
 	ERRCODE_ADS_NOTEXIST    = 301
 	ERRCODE_TOKENS_NOTEXIST = 302
 	ERRCODE_PAYS_NOTEXIST   = 303
+
+
+	//400-
+	ERR_TOKEN_QUENE_NIL		=401
 )
 
 func GetErrorMessage(code int32) string {
@@ -86,6 +90,8 @@ func init() {
 	message[ERRCODE_TOKENS_NOTEXIST] = "货币类型不存在"
 	message[ERRCODE_PAYS_NOTEXIST] = "支付方式不存在"
 
+
+	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 }
 
 type PublicErrorType struct {

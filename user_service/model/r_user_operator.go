@@ -3,20 +3,18 @@ package model
 import (
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
-	"time"
-	"github.com/sirupsen/logrus"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"time"
 )
 
 type RedisOp struct {
 }
 
-
-
 const (
 	UID_TAG_BASE_INFO         = "base"
 	UID_TAG_GOOGLE_SECERT_KEY = "google_key"
-	UID_TAG_TOKEN         = "token"
+	UID_TAG_TOKEN             = "token"
 )
 
 //获取手机redis中逻辑标签信息
@@ -39,8 +37,6 @@ func GetUserTagByLogic(uid int32, tag string) string {
 func getUserTagSms(phone string, ty int32) string {
 	return fmt.Sprintf("phone:%s:Sms:%d", phone, ty)
 }
-
-
 
 func (s *RedisOp) SetSmsCode(phone string, code string, ty int32) (err error) {
 	err = DB.GetRedisConn().Set(GetPhoneTagByLogic(phone, ty), code, 600*time.Second).Err()
@@ -96,7 +92,16 @@ func (s *RedisOp) GetUserBaseInfo(uid int32) (rsp string, err error) {
 	return
 }
 
-func (s *RedisOp) SetUserToken(uid int32,token []byte) (err error) {
+func (s *RedisOp) SetUserToken(token string,uid int32) (err error) {
+	err = DB.GetRedisConn().Set(token,uid,604800*time.Second).Err()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+/*
+func (s *RedisOp) SetUserToken(uid int32, token []byte) (err error) {
 	err = DB.GetRedisConn().Set(GetUserTagByLogic(uid, UID_TAG_TOKEN), token, 604800*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -105,11 +110,12 @@ func (s *RedisOp) SetUserToken(uid int32,token []byte) (err error) {
 	return
 }
 
-func (s *RedisOp) GetUserToken(uid int32) (token []byte ,err error) {
-	token,err = DB.GetRedisConn().Get(GetUserTagByLogic(uid, UID_TAG_TOKEN)).Bytes()
+func (s *RedisOp) GetUserToken(uid int32) (token []byte, err error) {
+	token, err = DB.GetRedisConn().Get(GetUserTagByLogic(uid, UID_TAG_TOKEN)).Bytes()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
+*/

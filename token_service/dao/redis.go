@@ -1,12 +1,12 @@
 package dao
 
 import (
-	"github.com/go-redis/redis"
 	cf "digicon/user_service/conf"
+	"github.com/go-redis/redis"
 )
 
 type RedisCli struct {
-	rcon   *redis.Client
+	rcon *redis.Client
 }
 
 func NewRedisCli() *RedisCli {

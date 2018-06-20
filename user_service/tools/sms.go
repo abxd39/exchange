@@ -70,5 +70,3 @@ func Send253YunSms(phone, code string) (rcode int32, msg string) {
 	*/
 	return
 }
-
-

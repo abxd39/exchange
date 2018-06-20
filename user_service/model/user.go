@@ -2,6 +2,7 @@ package model
 
 import (
 	"digicon/common/check"
+	"digicon/common/encryption"
 	"digicon/common/google"
 	"digicon/common/random"
 	. "digicon/proto/common"
@@ -13,7 +14,6 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"strconv"
 	"time"
-	"digicon/common/encryption"
 )
 
 type User struct {
@@ -186,7 +186,7 @@ func (s *User) RefreshCache(uid int32) (out *proto.UserAllData, ret int32, err e
 
 //通用注册
 func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
-	if ret,err := s.CheckUserExist(req.Ukey, filed);err!=nil || ret != ERRCODE_SUCCESS {
+	if ret, err := s.CheckUserExist(req.Ukey, filed); err != nil || ret != ERRCODE_SUCCESS {
 		return ret
 	}
 
@@ -354,90 +354,87 @@ func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 }
 
 //通过手机登陆
-func (s *User) LoginByPhone(phone, pwd string) (ret int32) {
+func (s *User) LoginByPhone(phone, pwd string) (token string,ret int32) {
 	if ok := check.CheckPhone(phone); !ok {
-		ret= ERRCODE_SMS_PHONE_FORMAT
+		ret = ERRCODE_SMS_PHONE_FORMAT
 		return
 	}
 
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
-		 ret=ERRCODE_UNKNOWN
+		ret = ERRCODE_UNKNOWN
 		return
 	}
 	if ok {
 		if s.Pwd == pwd {
-			err =s.refreshToken()
+			token,err = s.refreshToken()
 			if err != nil {
 				Log.Errorln(err.Error())
-				ret=ERRCODE_UNKNOWN
+				ret = ERRCODE_UNKNOWN
 				return
 			}
 
-			ret= ERRCODE_SUCCESS
+			ret = ERRCODE_SUCCESS
 			return
 		}
-		ret= ERRCODE_PWD
+		ret = ERRCODE_PWD
 		return
 	}
-	ret= ERRCODE_ACCOUNT_NOTEXIST
+	ret = ERRCODE_ACCOUNT_NOTEXIST
 	return
 }
 
 //通过邮箱登陆
-func (s *User) LoginByEmail(eamil, pwd string)  (ret int32) {
+func (s *User) LoginByEmail(eamil, pwd string) (token string,ret int32) {
 	if ok := check.CheckEmail(eamil); !ok {
-		 ret= ERRCODE_SMS_EMAIL_FORMAT
+		ret = ERRCODE_SMS_EMAIL_FORMAT
 		return
 	}
 
 	ok, err := DB.GetMysqlConn().Where("email=?", eamil).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
-		 ret= ERRCODE_UNKNOWN
+		ret = ERRCODE_UNKNOWN
 		return
 	}
 	if ok {
 		if s.Pwd == pwd {
-			err =s.refreshToken()
+			token,err = s.refreshToken()
 			if err != nil {
 				Log.Errorln(err.Error())
-				ret=ERRCODE_UNKNOWN
+				ret = ERRCODE_UNKNOWN
 				return
 			}
-			 ret= ERRCODE_SUCCESS
+			ret = ERRCODE_SUCCESS
 			return
 		}
-		 ret= ERRCODE_PWD
+		ret = ERRCODE_PWD
 		return
 	}
-	 ret= ERRCODE_ACCOUNT_NOTEXIST
+	ret = ERRCODE_ACCOUNT_NOTEXIST
 	return
 }
 
 //更新token
-func  (s *User) refreshToken()  (err error){
-	uid_:=fmt.Sprintf("%d",s.Uid)
-	salt:=random.Krand(6,random.KC_RAND_KIND_NUM)
-	b:=encryption.Gensha256(uid_,time.Now().Unix(),string(salt))
+func (s *User) refreshToken() (token string,err error)  {
+	uid_ := fmt.Sprintf("%d", s.Uid)
+	salt := random.Krand(6, random.KC_RAND_KIND_NUM)
+	b := encryption.Gensha256(uid_, time.Now().Unix(), string(salt))
 
 	//_,err:=DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("token").Update(s)
-	err=new(RedisOp).SetUserToken(int32(s.Uid),b)
-	if err!=nil {
+	err = new(RedisOp).SetUserToken(string(b),int32(s.Uid))
+	if err != nil {
 		return
 	}
+
+	token=string(b)
 	return
 }
 
-func (s *User) GetLoginUser(p *proto.LoginUserBaseData) (err error) {
-	t,err:=new(RedisOp).GetUserToken(int32(s.Uid))
-	if err!=nil {
-		return
-	}
 
-	p.Uid=int32(s.Uid)
-	p.Token=t
+func (s *User) GetLoginUser(p *proto.LoginUserBaseData) (err error) {
+	p.Uid = int32(s.Uid)
 
 	return
 }

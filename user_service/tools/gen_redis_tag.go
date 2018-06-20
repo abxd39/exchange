@@ -1,7 +1,5 @@
 package tools
 
-
-
 /*
 const (
 	LOGIC_SMS      = 1 //短信业务

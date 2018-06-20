@@ -36,13 +36,13 @@ service UserRPC {
     rpc GetUserInvite(UserInfoRequest) returns (UserInviteResponse) {}
 
     //modify user password
-    rpc  ChangeUserLoginPwd (UserChangeLoginPwdRequest) returns (UserChangeLoginPwdResponse) {};
+    //rpc  ChangeUserLoginPwd (UserChangeLoginPwdRequest) returns (UserChangeLoginPwdResponse) {};
     //modify user phone number
-    rpc  ChangeUserPhone (UserChangePhoneRequest) returns (UserChangePhoneResponse){};
+   // rpc  ChangeUserPhone (UserChangePhoneRequest) returns (UserChangePhoneResponse){};
     //user set new phone 
-    rpc  SetUserNewPhone (UserSetNewPhoneRequest) returns (UserSetNewPhoneResponse){};
+   // rpc  SetUserNewPhone (UserSetNewPhoneRequest) returns (UserSetNewPhoneResponse){};
     // modify user trade passward
-    rpc ChangeUserTradePwd (UserChangeTradePwdRequest) returns (UserChangeTradePwdResponse){};
+   // rpc ChangeUserTradePwd (UserChangeTradePwdRequest) returns (UserChangeTradePwdResponse){};
 }
 
 message NullRequest{
