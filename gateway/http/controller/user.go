@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"digicon/common/check"
+	proto "digicon/proto/rpc"
+
 	"github.com/gin-gonic/gin"
 	"github.com/liudng/godump"
 )
@@ -26,6 +28,10 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/change_pwd", s.ChangePwdcontroller)
 		user.POST("/send_sms", s.SendPhoneSMSController)
 		user.POST("/send_email", s.SendEmailController)
+		user.POST("/change_login_pwd", s.ChangeLoginPwd)
+		user.POST("/change_phone", s.ChangePhone1)
+		user.POST("/set_new_phon", s.ChangePhone2)
+		user.POST("change_trade_pwd", s.ResetTradePwd)
 	}
 }
 
@@ -185,7 +191,7 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("data",rsp.Data)
+	ret.SetDataSection("data", rsp.Data)
 }
 
 //忘记密码
@@ -322,4 +328,135 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
 		return
 	}
+}
+
+func (s *UserGroup) ChangeLoginPwd(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Uid        int32  `form:"id" binding:"required"`
+		Token      string `form:"token" binding:"required"`
+		Phone      string `form:"phone" binding:"required"`
+		OldPwd     string `form:"old_pwd" binding:"required"`
+		NewPwd     string `form:"new_pwd" binding:"required"`
+		ConfirmPwd string `form:"confirm" binding:"required"`
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallChangeUserLoginPwd(&proto.UserChangeLoginPwdRequest{
+		Uid:        req.Uid,
+		Phone:      req.Phone,
+		Token:      req.Token,
+		OldPwd:     req.OldPwd,
+		NewPwd:     req.NewPwd,
+		ConfirmPwd: req.ConfirmPwd,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	return
+}
+
+func (s *UserGroup) ChangePhone1(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid    int32  `form:"id" binding:"required"`
+		Token  string `form:"token" binding:"required"`
+		Phone  string `form:"phone" binding:"required"`
+		verify string `form:"verify" binding:"required"`
+	}{}
+
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallChangePhone1(&proto.UserChangePhoneRequest{
+		Uid:    req.Uid,
+		Token:  req.Token,
+		Phone:  req.Phone,
+		Verify: req.verify,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	return
+}
+
+func (s *UserGroup) ChangePhone2(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid     int32  `form:"id" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Country string `form:"country" binding:"required"`
+		Phone   string `form:"phone" binding:"required"`
+		verify  string `form:"verify" binding:"required"`
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallChangePhone2(&proto.UserSetNewPhoneRequest{
+		Uid:     req.Uid,
+		Token:   req.Token,
+		Country: req.Country,
+		Phone:   req.Phone,
+		Verify:  req.verify,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+}
+
+func (s *UserGroup) ResetTradePwd(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid        int32  `form:"id" binding:"required"`
+		Token      string `form:"token" binding:"required"`
+		NewPwd     string `form:"new_pwd" binding:"required"`
+		ConfirmPwd string `form:"confirm_pwd" binding:"required"`
+		Verify     string `form:"verify" binding:"required"`
+	}{}
+	rsp, err := rpc.InnerService.UserSevice.CallChangeTradePwd(&proto.UserChangeTradePwdRequest{
+		Uid:        req.Uid,
+		Token:      req.Token,
+		NewPwd:     req.NewPwd,
+		ConfirmPwd: req.ConfirmPwd,
+		Verify:     req.Verify,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
 }
