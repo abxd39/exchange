@@ -66,6 +66,15 @@ func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, r
 	return nil
 }
 
+// 待放行
+func (s *RPCServer) ReadyOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
+	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
+	code, msg := new(model.Order).Ready(req.Id, updateTimeStr)
+	rsp.Code = code
+	rsp.Message = msg
+	return nil
+}
+
 // 添加订单
 func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rsp *proto.OrderResponse) error {
 	od := new(model.Order)

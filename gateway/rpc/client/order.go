@@ -37,6 +37,7 @@ func (s *CurrencyRPCCli) CallCancelOrder(req *proto.CancelOrderRequest)(rsp *pro
 }
 
 func (s *CurrencyRPCCli) CallConfirmOrder(req *proto.OrderRequest)(rsp *proto.OrderResponse, err error) {
+
 	rsp, err = s.conn.ConfirmOrder(context.TODO(), req)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -44,6 +45,16 @@ func (s *CurrencyRPCCli) CallConfirmOrder(req *proto.OrderRequest)(rsp *proto.Or
 	}
 	return
 }
+
+func (s *CurrencyRPCCli) CallReadyOrder(req *proto.OrderRequest) (rsp *proto.OrderResponse, err error) {
+	rsp, err =s.conn.ReadyOrder(context.TODO(), req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 
 func (s *CurrencyRPCCli) CallAddOrder(req *proto.AddOrderRequest) (rsp *proto.OrderResponse, err error) {
 	rsp, err = s.conn.AddOrder(context.TODO(), req)

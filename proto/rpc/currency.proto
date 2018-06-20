@@ -28,14 +28,18 @@ service CurrencyRPC {
         /// Order ///
         // 获取订单列表
     	rpc OrdersList(OrdersListRequest) returns(OrdersListResponse){};
+        // 添加订单
+        rpc AddOrder(AddOrderRequest) returns (OrderResponse ) {};
+        // 准备放行
+        rpc ReadyOrder(OrderRequest) returns (OrderResponse) {};
+        // 确认放行
+        rpc ConfirmOrder(OrderRequest) returns (OrderResponse) {};
         // 取消订单
         rpc CancelOrder(CancelOrderRequest) returns(OrderResponse){};
         // 删除订单
         rpc DeleteOrder(OrderRequest) returns(OrderResponse){};
-        // 确认放行
-        rpc ConfirmOrder(OrderRequest) returns (OrderResponse) {};
-        // 添加订单
-        rpc AddOrder(AddOrderRequest) returns (OrderResponse ) {};
+
+
 }
 
 message AdminRequest {

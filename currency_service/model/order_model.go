@@ -90,7 +90,7 @@ func (this *Order)  List(Page, PageNum int32,
 // set state = 0
 func (this *Order) Delete(Id uint64,  updateTimeStr string) (int32, string){
 	var err error
-	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"
+	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=? and `states` != 2 "
 	_, err = dao.DB.GetMysqlConn().Exec(sql,0, updateTimeStr, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -118,6 +118,8 @@ func (this *Order) Cancel(Id uint64, CancelType uint32,  updateTimeStr string) (
 // 确认放行(支付完成)
 // set state = 3
 func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
+	//  去调用
+
 	var err error
 	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"
 	_, err = dao.DB.GetMysqlConn().Exec(sql, 3, updateTimeStr,Id)
@@ -128,6 +130,19 @@ func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
 	return ERRCODE_SUCCESS, ""
 }
 
+
+// 待放行
+// set states=2
+func (this *Order)Ready(Id uint64,  updateTimeStr string) (int32, string) {
+	var err error
+	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"
+	_, err = dao.DB.GetMysqlConn().Exec(sql, 2, updateTimeStr,Id)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN, err.Error()
+	}
+	return ERRCODE_SUCCESS, ""
+}
 
 
 //添加订单
@@ -142,6 +157,9 @@ func (this *Order) Add() (id uint64, code int32) {
 	code =  ERRCODE_SUCCESS
 	return
 }
+
+
+
 
 
 
