@@ -33,7 +33,9 @@ const (
 	ERRCODE_GOOGLE_CODE_NOT_EXIST = 216
 
 	//300-
-	ERRCODE_ADS_NOTEXIST = 301
+	ERRCODE_ADS_NOTEXIST    = 301
+	ERRCODE_TOKENS_NOTEXIST = 302
+	ERRCODE_PAYS_NOTEXIST   = 303
 )
 
 func GetErrorMessage(code int32) string {
@@ -63,7 +65,6 @@ func init() {
 	message[ERRCODE_UNKNOWN] = "未知错误"
 	message[ERRCODE_PARAM] = "参数错误"
 
-
 	message[ERRCODE_ACCOUNT_EXIST] = "账户已经存在"
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"
 	message[ERRCODE_PWD] = "密码错误"
@@ -82,6 +83,8 @@ func init() {
 	message[ERRCODE_GOOGLE_CODE_NOT_EXIST] = "谷歌验证码不存在无法解绑"
 
 	message[ERRCODE_ADS_NOTEXIST] = "广告不存在"
+	message[ERRCODE_TOKENS_NOTEXIST] = "货币类型不存在"
+	message[ERRCODE_PAYS_NOTEXIST] = "支付方式不存在"
 
 }
 

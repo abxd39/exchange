@@ -495,6 +495,13 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 		return
 	}
 
+	if data.Id == 0 {
+		ret[ERR_CODE_RET] = ERRCODE_TOKENS_NOTEXIST
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_TOKENS_NOTEXIST)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
 	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
 	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
 	ret[RET_DATA] = data
@@ -551,6 +558,13 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 	if err != nil {
 		ret[ERR_CODE_RET] = ERRCODE_PARAM
 		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	if data.Id == 0 {
+		ret[ERR_CODE_RET] = ERRCODE_PAYS_NOTEXIST
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PAYS_NOTEXIST)
 		c.JSON(http.StatusOK, ret)
 		return
 	}

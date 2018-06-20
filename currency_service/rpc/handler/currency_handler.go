@@ -214,6 +214,7 @@ func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyT
 		listData[i] = adsLists
 	}
 
+	rsp.Data = listData
 	return nil
 }
 
@@ -252,5 +253,6 @@ func (s *RPCServer) CurrencyPaysList(ctx context.Context, req *proto.CurrencyPay
 		listData[i] = adsLists
 	}
 
+	rsp.Data = listData
 	return nil
 }

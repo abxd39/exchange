@@ -21,13 +21,16 @@ func (this *Pays) Get(id uint32, name string) *Pays {
 	var isdata bool
 	var err error
 	if id > 0 {
-		isdata, err = dao.DB.GetMysqlConn().Id(id).Get(&data)
+		isdata, err = dao.DB.GetMysqlConn().Id(id).Get(data)
 	} else {
-		isdata, err = dao.DB.GetMysqlConn().Where("en_pay=?", name).Get(&data)
+		isdata, err = dao.DB.GetMysqlConn().Where("en_pay=?", name).Get(data)
 	}
 
-	if err != nil || isdata == false {
+	if err != nil {
 		Log.Errorln(err.Error())
+		return nil
+	}
+	if isdata == false {
 		return nil
 	}
 
