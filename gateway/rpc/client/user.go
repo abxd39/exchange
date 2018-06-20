@@ -118,17 +118,17 @@ func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, 
 	return
 }
 
-func (s *UserRPCCli) CallChangePwd(phone, security_key string) (rsp *proto.CommonErrResponse, err error) {
-	rsp, err = s.conn.ChangePwd(context.TODO(), &proto.ChangePwdRequest{
-		Phone:       phone,
-		SecurityKey: []byte(security_key),
-	})
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
-	return
-}
+// func (s *UserRPCCli) CallChangePwd(phone, security_key string) (rsp *proto.CommonErrResponse, err error) {
+// 	rsp, err = s.conn.ChangePwd(context.TODO(), &proto.ChangePwdRequest{
+// 		Phone:       phone,
+// 		SecurityKey: []byte(security_key),
+// 	})
+// 	if err != nil {
+// 		Log.Errorln(err.Error())
+// 		return
+// 	}
+// 	return
+// }
 
 func (s *UserRPCCli) CallGoogleSecretKey(uid int32) (rsp *proto.GoogleAuthResponse, err error) {
 	rsp, err = s.conn.GetGoogleSecretKey(context.TODO(), &proto.GoogleAuthRequest{
@@ -285,21 +285,21 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	return
 }
 
-func (s *UserRPCCli) CallChangeUserLoginPwd(req *proto.UserChangeLoginPwdRequest) (*proto.UserChangeLoginPwdResponse, error) {
-	rsp, err := s.conn.ChangeUserLoginPwd(context.TODO(), req)
+func (s *UserRPCCli) CallModifyUserLoginPwd(req *proto.UserModifyLoginPwdRequest) (*proto.UserModifyLoginPwdResponse, error) {
+	rsp, err := s.conn.ModifyUserLoginPwd(context.TODO(), req)
 	return rsp, err
 }
 
-func (s *UserRPCCli) CallChangePhone1(req *proto.UserChangePhoneRequest) (*proto.UserChangePhoneResponse, error) {
-	rsp, err := s.conn.ChangeUserPhone(context.TODO(), req)
+func (s *UserRPCCli) CallModifyPhone1(req *proto.UserModifyPhoneRequest) (*proto.UserModifyPhoneResponse, error) {
+	rsp, err := s.conn.ModifyPhone1(context.TODO(), req)
 	return rsp, err
 }
 
-func (s *UserRPCCli) CallChangePhone2(req *proto.UserSetNewPhoneRequest) (*proto.UserSetNewPhoneResponse, error) {
-	rsp, err := s.conn.SetUserNewPhone(context.TODO(), req)
+func (s *UserRPCCli) CallModifyPhone2(req *proto.UserSetNewPhoneRequest) (*proto.UserSetNewPhoneResponse, error) {
+	rsp, err := s.conn.ModifyPhone2(context.TODO(), req)
 	return rsp, err
 }
-func (s *UserRPCCli) CallChangeTradePwd(req *proto.UserChangeTradePwdRequest) (*proto.UserChangeTradePwdResponse, error) {
-	rsp, err := s.conn.ChangeUserTradePwd(context.TODO(), req)
+func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*proto.UserModifyTradePwdResponse, error) {
+	rsp, err := s.conn.ModifyTradePwd(context.TODO(), req)
 	return rsp, err
 }

@@ -25,13 +25,13 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/login", s.LoginController)
 		user.POST("/forget", s.ForgetPwdController)
 		user.POST("/auth", s.AuthSecurityController)
-		user.POST("/change_pwd", s.ChangePwdcontroller)
+		//user.POST("/Modify_pwd", s.ModifyPwdcontroller)
 		user.POST("/send_sms", s.SendPhoneSMSController)
 		user.POST("/send_email", s.SendEmailController)
-		user.POST("/change_login_pwd", s.ChangeLoginPwd)
-		user.POST("/change_phone", s.ChangePhone1)
-		user.POST("/set_new_phon", s.ChangePhone2)
-		user.POST("change_trade_pwd", s.ResetTradePwd)
+		user.POST("/Modify_login_pwd", s.ModifyLoginPwd)
+		user.POST("/Modify_phone", s.ModifyPhone1)
+		user.POST("/set_new_phon", s.ModifyPhone2)
+		user.POST("Modify_trade_pwd", s.ResetTradePwd)
 	}
 }
 
@@ -330,7 +330,7 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 	}
 }
 
-func (s *UserGroup) ChangeLoginPwd(c *gin.Context) {
+func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -349,7 +349,7 @@ func (s *UserGroup) ChangeLoginPwd(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	rsp, err := rpc.InnerService.UserSevice.CallChangeUserLoginPwd(&proto.UserChangeLoginPwdRequest{
+	rsp, err := rpc.InnerService.UserSevice.CallModifyUserLoginPwd(&proto.UserModifyLoginPwdRequest{
 		Uid:        req.Uid,
 		Phone:      req.Phone,
 		Token:      req.Token,
@@ -367,7 +367,7 @@ func (s *UserGroup) ChangeLoginPwd(c *gin.Context) {
 	return
 }
 
-func (s *UserGroup) ChangePhone1(c *gin.Context) {
+func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -384,7 +384,7 @@ func (s *UserGroup) ChangePhone1(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	rsp, err := rpc.InnerService.UserSevice.CallChangePhone1(&proto.UserChangePhoneRequest{
+	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone1(&proto.UserModifyPhoneRequest{
 		Uid:    req.Uid,
 		Token:  req.Token,
 		Phone:  req.Phone,
@@ -400,7 +400,7 @@ func (s *UserGroup) ChangePhone1(c *gin.Context) {
 	return
 }
 
-func (s *UserGroup) ChangePhone2(c *gin.Context) {
+func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -417,7 +417,7 @@ func (s *UserGroup) ChangePhone2(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	rsp, err := rpc.InnerService.UserSevice.CallChangePhone2(&proto.UserSetNewPhoneRequest{
+	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone2(&proto.UserSetNewPhoneRequest{
 		Uid:     req.Uid,
 		Token:   req.Token,
 		Country: req.Country,
@@ -445,7 +445,7 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 		ConfirmPwd string `form:"confirm_pwd" binding:"required"`
 		Verify     string `form:"verify" binding:"required"`
 	}{}
-	rsp, err := rpc.InnerService.UserSevice.CallChangeTradePwd(&proto.UserChangeTradePwdRequest{
+	rsp, err := rpc.InnerService.UserSevice.CallModifyTradePwd(&proto.UserModifyTradePwdRequest{
 		Uid:        req.Uid,
 		Token:      req.Token,
 		NewPwd:     req.NewPwd,
