@@ -45,6 +45,15 @@ func (s *CurrencyRPCCli) CallConfirmOrder(req *proto.OrderRequest)(rsp *proto.Or
 	return
 }
 
+func (s *CurrencyRPCCli) CallAddOrder(req *proto.AddOrderRequest) (rsp *proto.OrderResponse, err error) {
+	rsp, err = s.conn.AddOrder(context.TODO(), req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 
 
 

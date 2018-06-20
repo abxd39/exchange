@@ -192,7 +192,7 @@ message OrdersListRequest {
     int32    page_num     = 2;  //每页行数
     double   token_id     = 3;  //货币类型
     uint32   ad_type      = 4;  //交易方向:1.出售， 2购买
-    uint32   status       = 5;  //订单状态: 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消
+    uint32   states       = 5;  //订单状态: 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消
     string   created_time = 6;  //交易日期
 }
 
