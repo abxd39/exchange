@@ -5,6 +5,7 @@ import (
 	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -282,4 +283,23 @@ func NewUserRPCCli() (u *UserRPCCli) {
 		conn: greeter,
 	}
 	return
+}
+
+func (s *UserRPCCli) CallChangeUserLoginPwd(req *proto.UserChangeLoginPwdRequest) (*proto.UserChangeLoginPwdResponse, error) {
+	rsp, err := s.conn.ChangeUserLoginPwd(context.TODO(), req)
+	return rsp, err
+}
+
+func (s *UserRPCCli) CallChangePhone1(req *proto.UserChangePhoneRequest) (*proto.UserChangePhoneResponse, error) {
+	rsp, err := s.conn.ChangeUserPhone(context.TODO(), req)
+	return rsp, err
+}
+
+func (s *UserRPCCli) CallChangePhone2(req *proto.UserSetNewPhoneRequest) (*proto.UserSetNewPhoneResponse, error) {
+	rsp, err := s.conn.SetUserNewPhone(context.TODO(), req)
+	return rsp, err
+}
+func (s *UserRPCCli) CallChangeTradePwd(req *proto.UserChangeTradePwdRequest) (*proto.UserChangeTradePwdResponse, error) {
+	rsp, err := s.conn.ChangeUserTradePwd(context.TODO(), req)
+	return rsp, err
 }
