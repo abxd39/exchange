@@ -1,10 +1,12 @@
 package model
 
 import (
+	"digicon/currency_service/conf"
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
 	. "digicon/proto/common"
 	"fmt"
+	"strconv"
 )
 
 // 订单表
@@ -35,7 +37,7 @@ type Order struct {
 //列出订单
 func (this *Order)  List(Page, PageNum int32,
 	AdType, States uint32, Id uint64,
-	TokenId float64, CreatedTime string, o *[]Order) (int64,int32, int32, int32) {
+	TokenId float64, StartTime, EndTime string, o *[]Order) (int64,int32, int32, int32) {
 
 	engine := dao.DB.GetMysqlConn()
 	if Page <= 1 {
@@ -46,9 +48,7 @@ func (this *Order)  List(Page, PageNum int32,
 	}
 
 	query := engine.Desc("id")
-
 	orderModel := new(Order)
-	fmt.Println("States:", States)
 
 	if States == 0 {                            // 状态为0，表示已经删除
 		return 0, 0, 0, ERRCODE_SUCCESS
@@ -58,7 +58,6 @@ func (this *Order)  List(Page, PageNum int32,
 		query = query.Where("states = ?", States)
 	}
 
-	fmt.Println("id:", Id)
 	if Id != 0 {
 		query = query.Where("id = ?", Id)
 	}
@@ -68,10 +67,14 @@ func (this *Order)  List(Page, PageNum int32,
 	if TokenId != 0 {
 		query = query.Where("token_id = ?", TokenId)
 	}
-
-	if CreatedTime !=  ``  {
-		query = query.Where("created_time = ?", CreatedTime)
+	fmt.Println(StartTime, EndTime)
+	if StartTime  !=  ``   {
+		query = query.Where("created_time >= ?", StartTime)
 	}
+	if EndTime != ``{
+		query = query.Where("created_time <= ?", EndTime)
+	}
+
 	tmpQuery := *query
 	countQuery := &tmpQuery
 	err := query.Limit(int(PageNum), (int(Page) - 1) * int(PageNum)).Find(o)
@@ -120,9 +123,16 @@ func (this *Order) Cancel(Id uint64, CancelType uint32,  updateTimeStr string) (
 func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
 	//  去调用区块链 划分
 
+	// 费用
+	fee := this.Price * this.Num
+
+	rate := conf.Cfg.MustValue("rate", "fee_rate")
+	rateFloat, _ := strconv.ParseFloat(rate, 64)
+	rateFee := float64(fee) * rateFloat
+
 	var err error
-	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"
-	_, err = dao.DB.GetMysqlConn().Exec(sql, 3, updateTimeStr,Id)
+	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?, `fee`=?  WHERE  `id`=?"
+	_, err = dao.DB.GetMysqlConn().Exec(sql, 3, updateTimeStr, rateFee, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, err.Error()

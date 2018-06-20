@@ -67,7 +67,8 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		TokenId     float64   	`form:"token_id"   json:"token_id"`
 		AdType      uint32      `form:"ad_type"    json:"ad_type"`
 		States      uint32      `form:"states"     json:"states"`
-		CreatedTime string      `form:"created_time" json:"created_time"`
+		StartTime   string      `form:"start_time" json:"start_time"`
+		EndTime     string      `form:"end_time"   json:"end_time"`
 		Id          uint64      `form:"id"           json:"id"`
 	}
 	var param OrderListParam
@@ -90,7 +91,8 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		TokenId:     param.TokenId,
 		AdType:      param.AdType,
 		States:      tmpStates,
-		CreatedTime: param.CreatedTime,
+		StartTime:   param.StartTime,
+		EndTime:     param.EndTime,
 		Id:          param.Id,
 	})
 	if err != nil{

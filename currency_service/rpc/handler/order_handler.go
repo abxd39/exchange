@@ -21,8 +21,8 @@ import (
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest, rsp *proto.OrdersListResponse) error {
 	result := []model.Order{}
 	o := new(model.Order)
-	fmt.Println(req.Id)
-	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.States, req.Id, req.TokenId, req.CreatedTime, &result)
+
+	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.States, req.Id, req.TokenId, req.StartTime, req.EndTime, &result)
 
 	orders , err := json.Marshal(result)
 	if err != nil {
@@ -83,7 +83,6 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	}
 
 	od.OrderId = createOrderId(req.Uid, od.TokenId)
-	//od.Fee    =  getOrderFee(od.Num, od.Price)
 	od.States = 1
 	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
