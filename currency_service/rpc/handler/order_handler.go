@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"digicon/currency_service/model"
+	"digicon/currency_service/conf"
 	proto "digicon/proto/rpc"
 	"encoding/json"
 	. "digicon/currency_service/log"
@@ -13,23 +14,6 @@ import (
 )
 
 
-// 产生订单 ID
-// 币种 , 年月,  时间秒, 用户id
-func createOrderId(userId int32) (orderId string) {
-	var buffer bytes.Buffer
-	tn := time.Now()
-	tnn := tn.UnixNano()
-	tnns := strconv.FormatInt(tnn, 10)       // 获取微秒时间
-	tnstr  := tn.Format("2006-01-02")
-	tnYear := tnstr[:4]
-	tnMonth := tnstr[5:7]
-	buffer.WriteString(tnYear)
-	buffer.WriteString(tnMonth)
-	buffer.WriteString(tnns[len(tnns) - 6:])
-	buffer.WriteString(strconv.FormatInt(int64(userId), 10))
-	orderId = buffer.String()
-	return
-}
 
 
 
@@ -38,7 +22,8 @@ func createOrderId(userId int32) (orderId string) {
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest, rsp *proto.OrdersListResponse) error {
 	result := []model.Order{}
 	o := new(model.Order)
-	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.States, req.TokenId, req.CreatedTime, &result)
+	fmt.Println(req.Id)
+	rsp.Total,rsp.Page,rsp.PageNum,rsp.Err = o.List(req.Page, req.PageNum,req.AdType, req.States, req.Id, req.TokenId, req.CreatedTime, &result)
 
 	orders , err := json.Marshal(result)
 	if err != nil {
@@ -55,22 +40,29 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 
 // 取消订单
 func (s *RPCServer) CancelOrder( ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) error {
-	code := new(model.Order).Cancel(req.Id, req.CancelType)
+	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
+	code, msg := new(model.Order).Cancel(req.Id, req.CancelType, updateTimeStr)
 	rsp.Code = code
+	rsp.Message = msg
 	return nil
 }
 
 // 删除订单
 func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
-	code := new(model.Order).Delete(req.Id)
+	fmt.Println(req.Id)
+	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
+	code, msg := new(model.Order).Delete(req.Id, updateTimeStr)
 	rsp.Code = code
+	rsp.Message = msg
 	return nil
 }
 
 // 确认放行
 func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error{
-	code := new(model.Order).Confirm(req.Id)
+	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
+	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr)
 	rsp.Code = code
+	rsp.Message = msg
 	return nil
 }
 
@@ -82,8 +74,10 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		fmt.Println(err.Error())
 	}
 
-	od.OrderId = createOrderId(req.Uid)
+	od.OrderId = createOrderId(req.Uid, od.TokenId)
+	od.Fee    =  getOrderFee(od.Num, od.Price)
 	od.States = 1
+	od.PayStatus = 1
 	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
 
@@ -96,5 +90,35 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 
 
 
+
+
+
+// 产生订单 ID
+//  uid, 币种id , 时间秒,
+func createOrderId(userId int32, tokenId uint64) (orderId string) {
+	tn := time.Now()
+	tnn := tn.UnixNano()
+	tnns := strconv.FormatInt(tnn, 10)       // 获取微秒时间
+	var buffer bytes.Buffer
+	buffer.WriteString(strconv.FormatInt(int64(userId), 10))
+	if tokenId < 10{
+		buffer.WriteString(`0`)                 //不够2位，补0
+		buffer.WriteString(strconv.FormatUint(tokenId, 10))
+	}else{
+		buffer.WriteString(strconv.FormatUint(tokenId, 10))
+	}
+	buffer.WriteString(tnns[len(tnns) - 6:])
+	orderId = buffer.String()
+	return
+}
+
+
+// 获取费用
+func getOrderFee(Num, Price float64) (Fee float64) {
+	rate := conf.Cfg.MustValue("rate", "fee_rate")
+	rateFloat, _ := strconv.ParseFloat(rate, 64)
+	Fee = (Num * Price ) * rateFloat
+	return
+}
 
 

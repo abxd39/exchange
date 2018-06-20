@@ -34,7 +34,7 @@ type Order struct {
 
 //列出订单
 func (this *Order)  List(Page, PageNum int32,
-	AdType, States uint32,
+	AdType, States uint32, Id uint64,
 	TokenId float64, CreatedTime string, o *[]Order) (int64,int32, int32, int32) {
 
 	engine := dao.DB.GetMysqlConn()
@@ -58,6 +58,10 @@ func (this *Order)  List(Page, PageNum int32,
 		query = query.Where("states = ?", States)
 	}
 
+	fmt.Println("id:", Id)
+	if Id != 0 {
+		query = query.Where("id = ?", Id)
+	}
 	if AdType != 0 {
 		query = query.Where("ad_type = ?", AdType)
 	}
@@ -70,8 +74,9 @@ func (this *Order)  List(Page, PageNum int32,
 	}
 	tmpQuery := *query
 	countQuery := &tmpQuery
+	err := query.Limit(int(PageNum), (int(Page) - 1) * int(PageNum)).Find(o)
 	total, _:= countQuery.Count(orderModel)
-	err := query.Limit(int(PageNum), int(Page)).Find(o)
+
 	if err != nil {
 		Log.Errorln(err.Error())
 		return 0,0, 0, ERRCODE_UNKNOWN
@@ -83,43 +88,44 @@ func (this *Order)  List(Page, PageNum int32,
 // 删除订单(将states设置成0)
 // id     uint64
 // set state = 0
-func (this *Order) Delete(Id uint64) int32 {
+func (this *Order) Delete(Id uint64,  updateTimeStr string) (int32, string){
 	var err error
-	sql := "UPDATE   `order`   SET   `states`=? WHERE  `id`=?"
-	_, err = dao.DB.GetMysqlConn().Exec(sql,0, Id)
+	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"
+	_, err = dao.DB.GetMysqlConn().Exec(sql,0, updateTimeStr, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, err.Error()
 	}
-	return ERRCODE_SUCCESS
+	return ERRCODE_SUCCESS, ""
 }
 
 
 
 // 取消订单
 // set state == 4
-func (this *Order) Cancel(Id uint64, CancelType uint32) int32 {
+// params: id userid, CancelType: 取消类型: 1卖方 2 买方
+func (this *Order) Cancel(Id uint64, CancelType uint32,  updateTimeStr string) (int32,string ){
 	var err error
-	sql := "UPDATE   `order`   SET   `states`=? , `cancel_type`=?  WHERE  `id`=?"
-	_, err = dao.DB.GetMysqlConn().Exec(sql, 4,CancelType, Id)
+	sql := "UPDATE   `order`   SET   `states`=? , `cancel_type`=?, `updated_time`=?  WHERE  `id`=?"
+	_, err = dao.DB.GetMysqlConn().Exec(sql, 4,CancelType, updateTimeStr ,Id)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, err.Error()
 	}
-	return ERRCODE_SUCCESS
+	return ERRCODE_SUCCESS, ""
 }
 
 // 确认放行(支付完成)
 // set state = 3
-func (this *Order) Confirm(Id uint64) int32{
+func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
 	var err error
-	sql := "UPDATE   `order`   SET   `states`=?  WHERE  `id`=?"
-	_, err = dao.DB.GetMysqlConn().Exec(sql, 3, Id)
+	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"
+	_, err = dao.DB.GetMysqlConn().Exec(sql, 3, updateTimeStr,Id)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, err.Error()
 	}
-	return ERRCODE_SUCCESS
+	return ERRCODE_SUCCESS, ""
 }
 
 
@@ -127,8 +133,6 @@ func (this *Order) Confirm(Id uint64) int32{
 //添加订单
 func (this *Order) Add() (id uint64, code int32) {
 	_, err := dao.DB.GetMysqlConn().Insert(this)
-	fmt.Println(this)
-	fmt.Println("id: ", this.Id)
 	if err != nil {
 		Log.Errorln(err.Error())
 		code = ERRCODE_UNKNOWN
