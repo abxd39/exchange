@@ -34,6 +34,15 @@ service UserRPC {
 
     //
     rpc GetUserInvite(UserInfoRequest) returns (UserInviteResponse) {}
+
+    //modify user password
+    rpc  ChangeUserLoginPwd (UserChangeLoginPwdRequest) returns (UserChangeLoginPwdResponse) {};
+    //modify user phone number
+    rpc  ChangeUserPhone (UserChangePhoneRequest) returns (UserChangePhoneResponse){};
+    //user set new phone 
+    rpc  SetUserNewPhone (UserSetNewPhoneRequest) returns (UserSetNewPhoneResponse){};
+    // modify user trade passward
+    rpc ChangeUserTradePwd (UserChangeTradePwdRequest) returns (UserChangeTradePwdResponse){};
 }
 
 message NullRequest{
@@ -201,3 +210,62 @@ message UserInviteResponse{
     UserInviteData      data    =3;
     string src                  =4;
 }
+
+message UserChangeLoginPwdRequest{
+    int32 uid           =1;
+    string token        =2;
+    string oldPwd       =3;
+    string newPwd       =4;
+    string confirmPwd   =5;
+    string verify       =6;
+}
+
+message UserChangeLoginPwdResponse{
+    int32 err       =1;
+    string message  =2;
+    string data     =3;
+}
+
+message UserChangePhoneRequest{
+    int32 uid           =1;
+    string token        =2;
+    string phone        =3;
+    string verify       =4;
+}
+
+message UserChangePhoneResponse{
+    int32 err           =1;
+    string message      =2;
+    string data         =3;
+}
+
+message UserSetNewPhoneRequest{
+    int32 uid           =1;
+    string token        =2;
+    string country      =3;
+    string phone        =4;
+    string verify       =5;
+}
+
+message UserSetNewPhoneResponse{
+    int32 err           =1;
+    string message      =2;
+    string data         =3;
+}
+
+
+message UserChangeTradePwdRequest{
+    int32 uid           =1;
+    string token        =2;
+    string newPwd       =3;
+    string confirmPwd   =4;
+    string verify       =5;
+} 
+
+message UserChangeTradePwdResponse{
+    int32 err         =1;
+    string message  =2;
+    string data     =3;
+}
+
+
