@@ -19,12 +19,17 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/updated_ads_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
 		Currency.POST("/ads_list", this.AdsList)                    // 法币交易列表 - (广告(买卖))
 		Currency.POST("/ads_user_list", this.AdsUserList)           // 个人法币交易列表 - (广告(买卖))
+		Currency.GET("/tokens", this.GetTokens)                     // 获取货币类型
+		Currency.GET("/tokens_list", this.GetTokensList)            // 获取货币类型列表
+		Currency.GET("/pays", this.GetPays)                         // 获取支付方式
+		Currency.GET("/pays_list", this.GetPaysList)                // 获取支付方式列表
 
 		//// order ////
 		Currency.GET("/orders", this.OrdersList)           // 获取订单列表
 		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
 		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
 		Currency.POST("/confirm_order", this.ConfirmOrder) // 确认放行
+		Currency.POST("/add_order", this.AddOrder)         // 添加订单	
 
 	}
 }
@@ -458,4 +463,124 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 
 	c.JSON(http.StatusOK, ret)
 
+}
+
+// 获取货币类型
+func (this *CurrencyGroup) GetTokens(c *gin.Context) {
+
+	ret := NewErrorMessage()
+
+	// 请求的数据结构
+	req := struct {
+		Id uint32 `form:"id" json:"id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&req)
+	if err != nil || req.Id == 0 {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	// 调用 rpc 获取货币类型
+	data, err := rpc.InnerService.CurrencyService.CallGetCurrencyTokens(&proto.CurrencyTokensRequest{
+		Id:req.Id,
+	})
+
+	if err != nil {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
+	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
+	ret[RET_DATA] = data
+
+	c.JSON(http.StatusOK, ret)
+
+}
+
+// 获取货币类型列表
+func (this *CurrencyGroup) GetTokensList(c *gin.Context) {
+
+	ret := NewErrorMessage()
+
+	// 调用 rpc 获取货币类型列表
+	data, err := rpc.InnerService.CurrencyService.CallCurrencyTokensList(&proto.CurrencyTokensRequest{})
+
+	if err != nil {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
+	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
+	ret[RET_DATA] = data
+
+	c.JSON(http.StatusOK, ret)
+}
+
+// 获取支付方式
+func (this *CurrencyGroup) GetPays(c *gin.Context) {
+
+	ret := NewErrorMessage()
+
+	// 请求的数据结构
+	req := struct {
+		Id uint32 `form:"id" json:"id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&req)
+	if err != nil || req.Id == 0 {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	// 调用 rpc 获取支付方式
+	data, err := rpc.InnerService.CurrencyService.CallGetCurrencyPays(&proto.CurrencyPaysRequest{
+		Id:req.Id,
+	})
+
+	if err != nil {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
+	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
+	ret[RET_DATA] = data
+
+	c.JSON(http.StatusOK, ret)
+
+}
+
+// 获取支付方式列表
+func (this *CurrencyGroup) GetPaysList(c *gin.Context) {
+
+	ret := NewErrorMessage()
+
+	// 调用 rpc 获取支付方式列表
+	data, err := rpc.InnerService.CurrencyService.CallCurrencyPaysList(&proto.CurrencyPaysRequest{})
+
+	if err != nil {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
+	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
+	ret[RET_DATA] = data
+
+	c.JSON(http.StatusOK, ret)
 }

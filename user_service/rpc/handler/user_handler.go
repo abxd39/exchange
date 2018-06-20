@@ -62,8 +62,14 @@ func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmai
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
 	u := &model.User{}
 	if req.Type == 1 { //手机登陆
-		rsp.Err = u.LoginByPhone(req.Ukey, req.Pwd)
+		ret:= u.LoginByPhone(req.Ukey, req.Pwd)
+		if ret==ERRCODE_SUCCESS {
+			p:=&proto.LoginUserBaseData{}
+			u.GetLoginUser(p)
+			rsp.Data=p
+		}
 		rsp.Message = GetErrorMessage(rsp.Err)
+
 	} else if req.Type == 2 { //邮箱登陆
 		rsp.Err = u.LoginByEmail(req.Ukey, req.Pwd)
 		rsp.Message = GetErrorMessage(rsp.Err)

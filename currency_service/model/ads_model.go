@@ -13,10 +13,10 @@ type Ads struct {
 	TypeId      uint32  `xorm:"TINYINT(1)" json:"type_id"`         // 类型:1出售 2购买
 	TokenId     uint32  `xorm:"INT(10)" json:"token_id"`           // 货币类型
 	TokenName   string  `xorm:"VARBINARY(36)" json:"token_name"`   // 货币名称
-	Price       float64 `xorm:"DECIMAL(20,6)" json:"price"`        // 单价
-	Num         float64 `xorm:"DECIMAL(20,6)" json:"num"`          // 数量
+	Price       float64 `xorm:"DECIMAL(20,8)" json:"price"`        // 单价
+	Num         float64 `xorm:"DECIMAL(20,8)" json:"num"`          // 数量
 	Premium     int32   `xorm:"INT(10)" json:"premium"`            // 溢价
-	AcceptPrice float64 `xorm:"DECIMAL(20,6)" json:"accept_price"` // 可接受最低[高]单价
+	AcceptPrice float64 `xorm:"DECIMAL(20,8)" json:"accept_price"` // 可接受最低[高]单价
 	MinLimit    uint32  `xorm:"INT(10)" json:"min_limit"`          // 最小限额
 	MaxLimit    uint32  `xorm:"INT(10)" json:"max_limit"`          // 最大限额
 	IsTwolevel  uint32  `xorm:"TINYINT(1)" json:"is_twolevel"`     // 是否要通过二级认证:0不通过 1通过
@@ -96,15 +96,6 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 	}
 
 	return ERRCODE_SUCCESS
-}
-
-
-type AdsUserCurrencyCount struct {
-	Ads `xorm:"extends"`
-	Success uint32
-}
-func (AdsUserCurrencyCount) TableName() string {
-	return "ads"
 }
 
 // 法币交易列表 - (广告(买卖))

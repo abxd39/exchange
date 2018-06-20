@@ -10,7 +10,7 @@ import (
 // 订单表
 type Order struct {
 	Id          uint64       `xorm:"not null pk autoincr comment('ID')  INT(10)"  json:"id"`
-	OrderId     uint64       `xorm:"not null pk comment('订单ID') INT(10)"   json:"order_id"`  // hash( type_id, 6( user_id, + 时间秒）
+	OrderId     string       `xorm:"not null pk comment('订单ID') INT(10)"   json:"order_id"`  // hash( type_id, 6( user_id, + 时间秒）
 	AdId        uint64       `xorm:"not null default 0 comment('广告ID') index INT(10)"  json:"ad_id"`
 	AdType      uint32       `xorm:"not null default 0 comment('广告类型:1出售 2购买') TINYINT(1)"  json:"ad_type"`
 	Price       float64      `xorm:"not null default 0.000000 comment('价格') DECIMAL(20,6)"   json:"price"`
@@ -38,8 +38,8 @@ func (this *Order)  List(Page, PageNum int32,
 	TokenId float64, CreatedTime string, o *[]Order) (int64,int32, int32, int32) {
 
 	engine := dao.DB.GetMysqlConn()
-	if Page <= 0 {
-		Page = 0
+	if Page <= 1 {
+		Page = 1
 	}
 	if PageNum <= 0{
 		PageNum = 10
@@ -125,13 +125,18 @@ func (this *Order) Confirm(Id uint64) int32{
 
 
 //添加订单
-func (this *Order) Add() int32 {
+func (this *Order) Add() (id uint64, code int32) {
 	_, err := dao.DB.GetMysqlConn().Insert(this)
+	fmt.Println(this)
+	fmt.Println("id: ", this.Id)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		code = ERRCODE_UNKNOWN
+	}else{
+		id = this.Id
 	}
-	return ERRCODE_SUCCESS
+	code =  ERRCODE_SUCCESS
+	return
 }
 
 

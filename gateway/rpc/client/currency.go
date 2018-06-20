@@ -76,3 +76,27 @@ func (s *CurrencyRPCCli) CallAdsUserList(req *proto.AdsListRequest) (*proto.AdsL
 	rsp, err := s.conn.AdsUserList(context.TODO(), req)
 	return rsp, err
 }
+
+// 调用 rpc 获取货币类型
+func (s *CurrencyRPCCli) CallGetCurrencyTokens(req *proto.CurrencyTokensRequest) (*proto.CurrencyTokens, error) {
+	rsp, err := s.conn.GetCurrencyTokens(context.TODO(), req)
+	return rsp, err
+}
+
+// 调用 rpc 获取货币类型列表
+func (s *CurrencyRPCCli) CallCurrencyTokensList(req *proto.CurrencyTokensRequest) (*proto.CurrencyTokensListResponse, error) {
+	rsp, err := s.conn.CurrencyTokensList(context.TODO(), req)
+	return rsp, err
+}
+
+// 调用 rpc 获取支付方式
+func (s *CurrencyRPCCli) CallGetCurrencyPays(req *proto.CurrencyPaysRequest) (*proto.CurrencyPays, error) {
+	rsp, err := s.conn.GetCurrencyPays(context.TODO(), req)
+	return rsp, err
+}
+
+// 调用 rpc 获取支付方式列表
+func (s *CurrencyRPCCli) CallCurrencyPaysList(req *proto.CurrencyPaysRequest) (*proto.CurrencyPaysListResponse, error) {
+	rsp, err := s.conn.CurrencyPaysList(context.TODO(), req)
+	return rsp, err
+}
