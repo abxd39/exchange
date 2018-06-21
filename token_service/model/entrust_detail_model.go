@@ -24,16 +24,16 @@ func (s *EntrustDetail) Save() error {
 	_, err := DB.GetMysqlConn().Insert(s)
 	if err != nil {
 		Log.WithFields(logrus.Fields{
-			"entrust_id": s.EntrustId,
-			"uid":     s.Uid,
-			"all_num":    s.AllNum,
-			"SurplusNum":s.SurplusNum,
-			"opt":s.Opt,
-			"on_price":s.OnPrice,
-			"states":s.States,
-			"create_time":s.CreatedTime,
-			"fee":s.Fee,
-		}).Errorf("%s",err.Error())
+			"entrust_id":  s.EntrustId,
+			"uid":         s.Uid,
+			"all_num":     s.AllNum,
+			"SurplusNum":  s.SurplusNum,
+			"opt":         s.Opt,
+			"on_price":    s.OnPrice,
+			"states":      s.States,
+			"create_time": s.CreatedTime,
+			"fee":         s.Fee,
+		}).Errorf("%s", err.Error())
 		return err
 	}
 	return nil

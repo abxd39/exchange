@@ -62,21 +62,21 @@ func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmai
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
 	u := &model.User{}
 	var token string
-	var ret  int32
+	var ret int32
 	if req.Type == 1 { //手机登陆
-		token,ret = u.LoginByPhone(req.Ukey, req.Pwd)
+		token, ret = u.LoginByPhone(req.Ukey, req.Pwd)
 	} else if req.Type == 2 { //邮箱登陆
-		token,ret  = u.LoginByEmail(req.Ukey, req.Pwd)
+		token, ret = u.LoginByEmail(req.Ukey, req.Pwd)
 	}
 
 	if ret == ERRCODE_SUCCESS {
 
 		var p proto.LoginUserBaseData
 		u.GetLoginUser(&p)
-		p.Token=[]byte(token)
-		rsp.Data=&p
+		p.Token = []byte(token)
+		rsp.Data = &p
 	}
-	rsp.Err=ret
+	rsp.Err = ret
 	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }

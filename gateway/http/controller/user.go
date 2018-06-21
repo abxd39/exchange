@@ -185,7 +185,7 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("data",rsp.Data)
+	ret.SetDataSection("data", rsp.Data)
 }
 
 //忘记密码

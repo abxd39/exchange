@@ -46,6 +46,3 @@ func (s *KlineRPCCli) CallHline(req *proto.KineRequest) (int, error) {
 	rsp, err := s.conn.Hline(context.TODO(), req)
 	return int(rsp.Code), err
 }
-
-
-

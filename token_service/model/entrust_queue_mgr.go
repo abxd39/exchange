@@ -42,8 +42,8 @@ func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
 	return ok
 }
 
-func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene))  {
-	for _,v:=range s.dataMgr {
+func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene)) {
+	for _, v := range s.dataMgr {
 		f(v)
 	}
 }

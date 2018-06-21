@@ -4,12 +4,12 @@ import (
 	. "digicon/proto/common"
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/sirupsen/logrus"
 	"strconv"
 	"sync/atomic"
-	"errors"
-	"github.com/sirupsen/logrus"
 )
 
 type EntrustQuene struct {
@@ -154,23 +154,23 @@ func (s *EntrustQuene) GetFirstEntrust(opt int) (en *EntrustDetail, err error) {
 
 	if len(z) > 0 {
 		d := z[0].Member.(string)
-		en,ok = s.GetOrderDetail(d)
+		en, ok = s.GetOrderDetail(d)
 		if ok {
 			return
 		}
-		err =errors.New("this is unrealize err when get order detail  ")
+		err = errors.New("this is unrealize err when get order detail  ")
 		Log.WithFields(logrus.Fields{
 			"quene_id": s.TokenQueneId,
-			"opt":     opt,
-			"member": d,
+			"opt":      opt,
+			"member":   d,
 		}).Errorln(err.Error())
 		return
 	}
 
-	err =errors.New("this is sync data err ")
+	err = errors.New("this is sync data err ")
 	Log.WithFields(logrus.Fields{
 		"quene_id": s.TokenQueneId,
-		"opt":     opt,
+		"opt":      opt,
 	}).Errorln(err.Error())
 	return
 }

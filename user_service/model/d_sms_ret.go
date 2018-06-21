@@ -14,7 +14,7 @@ const (
 	SMS_FORGET     = 2
 	SMS_CHANGE_PWD = 3
 
-	SMS_MAX        = 4
+	SMS_MAX = 4
 )
 
 //发送短信

@@ -11,7 +11,7 @@ type RPCClient struct {
 	WallService     *client.WalletRPCCli
 	PublicService   *client.PublciRPCCli
 	WalletSevice    *client.WalletRPCCli
-	KineService    *client.KlineRPCCli
+	KineService     *client.KlineRPCCli
 }
 
 func NewRPCClient() (c *RPCClient) {

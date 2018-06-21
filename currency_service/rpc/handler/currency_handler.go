@@ -185,7 +185,7 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 // 获取货币类型
 func (s *RPCServer) GetCurrencyTokens(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokens) error {
 	data := new(model.Tokens).Get(req.Id, req.Name)
-	if data == nil{
+	if data == nil {
 		return nil
 	}
 
@@ -199,7 +199,7 @@ func (s *RPCServer) GetCurrencyTokens(ctx context.Context, req *proto.CurrencyTo
 // 获取货币类型列表
 func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokensListResponse) error {
 	data := new(model.Tokens).List()
-	if data == nil{
+	if data == nil {
 		return nil
 	}
 
@@ -207,9 +207,9 @@ func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyT
 	listData := make([]*proto.CurrencyTokens, listLen)
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.CurrencyTokens{
-			Id:data[i].Id,
-			Name:data[i].Name,
-			CnName:data[i].CnName,
+			Id:     data[i].Id,
+			Name:   data[i].Name,
+			CnName: data[i].CnName,
 		}
 		listData[i] = adsLists
 	}
@@ -221,7 +221,7 @@ func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyT
 // 获取支付方式
 func (s *RPCServer) GetCurrencyPays(ctx context.Context, req *proto.CurrencyPaysRequest, rsp *proto.CurrencyPays) error {
 	data := new(model.Pays).Get(req.Id, req.EnPay)
-	if data == nil{
+	if data == nil {
 		return nil
 	}
 
@@ -237,7 +237,7 @@ func (s *RPCServer) GetCurrencyPays(ctx context.Context, req *proto.CurrencyPays
 // 获取支付方式列表
 func (s *RPCServer) CurrencyPaysList(ctx context.Context, req *proto.CurrencyPaysRequest, rsp *proto.CurrencyPaysListResponse) error {
 	data := new(model.Pays).List()
-	if data == nil{
+	if data == nil {
 		return nil
 	}
 
@@ -245,10 +245,10 @@ func (s *RPCServer) CurrencyPaysList(ctx context.Context, req *proto.CurrencyPay
 	listData := make([]*proto.CurrencyPays, listLen)
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.CurrencyPays{
-			Id:data[i].Id,
-			ZhPay:data[i].ZhPay,
-			EnPay:data[i].EnPay,
-			States:data[i].States,
+			Id:     data[i].Id,
+			ZhPay:  data[i].ZhPay,
+			EnPay:  data[i].EnPay,
+			States: data[i].States,
 		}
 		listData[i] = adsLists
 	}

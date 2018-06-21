@@ -92,14 +92,15 @@ func (s *RedisOp) GetUserBaseInfo(uid int32) (rsp string, err error) {
 	return
 }
 
-func (s *RedisOp) SetUserToken(token string,uid int32) (err error) {
-	err = DB.GetRedisConn().Set(token,uid,604800*time.Second).Err()
+func (s *RedisOp) SetUserToken(token string, uid int32) (err error) {
+	err = DB.GetRedisConn().Set(token, uid, 604800*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
+
 /*
 func (s *RedisOp) SetUserToken(uid int32, token []byte) (err error) {
 	err = DB.GetRedisConn().Set(GetUserTagByLogic(uid, UID_TAG_TOKEN), token, 604800*time.Second).Err()

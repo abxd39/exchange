@@ -25,12 +25,12 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/pays_list", this.GetPaysList)                // 获取支付方式列表
 
 		//// order ////
-		Currency.GET("/orders", this.OrdersList)             // 获取订单列表
-		Currency.POST("/add_order", this.AddOrder)           // 添加订单
-		Currency.POST("/ready_order", this.ReadyOrder)       // 待放行
-		Currency.POST("/confirm_order", this.ConfirmOrder)   // 确认放行
-		Currency.POST("/cancel_order", this.CancelOrder)     // 取消订单
-		Currency.POST("/delete_order", this.CancelOrder)     // 删除订单
+		Currency.GET("/orders", this.OrdersList)           // 获取订单列表
+		Currency.POST("/add_order", this.AddOrder)         // 添加订单
+		Currency.POST("/ready_order", this.ReadyOrder)     // 待放行
+		Currency.POST("/confirm_order", this.ConfirmOrder) // 确认放行
+		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
+		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
 
 	}
 }
@@ -486,7 +486,7 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 
 	// 调用 rpc 获取货币类型
 	data, err := rpc.InnerService.CurrencyService.CallGetCurrencyTokens(&proto.CurrencyTokensRequest{
-		Id:req.Id,
+		Id: req.Id,
 	})
 
 	if err != nil {
@@ -553,7 +553,7 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 
 	// 调用 rpc 获取支付方式
 	data, err := rpc.InnerService.CurrencyService.CallGetCurrencyPays(&proto.CurrencyPaysRequest{
-		Id:req.Id,
+		Id: req.Id,
 	})
 
 	if err != nil {

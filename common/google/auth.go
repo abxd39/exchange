@@ -1,4 +1,5 @@
 package google
+
 //谷歌验证码生成器
 import (
 	"crypto/hmac"
