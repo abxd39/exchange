@@ -8,7 +8,7 @@ import (
 // 支付方式表
 type Pays struct {
 	Id     uint32 `xorm:"not null pk autoincr INT(10)" json:"id"`
-	TypeId uint32 `TINYINT(2)" json:"type_id"`
+	TypeId uint32 `xorm:"TINYINT(2)" json:"type_id"`
 	ZhPay  string `xorm:"VARBINARY(20)" json:"zh_pay"`
 	EnPay  string `xorm:"VARBINARY(20)" json:"en_pay"`
 	States uint32 `xorm:"TINYINT(2)" json:"states"`

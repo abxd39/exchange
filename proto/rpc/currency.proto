@@ -24,6 +24,10 @@ service CurrencyRPC {
         rpc GetCurrencyPays(CurrencyPaysRequest) returns (CurrencyPays){}
         // 获取支付方式列表
         rpc CurrencyPaysList(CurrencyPaysRequest) returns (CurrencyPaysListResponse){}
+        // 新增订单聊天
+        rpc GetCurrencyChats(CurrencyChats) returns (CurrencyResponse){}
+        // 获取订单聊天列表
+        rpc CurrencyChatsList(CurrencyChats) returns (CurrencyChatsListResponse){}
 
         /// Order ///
         // 获取订单列表
@@ -64,10 +68,10 @@ message AdsModel {
     uint32 type_id      = 3;  // 类型:1出售 2购买
     uint32 token_id     = 4;  // 货币类型
     string token_name   = 5;  // 货币名称
-    double price        = 6;  // 单价
-    double num          = 7;  // 数量
+    uint64 price        = 6;  // 单价
+    uint64 num          = 7;  // 数量
     int32  premium      = 8;  // 溢价
-    double accept_price = 9;  // 可接受最低[高]单价
+    uint64 accept_price = 9;  // 可接受最低[高]单价
     uint32 min_limit    = 10; // 最小限额
     uint32 max_limit    = 11; // 最大限额
     uint32 is_twolevel  = 12; // 是否要通过二级认证:0不通过 1通过
@@ -98,8 +102,8 @@ message AdsStatusRequest {
 message AdsLists {
     uint64 id           = 1;  // 广告ID
     uint64 uid          = 2;  // 用户ID
-    double price        = 3;  // 单价
-    double num          = 4;  // 数量
+    uint64 price        = 3;  // 单价
+    uint64 num          = 4;  // 数量
     uint32 min_limit    = 5;  // 最小限额
     uint32 max_limit    = 6;  // 最大限额
     string pays         = 7;  // 支付方式:以 , 分隔: 1,2,3
@@ -164,6 +168,24 @@ message CurrencyPaysRequest {
 message CurrencyPaysListResponse {
     repeated CurrencyPays data = 1;
 }
+
+
+//===
+
+// 订单聊天
+message CurrencyChats {
+    uint64 id               = 1;
+    string order_id         = 2;
+    uint32 is_order_user    = 3;
+    uint64 uid              = 4;
+    string uname            = 5;
+    string content          = 6;
+    string created_time     = 7;
+}
+message CurrencyChatsListResponse {
+    repeated CurrencyChats data = 1;
+}
+
 
 ////////////////////////// Order ////////////////////////////
 
