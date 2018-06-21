@@ -1,6 +1,9 @@
 syntax = "proto3";
 package g2u;
 
+import "rpc/define.proto";
+
+
 service UserRPC {
 	rpc Hello(HelloRequest) returns (HelloResponse) {}
 	//注册by手机
@@ -45,14 +48,6 @@ service UserRPC {
    // rpc ChangeUserTradePwd (UserChangeTradePwdRequest) returns (UserChangeTradePwdResponse){};
 }
 
-message NullRequest{
-
-}
-
-message CommonErrResponse{
-    int32 err       =1;
-    string message  =2;
-}
 
 message HelloRequest {
 	string name = 1;

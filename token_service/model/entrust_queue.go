@@ -1,6 +1,7 @@
 package model
 
 import (
+	"digicon/common/convert"
 	. "digicon/proto/common"
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
@@ -8,7 +9,6 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
-	"strconv"
 	"sync/atomic"
 )
 
@@ -90,11 +90,12 @@ func (s *EntrustQuene) JoinSellQuene(p *EntrustDetail) (ret int, err error) {
 		quene_id = s.SellQueneId
 	}
 
-	a, _ := strconv.ParseFloat(p.Price, 8)
+	//may be not exact
+	x := convert.Int64ToFloat64By8Bit(p.Price)
 
 	err = DB.GetRedisConn().ZAdd(quene_id, redis.Z{
 		Member: p.Uid,
-		Score:  a,
+		Score:  x,
 	}).Err()
 	if err != nil {
 		Log.Errorln(err.Error())

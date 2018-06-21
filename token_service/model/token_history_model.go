@@ -4,8 +4,8 @@ type TokenHistory struct {
 	Id         int    `xorm:"comment('操作序号') INT(255)"`
 	Uid        int    `xorm:"comment('用户id') INT(11)"`
 	TokenId    int    `xorm:"comment(' 货币类型') INT(11)"`
-	Num        string `xorm:"comment('提现数量') DECIMAL(20,4)"`
-	Fee        string `xorm:"comment('手续费') DECIMAL(20,4)"`
+	Num        int64  `xorm:"comment('提现数量') BIGINT(20)"`
+	Fee        int64  `xorm:"comment('手续费') BIGINT(20)"`
 	Address    string `xorm:"comment('提现地址') VARCHAR(255)"`
 	RecordTime int    `xorm:"comment('提交时间') INT(11)"`
 	CheckTime  int    `xorm:"comment('审核时间') INT(11)"`

@@ -39,6 +39,8 @@ const (
 
 	//400-
 	ERR_TOKEN_QUENE_NIL = 401
+	ERR_TOKEN_LESS = 402
+	ERR_TOKEN_REPEAT=403
 )
 
 func GetErrorMessage(code int32) string {
@@ -90,6 +92,8 @@ func init() {
 	message[ERRCODE_PAYS_NOTEXIST] = "支付方式不存在"
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
+	message[ERR_TOKEN_LESS] = "币的余额不够"
+	message[ERR_TOKEN_REPEAT] = "重复请求"
 }
 
 type PublicErrorType struct {

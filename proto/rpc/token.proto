@@ -2,10 +2,12 @@ syntax = "proto3";
 package g2u;
 
 import "rpc/currency.proto";
+import "rpc/define.proto";
 
 service TokenRPC {
     	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
 		rpc EntrustOrder(EntrustOrderRequest) returns (EntrustOrderResponse) {};
+        rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
 }
 
 message  EntrustOrderRequest {
@@ -21,3 +23,12 @@ message EntrustOrderResponse{
     string message                  =2;
 }
 
+message AddTokenNumRequest {
+    int32 err = 1;
+    string message = 2;
+    int32 uid = 3;
+    int32 token_id = 4;
+    int64 num = 6;
+    bool opt = 7; //操作类型0增加1减少
+    bytes hash  =8;
+}
