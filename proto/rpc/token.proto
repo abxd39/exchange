@@ -6,16 +6,18 @@ import "rpc/define.proto";
 
 service TokenRPC {
     	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
-		rpc EntrustOrder(EntrustOrderRequest) returns (EntrustOrderResponse) {};
+		rpc EntrustOrder(EntrustOrderRequest) returns (CommonErrResponse) {};
         rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
 }
 
 message  EntrustOrderRequest {
-    string token_quene_id            =1;//tokenid_tokenid
-    double price                    =2;
-    double num                      =3;
-    int32  opt                      =4;//操作类型1买入2卖出
-    int32  type                  =5;//委托类型1限价2市价
+    int32 token_id                  =1;//tokenid_tokenid
+    int32 token_trade_id            =2;
+    int64 on_price                    =3;
+    int64 num                      =4;
+    int32  opt                      =5;//操作类型1买入2卖出
+    int32  type                  =6;//委托类型1限价2市价
+    int32 uid                      =7;
 }
 
 message EntrustOrderResponse{

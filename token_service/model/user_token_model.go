@@ -13,6 +13,7 @@ type UserToken struct {
 	Version int
 }
 
+//获取实体
 func (s *UserToken) GetUserToken(uid, token_id int) (err error) {
 	var ok bool
 	ok, err = DB.GetMysqlConn().Where("uid=? and token_id=?", uid, token_id).Get(s)
@@ -35,6 +36,7 @@ func (s *UserToken) GetUserToken(uid, token_id int) (err error) {
 	return
 }
 
+//加代币数量
 func (s *UserToken) AddMoney(num int64, hash string) (ret int32, err error) {
 	m := &MoneyRecord{}
 	ok, err := m.CheckExist(hash)
@@ -83,6 +85,7 @@ func (s *UserToken) AddMoney(num int64, hash string) (ret int32, err error) {
 	return
 }
 
+//减代币数量
 func (s *UserToken) SubMoney(num int64, hash string) (ret int32, err error) {
 	m := &MoneyRecord{}
 	ok, err := m.CheckExist(hash)

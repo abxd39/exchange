@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"sync/atomic"
 )
-
+//交易队列类型
 type EntrustQuene struct {
 	//币币队列ID  格式主要货币_交易货币
 	TokenQueneId string
@@ -32,20 +32,11 @@ type EntrustQuene struct {
 }
 
 const (
-	ORDER_OPT_SELL = 0
-	ORDER_OPT_BUY  = 1
+	ORDER_OPT_BUY  = 0//买类型
+	ORDER_OPT_SELL = 1//卖类型
+
 )
 
-/*
-//委托单详情
-type OrderDetail struct {
-	OrderId string
-	Uid     int32
-	Price   float64
-	Num     float64
-	Opt     int32 //0买1卖
-}
-*/
 
 func NewEntrustQuene(quene_id string) *EntrustQuene {
 	m := &EntrustQuene{
@@ -65,28 +56,16 @@ func (s *EntrustQuene) GetUUID() int64 {
 	return atomic.AddInt64(&s.UUID, 1)
 }
 
-/*
-	m := &EntrustDetail{
-		EntrustId: fmt.Sprintf("%d_%d", time.Now().Unix(), s.GetUUID()),
-		Uid:     uid,
-		Price:   price,
-		AllNum:  num,
-		SurplusNum:num,
-		Opt:     opt,
-	}
-*/
-//限价委托入队列 opt 0 sell ,1 buy
+//限价委托入队列 opt 0 buy ,1 sell
 func (s *EntrustQuene) JoinSellQuene(p *EntrustDetail) (ret int, err error) {
-
 	if p.Opt > 2 {
 		ret = ERRCODE_PARAM
 		return
 	}
-
 	var quene_id string
-	if p.Opt == 0 {
+	if p.Opt == ORDER_OPT_BUY {
 		quene_id = s.BuyQueneId
-	} else if p.Opt == 1 {
+	} else if p.Opt == ORDER_OPT_SELL {
 		quene_id = s.SellQueneId
 	}
 
@@ -126,7 +105,7 @@ func (s *EntrustQuene) insertOrderDetail(d *EntrustDetail) bool {
 	return true
 }
 
-//
+//延时保存委托数据
 func (s *EntrustQuene) process() {
 	var d *EntrustDetail
 	for {
@@ -142,9 +121,9 @@ func (s *EntrustQuene) process() {
 func (s *EntrustQuene) GetFirstEntrust(opt int) (en *EntrustDetail, err error) {
 	var z []redis.Z
 	var ok bool
-	if opt == 1 { //买入类型
+	if opt == ORDER_OPT_BUY { //买入类型
 		z, err = DB.GetRedisConn().ZRangeWithScores(s.BuyQueneId, 0, 1).Result()
-	} else if opt == 2 { //卖出类型
+	} else if opt == ORDER_OPT_SELL { //卖出类型
 		z, err = DB.GetRedisConn().ZRevRangeWithScores(s.BuyQueneId, 0, 1).Result()
 	}
 

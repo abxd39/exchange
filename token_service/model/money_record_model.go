@@ -15,6 +15,7 @@ type MoneyRecord struct {
 	CreatedTime int64  `xorm:"BIGINT(20)"`
 }
 
+//检查流水记录是否存在
 func (s *MoneyRecord) CheckExist(hash string) (ok bool, err error) {
 	ok, err = DB.GetMysqlConn().Where("hash=?", hash).Get(&MoneyRecord{})
 	if err != nil {
@@ -24,6 +25,7 @@ func (s *MoneyRecord) CheckExist(hash string) (ok bool, err error) {
 	return
 }
 
+//新增一条流水
 func (s *MoneyRecord) InsertRecord(p *MoneyRecord) {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {

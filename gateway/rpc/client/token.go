@@ -23,6 +23,16 @@ func (s *TokenRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err erro
 	return
 }
 
+
+func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.EntrustOrder(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func NewTokenRPCCli() (u *TokenRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

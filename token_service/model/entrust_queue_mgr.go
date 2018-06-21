@@ -1,6 +1,7 @@
 package model
 
 import (
+	"digicon/common/genkey"
 	. "digicon/token_service/dao"
 	. "digicon/token_service/log"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 var ins *EntrustQueneMgr
 var once sync.Once
 
+//单例获取币币交易管理器
 func GetQueneMgr() *EntrustQueneMgr {
 	once.Do(func() {
 		ins = &EntrustQueneMgr{
@@ -25,14 +27,20 @@ type EntrustQueneMgr struct {
 }
 
 //获取一个币币交易
-func (s *EntrustQueneMgr) GetQuene(id string) (d *EntrustQuene, ok bool) {
-	d, ok = s.dataMgr[id]
+func (s *EntrustQueneMgr) GetQueneByUKey(ukey string) (d *EntrustQuene, ok bool) {
+	d, ok = s.dataMgr[ukey]
 	if !ok {
 		return
 	}
 	return
 }
 
+//获取一个币币交易
+func (s *EntrustQueneMgr) GetQuene(token_id, trade_token_id int) (d *EntrustQuene, ok bool) {
+	return s.GetQueneByUKey(genkey.GetUnionKey(token_id, trade_token_id))
+}
+
+//添加一个币币交易
 func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
 	_, ok := s.dataMgr[e.TokenQueneId]
 	if ok {
@@ -42,6 +50,7 @@ func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
 	return ok
 }
 
+//遍历每个币币交易
 func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene)) {
 	for _, v := range s.dataMgr {
 		f(v)

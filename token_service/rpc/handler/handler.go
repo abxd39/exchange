@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"digicon/common/genkey"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/token_service/model"
+	"github.com/liudng/godump"
 	"golang.org/x/net/context"
 	"log"
-	"github.com/liudng/godump"
 )
 
 type RPCServer struct{}
@@ -18,6 +19,23 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 }
 
 func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderRequest, rsp *proto.EntrustOrderResponse) error {
+	q, ok := model.GetQueneMgr().GetQuene(int(req.TokenId), int(req.TokenTradeId))
+	if !ok {
+		rsp.Err = ERR_TOKEN_QUENE_CONF
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
+
+	q.JoinSellQuene(&model.EntrustDetail{
+		EntrustId:  genkey.GetTimeUnionKey(q.GetUUID()),
+		Uid:        int(req.Uid),
+		AllNum:     req.Num,
+		SurplusNum: req.Num,
+		Opt:        int(req.Opt),
+		OnPrice:    req.OnPrice,
+		States:     0,
+	})
+
 	return nil
 }
 
@@ -43,13 +61,13 @@ func (s *RPCServer) AddTokenNum(ctx context.Context, req *proto.AddTokenNumReque
 	return nil
 }
 
-func Test()  {
-	req :=&proto.AddTokenNumRequest{
-		Uid:8,
-		TokenId:4,
-		Num:10000000,
-		Hash:[]byte("dasfdsaonzz11opqqq11+="),
-		Opt:false,
+func Test() {
+	req := &proto.AddTokenNumRequest{
+		Uid:     8,
+		TokenId: 4,
+		Num:     10000000,
+		Hash:    []byte("dasfdsaonzz11opqqq11+="),
+		Opt:     false,
 	}
 
 	u := &model.UserToken{}

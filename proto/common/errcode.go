@@ -43,6 +43,7 @@ const (
 	ERR_TOKEN_QUENE_NIL = 401
 	ERR_TOKEN_LESS = 402
 	ERR_TOKEN_REPEAT=403
+	ERR_TOKEN_QUENE_CONF=404
 )
 
 func GetErrorMessage(code int32) string {
@@ -98,6 +99,7 @@ func init() {
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 	message[ERR_TOKEN_LESS] = "币的余额不够"
 	message[ERR_TOKEN_REPEAT] = "重复请求"
+	message[ERR_TOKEN_QUENE_CONF] = "队列未配置"
 }
 
 type PublicErrorType struct {
@@ -125,7 +127,13 @@ func (s *PublicErrorType) init() {
 func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
 	s.ret[ERR_CODE_RET] = code
 
-	if code != ERRCODE_UNKNOWN {
+	if code==ERRCODE_PARAM {
+		if len(err_msg) > 0 {
+			s.ret[ERR_CODE_MESSAGE] = err_msg[0]
+		}else {
+			s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
+		}
+	}else if code != ERRCODE_UNKNOWN {
 		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
 	} else {
 		if len(err_msg) > 0 {

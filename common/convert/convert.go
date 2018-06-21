@@ -19,3 +19,9 @@ func Int64ToFloat64By8Bit(b int64) (x float64) {
 	x,_ =a.Float64()
 	return
 }
+
+func StringToInt64By8Bit(s string)  (int64,error){
+	d,err:=decimal.NewFromString(s)
+	d.StringScaled(8)
+	return d.IntPart(),err
+}
