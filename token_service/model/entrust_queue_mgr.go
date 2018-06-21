@@ -1,8 +1,8 @@
 package model
 
 import (
-	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	. "digicon/token_service/dao"
+	. "digicon/token_service/log"
 	"fmt"
 	"sync"
 )
@@ -35,7 +35,7 @@ func (s *EntrustQueneMgr) GetQuene(id string) (d *EntrustQuene, ok bool) {
 
 func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
 	_, ok := s.dataMgr[e.TokenQueneId]
-	if !ok {
+	if ok {
 		Log.Fatalf("insert same quene id is %s", e.TokenQueneId)
 	}
 	s.dataMgr[e.TokenQueneId] = e
@@ -57,7 +57,7 @@ func (s *EntrustQueneMgr) Init() bool {
 	}
 
 	for _, v := range d {
-		quene_id := fmt.Sprintf("%s_%s", v.TokenId, v.TokenTradeId)
+		quene_id := fmt.Sprintf("%d_%d", v.TokenId, v.TokenTradeId)
 		e := NewEntrustQuene(quene_id)
 		s.AddQuene(e)
 	}

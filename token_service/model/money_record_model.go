@@ -1,8 +1,8 @@
 package model
 
 import (
-	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	. "digicon/token_service/dao"
+	. "digicon/token_service/log"
 )
 
 type MoneyRecord struct {

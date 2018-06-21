@@ -3,8 +3,8 @@ package model
 import (
 	"digicon/common/convert"
 	. "digicon/proto/common"
-	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	. "digicon/token_service/dao"
+	. "digicon/token_service/log"
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"

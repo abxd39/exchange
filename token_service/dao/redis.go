@@ -1,7 +1,7 @@
 package dao
 
 import (
-	cf "digicon/user_service/conf"
+	cf "digicon/token_service/conf"
 	"github.com/go-redis/redis"
 )
 
@@ -23,4 +23,8 @@ func NewRedisCli() *RedisCli {
 	return &RedisCli{
 		rcon: client,
 	}
+}
+
+func (s *Dao) GetRedisConn() *redis.Client {
+	return s.redis.rcon
 }

@@ -2,8 +2,8 @@ package model
 
 import (
 	. "digicon/proto/common"
-	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	. "digicon/token_service/dao"
+	. "digicon/token_service/log"
 )
 
 type UserToken struct {
@@ -53,7 +53,7 @@ func (s *UserToken) AddMoney(num int64, hash string) (ret int32, err error) {
 	defer session.Close()
 	err = session.Begin()
 
-	_, err = session.Where("uid=? and token=?", s.Uid, s.TokenId).Incr("balance=balance+?", num).Update(&UserToken{})
+	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Incr("balance", num).Update(&UserToken{})
 
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -77,6 +77,7 @@ func (s *UserToken) AddMoney(num int64, hash string) (ret int32, err error) {
 
 	err = session.Commit()
 	if err != nil {
+		Log.Errorln(err.Error())
 		return
 	}
 	return
@@ -103,7 +104,7 @@ func (s *UserToken) SubMoney(num int64, hash string) (ret int32, err error) {
 	defer session.Close()
 	err = session.Begin()
 
-	_, err = session.Where("uid=? and token=?", s.Uid, s.TokenId).Decr("balance=balance-?", num).Update(&UserToken{})
+	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
 
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -127,6 +128,7 @@ func (s *UserToken) SubMoney(num int64, hash string) (ret int32, err error) {
 
 	err = session.Commit()
 	if err != nil {
+		Log.Errorln(err.Error())
 		return
 	}
 	return
