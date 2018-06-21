@@ -28,10 +28,10 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		//user.POST("/Modify_pwd", s.ModifyPwdcontroller)
 		user.POST("/send_sms", s.SendPhoneSMSController)
 		user.POST("/send_email", s.SendEmailController)
-		user.POST("/Modify_login_pwd", s.ModifyLoginPwd)
-		user.POST("/Modify_phone", s.ModifyPhone1)
+		user.POST("/modify_login_pwd", s.ModifyLoginPwd)
+		user.POST("/modify_phone", s.ModifyPhone1)
 		user.POST("/set_new_phon", s.ModifyPhone2)
-		user.POST("Modify_trade_pwd", s.ResetTradePwd)
+		user.POST("/modify_trade_pwd", s.ResetTradePwd)
 	}
 }
 
@@ -343,6 +343,7 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 		OldPwd     string `form:"old_pwd" binding:"required"`
 		NewPwd     string `form:"new_pwd" binding:"required"`
 		ConfirmPwd string `form:"confirm" binding:"required"`
+		Verify     string `form:"verify" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		Log.Errorf(err.Error())

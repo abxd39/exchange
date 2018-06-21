@@ -3,12 +3,14 @@ package model
 import (
 	proto "digicon/proto/rpc"
 	"digicon/user_service/dao"
+	"fmt"
 	"strings"
 )
 
 func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, error) {
 	var value int32
 	var err error
+	fmt.Println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<ModifyLoginPwd>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 	//
 	if va := strings.Compare(req.ConfirmPwd, req.NewPwd); va != 0 {
 		return 205, nil
