@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"digicon/common/convert"
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
@@ -10,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-const PRICE_TO = 100000000
 
 type CurrencyGroup struct{}
 
@@ -44,25 +43,25 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 // 买卖(广告)
 type CurrencyAds struct {
-	Id          uint64 `json:"id"`
-	Uid         uint64 `json:"uid"`          // 用户ID
-	TypeId      uint32 `json:"type_id"`      // 类型:1出售 2购买
-	TokenId     uint32 `json:"token_id"`     // 货币类型
-	TokenName   string `json:"token_name"`   // 货币名称
-	Price       string `json:"price"`        // 单价
-	Num         string `json:"num"`          // 数量
-	Premium     int32  `json:"premium"`      // 溢价
-	AcceptPrice string `json:"accept_price"` // 可接受最低[高]单价
-	MinLimit    uint32 `json:"min_limit"`    // 最小限额
-	MaxLimit    uint32 `json:"max_limit"`    // 最大限额
-	IsTwolevel  uint32 `json:"is_twolevel"`  // 是否要通过二级认证:0不通过 1通过
-	Pays        string `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
-	Remarks     string `json:"remarks"`      // 交易备注
-	Reply       string `json:"reply"`        // 自动回复问候语
-	IsUsd       uint32 `json:"is_usd"`       // 是否美元支付:0否 1是
-	States      uint32 `json:"states"`       // 状态:0下架 1上架
-	CreatedTime string `json:"created_time"` // 创建时间
-	UpdatedTime string `json:"updated_time"` // 修改时间
+	Id          uint64  `json:"id"`
+	Uid         uint64  `json:"uid"`          // 用户ID
+	TypeId      uint32  `json:"type_id"`      // 类型:1出售 2购买
+	TokenId     uint32  `json:"token_id"`     // 货币类型
+	TokenName   string  `json:"token_name"`   // 货币名称
+	Price       float64 `json:"price"`        // 单价
+	Num         float64 `json:"num"`          // 数量
+	Premium     int32   `json:"premium"`      // 溢价
+	AcceptPrice float64 `json:"accept_price"` // 可接受最低[高]单价
+	MinLimit    uint32  `json:"min_limit"`    // 最小限额
+	MaxLimit    uint32  `json:"max_limit"`    // 最大限额
+	IsTwolevel  uint32  `json:"is_twolevel"`  // 是否要通过二级认证:0不通过 1通过
+	Pays        string  `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
+	Remarks     string  `json:"remarks"`      // 交易备注
+	Reply       string  `json:"reply"`        // 自动回复问候语
+	IsUsd       uint32  `json:"is_usd"`       // 是否美元支付:0否 1是
+	States      uint32  `json:"states"`       // 状态:0下架 1上架
+	CreatedTime string  `json:"created_time"` // 创建时间
+	UpdatedTime string  `json:"updated_time"` // 修改时间
 }
 
 // 获取广告(买卖)
@@ -109,10 +108,10 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 		TypeId:      data.TypeId,
 		TokenId:     data.TokenId,
 		TokenName:   data.TokenName,
-		Price:       strconv.FormatFloat(float64(data.Price)/PRICE_TO, 'f', 8, 64),
-		Num:         strconv.FormatFloat(float64(data.Num)/PRICE_TO, 'f', 8, 64),
+		Price:       convert.Int64ToFloat64By8Bit(int64(data.Price)),
+		Num:         convert.Int64ToFloat64By8Bit(int64(data.Num)),
 		Premium:     data.Premium,
-		AcceptPrice: strconv.FormatFloat(float64(data.AcceptPrice)/PRICE_TO, 'f', 8, 64),
+		AcceptPrice: convert.Int64ToFloat64By8Bit(int64(data.AcceptPrice)),
 		MinLimit:    data.MinLimit,
 		MaxLimit:    data.MaxLimit,
 		IsTwolevel:  data.IsTwolevel,
@@ -243,10 +242,10 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		TypeId:      req.TypeId,
 		TokenId:     req.TokenId,
 		TokenName:   tokenData.Name,
-		Price:       uint64(req.Price * PRICE_TO),
-		Num:         uint64(req.Num * PRICE_TO),
+		Price:       uint64(convert.Float64ToInt64By8Bit(req.Price)),
+		Num:         uint64(convert.Float64ToInt64By8Bit(req.Num)),
 		Premium:     req.Premium,
-		AcceptPrice: uint64(req.AcceptPrice * PRICE_TO),
+		AcceptPrice: uint64(convert.Float64ToInt64By8Bit(req.AcceptPrice)),
 		MinLimit:    req.MinLimit,
 		MaxLimit:    req.MaxLimit,
 		IsTwolevel:  req.IsTwolevel,
@@ -354,10 +353,10 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	// 调用 rpc 修改广告(买卖)
 	code, err := rpc.InnerService.CurrencyService.CallUpdatedAds(&proto.AdsModel{
 		Id:          req.Id,
-		Price:       uint64(req.Price * PRICE_TO),
-		Num:         uint64(req.Num * PRICE_TO),
+		Price:       uint64(convert.Float64ToInt64By8Bit(req.Price)),
+		Num:         uint64(convert.Float64ToInt64By8Bit(req.Num)),
 		Premium:     req.Premium,
-		AcceptPrice: uint64(req.AcceptPrice * PRICE_TO),
+		AcceptPrice: uint64(convert.Float64ToInt64By8Bit(req.AcceptPrice)),
 		MinLimit:    req.MinLimit,
 		MaxLimit:    req.MaxLimit,
 		IsTwolevel:  req.IsTwolevel,
@@ -437,8 +436,8 @@ type AdsListResponse struct {
 type AdsListsData struct {
 	Id          uint64 `json:"id"`           // 广告ID
 	Uid         uint64 `json:"uid"`          // 用户ID
-	Price       string `json:"price"`        // 单价
-	Num         string `json:"num"`          // 数量
+	Price       float64 `json:"price"`        // 单价
+	Num         float64 `json:"num"`          // 数量
 	MinLimit    uint32 `json:"min_limit"`    // 最小限额
 	MaxLimit    uint32 `json:"max_limit"`    // 最大限额
 	Pays        string `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
@@ -513,8 +512,8 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		adsLists := AdsListsData{
 			Id:          v.Id,
 			Uid:         v.Uid,
-			Price:       strconv.FormatFloat(float64(v.Price)/PRICE_TO, 'f', 8, 64),
-			Num:         strconv.FormatFloat(float64(v.Num)/PRICE_TO, 'f', 8, 64),
+			Price:       convert.Int64ToFloat64By8Bit(int64(v.Price)),
+			Num:         convert.Int64ToFloat64By8Bit(int64(v.Num)),
 			MinLimit:    v.MinLimit,
 			MaxLimit:    v.MaxLimit,
 			Pays:        v.Pays,
@@ -592,8 +591,8 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		adsLists := AdsListsData{
 			Id:          v.Id,
 			Uid:         v.Uid,
-			Price:       strconv.FormatFloat(float64(v.Price)/PRICE_TO, 'f', 8, 64),
-			Num:         strconv.FormatFloat(float64(v.Num)/PRICE_TO, 'f', 8, 64),
+			Price:       convert.Int64ToFloat64By8Bit(int64(v.Price)),
+			Num:         convert.Int64ToFloat64By8Bit(int64(v.Num)),
 			MinLimit:    v.MinLimit,
 			MaxLimit:    v.MaxLimit,
 			Pays:        v.Pays,
