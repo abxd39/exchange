@@ -10,7 +10,7 @@ import (
 func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, error) {
 	var value int32
 	var err error
-	fmt.Println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<ModifyLoginPwd>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+	fmt.Printf("ModifyLoginPwd%#v\n", req)
 	//
 	if va := strings.Compare(req.ConfirmPwd, req.NewPwd); va != 0 {
 		return 205, nil
@@ -36,6 +36,7 @@ func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, erro
 func (s *User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (int32, error) {
 	var value int32
 	var err error
+	fmt.Printf("ModifyUserPhone1%#v\n", req)
 	//验证短信
 	value, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
@@ -49,6 +50,7 @@ func (s *User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (int32, error
 func (s *User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (int32, error) {
 	var value int32
 	var err error
+	fmt.Printf("ModifyUserPhone2%#v\n", req)
 	value, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
 		return value, err
@@ -67,6 +69,7 @@ func (s *User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (int32, error
 func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (int32, error) {
 	var value int32
 	var err error
+	fmt.Printf("ModifyTradePwd%#v\n", req)
 	value, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
 		return value, err

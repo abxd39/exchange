@@ -2,13 +2,13 @@
 package controller
 
 import (
+	"digicon/common/check"
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
-	"net/http"
-
-	"digicon/common/check"
 	proto "digicon/proto/rpc"
+	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/liudng/godump"
@@ -337,7 +337,7 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid        int32  `form:"id" binding:"required"`
+		Uid        int32  `form:"uid" binding:"required"`
 		Token      string `form:"token" binding:"required"`
 		Phone      string `form:"phone" binding:"required"`
 		OldPwd     string `form:"old_pwd" binding:"required"`
@@ -374,7 +374,7 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid    int32  `form:"id" binding:"required"`
+		Uid    int32  `form:"uid" binding:"required"`
 		Token  string `form:"token" binding:"required"`
 		Phone  string `form:"phone" binding:"required"`
 		verify string `form:"verify" binding:"required"`
@@ -406,8 +406,9 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
 	req := struct {
-		Uid     int32  `form:"id" binding:"required"`
+		Uid     int32  `form:"uid" binding:"required"`
 		Token   string `form:"token" binding:"required"`
 		Country string `form:"country" binding:"required"`
 		Phone   string `form:"phone" binding:"required"`
@@ -418,6 +419,8 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+
+	fmt.Println(req)
 	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone2(&proto.UserSetNewPhoneRequest{
 		Uid:     req.Uid,
 		Token:   req.Token,
@@ -439,16 +442,25 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
 	req := struct {
-		Uid        int32  `form:"id" binding:"required"`
+		Uid        int32  `form:"uid" binding:"required"`
 		Token      string `form:"token" binding:"required"`
+		Phone      string `form:"phone" binding:"required"`
 		NewPwd     string `form:"new_pwd" binding:"required"`
 		ConfirmPwd string `form:"confirm_pwd" binding:"required"`
 		Verify     string `form:"verify" binding:"required"`
 	}{}
+
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
 	rsp, err := rpc.InnerService.UserSevice.CallModifyTradePwd(&proto.UserModifyTradePwdRequest{
 		Uid:        req.Uid,
 		Token:      req.Token,
+		Phone:      req.Phone,
 		NewPwd:     req.NewPwd,
 		ConfirmPwd: req.ConfirmPwd,
 		Verify:     req.Verify,

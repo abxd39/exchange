@@ -4,6 +4,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/user_service/model"
+	"fmt"
 
 	"golang.org/x/net/context"
 )
@@ -54,7 +55,7 @@ func (s *RPCServer) ModifyTradePwd(ctx context.Context, req *proto.UserModifyTra
 	var err error
 	var value int32
 	u := model.User{}
-
+	fmt.Printf("ModifyTradePwd%#v\n", req)
 	value, err = u.ModifyTradePwd(req)
 	if err != nil {
 		return err
