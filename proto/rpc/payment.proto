@@ -1,0 +1,46 @@
+syntax = "proto3";
+package g2u;
+
+
+message PaysResponse{
+    int32   code        =1;
+    string  message     =2;
+    string  data        =3;
+}
+
+message BankPayRequest{
+    int32   uid         =1;
+    string  name        =2;
+    string  card_num    =3;
+    string  bank_name   =4;
+    string  bank_info   =5;
+    string  create_time =6;
+    string  updata_time =7;
+}
+
+
+
+message WeChatPayRequest{
+    int32   uid         =1;
+    string  name        =2;
+    string  wechat      =3;
+    string  receipt_code=4;
+    string  create_time =5;
+    string  updata_time =6;
+}
+
+message AlipayRequest{
+    int32   uid         =1;
+    string  name        =2;
+    string  alipay      =3;
+    string  receipt_code=4;
+    string  create_time =5;
+    string  updata_time =6;
+}
+
+message PaypalRequest{
+    int32   uid         =1;
+    string  paypal      =2;
+    string  create_time =3;
+    string  updata_time =4;
+}
