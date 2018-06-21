@@ -100,3 +100,15 @@ func (s *CurrencyRPCCli) CallCurrencyPaysList(req *proto.CurrencyPaysRequest) (*
 	rsp, err := s.conn.CurrencyPaysList(context.TODO(), req)
 	return rsp, err
 }
+
+// 调用 rpc 新增订单聊天
+func (s *CurrencyRPCCli) CallGetCurrencyChats(req *proto.CurrencyChats) (int, error) {
+	rsp, err := s.conn.GetCurrencyChats(context.TODO(), req)
+	return int(rsp.Code), err
+}
+
+// 调用 rpc 获取订单聊天列表
+func (s *CurrencyRPCCli) CallCurrencyChatsList(req *proto.CurrencyChats) (*proto.CurrencyChatsListResponse, error) {
+	rsp, err := s.conn.CurrencyChatsList(context.TODO(), req)
+	return rsp, err
+}

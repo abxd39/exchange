@@ -256,3 +256,48 @@ func (s *RPCServer) CurrencyPaysList(ctx context.Context, req *proto.CurrencyPay
 	rsp.Data = listData
 	return nil
 }
+
+// 新增订单聊天
+func (s *RPCServer) GetCurrencyChats(ctx context.Context, req *proto.CurrencyChats, rsp *proto.CurrencyResponse) error {
+
+	chats := new(model.Chats)
+
+	chats.OrderId = req.OrderId
+	chats.IsOrderUser = req.IsOrderUser
+	chats.Uid = req.Uid
+	chats.Uname = req.Uname
+	chats.Content = req.Content
+	chats.States = 1
+	chats.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
+
+	code := chats.Add()
+	rsp.Code = int32(code)
+
+	return nil
+}
+
+// 获取订单聊天列表
+func (s *RPCServer) CurrencyChatsList(ctx context.Context, req *proto.CurrencyChats, rsp *proto.CurrencyChatsListResponse) error {
+	data := new(model.Chats).List(req.OrderId)
+	if data == nil {
+		return nil
+	}
+
+	listLen := len(data)
+	listData := make([]*proto.CurrencyChats, listLen)
+	for i := 0; i < listLen; i++ {
+		adsLists := &proto.CurrencyChats{
+			Id:          data[i].Id,
+			OrderId:     data[i].OrderId,
+			IsOrderUser: data[i].IsOrderUser,
+			Uid:         data[i].Uid,
+			Uname:       data[i].Uname,
+			Content:     data[i].Content,
+			CreatedTime: data[i].CreatedTime,
+		}
+		listData[i] = adsLists
+	}
+
+	rsp.Data = listData
+	return nil
+}

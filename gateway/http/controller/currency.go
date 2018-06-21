@@ -1,12 +1,17 @@
 package controller
 
 import (
+	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+	"strings"
 )
+
+const PRICE_TO = 100000000
 
 type CurrencyGroup struct{}
 
@@ -23,6 +28,8 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/tokens_list", this.GetTokensList)            // 获取货币类型列表
 		Currency.GET("/pays", this.GetPays)                         // 获取支付方式
 		Currency.GET("/pays_list", this.GetPaysList)                // 获取支付方式列表
+		Currency.POST("/add_chats", this.AddChats)                  // 新增订单聊天
+		Currency.GET("/chats_list", this.GetChatsList)              // 获取订单聊天列表
 
 		//// order ////
 		Currency.GET("/orders", this.OrdersList)           // 获取订单列表
@@ -37,44 +44,46 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 // 买卖(广告)
 type CurrencyAds struct {
-	Id          uint64  `json:"id"`
-	Uid         uint64  `json:"uid"`          // 用户ID
-	TypeId      uint32  `json:"type_id"`      // 类型:1出售 2购买
-	TokenId     uint32  `json:"token_id"`     // 货币类型
-	TokenName   string  `json:"token_name"`   // 货币名称
-	Price       float64 `json:"price"`        // 单价
-	Num         float64 `json:"num"`          // 数量
-	Premium     int32   `json:"premium"`      // 溢价
-	AcceptPrice float64 `json:"accept_price"` // 可接受最低[高]单价
-	MinLimit    uint32  `json:"min_limit"`    // 最小限额
-	MaxLimit    uint32  `json:"max_limit"`    // 最大限额
-	IsTwolevel  uint32  `json:"is_twolevel"`  // 是否要通过二级认证:0不通过 1通过
-	Pays        string  `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
-	Remarks     string  `json:"remarks"`      // 交易备注
-	Reply       string  `json:"reply"`        // 自动回复问候语
-	IsUsd       uint32  `json:"is_usd"`       // 是否美元支付:0否 1是
-	States      uint32  `json:"states"`       // 状态:0下架 1上架
-	CreatedTime string  `json:"created_time"` // 创建时间
-	UpdatedTime string  `json:"updated_time"` // 修改时间
+	Id          uint64 `json:"id"`
+	Uid         uint64 `json:"uid"`          // 用户ID
+	TypeId      uint32 `json:"type_id"`      // 类型:1出售 2购买
+	TokenId     uint32 `json:"token_id"`     // 货币类型
+	TokenName   string `json:"token_name"`   // 货币名称
+	Price       string `json:"price"`        // 单价
+	Num         string `json:"num"`          // 数量
+	Premium     int32  `json:"premium"`      // 溢价
+	AcceptPrice string `json:"accept_price"` // 可接受最低[高]单价
+	MinLimit    uint32 `json:"min_limit"`    // 最小限额
+	MaxLimit    uint32 `json:"max_limit"`    // 最大限额
+	IsTwolevel  uint32 `json:"is_twolevel"`  // 是否要通过二级认证:0不通过 1通过
+	Pays        string `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
+	Remarks     string `json:"remarks"`      // 交易备注
+	Reply       string `json:"reply"`        // 自动回复问候语
+	IsUsd       uint32 `json:"is_usd"`       // 是否美元支付:0否 1是
+	States      uint32 `json:"states"`       // 状态:0下架 1上架
+	CreatedTime string `json:"created_time"` // 创建时间
+	UpdatedTime string `json:"updated_time"` // 修改时间
 }
 
 // 获取广告(买卖)
 func (this *CurrencyGroup) GetAds(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
 		Id uint64 `form:"id" json:"id" binding:"required"` // 广告ID
-		//Uid         uint64  `form:"uid" json:"uid"`                  // 用户ID
-		//TypeId      uint32  `form:"type_id" json:"type_id"`          // 类型:1出售 2购买
+		//Uid         uint64  `form:"uid" json:"uid"`         // 用户ID
+		//TypeId      uint32  `form:"type_id" json:"type_id"` // 类型:1出售 2购买
 	}{}
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
@@ -84,31 +93,26 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 	})
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
 	if data.Id == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_ADS_NOTEXIST
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_ADS_NOTEXIST)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_ADS_NOTEXIST)
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	ret[RET_DATA] = CurrencyAds{
+	ret.SetErrCode(ERRCODE_SUCCESS)
+	ret.SetDataSection(RET_DATA, CurrencyAds{
 		Id:          data.Id,
 		Uid:         data.Uid,
 		TypeId:      data.TypeId,
 		TokenId:     data.TokenId,
 		TokenName:   data.TokenName,
-		Price:       data.Price,
-		Num:         data.Num,
+		Price:       strconv.FormatFloat(float64(data.Price)/PRICE_TO, 'f', 8, 64),
+		Num:         strconv.FormatFloat(float64(data.Num)/PRICE_TO, 'f', 8, 64),
 		Premium:     data.Premium,
-		AcceptPrice: data.AcceptPrice,
+		AcceptPrice: strconv.FormatFloat(float64(data.AcceptPrice)/PRICE_TO, 'f', 8, 64),
 		MinLimit:    data.MinLimit,
 		MaxLimit:    data.MaxLimit,
 		IsTwolevel:  data.IsTwolevel,
@@ -119,69 +123,116 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 		States:      data.States,
 		CreatedTime: data.CreatedTime,
 		UpdatedTime: data.UpdatedTime,
-	}
+	})
 
-	c.JSON(http.StatusOK, ret)
 }
 
 // 新增广告(买卖)
 func (this *CurrencyGroup) AddAds(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
-		Uid         uint64  `form:"uid" json:"uid" binding:"required"`               // 用户ID
-		TypeId      uint32  `form:"type_id" json:"type_id" binding:"required"`       // 类型:1出售 2购买
-		TokenId     uint32  `form:"token_id" json:"token_id" binding:"required"`     // 货币类型
-		TokenName   string  `form:"token_name" json:"token_name" binding:"required"` // 货币名称
-		Price       float64 `form:"price" json:"price" binding:"required"`           // 单价
-		Num         float64 `form:"num" json:"num" binding:"required"`               // 数量
-		Premium     int32   `form:"premium" json:"premium"`                          // 溢价
-		AcceptPrice float64 `form:"accept_price" json:"accept_price"`                // 可接受最低[高]单价
-		MinLimit    uint32  `form:"min_limit" json:"min_limit"`                      // 最小限额
-		MaxLimit    uint32  `form:"max_limit" json:"max_limit"`                      // 最大限额
-		IsTwolevel  uint32  `form:"is_twolevel" json:"is_twolevel"`                  // 是否要通过二级认证:0不通过 1通过
-		Pays        string  `form:"pays" json:"pays" binding:"required"`             // 支付方式:以 , 分隔: 1,2,3
-		Remarks     string  `form:"remarks" json:"remarks"`                          // 交易备注
-		Reply       string  `form:"reply" json:"reply"`                              // 自动回复问候语
-		IsUsd       uint32  `form:"is_usd" json:"is_usd"`                            // 是否美元支付:0否 1是
+		Uid         uint64  `form:"uid" json:"uid" binding:"required"`           // 用户ID
+		TypeId      uint32  `form:"type_id" json:"type_id" binding:"required"`   // 类型:1出售 2购买
+		TokenId     uint32  `form:"token_id" json:"token_id" binding:"required"` // 货币类型
+		TokenName   string  `form:"token_name" json:"token_name"`                // 货币名称
+		Price       float64 `form:"price" json:"price" binding:"required"`       // 单价
+		Num         float64 `form:"num" json:"num" binding:"required"`           // 数量
+		Premium     int32   `form:"premium" json:"premium"`                      // 溢价
+		AcceptPrice float64 `form:"accept_price" json:"accept_price"`            // 可接受最低[高]单价
+		MinLimit    uint32  `form:"min_limit" json:"min_limit"`                  // 最小限额
+		MaxLimit    uint32  `form:"max_limit" json:"max_limit"`                  // 最大限额
+		IsTwolevel  uint32  `form:"is_twolevel" json:"is_twolevel"`              // 是否要通过二级认证:0不通过 1通过
+		Pays        string  `form:"pays" json:"pays" binding:"required"`         // 支付方式:以 , 分隔: 1,2,3
+		Remarks     string  `form:"remarks" json:"remarks"`                      // 交易备注
+		Reply       string  `form:"reply" json:"reply"`                          // 自动回复问候语
+		IsUsd       uint32  `form:"is_usd" json:"is_usd"`                        // 是否美元支付:0否 1是
 	}{}
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	if req.Uid == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_ACCOUNT_NOTEXIST
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_ACCOUNT_NOTEXIST)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_ACCOUNT_NOTEXIST)
 		return
 	}
 
 	if req.TypeId == 0 || req.TypeId >= 3 {
-		ret[ERR_CODE_RET] = ERRCODE_ADS_TYPE_NOTEXIST
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_ADS_TYPE_NOTEXIST)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_ADS_TYPE_NOTEXIST)
+		return
+	}
+
+	if req.TokenId == 0 {
+		ret.SetErrCode(ERRCODE_TOKENS_NOTEXIST)
 		return
 	}
 
 	if req.Pays == "" {
-		ret[ERR_CODE_RET] = ERRCODE_PAYS_NOTEXIST
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PAYS_NOTEXIST)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PAYS_NOTEXIST)
 		return
 	}
 
 	if req.Price < 0 || req.Num < 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
+	}
+
+	// 检证货币类型 ==========
+	// 调用 rpc 获取货币类型
+	tokenData, err := rpc.InnerService.CurrencyService.CallGetCurrencyTokens(&proto.CurrencyTokensRequest{
+		Id: req.TokenId,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	if tokenData.Id == 0 {
+		ret.SetErrCode(ERRCODE_TOKENS_NOTEXIST)
+		return
+	}
+
+	// 检证支付方式 ==========
+	paysList := strings.Split(req.Pays, ",")
+	// 调用 rpc 获取支付方式列表
+	paysData, err := rpc.InnerService.CurrencyService.CallCurrencyPaysList(&proto.CurrencyPaysRequest{})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	if len(paysData.Data) == 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN, "获取支付方式列表失败")
+		return
+	}
+	for _, plv := range paysList {
+
+		isPays := false
+		paysId, err := strconv.Atoi(plv)
+		if err != nil {
+			ret.SetErrCode(ERRCODE_PAYS_NOTEXIST)
+			return
+		}
+
+		for _, pdv := range paysData.Data {
+			if uint32(paysId) == pdv.Id {
+				isPays = true
+				break
+			}
+		}
+
+		if !isPays {
+			ret.SetErrCode(ERRCODE_PAYS_NOTEXIST)
+			return
+		}
+
 	}
 
 	// 数据过虑暂不做
@@ -191,11 +242,11 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		Uid:         req.Uid,
 		TypeId:      req.TypeId,
 		TokenId:     req.TokenId,
-		TokenName:   req.TokenName,
-		Price:       req.Price,
-		Num:         req.Num,
+		TokenName:   tokenData.Name,
+		Price:       uint64(req.Price * PRICE_TO),
+		Num:         uint64(req.Num * PRICE_TO),
 		Premium:     req.Premium,
-		AcceptPrice: req.AcceptPrice,
+		AcceptPrice: uint64(req.AcceptPrice * PRICE_TO),
 		MinLimit:    req.MinLimit,
 		MaxLimit:    req.MaxLimit,
 		IsTwolevel:  req.IsTwolevel,
@@ -206,23 +257,26 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		States:      1,
 	})
 
-	if err != nil || code != 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	if code != 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN)
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	c.JSON(http.StatusOK, ret)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
 // 修改广告(买卖)
 func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
@@ -240,25 +294,59 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	}{}
 
 	err := c.ShouldBind(&req)
-	if err != nil || req.Id == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
+	if req.Id == 0 {
+		ret.SetErrCode(ERRCODE_ADS_NOTEXIST)
+	}
+
 	if req.Pays == "" {
-		ret[ERR_CODE_RET] = ERRCODE_PAYS_NOTEXIST
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PAYS_NOTEXIST)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PAYS_NOTEXIST)
 		return
 	}
 
 	if req.Price < 0 || req.Num < 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
+	}
+
+	// 检证支付方式 ==========
+	paysList := strings.Split(req.Pays, ",")
+	// 调用 rpc 获取支付方式列表
+	paysData, err := rpc.InnerService.CurrencyService.CallCurrencyPaysList(&proto.CurrencyPaysRequest{})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	if len(paysData.Data) == 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN, "获取支付方式列表失败")
+		return
+	}
+	for _, plv := range paysList {
+
+		isPays := false
+		paysId, err := strconv.Atoi(plv)
+		if err != nil {
+			ret.SetErrCode(ERRCODE_PAYS_NOTEXIST)
+			return
+		}
+
+		for _, pdv := range paysData.Data {
+			if uint32(paysId) == pdv.Id {
+				isPays = true
+				break
+			}
+		}
+
+		if !isPays {
+			ret.SetErrCode(ERRCODE_PAYS_NOTEXIST)
+			return
+		}
+
 	}
 
 	// 数据过虑暂不做
@@ -266,10 +354,10 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	// 调用 rpc 修改广告(买卖)
 	code, err := rpc.InnerService.CurrencyService.CallUpdatedAds(&proto.AdsModel{
 		Id:          req.Id,
-		Price:       req.Price,
-		Num:         req.Num,
+		Price:       uint64(req.Price * PRICE_TO),
+		Num:         uint64(req.Num * PRICE_TO),
 		Premium:     req.Premium,
-		AcceptPrice: req.AcceptPrice,
+		AcceptPrice: uint64(req.AcceptPrice * PRICE_TO),
 		MinLimit:    req.MinLimit,
 		MaxLimit:    req.MaxLimit,
 		IsTwolevel:  req.IsTwolevel,
@@ -278,23 +366,27 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 		Reply:       req.Reply,
 	})
 
-	if err != nil || code != 0 {
-		ret[ERR_CODE_RET] = code
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(int32(code))
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	if code != 0 {
+		ret.SetErrCode(int32(code))
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	c.JSON(http.StatusOK, ret)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
 // 修改广告(买卖)状态
 func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
@@ -303,10 +395,14 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 	}{}
 
 	err := c.ShouldBind(&req)
-	if err != nil || req.Id <= 0 || req.StatusId <= 0 || req.StatusId >= 5 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if req.Id <= 0 || req.StatusId <= 0 || req.StatusId >= 5 {
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
 
@@ -316,16 +412,18 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 		StatusId: uint32(req.StatusId),
 	})
 
-	if err != nil || code != 0 {
-		ret[ERR_CODE_RET] = code
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(int32(code))
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	c.JSON(http.StatusOK, ret)
+	if code != 0 {
+		ret.SetErrCode(int32(code))
+		return
+	}
+
+	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
@@ -337,27 +435,30 @@ type AdsListResponse struct {
 	List    []AdsListsData `json:"list"`
 }
 type AdsListsData struct {
-	Id          uint64  `json:"id"`           // 广告ID
-	Uid         uint64  `json:"uid"`          // 用户ID
-	Price       float64 `json:"price"`        // 单价
-	Num         float64 `json:"num"`          // 数量
-	MinLimit    uint32  `json:"min_limit"`    // 最小限额
-	MaxLimit    uint32  `json:"max_limit"`    // 最大限额
-	Pays        string  `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
-	CreatedTime string  `json:"created_time"` // 创建时间
-	UpdatedTime string  `json:"updated_time"` // 修改时间
-	UserName    string  `json:"user_name"`    // 用户名
-	UserFace    string  `json:"user_face"`    // 用户头像
-	UserVolume  uint32  `json:"user_volume"`  // 用户成交量
-	TypeId      uint32  `json:"type_id"`      // 类型:1出售 2购买
-	TokenId     uint32  `json:"token_id"`     // 货币类型
-	TokenName   string  `json:"token_name"`   // 货币名称
+	Id          uint64 `json:"id"`           // 广告ID
+	Uid         uint64 `json:"uid"`          // 用户ID
+	Price       string `json:"price"`        // 单价
+	Num         string `json:"num"`          // 数量
+	MinLimit    uint32 `json:"min_limit"`    // 最小限额
+	MaxLimit    uint32 `json:"max_limit"`    // 最大限额
+	Pays        string `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
+	CreatedTime string `json:"created_time"` // 创建时间
+	UpdatedTime string `json:"updated_time"` // 修改时间
+	UserName    string `json:"user_name"`    // 用户名
+	UserFace    string `json:"user_face"`    // 用户头像
+	UserVolume  uint32 `json:"user_volume"`  // 用户成交量
+	TypeId      uint32 `json:"type_id"`      // 类型:1出售 2购买
+	TokenId     uint32 `json:"token_id"`     // 货币类型
+	TokenName   string `json:"token_name"`   // 货币名称
 }
 
 // 法币交易列表 - (广告(买卖))
 func (this *CurrencyGroup) AdsList(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
@@ -370,10 +471,14 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 	}{}
 
 	err := c.ShouldBind(&req)
-	if err != nil || req.TypeId <= 0 || req.TypeId >= 3 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if req.TypeId <= 0 || req.TypeId >= 3 {
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
 
@@ -396,9 +501,8 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 	})
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
@@ -409,8 +513,8 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		adsLists := AdsListsData{
 			Id:          v.Id,
 			Uid:         v.Uid,
-			Price:       v.Price,
-			Num:         v.Num,
+			Price:       strconv.FormatFloat(float64(v.Price)/PRICE_TO, 'f', 8, 64),
+			Num:         strconv.FormatFloat(float64(v.Num)/PRICE_TO, 'f', 8, 64),
 			MinLimit:    v.MinLimit,
 			MaxLimit:    v.MaxLimit,
 			Pays:        v.Pays,
@@ -427,18 +531,18 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		reaList.List = append(reaList.List, adsLists)
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	ret[RET_DATA] = reaList
-
-	c.JSON(http.StatusOK, ret)
+	ret.SetDataSection(RET_DATA, reaList)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
 // 个人法币交易列表 - (广告(买卖))
 func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
@@ -449,10 +553,14 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 	}{}
 
 	err := c.ShouldBind(&req)
-	if err != nil || req.TypeId <= 0 || req.TypeId >= 3 || req.Uid == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if req.TypeId <= 0 || req.TypeId >= 3 || req.Uid == 0 {
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
 
@@ -472,9 +580,8 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 	})
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
@@ -485,8 +592,8 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		adsLists := AdsListsData{
 			Id:          v.Id,
 			Uid:         v.Uid,
-			Price:       v.Price,
-			Num:         v.Num,
+			Price:       strconv.FormatFloat(float64(v.Price)/PRICE_TO, 'f', 8, 64),
+			Num:         strconv.FormatFloat(float64(v.Num)/PRICE_TO, 'f', 8, 64),
 			MinLimit:    v.MinLimit,
 			MaxLimit:    v.MaxLimit,
 			Pays:        v.Pays,
@@ -500,18 +607,18 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		reaList.List = append(reaList.List, adsLists)
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	ret[RET_DATA] = reaList
-
-	c.JSON(http.StatusOK, ret)
+	ret.SetDataSection(RET_DATA, reaList)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
 // 获取货币类型
 func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
@@ -519,10 +626,14 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 	}{}
 
 	err := c.ShouldBind(&req)
-	if err != nil || req.Id == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if req.Id == 0 {
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
 
@@ -532,53 +643,49 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 	})
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
 	if data.Id == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_TOKENS_NOTEXIST
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_TOKENS_NOTEXIST)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_TOKENS_NOTEXIST)
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	ret[RET_DATA] = data
-
-	c.JSON(http.StatusOK, ret)
+	ret.SetDataSection(RET_DATA, data)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
 // 获取货币类型列表
 func (this *CurrencyGroup) GetTokensList(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 调用 rpc 获取货币类型列表
 	data, err := rpc.InnerService.CurrencyService.CallCurrencyTokensList(&proto.CurrencyTokensRequest{})
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	ret[RET_DATA] = data
-
-	c.JSON(http.StatusOK, ret)
+	ret.SetDataSection(RET_DATA, data)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 }
 
 // 获取支付方式
 func (this *CurrencyGroup) GetPays(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 请求的数据结构
 	req := struct {
@@ -586,10 +693,14 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 	}{}
 
 	err := c.ShouldBind(&req)
-	if err != nil || req.Id == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if req.Id == 0 {
+		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
 
@@ -599,45 +710,117 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 	})
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
 	if data.Id == 0 {
-		ret[ERR_CODE_RET] = ERRCODE_PAYS_NOTEXIST
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PAYS_NOTEXIST)
-		c.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PAYS_NOTEXIST)
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	ret[RET_DATA] = data
-
-	c.JSON(http.StatusOK, ret)
+	ret.SetDataSection(RET_DATA, data)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
 // 获取支付方式列表
 func (this *CurrencyGroup) GetPaysList(c *gin.Context) {
 
-	ret := NewErrorMessage()
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
 
 	// 调用 rpc 获取支付方式列表
 	data, err := rpc.InnerService.CurrencyService.CallCurrencyPaysList(&proto.CurrencyPaysRequest{})
 
 	if err != nil {
-		ret[ERR_CODE_RET] = ERRCODE_PARAM
-		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
-		c.JSON(http.StatusOK, ret)
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
-	ret[ERR_CODE_RET] = ERRCODE_SUCCESS
-	ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_SUCCESS)
-	ret[RET_DATA] = data
+	ret.SetDataSection(RET_DATA, data)
+	ret.SetErrCode(ERRCODE_SUCCESS)
+}
 
-	c.JSON(http.StatusOK, ret)
+// 新增订单聊天
+func (this *CurrencyGroup) AddChats(c *gin.Context) {
+
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	// 请求的数据结构
+	req := struct {
+		OrderId string `form:"order_id" json:"order_id" binding:"required"` // 订单ID
+		Uid     uint64 `form:"uid" json:"uid" binding:"required"`           // 用户ID
+		Content string `form:"content" json:"content" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if req.OrderId == "" || req.Content == "" {
+		ret.SetErrCode(ERRCODE_PARAM)
+		return
+	}
+
+	// 验证订单和获取订单
+	// 验证用户和获取用户名
+
+	// 调用 rpc 新增订单聊天
+	code, err := rpc.InnerService.CurrencyService.CallGetCurrencyChats(&proto.CurrencyChats{
+		OrderId: req.OrderId,
+		Uid:     req.Uid,
+		Content: req.Content,
+	})
+
+	if err != nil || code != 0 {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+	if code != 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN)
+		return
+	}
+
+	ret.SetErrCode(ERRCODE_SUCCESS)
+
+}
+
+// 获取订单聊天列表
+func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
+
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	// 请求的数据结构
+	req := struct {
+		OrderId string `form:"order_id" json:"order_id" binding:"required"` // 订单ID
+	}{}
+
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if req.OrderId == "" {
+		ret.SetErrCode(ERRCODE_PARAM)
+		return
+	}
+
 }

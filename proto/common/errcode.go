@@ -38,6 +38,7 @@ const (
 	ERRCODE_TOKENS_NOTEXIST   = 302
 	ERRCODE_PAYS_NOTEXIST     = 303
 	ERRCODE_ADS_TYPE_NOTEXIST = 304
+	ERRCODE_ORDER_NOTEXIST    = 305
 
 	//400-
 	ERR_TOKEN_QUENE_NIL = 401
@@ -94,6 +95,7 @@ func init() {
 	message[ERRCODE_TOKENS_NOTEXIST] = "货币类型不存在"
 	message[ERRCODE_PAYS_NOTEXIST] = "支付方式不存在"
 	message[ERRCODE_ADS_TYPE_NOTEXIST] = "广告类型不存在"
+	message[ERRCODE_ORDER_NOTEXIST] = "订单不存在"
 
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
