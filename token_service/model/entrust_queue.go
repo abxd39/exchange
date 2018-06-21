@@ -10,6 +10,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
 	"sync/atomic"
+
 )
 
 //交易队列类型
@@ -17,6 +18,8 @@ type EntrustQuene struct {
 	//币币队列ID  格式主要货币_交易货币
 	TokenQueneId string
 
+	TokenId int
+	TokenTradeId int
 	//卖出队列key
 	SellQueneId string
 	//买入队列key
@@ -29,7 +32,10 @@ type EntrustQuene struct {
 	sourceData map[string]*EntrustDetail
 
 	//缓存将要保存的DB的委托请求
-	pushOrderDetail chan *EntrustDetail
+	newOrderDetail chan *EntrustDetail
+
+	//缓存将要更新的DB的委托请求
+	updateOrderDetail chan *EntrustDetail
 
 	//等待处理的委托请求
 	waitOrderDetail chan *EntrustDetail
@@ -51,13 +57,14 @@ const (
 
 func NewEntrustQuene(quene_id string) *EntrustQuene {
 	m := &EntrustQuene{
-		TokenQueneId:    quene_id,
-		BuyQueneId:      fmt.Sprintf("%s:0", quene_id),
-		SellQueneId:     fmt.Sprintf("%s:1", quene_id),
-		UUID:            1,
-		sourceData:      make(map[string]*EntrustDetail),
-		pushOrderDetail: make(chan *EntrustDetail),
-		waitOrderDetail:make(chan  *EntrustDetail),
+		TokenQueneId:      quene_id,
+		BuyQueneId:        fmt.Sprintf("%s:0", quene_id),
+		SellQueneId:       fmt.Sprintf("%s:1", quene_id),
+		UUID:              1,
+		sourceData:        make(map[string]*EntrustDetail),
+		newOrderDetail:    make(chan *EntrustDetail),
+		waitOrderDetail:   make(chan *EntrustDetail),
+		updateOrderDetail: make(chan *EntrustDetail),
 	}
 	go m.process()
 	return m
@@ -69,7 +76,7 @@ func (s *EntrustQuene) GetUUID() int64 {
 }
 
 func (s *EntrustQuene) JoinWaitChann(p *EntrustDetail) {
-	s.waitOrderDetail<-p
+	s.waitOrderDetail <- p
 
 }
 
@@ -90,6 +97,19 @@ func (s *EntrustQuene) MakeDeal(p *EntrustDetail) (ret int, err error) {
 			if p.AllNum <= other.SurplusNum {
 				p.SurplusNum = 0
 				p.Price = other.OnPrice
+				other.SurplusNum=other.SurplusNum-p.AllNum
+/*
+				t:=&Trade{
+					Uid:p.Uid,
+					Sid:other.Uid,
+					TokenId:s.TokenId,
+					TokenTradeId:s.TokenTradeId,
+					Price:other.Price,
+					Num:p.SurplusNum,
+					DealTime:time.Now().Unix(),
+				}
+*/
+
 			}
 		}
 
@@ -123,9 +143,12 @@ func (s *EntrustQuene) JoinSellQuene(p *EntrustDetail) (ret int, err error) {
 		return
 	}
 
+
 	if ok := s.insertOrderDetail(p); ok {
-		s.pushOrderDetail <- p
+		//s.pushOrderDetail <- p
 	}
+
+
 	return
 }
 
@@ -149,13 +172,16 @@ func (s *EntrustQuene) insertOrderDetail(d *EntrustDetail) bool {
 
 //延时保存委托数据
 func (s *EntrustQuene) process() {
-	var d *EntrustDetail
+	
 	for {
 		select {
-		case d = <-s.pushOrderDetail:
-			d.Save()
-		case w :=<-s.waitOrderDetail:
+		//case d = <-s.pushOrderDetail:
+			//d.Save()
+		case w := <-s.waitOrderDetail:
 			s.MakeDeal(w)
+		case t:= <-s.newOrderDetail:
+			t.Save()
+
 		}
 	}
 
