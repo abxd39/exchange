@@ -5,6 +5,7 @@ import (
 	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -117,17 +118,17 @@ func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, 
 	return
 }
 
-func (s *UserRPCCli) CallChangePwd(phone, security_key string) (rsp *proto.CommonErrResponse, err error) {
-	rsp, err = s.conn.ChangePwd(context.TODO(), &proto.ChangePwdRequest{
-		Phone:       phone,
-		SecurityKey: []byte(security_key),
-	})
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
-	return
-}
+// func (s *UserRPCCli) CallChangePwd(phone, security_key string) (rsp *proto.CommonErrResponse, err error) {
+// 	rsp, err = s.conn.ChangePwd(context.TODO(), &proto.ChangePwdRequest{
+// 		Phone:       phone,
+// 		SecurityKey: []byte(security_key),
+// 	})
+// 	if err != nil {
+// 		Log.Errorln(err.Error())
+// 		return
+// 	}
+// 	return
+// }
 
 func (s *UserRPCCli) CallGoogleSecretKey(uid int32) (rsp *proto.GoogleAuthResponse, err error) {
 	rsp, err = s.conn.GetGoogleSecretKey(context.TODO(), &proto.GoogleAuthRequest{
@@ -282,4 +283,23 @@ func NewUserRPCCli() (u *UserRPCCli) {
 		conn: greeter,
 	}
 	return
+}
+
+func (s *UserRPCCli) CallModifyUserLoginPwd(req *proto.UserModifyLoginPwdRequest) (*proto.UserModifyLoginPwdResponse, error) {
+	rsp, err := s.conn.ModifyUserLoginPwd(context.TODO(), req)
+	return rsp, err
+}
+
+func (s *UserRPCCli) CallModifyPhone1(req *proto.UserModifyPhoneRequest) (*proto.UserModifyPhoneResponse, error) {
+	rsp, err := s.conn.ModifyPhone1(context.TODO(), req)
+	return rsp, err
+}
+
+func (s *UserRPCCli) CallModifyPhone2(req *proto.UserSetNewPhoneRequest) (*proto.UserSetNewPhoneResponse, error) {
+	rsp, err := s.conn.ModifyPhone2(context.TODO(), req)
+	return rsp, err
+}
+func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*proto.UserModifyTradePwdResponse, error) {
+	rsp, err := s.conn.ModifyTradePwd(context.TODO(), req)
+	return rsp, err
 }

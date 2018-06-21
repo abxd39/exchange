@@ -156,6 +156,34 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		return
 	}
 
+	if req.Uid == 0 {
+		ret[ERR_CODE_RET] = ERRCODE_ACCOUNT_NOTEXIST
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_ACCOUNT_NOTEXIST)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	if req.TypeId == 0 || req.TypeId >= 3 {
+		ret[ERR_CODE_RET] = ERRCODE_ADS_TYPE_NOTEXIST
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_ADS_TYPE_NOTEXIST)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	if req.Pays == "" {
+		ret[ERR_CODE_RET] = ERRCODE_PAYS_NOTEXIST
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PAYS_NOTEXIST)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	if req.Price < 0 || req.Num < 0 {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
 	// 数据过虑暂不做
 
 	// 调用 rpc 新增广告(买卖)
@@ -213,6 +241,20 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil || req.Id == 0 {
+		ret[ERR_CODE_RET] = ERRCODE_PARAM
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	if req.Pays == "" {
+		ret[ERR_CODE_RET] = ERRCODE_PAYS_NOTEXIST
+		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PAYS_NOTEXIST)
+		c.JSON(http.StatusOK, ret)
+		return
+	}
+
+	if req.Price < 0 || req.Num < 0 {
 		ret[ERR_CODE_RET] = ERRCODE_PARAM
 		ret[ERR_CODE_MESSAGE] = GetErrorMessage(ERRCODE_PARAM)
 		c.JSON(http.StatusOK, ret)

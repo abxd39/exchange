@@ -10,10 +10,11 @@ import (
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
 	"fmt"
-	"github.com/go-redis/redis"
-	"github.com/golang/protobuf/jsonpb"
 	"strconv"
 	"time"
+
+	"github.com/go-redis/redis"
+	"github.com/golang/protobuf/jsonpb"
 )
 
 type User struct {

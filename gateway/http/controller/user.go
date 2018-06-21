@@ -2,12 +2,14 @@
 package controller
 
 import (
+	"digicon/common/check"
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
+	proto "digicon/proto/rpc"
+	"fmt"
 	"net/http"
 
-	"digicon/common/check"
 	"github.com/gin-gonic/gin"
 	"github.com/liudng/godump"
 )
@@ -23,9 +25,13 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/login", s.LoginController)
 		user.POST("/forget", s.ForgetPwdController)
 		user.POST("/auth", s.AuthSecurityController)
-		user.POST("/change_pwd", s.ChangePwdcontroller)
+		//user.POST("/Modify_pwd", s.ModifyPwdcontroller)
 		user.POST("/send_sms", s.SendPhoneSMSController)
 		user.POST("/send_email", s.SendEmailController)
+		user.POST("/modify_login_pwd", s.ModifyLoginPwd)
+		user.POST("/modify_phone", s.ModifyPhone1)
+		user.POST("/set_new_phon", s.ModifyPhone2)
+		user.POST("/modify_trade_pwd", s.ResetTradePwd)
 	}
 }
 
@@ -322,4 +328,148 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
 		return
 	}
+}
+
+func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Uid        int32  `form:"uid" binding:"required"`
+		Token      string `form:"token" binding:"required"`
+		Phone      string `form:"phone" binding:"required"`
+		OldPwd     string `form:"old_pwd" binding:"required"`
+		NewPwd     string `form:"new_pwd" binding:"required"`
+		ConfirmPwd string `form:"confirm" binding:"required"`
+		Verify     string `form:"verify" binding:"required"`
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallModifyUserLoginPwd(&proto.UserModifyLoginPwdRequest{
+		Uid:        req.Uid,
+		Phone:      req.Phone,
+		Token:      req.Token,
+		OldPwd:     req.OldPwd,
+		NewPwd:     req.NewPwd,
+		ConfirmPwd: req.ConfirmPwd,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	return
+}
+
+func (s *UserGroup) ModifyPhone1(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid    int32  `form:"uid" binding:"required"`
+		Token  string `form:"token" binding:"required"`
+		Phone  string `form:"phone" binding:"required"`
+		verify string `form:"verify" binding:"required"`
+	}{}
+
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone1(&proto.UserModifyPhoneRequest{
+		Uid:    req.Uid,
+		Token:  req.Token,
+		Phone:  req.Phone,
+		Verify: req.verify,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	return
+}
+
+func (s *UserGroup) ModifyPhone2(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Uid     int32  `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Country string `form:"country" binding:"required"`
+		Phone   string `form:"phone" binding:"required"`
+		verify  string `form:"verify" binding:"required"`
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	fmt.Println(req)
+	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone2(&proto.UserSetNewPhoneRequest{
+		Uid:     req.Uid,
+		Token:   req.Token,
+		Country: req.Country,
+		Phone:   req.Phone,
+		Verify:  req.verify,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+}
+
+func (s *UserGroup) ResetTradePwd(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Uid        int32  `form:"uid" binding:"required"`
+		Token      string `form:"token" binding:"required"`
+		Phone      string `form:"phone" binding:"required"`
+		NewPwd     string `form:"new_pwd" binding:"required"`
+		ConfirmPwd string `form:"confirm_pwd" binding:"required"`
+		Verify     string `form:"verify" binding:"required"`
+	}{}
+
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallModifyTradePwd(&proto.UserModifyTradePwdRequest{
+		Uid:        req.Uid,
+		Token:      req.Token,
+		Phone:      req.Phone,
+		NewPwd:     req.NewPwd,
+		ConfirmPwd: req.ConfirmPwd,
+		Verify:     req.Verify,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
 }

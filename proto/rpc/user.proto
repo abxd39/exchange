@@ -17,7 +17,7 @@ service UserRPC {
 	//安全认证
 	rpc AuthSecurity(SecurityRequest) returns (SecurityResponse) {}
 	//改变密码
-	rpc ChangePwd(ChangePwdRequest) returns (CommonErrResponse) {}
+	//rpc ModifyPwd(ModifyPwdRequest) returns (CommonErrResponse) {}
 	//发生短信验证码
 	rpc SendSms(SmsRequest) returns (CommonErrResponse) {}
 	//发送邮箱验证码
@@ -39,13 +39,13 @@ service UserRPC {
     rpc GetUserInvite(UserInfoRequest) returns (UserInviteResponse) {}
 
     //modify user password
-    //rpc  ChangeUserLoginPwd (UserChangeLoginPwdRequest) returns (UserChangeLoginPwdResponse) {};
+    rpc  ModifyUserLoginPwd (UserModifyLoginPwdRequest) returns (UserModifyLoginPwdResponse) {};
     //modify user phone number
-   // rpc  ChangeUserPhone (UserChangePhoneRequest) returns (UserChangePhoneResponse){};
+    rpc  ModifyPhone1 (UserModifyPhoneRequest) returns (UserModifyPhoneResponse){};
     //user set new phone 
-   // rpc  SetUserNewPhone (UserSetNewPhoneRequest) returns (UserSetNewPhoneResponse){};
+    rpc  ModifyPhone2 (UserSetNewPhoneRequest) returns (UserSetNewPhoneResponse){};
     // modify user trade passward
-   // rpc ChangeUserTradePwd (UserChangeTradePwdRequest) returns (UserChangeTradePwdResponse){};
+    rpc ModifyTradePwd (UserModifyTradePwdRequest) returns (UserModifyTradePwdResponse){};
 }
 
 
@@ -127,7 +127,7 @@ message EmailRequest{
     string email            =1;
 }
 
-message ChangePwdRequest {
+message ModifyPwdRequest {
     bytes security_key            =1;
     string phone                    =2;
     string pwd                    =3;
@@ -212,29 +212,30 @@ message UserInviteResponse{
     string src                  =4;
 }
 
-message UserChangeLoginPwdRequest{
+message UserModifyLoginPwdRequest{
     int32 uid           =1;
     string token        =2;
-    string oldPwd       =3;
-    string newPwd       =4;
-    string confirmPwd   =5;
-    string verify       =6;
+    string phone        =3;
+    string oldPwd       =4;
+    string newPwd       =5;
+    string confirmPwd   =6;
+    string verify       =7;
 }
 
-message UserChangeLoginPwdResponse{
+message UserModifyLoginPwdResponse{
     int32 err       =1;
     string message  =2;
     string data     =3;
 }
 
-message UserChangePhoneRequest{
+message UserModifyPhoneRequest{
     int32 uid           =1;
     string token        =2;
     string phone        =3;
     string verify       =4;
 }
 
-message UserChangePhoneResponse{
+message UserModifyPhoneResponse{
     int32 err           =1;
     string message      =2;
     string data         =3;
@@ -255,15 +256,16 @@ message UserSetNewPhoneResponse{
 }
 
 
-message UserChangeTradePwdRequest{
+message UserModifyTradePwdRequest{
     int32 uid           =1;
     string token        =2;
-    string newPwd       =3;
-    string confirmPwd   =4;
-    string verify       =5;
+    string phone        =3;
+    string newPwd       =4;
+    string confirmPwd   =5;
+    string verify       =6;
 } 
 
-message UserChangeTradePwdResponse{
+message UserModifyTradePwdResponse{
     int32 err         =1;
     string message  =2;
     string data     =3;

@@ -8,6 +8,7 @@ import (
 
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
+
 	"github.com/go-redis/redis"
 )
 
@@ -221,33 +222,33 @@ func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp 
 }
 
 //改变密码
-func (s *RPCServer) ChangePwd(ctx context.Context, req *proto.ChangePwdRequest, rsp *proto.CommonErrResponse) error {
+func (s *RPCServer) ChangePwd(ctx context.Context, req *proto.EmailRequest, rsp *proto.CommonErrResponse) error {
 	/*
-		security_key, err := DB.GetSecurityKeyByPhone(req.Phone)
-		if err != nil {
-			return nil
-		}
-		if string(security_key) == string(req.SecurityKey) {
-			u := model.User{}
-			ret := u.GetUserByPhone(req.Phone)
-			if ret != ERRCODE_SUCCESS {
-				rsp.Err = ret
-				rsp.Message = GetErrorMessage(rsp.Err)
-				return nil
-			}
-
-			err = u.ModifyPwd(req.Pwd)
+			security_key, err := DB.GetSecurityKeyByPhone(req.Phone)
 			if err != nil {
-				rsp.Err = ERRCODE_UNKNOWN
-				rsp.Message = err.Error()
 				return nil
 			}
-			rsp.Err = ERRCODE_SUCCESS
-			rsp.Message = GetErrorMessage(rsp.Err)
-		} else {
-			rsp.Err = ERRCODE_SECURITY_KEY
-			rsp.Message = GetErrorMessage(rsp.Err)
-		}
-	*/
+			if string(security_key) == string(req.SecurityKey) {
+				u := model.User{}
+				ret := u.GetUserByPhone(req.Phone)
+				if ret != ERRCODE_SUCCESS {
+					rsp.Err = ret
+					rsp.Message = GetErrorMessage(rsp.Err)
+					return nil
+				}
+
+				err = u.ModifyPwd(req.Pwd)
+				if err != nil {
+					rsp.Err = ERRCODE_UNKNOWN
+					rsp.Message = err.Error()
+					return nil
+				}
+				rsp.Err = ERRCODE_SUCCESS
+				rsp.Message = GetErrorMessage(rsp.Err)
+			} else {
+				rsp.Err = ERRCODE_SECURITY_KEY
+				rsp.Message = GetErrorMessage(rsp.Err)
+			}
+	// 	*/
 	return nil
 }
