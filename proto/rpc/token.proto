@@ -6,7 +6,10 @@ import "rpc/define.proto";
 
 service TokenRPC {
     	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
+
+        //委托入队
 		rpc EntrustOrder(EntrustOrderRequest) returns (CommonErrResponse) {};
+        //新增代币
         rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
 }
 

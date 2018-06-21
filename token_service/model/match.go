@@ -11,7 +11,7 @@ func (s *MatchTrade) process() {
 				return
 			}
 
-			seller, err := quene.GetFirstEntrust(1)
+			seller, err := quene.GetFirstEntrust(ORDER_OPT_BUY)
 			if err != nil {
 				return
 			}

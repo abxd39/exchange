@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"sync/atomic"
 )
+
 //交易队列类型
 type EntrustQuene struct {
 	//币币队列ID  格式主要货币_交易货币
@@ -29,14 +30,22 @@ type EntrustQuene struct {
 
 	//缓存将要保存的DB的委托请求
 	pushOrderDetail chan *EntrustDetail
+
+	//上一次成交价格
+	price int64
 }
 
 const (
-	ORDER_OPT_BUY  = 0//买类型
-	ORDER_OPT_SELL = 1//卖类型
+	ORDER_OPT_BUY  = 0 //买类型
+	ORDER_OPT_SELL = 1 //卖类型
 
 )
 
+const (
+	ENTRUST_MARKET_PRICE = 1 //市价委托
+	ENTRUST_LIMIT_PRICE  = 2 //限价委托
+
+)
 
 func NewEntrustQuene(quene_id string) *EntrustQuene {
 	m := &EntrustQuene{
@@ -54,6 +63,31 @@ func NewEntrustQuene(quene_id string) *EntrustQuene {
 //获取自增ID
 func (s *EntrustQuene) GetUUID() int64 {
 	return atomic.AddInt64(&s.UUID, 1)
+}
+
+func (s *EntrustQuene) MakeDeal(p *EntrustDetail) (ret int, err error) {
+	if p.Opt > 2 {
+		ret = ERRCODE_PARAM
+		return
+	}
+	var other *EntrustDetail
+	if p.Opt == ORDER_OPT_BUY {
+		other, err = s.GetFirstEntrust(ORDER_OPT_SELL)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return
+		}
+
+		if p.Type == ENTRUST_MARKET_PRICE {
+			if p.AllNum <= other.SurplusNum {
+				p.SurplusNum = 0
+				p.Price = other.OnPrice
+			}
+		}
+
+	}
+	ret, err = s.JoinSellQuene(p)
+	return
 }
 
 //限价委托入队列 opt 0 buy ,1 sell

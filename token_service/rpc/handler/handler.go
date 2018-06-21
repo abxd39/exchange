@@ -18,7 +18,7 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 	return nil
 }
 
-func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderRequest, rsp *proto.EntrustOrderResponse) error {
+func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderRequest, rsp *proto.CommonErrResponse) error {
 	q, ok := model.GetQueneMgr().GetQuene(int(req.TokenId), int(req.TokenTradeId))
 	if !ok {
 		rsp.Err = ERR_TOKEN_QUENE_CONF

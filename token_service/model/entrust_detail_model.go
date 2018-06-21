@@ -13,11 +13,12 @@ type EntrustDetail struct {
 	AllNum      int64  `xorm:"not null comment('总数量') BIGINT(20)"`
 	SurplusNum  int64  `xorm:"not null comment('剩余数量') BIGINT(20)"`
 	Price       int64  `xorm:"not null comment('实际价格(卖出价格）') BIGINT(20)"`
-	CreatedTime int    `xorm:"not null comment('添加时间') INT(10)"`
 	Opt         int    `xorm:"not null comment('类型 卖出单1 还是买入单0') TINYINT(4)"`
+	Type        int    `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
 	OnPrice     int64  `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
 	Fee         int64  `xorm:"not null comment('手续费比例') BIGINT(20)"`
-	States      int    `xorm:"not null comment('状态0正常1撤单') TINYINT(4)"`
+	States      int    `xorm:"not null comment('状态0正常1撤单2成交') TINYINT(4)"`
+	CreatedTime int    `xorm:"not null comment('添加时间') INT(10)"`
 }
 
 func (s *EntrustDetail) Save() error {
