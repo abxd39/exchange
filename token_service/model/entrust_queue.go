@@ -31,6 +31,8 @@ type EntrustQuene struct {
 	//缓存将要保存的DB的委托请求
 	pushOrderDetail chan *EntrustDetail
 
+	//等待处理的委托请求
+	waitOrderDetail chan *EntrustDetail
 	//上一次成交价格
 	price int64
 }
@@ -55,6 +57,7 @@ func NewEntrustQuene(quene_id string) *EntrustQuene {
 		UUID:            1,
 		sourceData:      make(map[string]*EntrustDetail),
 		pushOrderDetail: make(chan *EntrustDetail),
+		waitOrderDetail:make(chan  *EntrustDetail),
 	}
 	go m.process()
 	return m
@@ -63,6 +66,11 @@ func NewEntrustQuene(quene_id string) *EntrustQuene {
 //获取自增ID
 func (s *EntrustQuene) GetUUID() int64 {
 	return atomic.AddInt64(&s.UUID, 1)
+}
+
+func (s *EntrustQuene) JoinWaitChann(p *EntrustDetail) {
+	s.waitOrderDetail<-p
+
 }
 
 func (s *EntrustQuene) MakeDeal(p *EntrustDetail) (ret int, err error) {
@@ -146,6 +154,8 @@ func (s *EntrustQuene) process() {
 		select {
 		case d = <-s.pushOrderDetail:
 			d.Save()
+		case w :=<-s.waitOrderDetail:
+			s.MakeDeal(w)
 		}
 	}
 

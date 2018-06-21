@@ -1,0 +1,12 @@
+
+syntax = "proto3";
+package g2u;
+
+message NullRequest{
+
+}
+
+message CommonErrResponse{
+    int32 err       =1;
+    string message  =2;
+}
