@@ -1,6 +1,7 @@
 package model
 
 import (
+	proto "digicon/proto/rpc"
 	"time"
 )
 
@@ -11,4 +12,8 @@ type UserCurrencyWechatPay struct {
 	ReceiptCode string    `xorm:"not null default '' comment('收款二维码图片路径') VARCHAR(100)"`
 	CreateTime  time.Time `xorm:"not null comment('创建时间') DATETIME"`
 	UpdataTime  time.Time `xorm:"not null comment('修改时间') DATETIME"`
+}
+
+func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32, error) {
+	return 0, nil
 }
