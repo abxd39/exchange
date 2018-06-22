@@ -4,6 +4,8 @@ package g2u;
 service Gateway2Waller {
 	rpc Hello(HelloRequest2) returns (HelloResponse2) {}
 	rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse){}
+	rpc Signtx(SigntxRequest) returns (SigntxResponse){}
+	rpc Tibi(TibiRequest) returns (TibiResponse){}
 }
 
 message HelloRequest2 {
@@ -28,4 +30,37 @@ message CreateWalletResponse{
     string code=1;
     string msg=2;
     CreateWalletPos data=3;
+}
+
+message SigntxRequest{
+    int32 userid=1;
+    int32 tokenid=2;
+    string mount=3;
+    int32 gasprice=5;
+    string to=6;
+}
+message SigntxPos{
+    string signtx=1;
+}
+message SigntxResponse{
+    string code=1;
+    string msg=2;
+    SigntxPos data=3;
+}
+
+message TibiPos{
+
+}
+message TibiRequest{
+    int32 uid=1;
+    int32 token_id=2;
+    string to =3;
+    string amount=4;
+    int32 gasprice=5;
+}
+
+message TibiResponse{
+    string code=1;
+    string msg=2;
+    TibiPos data=3;
 }
