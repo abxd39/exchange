@@ -25,6 +25,8 @@ type Ads struct {
 	Reply       string `xorm:"VARBINARY(512)" json:"reply"`     // 自动回复问候语
 	IsUsd       uint32 `xorm:"TINYINT(1)" json:"is_usd"`        // 是否美元支付:0否 1是
 	States      uint32 `xorm:"TINYINT(1)" json:"states"`        // 状态:0下架 1上架
+	Inventory   uint64 `xorm:"BIGINT(20)" json:"inventory"`     // 库存
+	Fee         uint64 `xorm:"BIGINT(20)" json:"fee"`           // 手续费用
 	CreatedTime string `xorm:"DATETIME" json:"created_time"`    // 创建时间
 	UpdatedTime string `xorm:"DATETIME" json:"updated_time"`    // 修改时间
 	IsDel       uint32 `xorm:"TINYINT(1)" json:"is_del"`        // 是否删除:0不删除 1删除
