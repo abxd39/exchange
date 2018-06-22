@@ -272,7 +272,7 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		return
 	}
 	if code != 0 {
-		ret.SetErrCode(ERRCODE_UNKNOWN)
+		ret.SetErrCode(int32(code))
 		return
 	}
 

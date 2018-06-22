@@ -49,9 +49,47 @@ func (this *Ads) Get(id uint64) *Ads {
 }
 
 func (this *Ads) Add() int {
-	_, err := dao.DB.GetMysqlConn().Insert(this)
+
+	// 用户虚拟货币资产表
+	isUcy := new(UserCurrency).Get(this.Uid, this.TokenId)
+	if isUcy == nil || isUcy.Uid == 0 {
+		return ERR_TOKEN_LESS
+	}
+
+	if this.Num > isUcy.Balance {
+		return ERR_TOKEN_LESS
+	}
+	isUcy.Balance = isUcy.Balance - this.Num
+	isUcy.Freeze = isUcy.Freeze + this.Num
+
+	// 启用事务
+	session := dao.DB.GetMysqlConn().NewSession()
+	defer session.Close()
+
+	err := session.Begin()
 	if err != nil {
 		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	_, err = session.Where("uid=? AND token_id=?", this.Uid, this.TokenId).Update(isUcy)
+	if err != nil {
+		Log.Errorln(err.Error())
+		session.Rollback()
+		return ERRCODE_UNKNOWN
+	}
+
+	_, err = session.Insert(this)
+	if err != nil {
+		Log.Errorln(err.Error())
+		session.Rollback()
+		return ERRCODE_UNKNOWN
+	}
+
+	err = session.Commit()
+	if err != nil {
+		Log.Errorln(err.Error())
+		session.Rollback()
 		return ERRCODE_UNKNOWN
 	}
 
