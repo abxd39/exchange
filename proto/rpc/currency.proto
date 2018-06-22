@@ -176,7 +176,7 @@ message CurrencyPaysListResponse {
 message CurrencyChats {
     uint64 id               = 1;
     string order_id         = 2;
-    uint32 is_order_user    = 3;
+    string is_order_user    = 3;
     uint64 uid              = 4;
     string uname            = 5;
     string content          = 6;

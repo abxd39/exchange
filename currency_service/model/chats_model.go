@@ -10,12 +10,12 @@ import (
 type Chats struct {
 	Id          uint64 `xorm:"not null pk autoincr INT(10)" json:"id"`
 	OrderId     string `xorm:"VARBINARY(64)" json:"order_id"`
-	IsOrderUser uint32 `xorm:"TINYINT(1)" json:"is_order_user"`
+	IsOrderUser string `xorm:"TINYINT(1)" json:"is_order_user"`
 	Uid         uint64 `xorm:"INT(10)" json:"uid"`
 	Uname       string `xorm:"VARBINARY(10)" json:"uname"`
 	Content     string `xorm:"VARBINARY(10)" json:"content"`
 	States      uint32 `xorm:"TINYINT(1)" json:"states"`
-	CreatedTime string `xorm:"INT(10)" json:"created_time"`
+	CreatedTime string `xorm:"DATETIME" json:"created_time"`
 }
 
 func (this *Chats) Add() int {
@@ -33,9 +33,9 @@ func (this *Chats) Add() int {
 
 	// 是否为订单主用户: 0否 1是
 	if this.Uid == ord.SellId {
-		this.IsOrderUser = 1
+		this.IsOrderUser = "1"
 	} else {
-		this.IsOrderUser = 0
+		this.IsOrderUser = "0"
 	}
 
 	_, err = dao.DB.GetMysqlConn().Insert(this)
@@ -50,7 +50,7 @@ func (this *Chats) Add() int {
 func (this *Chats) List(order_id string) []Chats {
 
 	data := make([]Chats, 0)
-	err := dao.DB.GetMysqlConn().Where("order_id=?", order_id).Desc("created_time").Find(&data)
+	err := dao.DB.GetMysqlConn().Where("order_id=? AND states=1", order_id).Desc("created_time").Find(&data)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil

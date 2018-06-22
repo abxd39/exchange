@@ -434,21 +434,21 @@ type AdsListResponse struct {
 	List    []AdsListsData `json:"list"`
 }
 type AdsListsData struct {
-	Id          uint64 `json:"id"`           // 广告ID
-	Uid         uint64 `json:"uid"`          // 用户ID
+	Id          uint64  `json:"id"`           // 广告ID
+	Uid         uint64  `json:"uid"`          // 用户ID
 	Price       float64 `json:"price"`        // 单价
 	Num         float64 `json:"num"`          // 数量
-	MinLimit    uint32 `json:"min_limit"`    // 最小限额
-	MaxLimit    uint32 `json:"max_limit"`    // 最大限额
-	Pays        string `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
-	CreatedTime string `json:"created_time"` // 创建时间
-	UpdatedTime string `json:"updated_time"` // 修改时间
-	UserName    string `json:"user_name"`    // 用户名
-	UserFace    string `json:"user_face"`    // 用户头像
-	UserVolume  uint32 `json:"user_volume"`  // 用户成交量
-	TypeId      uint32 `json:"type_id"`      // 类型:1出售 2购买
-	TokenId     uint32 `json:"token_id"`     // 货币类型
-	TokenName   string `json:"token_name"`   // 货币名称
+	MinLimit    uint32  `json:"min_limit"`    // 最小限额
+	MaxLimit    uint32  `json:"max_limit"`    // 最大限额
+	Pays        string  `json:"pays"`         // 支付方式:以 , 分隔: 1,2,3
+	CreatedTime string  `json:"created_time"` // 创建时间
+	UpdatedTime string  `json:"updated_time"` // 修改时间
+	UserName    string  `json:"user_name"`    // 用户名
+	UserFace    string  `json:"user_face"`    // 用户头像
+	UserVolume  uint32  `json:"user_volume"`  // 用户成交量
+	TypeId      uint32  `json:"type_id"`      // 类型:1出售 2购买
+	TokenId     uint32  `json:"token_id"`     // 货币类型
+	TokenName   string  `json:"token_name"`   // 货币名称
 }
 
 // 法币交易列表 - (广告(买卖))
@@ -767,7 +767,7 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 		return
 	}
 
-	if req.OrderId == "" || req.Content == "" {
+	if req.OrderId == "" || req.Uid == 0 || req.Content == "" {
 		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
@@ -782,14 +782,14 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 		Content: req.Content,
 	})
 
-	if err != nil || code != 0 {
+	if err != nil {
 		Log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
 	if code != 0 {
-		ret.SetErrCode(ERRCODE_UNKNOWN)
+		ret.SetErrCode(int32(code))
 		return
 	}
 
@@ -822,4 +822,17 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 		return
 	}
 
+	// 调用 rpc 获取订单聊天列表
+	data, err := rpc.InnerService.CurrencyService.CallCurrencyChatsList(&proto.CurrencyChats{
+		OrderId: req.OrderId,
+	})
+
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+	ret.SetDataSection(RET_DATA, data)
+	ret.SetErrCode(ERRCODE_SUCCESS)
 }
