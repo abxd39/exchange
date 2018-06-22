@@ -1,6 +1,8 @@
 syntax = "proto3";
 package g2u;
 
+import "rpc/payment.proto";
+
 service CurrencyRPC {
     	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
 
@@ -42,7 +44,15 @@ service CurrencyRPC {
         rpc CancelOrder(CancelOrderRequest) returns(OrderResponse){};
         // 删除订单
         rpc DeleteOrder(OrderRequest) returns(OrderResponse){};
-
+        
+        //Set bank pay
+        rpc BankPay (BankPayRequest) returns (PaysResponse){};
+        //Set WeChat pay
+        rpc WeChatPay (WeChatPayRequest) returns (PaysResponse){};
+        //Set Alipay
+        rpc Alipay (AlipayRequest) returns (PaysResponse){};
+        //set paypal
+        rpc Paypal (PaypalRequest) returns (PaysResponse){};
 
 }
 

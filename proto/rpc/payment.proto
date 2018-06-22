@@ -10,37 +10,42 @@ message PaysResponse{
 
 message BankPayRequest{
     int32   uid         =1;
-    string  name        =2;
-    string  card_num    =3;
-    string  bank_name   =4;
-    string  bank_info   =5;
-    string  create_time =6;
-    string  updata_time =7;
+    string  token       =2;
+    string  name        =3;
+    string  card_num    =4;
+    string  verify_num  =5;  
+    string  bank_name   =6;
+    string  bank_info   =7;
+    string  phone       =8;
+    string  verify      =9;
 }
 
 
 
 message WeChatPayRequest{
     int32   uid         =1;
-    string  name        =2;
-    string  wechat      =3;
-    string  receipt_code=4;
-    string  create_time =5;
-    string  updata_time =6;
+    string token        =2;
+    string  name        =3;
+    string  wechat      =4;
+    string  receipt_code=5;
+    string  phone       =6;
+    string  verify      =7;
 }
 
 message AlipayRequest{
     int32   uid         =1;
-    string  name        =2;
-    string  alipay      =3;
-    string  receipt_code=4;
-    string  create_time =5;
-    string  updata_time =6;
+    string token        =2;
+    string  name        =3;
+    string  alipay      =4;
+    string  receipt_code=5;
+    string  phone       =6;
+    string  verify      =7;
 }
 
 message PaypalRequest{
     int32   uid         =1;
-    string  paypal      =2;
-    string  create_time =3;
-    string  updata_time =4;
+    string token        =2;
+    string  paypal      =3;
+    string  phone       =6;
+    string  verify      =7;
 }
