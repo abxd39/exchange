@@ -67,6 +67,8 @@ type CurrencyAds struct {
 	Reply       string  `json:"reply"`        // 自动回复问候语
 	IsUsd       uint32  `json:"is_usd"`       // 是否美元支付:0否 1是
 	States      uint32  `json:"states"`       // 状态:0下架 1上架
+	Inventory   uint64  `json:"inventory"`    // 库存
+	Fee         uint64  `json:"fee"`          // 手续费用
 	CreatedTime string  `json:"created_time"` // 创建时间
 	UpdatedTime string  `json:"updated_time"` // 修改时间
 }
@@ -127,6 +129,8 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 		Reply:       data.Reply,
 		IsUsd:       data.IsUsd,
 		States:      data.States,
+		Inventory:   data.Inventory,
+		Fee:         data.Fee,
 		CreatedTime: data.CreatedTime,
 		UpdatedTime: data.UpdatedTime,
 	})
@@ -308,6 +312,7 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	if req.Id == 0 {
 		ret.SetErrCode(ERRCODE_ADS_NOTEXIST)
+		return
 	}
 
 	if req.Pays == "" {
