@@ -47,6 +47,9 @@ const (
 	ERR_TOKEN_LESS       = 402
 	ERR_TOKEN_REPEAT     = 403
 	ERR_TOKEN_QUENE_CONF = 404
+
+	ERRCODE_ORDER_FREEZE = 420
+
 )
 
 func GetErrorMessage(code int32) string {

@@ -105,10 +105,3 @@ func createOrderId(userId int32, tokenId uint64) (orderId string) {
 	return
 }
 
-//// 获取费用
-//func getOrderFee(Num, Price float64) (Fee float64) {
-//	rate := conf.Cfg.MustValue("rate", "fee_rate")
-//	rateFloat, _ := strconv.ParseFloat(rate, 64)
-//	Fee = (Num * Price ) * rateFloat
-//	return
-//}
