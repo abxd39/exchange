@@ -213,10 +213,10 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 	}
 
 	/////////////////////////////////////////////////////////
-	// 1. 扣, user_currency
+	// 1. user_currency扣, 买家减交易金额，卖家加交易金额和减去费用
 	////////////////////////////////////////////////////////
-	buySql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`, `freeze`, `balance`)  values(?, ?, ?, ?, ? ) ON DUPLICATE  KEY UPDATE  `balance`=`balance`+?"
-	_, err = session.Exec(buySql, this.BuyId, this.TokenId, tokenName , 0, allPrice, allPrice)
+	buySql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`, `freeze`, `balance`)  values(?, ?, ?, ?, ? ) ON DUPLICATE  KEY UPDATE  `balance`=`balance`-?"
+	_, err = session.Exec(buySql, buyId, this.TokenId, tokenName , 0, allPrice, allPrice)
 	//buySql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`, `freeze`, `balance`, `address`)   select ?, ?, `name` as `token_name`, ?, ?, ?  from tokens where tokens.id = ?  ON DUPLICATE  KEY UPDATE  `balance`=`balance`+ ?"
 	//_, err = session.Exec(buySql, this.BuyId, this.TokenId,  0, allPrice,"", this.TokenId , allPrice)
 	if err != nil {
@@ -224,7 +224,10 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 		return
 	}
 	//session.Table(`user_currency`).Where("uid = ?", buyId).Incr("balance", allPrice)
-	session.Table(`user_currency`).Where("uid = ?", sellId).Decr("freeze", allPrice )    // 平台 费用哪方扣
+	buyPrice := allPrice - rateFee
+	sellSql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`, `freeze`, `balance`)  values(?, ?, ?, ?, ? ) ON DUPLICATE  KEY UPDATE  `freeze`=?,`balance`=`balance`+?"
+	_, err = session.Exec(sellSql, sellId, this.TokenId, tokenName , rateFee, buyPrice , rateFee, buyPrice)         // 卖家 扣除平台费用
+	//session.Table(`user_currency`).Where("uid = ?", sellId).Incr("freeze", allPrice - rateFee )    // 卖家
 	if err != nil {
 		session.Rollback()
 		return
