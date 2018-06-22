@@ -32,6 +32,8 @@ const (
 	ERRCODE_GOOGLE_CODE_EXIST     = 215
 	ERRCODE_GOOGLE_CODE_NOT_EXIST = 216
 
+	ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH = 217
+
 	//300-
 
 	ERRCODE_ADS_NOTEXIST      = 301
@@ -41,10 +43,10 @@ const (
 	ERRCODE_ORDER_NOTEXIST    = 305
 
 	//400-
-	ERR_TOKEN_QUENE_NIL = 401
-	ERR_TOKEN_LESS = 402
-	ERR_TOKEN_REPEAT=403
-	ERR_TOKEN_QUENE_CONF=404
+	ERR_TOKEN_QUENE_NIL  = 401
+	ERR_TOKEN_LESS       = 402
+	ERR_TOKEN_REPEAT     = 403
+	ERR_TOKEN_QUENE_CONF = 404
 )
 
 func GetErrorMessage(code int32) string {
@@ -97,11 +99,12 @@ func init() {
 	message[ERRCODE_ADS_TYPE_NOTEXIST] = "广告类型不存在"
 	message[ERRCODE_ORDER_NOTEXIST] = "订单不存在"
 
-
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 	message[ERR_TOKEN_LESS] = "币的余额不够"
 	message[ERR_TOKEN_REPEAT] = "重复请求"
 	message[ERR_TOKEN_QUENE_CONF] = "队列未配置"
+
+	message[ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH] = "两次输入的银行卡号码不相同"
 }
 
 type PublicErrorType struct {
@@ -129,13 +132,13 @@ func (s *PublicErrorType) init() {
 func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
 	s.ret[ERR_CODE_RET] = code
 
-	if code==ERRCODE_PARAM {
+	if code == ERRCODE_PARAM {
 		if len(err_msg) > 0 {
 			s.ret[ERR_CODE_MESSAGE] = err_msg[0]
-		}else {
+		} else {
 			s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
 		}
-	}else if code != ERRCODE_UNKNOWN {
+	} else if code != ERRCODE_UNKNOWN {
 		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
 	} else {
 		if len(err_msg) > 0 {
