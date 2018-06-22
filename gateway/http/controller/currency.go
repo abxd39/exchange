@@ -6,10 +6,11 @@ import (
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type CurrencyGroup struct{}
@@ -37,6 +38,12 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/confirm_order", this.ConfirmOrder) // 确认放行
 		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
 		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
+
+		////payment///
+		Currency.POST("/bank_pay", this.BankPay)
+		Currency.POST("/alipay", this.Alipay)
+		Currency.POST("/wechatpay", this.WeChatPay)
+		Currency.POST("/paypal", this.Paypal)
 
 	}
 }
