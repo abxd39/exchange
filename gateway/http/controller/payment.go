@@ -5,6 +5,7 @@ import (
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +33,7 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+	fmt.Printf("%#v\n", req)
 	rsp, err := rpc.InnerService.CurrencyService.CallBankPay(&proto.BankPayRequest{
 		Uid:       req.Id,
 		Token:     req.Token,
@@ -45,12 +47,10 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 	})
 
 	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Log.Errorf(err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetDataSection("msg", rsp.Message)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	ret.SetErrCode(rsp.Code)
 	return
 
 }
@@ -75,6 +75,7 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+
 	rsp, err := rpc.InnerService.CurrencyService.CallAliPay(&proto.AlipayRequest{
 		Uid:         req.Id,
 		Token:       req.Token,
@@ -85,12 +86,10 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 		Verify:      req.Verify,
 	})
 	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Log.Errorf(err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetDataSection("msg", rsp.Message)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	ret.SetErrCode(rsp.Code)
 	return
 }
 
@@ -120,12 +119,10 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		Verify: req.Verify,
 	})
 	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Log.Errorf(err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetDataSection("msg", rsp.Message)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	ret.SetErrCode(rsp.Code)
 	return
 }
 
@@ -159,11 +156,10 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 		Verify:      req.Verify,
 	})
 	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Log.Errorf(err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetDataSection("msg", rsp.Message)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	// ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(rsp.Code)
 	return
 }

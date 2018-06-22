@@ -5,6 +5,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -36,37 +37,28 @@ func (*UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error)
 		Uid: int(req.Uid),
 	})
 	if err != nil {
-		return 1, err
+		return ERRCODE_UNKNOWN, err
 	}
-	current := time.Now()
+	current := time.Now().Format("2006-01-02 15:04:05")
+	fmt.Printf("SetBankPay%#v\n", req)
 	if has {
-		//默认为修改
-		_, err := engine.ID(req.Uid).Update(&UserCurrencyBankPay{
-			Name:       req.Name,
-			CardNum:    req.CardNum,
-			BankName:   req.BankName,
-			BankInfo:   req.BankInfo,
-			UpdataTime: current.String(),
-		})
-		if err != nil {
-			return 0, errors.New("modify bank card number fail!! ")
-		}
-		//errors.New("bank card number already exist")
+		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
 	} else {
 		//插入新的纪录
+
 		_, err := engine.InsertOne(&UserCurrencyBankPay{
 			Uid:        int(req.Uid),
 			Name:       req.Name,
 			CardNum:    req.CardNum,
 			BankName:   req.BankName,
 			BankInfo:   req.BankInfo,
-			CreateTime: current.String(),
-			UpdataTime: current.String(),
+			CreateTime: current,
+			UpdataTime: current,
 		})
 		if err != nil {
-			return 1, errors.New("Set bank card number fail")
+			return ERRCODE_UNKNOWN, err
 		}
 	}
 	//
-	return 0, nil
+	return ERRCODE_SUCCESS, nil
 }

@@ -2,6 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
+	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"errors"
 	"time"
@@ -25,31 +26,23 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 		Uid: int(req.Uid),
 	})
 	if err != nil {
-		return 1, err
+		return ERRCODE_UNKNOWN, err
 	}
-	current := time.Now()
+	current := time.Now().Format("2006-01-02 15:04:05")
 	if has {
-		//默认修改
-		_, err := engine.ID(req.Uid).Update(&UserCurrencyWechatPay{
-			Wechat:      req.Wechat,
-			Name:        req.Name,
-			ReceiptCode: req.ReceiptCode,
-			UpdataTime:  current.String(),
-		})
-		if err != nil {
-			return 1, errors.New("modify WeChat fail!!")
-		}
+		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
 	} else {
 		_, err := engine.InsertOne(&UserCurrencyWechatPay{
 			Uid:         int(req.Uid),
 			Name:        req.Name,
+			Wechat:      req.Wechat,
 			ReceiptCode: req.ReceiptCode,
-			CreateTime:  current.String(),
-			UpdataTime:  current.String(),
+			CreateTime:  current,
+			UpdataTime:  current,
 		})
 		if err != nil {
-			return 1, err
+			return ERRCODE_UNKNOWN, err
 		}
 	}
-	return 0, nil
+	return ERRCODE_SUCCESS, nil
 }
