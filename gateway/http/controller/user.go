@@ -360,11 +360,9 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	ret.SetErrCode(rsp.Err)
 	return
 }
 
@@ -393,11 +391,9 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	ret.SetErrCode(rsp.Err)
 	return
 }
 
@@ -430,11 +426,9 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	ret.SetErrCode(rsp.Err)
 }
 
 func (s *UserGroup) ResetTradePwd(c *gin.Context) {
@@ -467,9 +461,7 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetErrCode(ERRCODE_SUCCESS, err.Error())
+	ret.SetErrCode(rsp.Err)
 }

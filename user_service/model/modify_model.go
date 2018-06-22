@@ -1,86 +1,71 @@
 package model
 
 import (
+	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/user_service/dao"
-	"fmt"
 	"strings"
 )
 
-func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, error) {
-	var value int32
-	var err error
-	fmt.Printf("ModifyLoginPwd%#v\n", req)
-	//
+func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {
+
 	if va := strings.Compare(req.ConfirmPwd, req.NewPwd); va != 0 {
-		return 205, nil
+		return ERRCODE_PWD_COMFIRM, nil
 	}
 	//验证短信
-	value, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return value, err
+		return result, err
 	}
 	//token
 
 	//modify DB
 	engine := dao.DB.GetMysqlConn()
-	var op int64
-	op, err = engine.ID(req.Uid).Update(&User{Pwd: req.NewPwd})
+	_, err = engine.ID(req.Uid).Update(&User{Pwd: req.NewPwd})
 	if err != nil {
-		return int32(op), err
+		return ERRCODE_UNKNOWN, err
 	}
-	return 0, nil
+	return ERRCODE_SUCCESS, nil
 
 }
 
-func (s *User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (int32, error) {
-	var value int32
-	var err error
-	fmt.Printf("ModifyUserPhone1%#v\n", req)
+func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, err error) {
 	//验证短信
-	value, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return value, err
+		return result, err
 	}
 	//token
 	//旧的电话号码验证通过
 	return 0, nil
 }
 
-func (s *User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (int32, error) {
-	var value int32
-	var err error
-	fmt.Printf("ModifyUserPhone2%#v\n", req)
-	value, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, err error) {
+	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return value, err
+		return result, err
 	}
 	//token
 	//修改数据库字段
 	engine := dao.DB.GetMysqlConn()
-	var op int64
-	op, err = engine.ID(req.Uid).Update(&User{Phone: req.Phone})
+	_, err = engine.ID(req.Uid).Update(&User{Phone: req.Phone})
 	if err != nil {
-		return int32(op), err
+		return ERRCODE_UNKNOWN, err
 	}
-	return 0, nil
+	return ERRCODE_SUCCESS, nil
 }
 
-func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (int32, error) {
-	var value int32
-	var err error
-	fmt.Printf("ModifyTradePwd%#v\n", req)
-	value, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (result int32, err error) {
+	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return value, err
+		return result, err
 	}
 	//验证token
 	//修改数据库字段
 	engine := dao.DB.GetMysqlConn()
-	var op int64
-	op, err = engine.ID(req.Uid).Update(&User{PayPwd: req.NewPwd})
+	_, err = engine.ID(req.Uid).Update(&User{PayPwd: req.NewPwd})
 	if err != nil {
-		return int32(op), err
+		return ERRCODE_UNKNOWN, err
 	}
-	return 0, nil
+	return ERRCODE_SUCCESS, nil
 }

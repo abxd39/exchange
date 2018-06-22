@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	_ "digicon/proto/common"
+	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"errors"
 	"time"
@@ -25,28 +25,21 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 		Uid: int(req.Uid),
 	})
 	if err != nil {
-		return 1, err
+		return ERRCODE_UNKNOWN, err
 	}
-	current := time.Now()
+	current := time.Now().Format("2006-01-02 15:04:05")
 	if has {
-		//默认修改
-		_, err := engine.ID(req.Uid).Update(&UserCurrencyPaypalPay{
-			Paypal:     req.Paypal,
-			UpdateTime: current.String(),
-		})
-		if err != nil {
-			return 1, errors.New("modify paypal fail!!")
-		}
+		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
 	} else {
 		_, err := engine.InsertOne(&UserCurrencyPaypalPay{
 			Uid:        int(req.Uid),
 			Paypal:     req.Paypal,
-			CreateTime: current.String(),
-			UpdateTime: current.String(),
+			CreateTime: current,
+			UpdateTime: current,
 		})
 		if err != nil {
-			return 1, err
+			return ERRCODE_ACCOUNT_EXIST, err
 		}
 	}
-	return 0, nil
+	return ERRCODE_SUCCESS, nil
 }
