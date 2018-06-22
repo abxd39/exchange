@@ -3,6 +3,7 @@ package encryption
 import (
 	"crypto/sha256"
 	"fmt"
+	"encoding/base64"
 )
 
 func Gensha256(phone string, nowtime int64, salt string) []byte {
@@ -13,3 +14,8 @@ func Gensha256(phone string, nowtime int64, salt string) []byte {
 	bs := h.Sum(nil)
 	return bs
 }
+
+func GenBase64(input string)  []byte {
+	base64.StdEncoding.EncodeToString(input)
+}
+

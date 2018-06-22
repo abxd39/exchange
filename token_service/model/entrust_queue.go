@@ -76,11 +76,98 @@ func (s *EntrustQuene) GetUUID() int64 {
 }
 
 func (s *EntrustQuene) JoinWaitChann(p *EntrustDetail) {
+	s.newOrderDetail <- p
 	s.waitOrderDetail <- p
 
 }
 
-func (s *EntrustQuene) MakeDeal(p *EntrustDetail) (ret int, err error) {
+func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail,seller *EntrustDetail,price int64 )  {
+	/*
+	if buyer.SurplusNum < seller.SurplusNum {
+
+		deal_num:=buyer.SurplusNum
+
+		t:=&Trade{
+			Uid:buyer.Uid,
+			TokenId:s.TokenId,
+			TokenTradeId:s.TokenTradeId,
+			Price:price,
+			Num:deal_num,
+			Fee:price/1000,
+			DealTime:time.Now().Unix(),
+			States:TRADE_STATES_ALL,
+		}
+
+
+		o:=&Trade{
+			Uid:seller.Uid,
+			TokenId:s.TokenId,
+			TokenTradeId:s.TokenTradeId,
+			Price:price,
+			Num:deal_num,
+			Fee:price/1000,
+			DealTime:time.Now().Unix(),
+			States:TRADE_STATES_PART,
+		}
+
+
+		s.waitOrderDetail<-
+	}else if buyer.SurplusNum == seller.SurplusNum{
+		deal_num:=buyer.SurplusNum
+
+		t:=&Trade{
+			Uid:buyer.Uid,
+			TokenId:s.TokenId,
+			TokenTradeId:s.TokenTradeId,
+			Price:price,
+			Num:deal_num,
+			Fee:price/1000,
+			DealTime:time.Now().Unix(),
+			States:TRADE_STATES_ALL,
+		}
+
+
+		o:=&Trade{
+			Uid:seller.Uid,
+			TokenId:s.TokenId,
+			TokenTradeId:s.TokenTradeId,
+			Price:price,
+			Num:deal_num,
+			Fee:price/1000,
+			DealTime:time.Now().Unix(),
+			States:TRADE_STATES_ALL,
+		}
+	}else{
+		deal_num:=seller.SurplusNum
+
+		t:=&Trade{
+			Uid:buyer.Uid,
+			TokenId:s.TokenId,
+			TokenTradeId:s.TokenTradeId,
+			Price:price,
+			Num:deal_num,
+			Fee:price/1000,
+			DealTime:time.Now().Unix(),
+			States:TRADE_STATES_PART,
+		}
+
+
+		o:=&Trade{
+			Uid:seller.Uid,
+			TokenId:s.TokenId,
+			TokenTradeId:s.TokenTradeId,
+			Price:price,
+			Num:deal_num,
+			Fee:price/1000,
+			DealTime:time.Now().Unix(),
+			States:TRADE_STATES_ALL,
+		}
+	}
+
+*/
+}
+
+func (s *EntrustQuene) Match(p *EntrustDetail) (ret int, err error) {
 	if p.Opt > 2 {
 		ret = ERRCODE_PARAM
 		return
@@ -88,29 +175,15 @@ func (s *EntrustQuene) MakeDeal(p *EntrustDetail) (ret int, err error) {
 	var other *EntrustDetail
 	if p.Opt == ORDER_OPT_BUY {
 		other, err = s.GetFirstEntrust(ORDER_OPT_SELL)
-		if err != nil {
+		if err==redis.Nil {
+			s.JoinSellQuene(p)
+		} else if err != nil {
 			Log.Errorln(err.Error())
 			return
 		}
 
 		if p.Type == ENTRUST_MARKET_PRICE {
-			if p.AllNum <= other.SurplusNum {
-				p.SurplusNum = 0
-				p.Price = other.OnPrice
-				other.SurplusNum=other.SurplusNum-p.AllNum
-/*
-				t:=&Trade{
-					Uid:p.Uid,
-					Sid:other.Uid,
-					TokenId:s.TokenId,
-					TokenTradeId:s.TokenTradeId,
-					Price:other.Price,
-					Num:p.SurplusNum,
-					DealTime:time.Now().Unix(),
-				}
-*/
-
-			}
+			s.MakeDeal(p,other,other.OnPrice)
 		}
 
 	}
@@ -170,15 +243,18 @@ func (s *EntrustQuene) insertOrderDetail(d *EntrustDetail) bool {
 	return true
 }
 
+func (s *EntrustQuene) delOrderDetail(d *EntrustDetail) bool {
+	return true
+}
 //延时保存委托数据
 func (s *EntrustQuene) process() {
-	
+
 	for {
 		select {
 		//case d = <-s.pushOrderDetail:
 			//d.Save()
 		case w := <-s.waitOrderDetail:
-			s.MakeDeal(w)
+			s.Match(w)
 		case t:= <-s.newOrderDetail:
 			t.Save()
 
@@ -206,6 +282,8 @@ func (s *EntrustQuene) GetFirstEntrust(opt int) (en *EntrustDetail, err error) {
 		d := z[0].Member.(string)
 		en, ok = s.GetOrderDetail(d)
 		if ok {
+			err = DB.GetRedisConn().ZRem(s.BuyQueneId,d).Err()
+
 			return
 		}
 		err = errors.New("this is unrealize err when get order detail  ")
@@ -214,6 +292,7 @@ func (s *EntrustQuene) GetFirstEntrust(opt int) (en *EntrustDetail, err error) {
 			"opt":      opt,
 			"member":   d,
 		}).Errorln(err.Error())
+
 		return
 	}
 
