@@ -61,7 +61,7 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Id           int32  `form:"id" json:"id" binding:"required"`
+		Id           int32  `form:"uid" json:"uid" binding:"required"`
 		Token        string `form:"token" json:"token" binding:"required"`
 		Name         string `form:"name" json:"name" binding:"required"`
 		Alipay       string `form:"alipay" json:"alipay" binding:"required"`
@@ -99,7 +99,7 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Id     int32  `form:"id" json:"id" binding:"required"`
+		Id     int32  `form:"uid" json:"uid" binding:"required"`
 		Token  string `form:"token" json:"token" binding:"required"`
 		Paypal string `form:"Paypal" json:"Paypal" binding:"required"`
 		Phone  string `form:"phone" json:"phone" binding:"required"`
@@ -132,7 +132,7 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Id           int32  `form:"id" json:"id" binding:"required"`
+		Id           int32  `form:"uid" json:"uid" binding:"required"`
 		Token        string `form:"token" json:"token" binding:"required"`
 		Name         string `form:"name" json:"name" binding:"required"`
 		Wechat       string `form:"wechat" json:"wechat" binding:"required"`
