@@ -17,7 +17,7 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Id         int32  `form:"id" json:"id" binding:"required"`
+		Id         int32  `form:"uid" json:"uid" binding:"required"`
 		Token      string `form:"token" json:"token" binding:"required"`
 		Name       string `form:"name" json:"name" binding:"required"`
 		Card_num   string `form:"card_num" json:"card_num" binding:"required"`
