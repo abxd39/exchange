@@ -16,5 +16,6 @@ func Gensha256(phone string, nowtime int64, salt string) []byte {
 }
 
 func GenBase64(input string) []byte {
-	return []byte(base64.StdEncoding.EncodeToString([]byte(input)))
+	s := base64.StdEncoding.EncodeToString([]byte(input))
+	return []byte(s)
 }
