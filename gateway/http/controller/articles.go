@@ -10,40 +10,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ArticlesGroup struct{}
+type ArticleGroup struct{}
 
-func (this *ArticlesGroup) Router(r *gin.Engine) {
-	Articles := r.Group("/articles")
+func (this *ArticleGroup) Router(r *gin.Engine) {
+	article := r.Group("/article")
 	{
 		log.Log.Printf("Router func")
-		Articles.GET("/des", this.ArticlesDetail)
-		Articles.GET("/list", this.ArticlesList)
+		article.GET("/des", this.Article)
+		article.GET("/list", this.ArticleList)
 
 	}
 }
 
-func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
+func (this *ArticleGroup) Article(c *gin.Context) {
 	ret := x.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	type ArticlesDetailParam struct {
+	type ArticleParam struct {
 		Id int32 `form:"id" binding:"required"`
 	}
-	var param ArticlesDetailParam
+	var param ArticleParam
 	if err := c.ShouldBindQuery(&param); err != nil {
 		log.Log.Errorf(err.Error())
 		ret.SetErrCode(x.ERRCODE_PARAM, err.Error())
 		return
 	}
 
-	rsp, err := rpc.InnerService.PublicService.CallArticlesDesc(param.Id)
+	rsp, err := rpc.InnerService.PublicService.CallArticle(param.Id)
 
 	if err != nil {
 		ret.SetErrCode(x.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	type ArticlesCopy1 struct {
+	type Article struct {
 		Id            int    `json:"Id"`
 		Title         string `json:"Title"`
 		Description   string `json:"Description"`
@@ -57,32 +57,33 @@ func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
 		Shares        int    `json:"Shares"`
 		Hits          int    `json:"Hits"`
 		Comments      int    `json:"Comments"`
-		DisplayMark   int    `json:"DisplayMark"`
+		Astatus       int    `json:"Astatus"`
 		AdminId       int    `json:"AdminId"`
 		CreateTime    string `json:"CreateTime"`
 		UpdateTime    string `json:"UpdateTime"`
 		AdminNickname string `json:"AdminNickname"`
 	}
-	articles := &ArticlesCopy1{}
-	if err = json.Unmarshal([]byte(rsp.Data), articles); err != nil {
+	arti := &Article{}
+	if err = json.Unmarshal([]byte(rsp.Data), arti); err != nil {
 		log.Log.Errorf(err.Error())
 	}
-	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("articles", &articles)
+	ret.SetErrCode(rsp.Err)
+	ret.SetDataSection("article", &arti)
+	return
 }
 
-func (this *ArticlesGroup) ArticlesList(c *gin.Context) {
+func (this *ArticleGroup) ArticleList(c *gin.Context) {
 
 	ret := x.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	type ArticlesListParam struct {
-		ArticlesType int32 `form:"type" binding:"required"`
-		Page         int32 `form:"page" binding:"required"`
-		PageNum      int32 `form:"page_num" binding:""`
+	type ArticleListParam struct {
+		ArticleType int32 `form:"type" binding:"required"`
+		Page        int32 `form:"page" binding:"required"`
+		PageNum     int32 `form:"page_num" binding:""`
 	}
-	var param ArticlesListParam
+	var param ArticleListParam
 	//fmt.Println("param1:", param)
 	if err := c.ShouldBindQuery(&param); err != nil {
 		log.Log.Errorf(err.Error())
@@ -90,12 +91,13 @@ func (this *ArticlesGroup) ArticlesList(c *gin.Context) {
 		return
 	}
 	//fmt.Println("param2:", param)
-	rsp, err := rpc.InnerService.PublicService.CallArticlesList(param.ArticlesType, param.Page, param.PageNum)
+	rsp, err := rpc.InnerService.PublicService.CallArticleList(param.ArticleType, param.Page, param.PageNum)
 	if err != nil {
 		ret.SetErrCode(x.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	//fmt.Println("gatway return value ", rsp.Articles)
-	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list", rsp.Articles)
+	//fmt.Println("gatway return value ", rsp.Article)
+	ret.SetErrCode(rsp.Err)
+	ret.SetDataSection("list", rsp.Article)
+	return
 }
