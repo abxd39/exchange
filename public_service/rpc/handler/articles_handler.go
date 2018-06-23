@@ -10,32 +10,33 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (s *RPCServer) ArticlesList(ctx context.Context, req *proto.ArticlesListRequest, rsp *proto.ArticlesListResponse) error {
+func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListRequest, rsp *proto.ArticleListResponse) error {
 	var total int
-	result := make([]model.Articles_list, 0)
+	result := make([]model.Article_list, 0)
 
-	total, rsp.Err = new(model.Articles_list).ArticlesList(req, &result)
+	total, rsp.Err = new(model.Article_list).ArticleList(req, &result)
 	rsp.TotalPage = int32(total)
 	for _, value := range result {
-		ntc := proto.ArticlesListResponse_Articles{}
+		ntc := proto.ArticleListResponse_Article{}
 		ntc.Id = int32(value.Id)
 		ntc.Title = value.Title
 		ntc.Description = value.Description
 		ntc.CreateDateTime = value.CreateTime
-		rsp.Articles = append(rsp.Articles, &ntc)
+		rsp.Article = append(rsp.Article, &ntc)
 
 	}
-	//fmt.Println("ArticlesList 列表为", ntc)
+	//fmt.Println("ArticleList 列表为", ntc)
 	return nil
 }
 
-func (s *RPCServer) ArticlesDetail(ctx context.Context, req *proto.ArticlesDetailRequest, rsp *proto.ArticlesDetailResponse) error {
-	result := &model.ArticlesCopy1{}
-	rsp.Err = new(model.ArticlesCopy1).ArticlesDescription(req.Id, result)
+func (s *RPCServer) Article(ctx context.Context, req *proto.ArticleRequest, rsp *proto.ArticleResponse) error {
+	result := &model.Article{}
+	//result := new(model.Article)
+	rsp.Err = new(model.Article).Article(req.Id, result)
 	fmt.Println(result)
 	js, err := json.Marshal(result)
 	if err != nil {
-		log.Fatalf("struct model.Articlescopy Marshal Fatalf!!")
+		log.Fatalf("struct model.Article Marshal Fatalf!!")
 	}
 	//json.Unmarshal
 	rsp.Data = string(js)

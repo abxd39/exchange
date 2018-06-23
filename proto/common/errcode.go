@@ -33,6 +33,7 @@ const (
 	ERRCODE_GOOGLE_CODE_NOT_EXIST = 216
 
 	ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH = 217
+	ERRCODE_ARTICLE_NOT_EXIST                 = 218
 
 	//300-
 
@@ -108,6 +109,7 @@ func init() {
 	message[ERR_TOKEN_QUENE_CONF] = "队列未配置"
 
 	message[ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH] = "两次输入的银行卡号码不相同"
+	message[ERRCODE_ARTICLE_NOT_EXIST] = "文章不存在"
 }
 
 type PublicErrorType struct {
