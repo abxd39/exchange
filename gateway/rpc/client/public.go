@@ -41,8 +41,8 @@ func NewPublciRPCCli() (u *PublciRPCCli) {
 	return
 }
 
-func (s *PublciRPCCli) CallArticlesDesc(id int32) (rsp *proto.ArticlesDetailResponse, err error) {
-	rsp, err = s.conn.ArticlesDetail(context.TODO(), &proto.ArticlesDetailRequest{
+func (s *PublciRPCCli) CallArticle(id int32) (rsp *proto.ArticleResponse, err error) {
+	rsp, err = s.conn.Article(context.TODO(), &proto.ArticleRequest{
 		Id: id,
 	})
 
@@ -53,11 +53,11 @@ func (s *PublciRPCCli) CallArticlesDesc(id int32) (rsp *proto.ArticlesDetailResp
 	return
 }
 
-func (s *PublciRPCCli) CallArticlesList(ty, page, page_num int32) (rsp *proto.ArticlesListResponse, err error) {
-	rsp, err = s.conn.ArticlesList(context.TODO(), &proto.ArticlesListRequest{
-		ArticlesType: ty,
-		Page:         page,
-		PageNum:      page_num,
+func (s *PublciRPCCli) CallArticleList(ty, page, page_num int32) (rsp *proto.ArticleListResponse, err error) {
+	rsp, err = s.conn.ArticleList(context.TODO(), &proto.ArticleListRequest{
+		ArticleType: ty,
+		Page:        page,
+		PageNum:     page_num,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
