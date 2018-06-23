@@ -15,7 +15,10 @@ func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32,
 	//验证短信
 	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return result, err
+		return
+	}
+	if result != ERRCODE_SUCCESS {
+		return
 	}
 	//token
 
@@ -33,7 +36,10 @@ func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, 
 	//验证短信
 	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return result, err
+		return
+	}
+	if result != ERRCODE_SUCCESS {
+		return
 	}
 	//token
 	//旧的电话号码验证通过
@@ -43,7 +49,10 @@ func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, 
 func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, err error) {
 	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return result, err
+		return
+	}
+	if result != ERRCODE_SUCCESS {
+		return
 	}
 	//token
 	//修改数据库字段
@@ -58,7 +67,10 @@ func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, 
 func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (result int32, err error) {
 	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
-		return result, err
+		return
+	}
+	if result != ERRCODE_SUCCESS {
+		return
 	}
 	//验证token
 	//修改数据库字段
