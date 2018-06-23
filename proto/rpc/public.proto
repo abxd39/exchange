@@ -5,36 +5,38 @@ import "rpc/currency.proto";
 
 service PublicRPC {
 	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
-	rpc ArticlesList(ArticlesListRequest) returns (ArticlesListResponse) {}
-	rpc ArticlesDetail(ArticlesDetailRequest) returns (ArticlesDetailResponse) {}
+	//Article list
+	rpc ArticleList(ArticleListRequest) returns (ArticleListResponse) {}
+	//Article 
+	rpc Article(ArticleRequest) returns (ArticleResponse) {}
 }
 
 
-message ArticlesListRequest{
-	int32 articles_type=1;
+message ArticleListRequest{
+	int32 Article_type=1;
 	int32 page=2;
 	int32 page_num=3; 
 }
 
-message ArticlesListResponse{ 
-	message Articles{
+message ArticleListResponse{ 
+	message Article{
 		int32 id 				=1;
 		string title 			=2;
 		string description 		=3;
 		string create_dateTime 	=4;
 		
 	} 
-	repeated Articles  articles =1;
+	repeated Article  article =1;
 	int32 err               =2;
 	string message          =3;
 	int32 total_page		=4; 
 }
 
-message ArticlesDetailRequest{
+message ArticleRequest{
 	int32 id =1;
 }
 
-message ArticlesDetailResponse{
+message ArticleResponse{
 	int32 err               =1;
     string message          =2;
 	string data				=3;
