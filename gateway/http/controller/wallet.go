@@ -18,10 +18,11 @@ func (this *WalletGroup) Router(router *gin.Engine){
 	r.GET("create",this.Create)
 	r.GET("signtx",this.Signtx)
 	r.GET("tibi",this.Tibi)
-	r.GET("update",this.Update)
-	r.GET("query",this.Query)
-	r.GET("delete",this.Delete)
-	r.GET("findOne",this.FindOne)
+	r.GET("getvalue",this.GetValue)
+	r.GET("address/save",this.AddressSave)
+	r.GET("address/list",this.AddressList)
+	r.GET("address/delete",this.AddressDelete)
+
 }
 
 func (this *WalletGroup)Index(ctx *gin.Context){
@@ -96,15 +97,96 @@ func (this *WalletGroup)Tibi(ctx *gin.Context){
 	return
 }
 
-func (this *WalletGroup)Query(ctx *gin.Context){
+func (this *WalletGroup)GetValue(ctx *gin.Context){
+	ret := NewPublciError()
+	type Param struct {
+		Uid       int32 `form:"uid" binding:"required"`
+		Token_id  int32 `form:"token_id" binding:"required"`
 
-}
-func (this *WalletGroup)Delete(ctx *gin.Context){
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ctx.JSON(http.StatusOK, ret)
+		return
+	}
 
+	rsp, err := rpc.InnerService.WalletSevice.CallGetValue(param.Uid,param.Token_id)
+	if err != nil {
+		ctx.String(http.StatusOK, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, rsp)
+	return
 }
-func (this *WalletGroup)FindOne(ctx *gin.Context){
+func (this *WalletGroup)AddressSave(ctx *gin.Context){
+	ret := NewPublciError()
 
+	type Param struct {
+		Uid       int32 `form:"uid" binding:"required"`
+		Token_id  int32 `form:"token_id" binding:"required"`
+		Address   string `form:"address" binding:"required"`
+		Mark  	  string `form:"mark" binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+
+		ret.SetErrCode(ERRCODE_PARAM,err.Error())
+		ctx.JSON(http.StatusOK, ret.GetResult())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallAddressSave(param.Uid,param.Token_id,param.Address,param.Mark)
+	if err != nil {
+
+		ctx.String(http.StatusOK, err.Error())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, rsp)
+	return
 }
-func (this *WalletGroup)before() gin.HandlerFunc {
-		return nil
+func (this *WalletGroup)AddressList(ctx *gin.Context){
+	ret := NewPublciError()
+	type Param struct {
+		Uid       int32 `form:"uid" binding:"required"`
+		Token_id  int32 `form:"token_id" binding:"required"`
+		Address   string `form:"address" binding:"required"`
+		Mark  	  string `form:"mark" binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ctx.JSON(http.StatusOK, ret.GetResult())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallAddressSave(param.Uid,param.Token_id,param.Address,param.Mark)
+	if err != nil {
+		ctx.String(http.StatusOK, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, rsp)
+	return
+}
+func (this *WalletGroup)AddressDelete(ctx *gin.Context)  {
+	ret := NewPublciError()
+	type Param struct {
+		Uid       int32 `form:"uid" binding:"required"`
+		Id  int32 `form:"Id" binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ctx.JSON(http.StatusOK, ret.GetResult())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallAddressDelete(param.Uid,param.Id)
+	if err != nil {
+		ctx.String(http.StatusOK, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, rsp)
+	return
 }

@@ -5,7 +5,8 @@ import (
 	"github.com/Unknwon/goconfig"
 )
 
-var Cfg *goconfig.ConfigFile
+var 	Cfg  *goconfig.ConfigFile
+
 
 func NewConfig(path string) *goconfig.ConfigFile {
 	ConfigFile, err := goconfig.LoadConfigFile(path)
@@ -18,7 +19,7 @@ func NewConfig(path string) *goconfig.ConfigFile {
 
 func init() {
 	println("conf 初始化")
-	var confPath string
+	var 	confPath string
 	flag.StringVar(&confPath, "conf", "wallet.ini", "config path")
 	Cfg = NewConfig(confPath)
 }

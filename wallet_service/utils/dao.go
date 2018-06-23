@@ -1,29 +1,53 @@
 package utils
-
 import (
-	"github.com/garyburd/redigo/redis"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-xorm/xorm"
+_ "github.com/go-sql-driver/mysql"
+"github.com/go-xorm/xorm"
+"github.com/garyburd/redigo/redis"
 )
 
-var Engine *xorm.Engine
+
+var Engine_wallet *xorm.Engine
+var Engine_token  *xorm.Engine
+var Engine_common *xorm.Engine
 var Redis *redis.Conn
 
 func init() {
 	var err error
-	println("dao 初始化")
+
 
 	//mysql初始化
-	dsource := Cfg.MustValue("mysql", "conn")
-	Engine, err = xorm.NewEngine("mysql", dsource)
+	dsource := Cfg.MustValue("mysql", "wallet_conn")
+	Engine_wallet, err = xorm.NewEngine("mysql", dsource)
+	if err != nil{
+		panic( err)
+	}
+	err = Engine_wallet.Ping()
+	if err != nil{
+		panic(err)
+	}
 
-	if err != nil {
+	dsource = Cfg.MustValue("mysql", "token_conn")
+	Engine_token, err = xorm.NewEngine("mysql", dsource)
+
+	if err != nil{
+		panic( err)
+	}
+	err = Engine_token.Ping()
+	if err != nil{
 		panic(err)
 	}
-	err = Engine.Ping()
-	if err != nil {
+
+	dsource = Cfg.MustValue("mysql", "common_conn")
+	Engine_common, err = xorm.NewEngine("mysql", dsource)
+
+	if err != nil{
+		panic( err)
+	}
+	err = Engine_token.Ping()
+	if err != nil{
 		panic(err)
 	}
+
 	//redis初始化
 	Redis = nil
 

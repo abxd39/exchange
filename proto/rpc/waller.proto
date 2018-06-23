@@ -6,6 +6,11 @@ service Gateway2Waller {
 	rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse){}
 	rpc Signtx(SigntxRequest) returns (SigntxResponse){}
 	rpc Tibi(TibiRequest) returns (TibiResponse){}
+	rpc AddressSave(AddressSaveRequest) returns (AddressSaveResponse){}
+	rpc AddressList(AddressListRequest) returns (AddressListResponse){}
+	rpc AddressDelete(AddressDeleteRequest) returns (AddressDeleteResponse){}
+	rpc GetValue(GetValueRequest) returns (GetValueResponse){}
+
 }
 
 message HelloRequest2 {
@@ -48,12 +53,12 @@ message SigntxResponse{
     SigntxPos data=3;
 }
 
-message TibiPos{
+message NilPos{
 
 }
 message TibiRequest{
     int32 uid=1;
-    int32 token_id=2;
+    int32 tokenid=2;
     string to =3;
     string amount=4;
     int32 gasprice=5;
@@ -62,5 +67,59 @@ message TibiRequest{
 message TibiResponse{
     string code=1;
     string msg=2;
-    TibiPos data=3;
+    NilPos data=3;
+}
+
+message AddressSaveRequest{
+    int32 uid=1;
+    int32 tokenid=2;
+    string address =3;
+    string mark=4;
+}
+message AddressSaveResponse{
+    string code=1;
+    string msg=2;
+    NilPos data=3;
+}
+
+message AddrlistPos{
+      int32 id=1;
+      int32 uid=2;
+      int32 token_id=3;
+      string address=4;
+      string mark=5;
+}
+message AddressListRequest{
+    int32 uid=1;
+    int32 tokenid=2;
+}
+
+message AddressListResponse{
+    string code=1;
+    string msg=2;
+    repeated AddrlistPos data=3;
+}
+
+message AddressDeleteRequest{
+    int32 uid=1;
+    int32 id=2;
+}
+
+message AddressDeleteResponse{
+    string code=1;
+    string msg=2;
+    NilPos data=3;
+}
+
+message GetValuePos{
+   string value=1;
+}
+message GetValueRequest{
+    int32 uid=1;
+    int32 tokenid=2;
+}
+message GetValueResponse{
+    string code=1;
+    string msg=2;
+    GetValuePos data=3;
 }

@@ -2,8 +2,8 @@ package rpc
 
 import (
 	proto "digicon/proto/rpc"
-	"digicon/wallet_service/rpc/handler"
 	. "digicon/wallet_service/utils"
+	"digicon/wallet_service/rpc/handler"
 	"fmt"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -24,7 +24,7 @@ func RPCServerInit() {
 	)
 	service.Init()
 
-	proto.RegisterGateway2WallerHandler(service.Server(), new(handler.Wallet))
+	proto.RegisterGateway2WallerHandler(service.Server(), new(handler.WalletHandler))
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err.Error())
@@ -32,3 +32,4 @@ func RPCServerInit() {
 	}
 
 }
+
