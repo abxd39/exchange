@@ -149,7 +149,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	freeze := uCurrency.Freeze
 	feeNum := this.Num * rateFloat
 	//// 如果购买的币数量加上费用的大于冻结的，则无法添加订单
-	if uint64(this.Num +  feeNum ) > freeze {
+	if this.Num +  feeNum > freeze {
 		Log.Errorln("num + fee > freeze")
 		code = ERRCODE_ORDER_FREEZE
 		return
@@ -214,6 +214,25 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 	/////////////////////////////////////////////////////////
 	// 1. user_currency扣, 买家减交易金额，卖家加交易金额和减去费用
 	////////////////////////////////////////////////////////
+
+	uCurrency := new(UserCurrency)
+	session.Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(&uCurrency)
+
+	sellNum := allNum + rateFee
+	if  uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
+		Log.Println("余额不足!")
+		session.Rollback()
+		return
+	}
+
+	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
+	_, err = session.Exec(sellSql, sellNum, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
+	if err != nil {
+		Log.Println(err.Error())
+		session.Rollback()
+		return
+	}
+
 	buySql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`,  `balance`)  values(?, ?, ?, ? ) ON DUPLICATE  KEY  UPDATE  `balance`=`balance`+?"
 	_, err = session.Exec(buySql, this.BuyId, this.TokenId, tokenName ,  allNum, allNum)
 
@@ -222,14 +241,7 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 		session.Rollback()
 		return
 	}
-	sellNum := allNum + rateFee
-	sellSql := "update user_currency set  `freeze`=`freeze` - ? WHERE  uid = ? and token_id = ?"
-	_, err = session.Exec(sellSql, sellNum, this.SellId, this.TokenId )         // 卖家 扣除平台费用
-	if err != nil {
-		Log.Println(err.Error())
-		session.Rollback()
-		return
-	}
+
 	//////////////////////////////////////////////////
 	// 2. 插入记录 user_currency_history, 转入，转出，卖家扣费用
 	/////////////////////////////////////////////////
