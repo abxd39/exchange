@@ -67,7 +67,7 @@ func (this *ArticlesGroup) ArticlesDetail(c *gin.Context) {
 	if err = json.Unmarshal([]byte(rsp.Data), articles); err != nil {
 		log.Log.Errorf(err.Error())
 	}
-	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetErrCode(rsp.Err)
 	ret.SetDataSection("articles", &articles)
 }
 
@@ -92,10 +92,13 @@ func (this *ArticlesGroup) ArticlesList(c *gin.Context) {
 	//fmt.Println("param2:", param)
 	rsp, err := rpc.InnerService.PublicService.CallArticlesList(param.ArticlesType, param.Page, param.PageNum)
 	if err != nil {
+		log.Log.Errorf(err.Error())
 		ret.SetErrCode(x.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	//fmt.Println("gatway return value ", rsp.Articles)
-	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetErrCode(rsp.Err)
+	ret.SetDataSection("total", rsp.TotalPage)
 	ret.SetDataSection("list", rsp.Articles)
+	return
 }
