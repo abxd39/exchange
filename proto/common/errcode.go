@@ -50,8 +50,11 @@ const (
 	ERR_TOKEN_REPEAT     = 403
 	ERR_TOKEN_QUENE_CONF = 404
 
-	ERRCODE_ORDER_FREEZE = 420
-	ERRCODE_SELLER_LESS = 421
+	ERRCODE_ORDER_FREEZE  = 420
+	ERRCODE_SELLER_LESS   = 421
+	ERRCODE_USER_BALANCE  = 422
+	ERRCODE_ORDER_ERROR   = 423
+	ERRCODE_TRADE_ERROR   = 424
 )
 
 func GetErrorMessage(code int32) string {
@@ -106,6 +109,9 @@ func init() {
 	message[ERRCODE_ADS_EXISTS] = "广告已存在"
 
 	message[ERRCODE_SELLER_LESS] = "卖家余额不足"
+	message[ERRCODE_USER_BALANCE] = "查询用户余额失败"
+	message[ERRCODE_ORDER_ERROR] = "下单失败"
+	message[ERRCODE_TRADE_ERROR] = "交易失败，请重试!"
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 	message[ERR_TOKEN_LESS] = "币的余额不够"

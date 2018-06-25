@@ -87,21 +87,26 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 }
 
 // 产生订单 ID
-//  uid, 币种id , 时间秒,
+//  uid, 时间秒,
 func createOrderId(userId int32, tokenId uint64) (orderId string) {
 	tn := time.Now()
 	tnn := tn.UnixNano()
-	tnns := strconv.FormatInt(tnn, 10) // 获取微秒时间
+	tnnStr := strconv.FormatInt(tnn, 10) // 获取微秒时间
+	tnnStrLen := len(tnnStr)
+	tStr := tn.Format("2006-01-02 15:04:05.34234")
+
 	var buffer bytes.Buffer
 	buffer.WriteString(strconv.FormatInt(int64(userId), 10))
-	if tokenId < 10 {
-		buffer.WriteString(`0`) //不够2位，补0
-		buffer.WriteString(strconv.FormatUint(tokenId, 10))
-	} else {
-		buffer.WriteString(strconv.FormatUint(tokenId, 10))
-	}
-	buffer.WriteString(tnns[len(tnns)-6:])
+	buffer.WriteString(tStr[2:4])    // 年
+	buffer.WriteString(tStr[5:7])    // 月
+	buffer.WriteString(tStr[8:10])   // 日
+	buffer.WriteString(tStr[17:19])  // 秒
+	//buffer.WriteString(tStr[22:24])
+	buffer.WriteString(tnnStr[tnnStrLen-5 : tnnStrLen-2]) // 微秒
 	orderId = buffer.String()
 	return
 }
+
+
+
 
