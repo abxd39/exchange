@@ -51,7 +51,7 @@ const (
 	ERR_TOKEN_QUENE_CONF = 404
 
 	ERRCODE_ORDER_FREEZE = 420
-
+	ERRCODE_SELLER_LESS = 421
 )
 
 func GetErrorMessage(code int32) string {
@@ -105,6 +105,7 @@ func init() {
 	message[ERRCODE_ORDER_NOTEXIST] = "订单不存在"
 	message[ERRCODE_ADS_EXISTS] = "广告已存在"
 
+	message[ERRCODE_SELLER_LESS] = "卖家余额不足"
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 	message[ERR_TOKEN_LESS] = "币的余额不够"

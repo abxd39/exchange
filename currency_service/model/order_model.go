@@ -7,6 +7,7 @@ import (
 	. "digicon/proto/common"
 	"strconv"
 	"bytes"
+	"time"
 )
 
 
@@ -137,30 +138,72 @@ func (this *Order)Ready(Id uint64,  updateTimeStr string) (int32, string) {
 }
 
 
-//添加订单
+// 添加订单
 func (this *Order) Add() (id uint64, code int32) {
+	var err error
 	engine := dao.DB.GetMysqlConn()
+
 	uCurrency := new(UserCurrency)
-	engine.Where("uid=? and token_id=?" , this.SellId, this.TokenId).Find(uCurrency)
+	engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 
 	rate := conf.Cfg.MustValue("rate", "fee_rate")
 	rateFloat, _ := strconv.ParseInt(rate, 10, 64)
+	freeze := this.Num * (1 + rateFloat)
 
-	freeze := uCurrency.Freeze
-	feeNum := this.Num * rateFloat
-	//// 如果购买的币数量加上费用的大于冻结的，则无法添加订单
-	if this.Num +  feeNum > freeze {
-		Log.Errorln("num + fee > freeze")
-		code = ERRCODE_ORDER_FREEZE
+	if freeze > uCurrency.Balance {
+		Log.Errorln("卖家余额不足!")
+		code = ERRCODE_SELLER_LESS
 		return
 	}
-	_, err := engine.Insert(this)
+
+	nowTime := time.Now().Format("2006-01-02 15:04:05")
+	session := engine.NewSession()
+
+	/// 1. 卖家冻结
+	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
+	_, err = session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
+	if err != nil {
+		Log.Errorln(err.Error())
+		session.Rollback()
+		code = ERRCODE_UNKNOWN
+		return
+	}
+
+	/// 2. 记录卖家冻结
+	var buffer bytes.Buffer
+	buffer.WriteString("insert into user_currency_history ")
+	buffer.WriteString("(uid, order_id, token_id, num, fee, operator, address, states, created_time ,updated_time)")
+	buffer.WriteString("values (?, ?, ?, ?, ?,  ?, ?, ?, ? , ?)")
+	insertSql := buffer.String()
+	_, err = session.Table(`user_currency_history`).Exec(insertSql,
+		this.SellId,this.OrderId, this.TokenId,  this.Num , 0 , 5, "", this.States, nowTime, nowTime,      // 卖家记录 , 5 为冻结
+	)
+
+	if err != nil{
+		Log.Errorln(err.Error())
+		session.Rollback()
+		code = ERRCODE_UNKNOWN
+		return
+	}
+
+	/// 3. 下单，添加订单
+	_, err = session.Table("order").InsertOne(this)
+
 	if err != nil {
 		Log.Errorln(err.Error())
 		code = ERRCODE_UNKNOWN
-	}else{
-		id = this.Id
+		session.Rollback()
+		return
 	}
+
+	err = session.Commit()
+	if err != nil {
+		Log.Errorln(err.Error())
+		code = ERRCODE_UNKNOWN
+		session.Rollback()
+		return
+	}
+	id = this.Id
 	code =  ERRCODE_SUCCESS
 	return
 }
@@ -170,10 +213,10 @@ func (this *Order) Add() (id uint64, code int32) {
 // 确认放行(支付完成)
 // set state = 3
 func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
-	err := this.ConfirmSession(Id, updateTimeStr)
+	code, err := this.ConfirmSession(Id, updateTimeStr)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN, "confirm Error!"
+		return code, "confirm Error!"
 	}else{
 		return ERRCODE_SUCCESS, ""
 	}
@@ -184,7 +227,7 @@ func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
 
 
 // 确认放行事务
-func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) {
+func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32, err error) {
 	engine := dao.DB.GetMysqlConn()
 
 	engine.Table(`order`).Where("id=?", Id).Get(this)
@@ -199,6 +242,15 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 	engine.Where("id=?", this.TokenId).Get(tokens)
 	tokenName := tokens.Name
 
+	uCurrency := new(UserCurrency)
+	engine.Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
+
+	sellNum := allNum + rateFee
+	if  uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
+		Log.Println("余额不足!")
+		code = ERRCODE_SELLER_LESS
+		return
+	}
 
 	// 事务开始
 	session := engine.NewSession()
@@ -215,16 +267,6 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 	// 1. user_currency扣, 买家减交易金额，卖家加交易金额和减去费用
 	////////////////////////////////////////////////////////
 
-	uCurrency := new(UserCurrency)
-	session.Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(&uCurrency)
-
-	sellNum := allNum + rateFee
-	if  uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
-		Log.Println("余额不足!")
-		session.Rollback()
-		return
-	}
-
 	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
 	_, err = session.Exec(sellSql, sellNum, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
 	if err != nil {
@@ -233,8 +275,8 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 		return
 	}
 
-	buySql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`,  `balance`)  values(?, ?, ?, ? ) ON DUPLICATE  KEY  UPDATE  `balance`=`balance`+?"
-	_, err = session.Exec(buySql, this.BuyId, this.TokenId, tokenName ,  allNum, allNum)
+	buySql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`,  `balance`)  values(?, ?, ?, ? ) ON DUPLICATE  KEY  UPDATE  `balance`=`balance`+?  WHERE `uid`=? and token_id=? and version=?"
+	_, err = session.Exec(buySql, this.BuyId, this.TokenId, tokenName ,  allNum, allNum, this.BuyId, this.TokenId, uCurrency.Version)
 
 	if err != nil {
 		Log.Println(err.Error())
@@ -247,13 +289,13 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 	/////////////////////////////////////////////////
 	var buffer bytes.Buffer
 	buffer.WriteString("insert into user_currency_history ")
-	buffer.WriteString("(uid, order_id, token_id, num, fee, operator, address, states, created_time,updated_time)")
-	buffer.WriteString("values (?, ?, ?, ?, ?,   ?, ?, ? , ?, ?), (?, ?, ?, ?, ?,   ?, ?, ? , ?, ?)")
+	buffer.WriteString("(uid, order_id, token_id, num, fee, operator, address, states, updated_time)")
+	buffer.WriteString("values (?, ?, ?, ?, ?,   ?, ?, ? ,  ?), (?, ?, ?, ?, ?,   ?, ?, ? ,  ?)")
 	insertSql := buffer.String()
 
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId,this.OrderId, this.TokenId, sellNum , rateFee , 2, "", this.States, this.CreatedTime, updateTimeStr,   // 卖家记录 , 2订单转出
-		this.BuyId, this.OrderId, this.TokenId, this.Num, 0       , 1, "", this.States, this.CreatedTime, updateTimeStr,   // 买家记录 , 1订单转入
+		this.SellId,this.OrderId, this.TokenId, sellNum , rateFee , 2, "", this.States,  updateTimeStr,   // 卖家记录 , 2订单转出
+		this.BuyId, this.OrderId, this.TokenId, this.Num, 0       , 1, "", this.States,  updateTimeStr,   // 买家记录 , 1订单转入
 		)
 	if err != nil{
 		Log.Println(err.Error())
@@ -274,20 +316,9 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 		return
 	}
 
-	//////////////////////////////////////////////////////
-	// 4. 卖家库存减
-	/////////////////////////////////////////////////////
-	updateInventorySql := "UPDATE  `ads` set `inventory`=`inventory`-? WHERE  id = ?"
-	_, err = session.Exec(updateInventorySql, allNum , this.AdId)
-	if err != nil {
-		Log.Println(err.Error())
-		session.Rollback()
-		return
-	}
-
 
 	//////////////////////////////////////////////////////
-	// 5. 更新状态
+	// 4. 更新状态
 	//////////////////////////////////////////////////////
 	updateStatesSql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?, `fee`=?  WHERE  `id`=?"
 	_, err = session.Exec(updateStatesSql,3, updateTimeStr, rateFee, Id )
@@ -297,5 +328,6 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (err error) 
 		return
 	}
 	err = session.Commit()
+	code = ERRCODE_SUCCESS
 	return
 }
