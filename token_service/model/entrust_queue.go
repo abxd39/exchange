@@ -64,11 +64,11 @@ const (
 */
 func NewEntrustQuene(quene_id string) *EntrustQuene {
 	m := &EntrustQuene{
-		TokenQueneId:      quene_id,
-		BuyQueneId:        fmt.Sprintf("%s:1", quene_id),
-		SellQueneId:       fmt.Sprintf("%s:2", quene_id),
-		UUID:              1,
-		sourceData:        make(map[string]*EntrustData),
+		TokenQueneId: quene_id,
+		BuyQueneId:   fmt.Sprintf("%s:1", quene_id),
+		SellQueneId:  fmt.Sprintf("%s:2", quene_id),
+		UUID:         1,
+		sourceData:   make(map[string]*EntrustData),
 		//newOrderDetail:    make(chan *EntrustData, 1000),
 		waitOrderDetail:   make(chan *EntrustData, 1000),
 		updateOrderDetail: make(chan *EntrustData, 1000),
@@ -210,20 +210,19 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		DealTime:     time.Now().Unix(),
 	}
 
-
-	num := deal_num * seller.OnPrice//计算此次交易USDT
+	num := deal_num * seller.OnPrice //计算此次交易USDT
 
 	if seller.SurplusNum < deal_num { //卖方部分成交
 		t.States = TRADE_STATES_PART
 		o.States = TRADE_STATES_ALL
-		buyer.SurplusNum-=num
+		buyer.SurplusNum -= num
 	} else if seller.SurplusNum == deal_num {
 		t.States = TRADE_STATES_ALL
 		o.States = TRADE_STATES_ALL
 	} else {
 		t.States = TRADE_STATES_ALL
 		o.States = TRADE_STATES_PART
-		seller.SurplusNum-=deal_num
+		seller.SurplusNum -= deal_num
 	}
 
 	session := DB.GetMysqlConn().NewSession()
@@ -272,7 +271,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-
 	return
 }
 
@@ -293,8 +291,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
 			num := p.SurplusNum / other.OnPrice
 
-			//存在限价则成交
-			if num > other.SurplusNum {
+			if num > other.SurplusNum {//存在限价则成交
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
 				s.match(p)
 			} else if num == other.SurplusNum {
@@ -304,19 +301,70 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 				s.joinSellQuene(other)
 			}
 
-		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {//限价交易撮合
-			if  p.OnPrice >= other.OnPrice{
-				if s.price<other.OnPrice {
+		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
+			if p.OnPrice >= other.OnPrice {
+				if p.OnPrice <= s.price {
+					s.price = p.OnPrice
+				} else if other.OnPrice >= s.price {
 					s.price = other.OnPrice
-				}
-/*
-				num := p.SurplusNum / s.price
-				if  p.SurplusNum{
-
+				} else if s.price > p.OnPrice && s.price < other.OnPrice {
+					s.price = s.price
 				}
 
-				*/
+				if p.SurplusNum > other.SurplusNum {
+					s.MakeDeal(p, other, s.price, other.SurplusNum)
+					s.match(p)
+				} else if p.SurplusNum == other.SurplusNum {
+					s.MakeDeal(p, other, s.price, other.SurplusNum)
+				} else {
+					s.MakeDeal(p, other, s.price, p.SurplusNum)
+					s.joinSellQuene(other)
+				}
+			}
+		}
+
+	}else 	if p.Opt == proto.ENTRUST_OPT_SELL {
+		other, err = s.popFirstEntrust(proto.ENTRUST_OPT_BUY)
+		if err == redis.Nil {
+			//没有对应委托单进入等待区
+			s.marketOrderDetail <- p
+			return
+		} else if err != nil {
+			Log.Errorln(err.Error())
+			return
+		}
+
+		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE {//市价交易撮合
+
+			if p.SurplusNum > other.SurplusNum {//存在限价则成交
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
+				s.match(p)
+			} else if p.SurplusNum  == other.SurplusNum {
+				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
+			} else {
+				s.MakeDeal(p, other, other.OnPrice, p.SurplusNum)
+				s.joinSellQuene(other)
+			}
+
+		}else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
+			if p.OnPrice >= other.OnPrice {
+				if p.OnPrice <= s.price {
+					s.price = p.OnPrice
+				} else if other.OnPrice >= s.price {
+					s.price = other.OnPrice
+				} else if s.price > p.OnPrice && s.price < other.OnPrice {
+					s.price = s.price
+				}
+
+				if p.SurplusNum > other.SurplusNum {
+					s.MakeDeal(p, other, s.price, other.SurplusNum)
+					s.match(p)
+				} else if p.SurplusNum == other.SurplusNum {
+					s.MakeDeal(p, other, s.price, other.SurplusNum)
+				} else {
+					s.MakeDeal(p, other, s.price, p.SurplusNum)
+					s.joinSellQuene(other)
+				}
 			}
 		}
 
@@ -377,7 +425,7 @@ func (s *EntrustQuene) insertOrderDetail(d *EntrustData) bool {
 
 //删除队列数据源模拟弹出操作
 func (s *EntrustQuene) delOrderDetail(order_id string) bool {
-	delete(s.sourceData,order_id)
+	delete(s.sourceData, order_id)
 	return true
 }
 
@@ -411,7 +459,7 @@ func (s *EntrustQuene) popFirstEntrust(opt proto.ENTRUST_OPT) (en *EntrustData, 
 		en, ok = s.GetOrderData(d)
 		if ok {
 			err = DB.GetRedisConn().ZRem(s.BuyQueneId, d).Err()
-			if err!=nil {
+			if err != nil {
 				return
 			}
 			s.delOrderDetail(d)
