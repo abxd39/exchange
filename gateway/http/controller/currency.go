@@ -18,12 +18,12 @@ type CurrencyGroup struct{}
 func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency")
 	{
-		Currency.GET("/ads", this.GetAds)                           // 获取广告(买卖)
-		Currency.POST("/add_ads", this.AddAds)                      // 新增广告(买卖)
-		Currency.POST("/updated_ads", this.UpdatedAds)              // 修改广告(买卖)
-		Currency.POST("/updated_ads_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
-		Currency.POST("/ads_list", this.AdsList)                    // 法币交易列表 - (广告(买卖))
-		Currency.POST("/ads_user_list", this.AdsUserList)           // 个人法币交易列表 - (广告(买卖))
+		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)
+		Currency.POST("/add_otc", this.AddAds)                      // 新增广告(买卖)
+		Currency.POST("/updated_otc", this.UpdatedAds)              // 修改广告(买卖)
+		Currency.POST("/updated_otc_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
+		Currency.GET("/otc_list", this.AdsList)                     // 法币交易列表 - (广告(买卖))
+		Currency.GET("/otc_user_list", this.AdsUserList)            // 个人法币交易列表 - (广告(买卖))
 		Currency.GET("/tokens", this.GetTokens)                     // 获取货币类型
 		Currency.GET("/tokens_list", this.GetTokensList)            // 获取货币类型列表
 		Currency.GET("/pays", this.GetPays)                         // 获取支付方式
@@ -841,6 +841,6 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 		return
 	}
 
-	ret.SetDataValue(data)
+	ret.SetDataValue(data.Data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }
