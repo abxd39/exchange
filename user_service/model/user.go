@@ -17,10 +17,31 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 )
 
+
 type User struct {
-	Uid              int    `xorm:"not null pk autoincr INT(11)"`
+	Uid              uint64  `xorm:"not null pk autoincr comment('用户ID') BIGINT(11)"`
+	Account          string `xorm:"comment('账号') unique VARCHAR(64)"`
+	Pwd              string `xorm:"comment('密码') VARCHAR(255)"`
+	Country          string `xorm:"comment('地区号') VARCHAR(32)"`
+	Phone            string `xorm:"comment('手机') unique VARCHAR(64)"`
+	PhoneVerifyTime  int    `xorm:"comment('手机验证时间') INT(11)"`
+	Email            string `xorm:"comment('邮箱') unique VARCHAR(128)"`
+	EmailVerifyTime  int    `xorm:"comment('邮箱验证时间') INT(11)"`
+	GoogleVerifyId   string `xorm:"comment('谷歌私钥') VARCHAR(128)"`
+	GoogleVerifyTime int    `xorm:"comment('谷歌验证时间') INT(255)"`
+	SmsTip           bool    `xorm:"default 0 comment('短信提醒') TINYINT(1)"`
+	PayPwd           string `xorm:"comment('支付密码') VARCHAR(255)"`
+	NeedPwd          bool    `xorm:"comment('免密设置1开启0关闭') TINYINT(1)"`
+	NeedPwdTime      int    `xorm:"comment('免密周期') INT(11)"`
+}
+
+
+/*
+type User struct {
+	Uid              uint64    `xorm:"not null pk autoincr INT(11)"`
 	Account          string `xorm:"unique VARCHAR(128)"`
 	Pwd              string `xorm:"VARCHAR(255)"`
+	Country			 string  `xorm:"VARCHAR(32)"`
 	Phone            string `xorm:"unique VARCHAR(64)"`
 	PhoneVerifyTime  int    `xorm:"comment('手机验证时间') INT(11)"`
 	Email            string `xorm:"unique VARCHAR(128)"`
@@ -32,8 +53,8 @@ type User struct {
 	NeedPwd          bool   `xorm:"INT(4)"`
 	NeedPwdTime      int    `xorm:"INT(11)"`
 }
-
-func (s *User) GetUser(uid int32) (ret int32, err error) {
+*/
+func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -94,7 +115,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 
 	r := &proto.UserAllData{
 		Base: &proto.UserBaseData{
-			Uid:            int32(s.Uid),
+			Uid:            s.Uid,
 			Account:        s.Account,
 			Phone:          s.Phone,
 			Email:          s.Email,
@@ -134,7 +155,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 }
 
 //刷新用户缓存
-func (s *User) RefreshCache(uid int32) (out *proto.UserAllData, ret int32, err error) {
+func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err error) {
 	r := RedisOp{}
 	d, err := r.GetUserBaseInfo(uid)
 
@@ -195,8 +216,9 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		Pwd:     req.Pwd,
 		Phone:   req.Ukey,
 		Account: req.Ukey,
+		Country: req.Country,
 	}
-	_, err := DB.GetMysqlConn().Cols("pwd", filed, "account").Insert(e)
+	_, err := DB.GetMysqlConn().Cols("pwd", filed, "account","country").Insert(e)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -233,8 +255,8 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 			return ERRCODE_UNKNOWN
 		}
 
-		d.Invites += 1
-		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Update(d)
+
+		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Incr("invites",1).Update(d)
 		if err != nil {
 			Log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN
@@ -356,11 +378,6 @@ func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 
 //通过手机登陆
 func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
-	if ok := check.CheckPhone(phone); !ok {
-		ret = ERRCODE_SMS_PHONE_FORMAT
-		return
-	}
-
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -424,7 +441,7 @@ func (s *User) refreshToken() (token string, err error) {
 	b := encryption.Gensha256(uid_, time.Now().Unix(), string(salt))
 
 	//_,err:=DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("token").Update(s)
-	err = new(RedisOp).SetUserToken(string(b), int32(s.Uid))
+	err = new(RedisOp).SetUserToken(string(b), s.Uid)
 	if err != nil {
 		return
 	}
@@ -433,8 +450,9 @@ func (s *User) refreshToken() (token string, err error) {
 	return
 }
 
+//通用获取用户登陆信息
 func (s *User) GetLoginUser(p *proto.LoginUserBaseData) (err error) {
-	p.Uid = int32(s.Uid)
+	p.Uid = s.Uid
 
 	return
 }
@@ -451,7 +469,7 @@ func (s *User) ModifyPwd(newpwd string) (err error) {
 }
 
 //修改谷歌验证密钥
-func (s *User) SetGoogleSecertKey(uid int32, secert_key string) (ret int32) {
+func (s *User) SetGoogleSecertKey(uid uint64, secert_key string) (ret int32) {
 	s.GoogleVerifyId = secert_key
 
 	_, err := DB.GetMysqlConn().Where("uid=?", uid).Cols("google_verify_id").Update(s)

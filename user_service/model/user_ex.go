@@ -8,18 +8,18 @@ import (
 )
 
 type UserEx struct {
-	Uid           int    `xorm:"not null pk comment(' 用户ID') INT(11)"`
-	NickName      string `xorm:"not null comment('昵称') VARCHAR(64)"`
-	HeadSculpture string `xorm:"not null comment('头像图路径') VARCHAR(100)"`
-	RegisterTime  int64  `xorm:"comment('注册时间') INT(20)"`
+	Uid           uint64 `xorm:"not null pk comment(' 用户ID') BIGINT(11)"`
+	NickName      string `xorm:"not null default '' comment('用户昵称') VARCHAR(64)"`
+	HeadSculpture string `xorm:"not null default '' comment('头像图片路径') VARCHAR(100)"`
+	RegisterTime  int64  `xorm:"comment('注册时间') BIGINT(20)"`
 	InviteCode    string `xorm:"comment('邀请码') VARCHAR(64)"`
 	RealName      string `xorm:"comment(' 真名') VARCHAR(32)"`
 	IdentifyCard  string `xorm:"comment('身份证号') VARCHAR(64)"`
-	InviteId      int    `xorm:"comment('邀请者') INT(20)"`
-	Invites       int    `xorm:"comment('邀请人数') INT(20)"`
+	InviteId      uint64 `xorm:"comment('邀请者id') BIGINT(11)"`
+	Invites       int    `xorm:"default 0 comment('邀请人数') INT(11)"`
 }
 
-func (s *UserEx) GetUserEx(uid int) (ret int32, err error) {
+func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())

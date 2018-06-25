@@ -35,6 +35,7 @@ func (s *UserGroup) Router(r *gin.Engine) {
 	}
 }
 
+//用户注册
 func (s *UserGroup) RegisterController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -45,8 +46,8 @@ func (s *UserGroup) RegisterController(c *gin.Context) {
 		Ukey       string `form:"ukey" binding:"required"`
 		Pwd        string `form:"pwd" binding:"required"`
 		Confirm    string `form:"confirm" binding:"required"`
-		InviteCode string `form:"invite_code" binding:"required"`
-		Country    int32  `form:"country" binding:"required"`
+		InviteCode string `form:"invite_code" `
+		Country    string  `form:"country" `
 		Code       string `form:"code" binding:"required"`
 		Type       int32  `form:"type" binding:"required"`
 	}
@@ -57,7 +58,13 @@ func (s *UserGroup) RegisterController(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-
+godump.Dump(param)
+	if param.Type==1 {
+		if param.Country=="" {
+			ret.SetErrCode(ERRCODE_PARAM)
+			return
+		}
+	}
 	if param.Pwd != param.Confirm {
 		ret.SetErrCode(ERRCODE_PWD_COMFIRM)
 		return
@@ -191,7 +198,7 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection(RET_DATA, rsp.Data)
 }
 
 //忘记密码
@@ -220,7 +227,6 @@ func (s *UserGroup) ForgetPwdController(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	godump.Dump(rsp)
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
@@ -260,6 +266,7 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 	}()
 
 	type PhoneParam struct {
+
 		Phone string `form:"phone" binding:"required"`
 		Type  int32  `form:"type" binding:"required"`
 	}
@@ -268,11 +275,6 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		return
-	}
-
-	if ok := check.CheckPhone(param.Phone); !ok {
-		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
 		return
 	}
 

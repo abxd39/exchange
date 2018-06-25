@@ -22,8 +22,8 @@ func main() {
 	signal.Notify(quitChan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
-		syscall.SIGHUP,
 	)
+	//model.SendSms("57002661", 10)
 
 	sig := <-quitChan
 	Log.Infof("server close by sig %s", sig.String())
