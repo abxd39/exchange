@@ -42,6 +42,8 @@ const (
 	ERRCODE_PAYS_NOTEXIST     = 303
 	ERRCODE_ADS_TYPE_NOTEXIST = 304
 	ERRCODE_ORDER_NOTEXIST    = 305
+	ERRCODE_ORDER_UNFINISHED  = 306
+	ERRCODE_ORDER_EXCEPTION   = 307
 
 	//400-
 	ERR_TOKEN_QUENE_NIL  = 401
@@ -102,6 +104,8 @@ func init() {
 	message[ERRCODE_PAYS_NOTEXIST] = "支付方式不存在"
 	message[ERRCODE_ADS_TYPE_NOTEXIST] = "广告类型不存在"
 	message[ERRCODE_ORDER_NOTEXIST] = "订单不存在"
+	message[ERRCODE_ORDER_UNFINISHED] = "尚有订单未完成"
+	message[ERRCODE_ORDER_EXCEPTION] = "订单异常"
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 	message[ERR_TOKEN_LESS] = "币的余额不够"

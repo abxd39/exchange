@@ -25,8 +25,6 @@ type Ads struct {
 	Reply       string `xorm:"VARBINARY(512)" json:"reply"`     // 自动回复问候语
 	IsUsd       uint32 `xorm:"TINYINT(1)" json:"is_usd"`        // 是否美元支付:0否 1是
 	States      uint32 `xorm:"TINYINT(1)" json:"states"`        // 状态:0下架 1上架
-	Inventory   uint64 `xorm:"BIGINT(20)" json:"inventory"`     // 库存
-	Fee         uint64 `xorm:"BIGINT(20)" json:"fee"`           // 手续费用
 	CreatedTime string `xorm:"DATETIME" json:"created_time"`    // 创建时间
 	UpdatedTime string `xorm:"DATETIME" json:"updated_time"`    // 修改时间
 	IsDel       uint32 `xorm:"TINYINT(1)" json:"is_del"`        // 是否删除:0不删除 1删除
@@ -50,46 +48,9 @@ func (this *Ads) Get(id uint64) *Ads {
 
 func (this *Ads) Add() int {
 
-	// 用户虚拟货币资产表
-	isUcy := new(UserCurrency).Get(this.Uid, this.TokenId)
-	if isUcy == nil || isUcy.Uid == 0 {
-		return ERR_TOKEN_LESS
-	}
-
-	if this.Num > isUcy.Balance {
-		return ERR_TOKEN_LESS
-	}
-	isUcy.Balance = isUcy.Balance - this.Num
-	isUcy.Freeze = isUcy.Freeze + this.Num
-
-	// 启用事务
-	session := dao.DB.GetMysqlConn().NewSession()
-	defer session.Close()
-
-	err := session.Begin()
+	_, err := dao.DB.GetMysqlConn().Insert(this)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	_, err = session.Where("uid=? AND token_id=?", this.Uid, this.TokenId).Update(isUcy)
-	if err != nil {
-		Log.Errorln(err.Error())
-		session.Rollback()
-		return ERRCODE_UNKNOWN
-	}
-
-	_, err = session.Insert(this)
-	if err != nil {
-		Log.Errorln(err.Error())
-		session.Rollback()
-		return ERRCODE_UNKNOWN
-	}
-
-	err = session.Commit()
-	if err != nil {
-		Log.Errorln(err.Error())
-		session.Rollback()
 		return ERRCODE_UNKNOWN
 	}
 
@@ -124,6 +85,23 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 		return ERRCODE_ADS_NOTEXIST
 	}
 
+	// 1下架
+	if isGet.IsDel == 0 && isGet.States == status_id-1 {
+		return ERRCODE_SUCCESS
+	}
+	// 2上架
+	if isGet.IsDel == 0 && isGet.States == status_id-1 {
+		return ERRCODE_SUCCESS
+	}
+	// 3正常(不删除)
+	if isGet.IsDel == 0 && isGet.IsDel == status_id-3 {
+		return ERRCODE_SUCCESS
+	}
+	// 4删除
+	if isGet.IsDel == 1 && isGet.IsDel == status_id-3 {
+		return ERRCODE_SUCCESS
+	}
+
 	if status_id == 1 || status_id == 2 {
 		_, err = dao.DB.GetMysqlConn().Exec("UPDATE `ads` SET `states`=? WHERE `id`=?", status_id-1, id)
 	} else if status_id == 3 || status_id == 4 {
@@ -135,7 +113,7 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 		return ERRCODE_UNKNOWN
 	}
 
-	return ERRCODE_SUCCESS
+	return ERRCODE_UNKNOWN
 }
 
 // 法币交易列表 - (广告(买卖))

@@ -5,7 +5,6 @@ import (
 	proto "digicon/proto/rpc"
 	"golang.org/x/net/context"
 	"log"
-	"math"
 	"time"
 )
 
@@ -53,9 +52,6 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.
 
 	// 数据过虑暂不做
 
-	// 计算库存和手续费用
-	tnventory, fee := s.Fee(float64(req.Num), 100, 1)
-
 	ads := new(model.Ads)
 	ads.Uid = req.Uid
 	ads.TypeId = req.TypeId
@@ -73,8 +69,6 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.
 	ads.Reply = req.Reply
 	ads.IsUsd = req.IsUsd
 	ads.States = req.States
-	ads.Inventory = tnventory
-	ads.Fee = fee
 	ads.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	ads.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
 	ads.IsDel = 0
@@ -306,12 +300,4 @@ func (s *RPCServer) CurrencyChatsList(ctx context.Context, req *proto.CurrencyCh
 
 	rsp.Data = listData
 	return nil
-}
-
-// 计算库存和手续费用
-func (s *RPCServer) Fee(num, multiple, multiple_fee float64) (uint64, uint64) {
-	feeNum := (num / multiple) * multiple_fee
-	feeNum = math.Ceil(feeNum)
-	tnventory := num - feeNum
-	return uint64(tnventory), uint64(feeNum)
 }

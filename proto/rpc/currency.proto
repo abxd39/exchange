@@ -92,8 +92,6 @@ message AdsModel {
     uint32 states       = 17; // 状态:0下架 1上架
     string created_time = 18; // 创建时间
     string updated_time = 19; // 修改时间
-    uint64 inventory    = 20; // 库存
-    uint64 fee          = 21; // 手续费用
 }
 
 message AdsGetRequest {
@@ -127,8 +125,6 @@ message AdsLists {
     uint32 type_id      = 13; // 类型:1出售 2购买
     uint32 token_id     = 14; // 货币类型
     string token_name   = 15; // 货币名称
-    uint64 inventory    = 16; // 库存
-    uint64 fee          = 17; // 手续费用
 }
 
 message AdsListRequest {
