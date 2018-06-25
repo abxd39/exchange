@@ -9,7 +9,7 @@ import (
 )
 
 type UserCurrencyWechatPay struct {
-	Uid         int    `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
+	Uid         uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
 	Name        string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"`
 	Wechat      string `xorm:"not null default '' comment('微信号码') VARCHAR(20)"`
 	ReceiptCode string `xorm:"not null default '' comment('收款二维码图片路径') VARCHAR(100)"`
@@ -23,7 +23,7 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 	//查询数据库是否存在
 	engine := dao.DB.GetMysqlConn()
 	has, err := engine.Exist(&UserCurrencyWechatPay{
-		Uid: int(req.Uid),
+		Uid: req.Uid,
 	})
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
@@ -33,7 +33,7 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
 	} else {
 		_, err := engine.InsertOne(&UserCurrencyWechatPay{
-			Uid:         int(req.Uid),
+			Uid:         req.Uid,
 			Name:        req.Name,
 			Wechat:      req.Wechat,
 			ReceiptCode: req.ReceiptCode,
