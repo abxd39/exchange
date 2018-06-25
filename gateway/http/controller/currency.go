@@ -19,7 +19,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency")
 	{
 		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)
-		Currency.POST("/add_otc", this.AddAds)                      // 新增广告(买卖)
+		Currency.POST("/created_otc", this.AddAds)                  // 新增广告(买卖)
 		Currency.POST("/updated_otc", this.UpdatedAds)              // 修改广告(买卖)
 		Currency.POST("/updated_otc_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
 		Currency.GET("/otc_list", this.AdsList)                     // 法币交易列表 - (广告(买卖))
@@ -28,7 +28,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/tokens_list", this.GetTokensList)            // 获取货币类型列表
 		Currency.GET("/pays", this.GetPays)                         // 获取支付方式
 		Currency.GET("/pays_list", this.GetPaysList)                // 获取支付方式列表
-		Currency.POST("/add_chats", this.AddChats)                  // 新增订单聊天
+		Currency.POST("/created_chats", this.AddChats)              // 新增订单聊天
 		Currency.GET("/chats_list", this.GetChatsList)              // 获取订单聊天列表
 
 		//// order ////
