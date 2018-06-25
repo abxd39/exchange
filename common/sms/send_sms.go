@@ -74,16 +74,13 @@ godump.Dump(strRequestUrl)
 	request.Header.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36")
 godump.Dump(time.Now().Unix())
 	// 发出请求
-	httpClient.Timeout=20*time.Second
 	response, err := httpClient.Do(request)
-
 	//defer response.Body.Close()
 	if nil != err {
-		godump.Dump(time.Now().Unix())
 		godump.Dump(err.Error())
 		return err.Error()
 	}
-
+	godump.Dump(time.Now().Unix())
 	// 解析响应内容
 	body, err := ioutil.ReadAll(response.Body)
 	if nil != err {

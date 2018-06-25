@@ -9,7 +9,7 @@ message PaysResponse{
 }
 
 message BankPayRequest{
-    int32   uid         =1;
+    uint64   uid         =1;
     string  token       =2;
     string  name        =3;
     string  card_num    =4;
@@ -23,7 +23,7 @@ message BankPayRequest{
 
 
 message WeChatPayRequest{
-    int32   uid         =1;
+    uint64   uid         =1;
     string token        =2;
     string  name        =3;
     string  wechat      =4;
@@ -33,7 +33,7 @@ message WeChatPayRequest{
 }
 
 message AlipayRequest{
-    int32   uid         =1;
+    uint64   uid         =1;
     string token        =2;
     string  name        =3;
     string  alipay      =4;
@@ -43,7 +43,7 @@ message AlipayRequest{
 }
 
 message PaypalRequest{
-    int32   uid         =1;
+    uint64   uid         =1;
     string token        =2;
     string  paypal      =3;
     string  phone       =6;

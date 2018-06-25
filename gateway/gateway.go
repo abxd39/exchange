@@ -20,6 +20,7 @@ func main() {
 	signal.Notify(quitChan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
+		syscall.SIGHUP,
 	)
 
 	sig := <-quitChan

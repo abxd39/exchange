@@ -11,7 +11,7 @@ import (
 )
 
 type UserCurrencyBankPay struct {
-	Uid        int    `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
+	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
 	Name       string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"`
 	CardNum    string `xorm:"not null default '' comment('银行卡号') VARCHAR(20)"`
 	BankName   string `xorm:"not null default '' comment('银行名称') VARCHAR(20)"`
@@ -34,7 +34,7 @@ func (*UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error)
 	engine := dao.DB.GetMysqlConn()
 	//检查数据库是否已经存在uid
 	has, err := engine.Exist(&UserCurrencyBankPay{
-		Uid: int(req.Uid),
+		Uid: req.Uid,
 	})
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
@@ -47,7 +47,7 @@ func (*UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error)
 		//插入新的纪录
 
 		_, err := engine.InsertOne(&UserCurrencyBankPay{
-			Uid:        int(req.Uid),
+			Uid:        req.Uid,
 			Name:       req.Name,
 			CardNum:    req.CardNum,
 			BankName:   req.BankName,

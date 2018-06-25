@@ -11,41 +11,15 @@ service TokenRPC {
 		rpc EntrustOrder(EntrustOrderRequest) returns (CommonErrResponse) {};
         //新增代币
         rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
-
-        rpc HistoryKline(HistoryKlineRequest) returns (HistoryKlineResponse) {};
-}
-
-enum ENTRUST_OPT //操作方向类型
-{
-    EONONE          = 0;
-    BUY             = 1; //买入类型
-    SELL            = 2; //卖出类型
-    EOMAX          = 3;
-}
-
-enum ENTRUST_TYPE //委托类型
-{
-    ETNONE                    = 0;
-    MARKET_PRICE            = 1;  //市价委托
-    LIMIT_PRICE             = 2; //限价委托
-    ETMAX                   =3;
-}
-
-enum TOKEN_OPT_TYPE //金钱操作类型
-{
-    TOTNONE                    = 0;
-    ADD                     = 1;  //加钱
-    DEL                     = 2; //减钱
-    TOTMAX                  =3;
 }
 
 message  EntrustOrderRequest {
     int32 token_id                  =1;//tokenid_tokenid
-    string symbol                    =2;//交易币种
-    int64 on_price                    =3;//委托价格
-    int64 num                      =4;//委托数量
-    ENTRUST_OPT  opt                      =5;
-    ENTRUST_TYPE  type                  =6;
+    int32 token_trade_id            =2;
+    int64 on_price                    =3;
+    int64 num                      =4;
+    int32  opt                      =5;//操作类型1买入2卖出
+    int32  type                  =6;//委托类型1限价2市价
     int32 uid                      =7;
 }
 
@@ -60,18 +34,6 @@ message AddTokenNumRequest {
     int32 uid = 3;
     int32 token_id = 4;
     int64 num = 6;
-    TOKEN_OPT_TYPE opt = 7;
-    bytes ukey  =8;
-    int32 type  =9;
-}
-
-message HistoryKlineRequest{
-    string symbol   =1;
-    string period   =2;
-    string size     =3;
-}
-
-message HistoryKlineResponse{
-    int32 err                       =1;
-    string message                  =2;
+    bool opt = 7; //操作类型0增加1减少
+    bytes hash  =8;
 }

@@ -46,6 +46,8 @@ service UserRPC {
     rpc  ModifyPhone2 (UserSetNewPhoneRequest) returns (UserSetNewPhoneResponse){};
     // modify user trade passward
     rpc ModifyTradePwd (UserModifyTradePwdRequest) returns (UserModifyTradePwdResponse){};
+    //modify user nick name and head sculpture
+    rpc ModifyNickName (UserModifyNickNameResquest)returns (UserModifyNickNameResponse){};
 }
 
 
@@ -213,7 +215,7 @@ message UserInviteResponse{
 }
 
 message UserModifyLoginPwdRequest{
-    int32 uid           =1;
+    uint64 uid           =1;
     string token        =2;
     string phone        =3;
     string oldPwd       =4;
@@ -229,7 +231,7 @@ message UserModifyLoginPwdResponse{
 }
 
 message UserModifyPhoneRequest{
-    int32 uid           =1;
+    uint64 uid           =1;
     string token        =2;
     string phone        =3;
     string verify       =4;
@@ -242,7 +244,7 @@ message UserModifyPhoneResponse{
 }
 
 message UserSetNewPhoneRequest{
-    int32 uid           =1;
+    uint64 uid           =1;
     string token        =2;
     string country      =3;
     string phone        =4;
@@ -257,7 +259,7 @@ message UserSetNewPhoneResponse{
 
 
 message UserModifyTradePwdRequest{
-    int32 uid           =1;
+    uint64 uid           =1;
     string token        =2;
     string phone        =3;
     string newPwd       =4;
@@ -271,4 +273,20 @@ message UserModifyTradePwdResponse{
     string data     =3;
 }
 
+
+message UserModifyNickNameResquest{
+    repeated uint64 uid=1;
+}
+
+message UserModifyNickNameResponse{
+    message UserNickName{
+        uint64   uid             =1;
+        string  nack_name       =2;
+        string  head_sculpture  =3;
+    }
+    repeated UserNickName user  =1;
+    int32 err                   =2;
+    string message              =3;
+    string data                 =4;
+}
 

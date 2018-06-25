@@ -29,7 +29,7 @@ func GetPhoneTagByLogic(phone string, ty int32) string {
 }
 
 //获取用户标签
-func GetUserTagByLogic(uid uint64, tag string) string {
+func GetUserTagByLogic(uid int32, tag string) string {
 	return fmt.Sprintf("user:%s:info:%s", uid, tag)
 }
 
@@ -56,7 +56,7 @@ func (s *RedisOp) GetSmsCode(phone string, ty int32) (code string, err error) {
 	return
 }
 
-func (s *RedisOp) SetTmpGoogleSecertKey(uid uint64, code string) (err error) {
+func (s *RedisOp) SetTmpGoogleSecertKey(uid int32, code string) (err error) {
 	err = DB.GetRedisConn().Set(GetUserTagByLogic(uid, UID_TAG_GOOGLE_SECERT_KEY), code, 600*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -65,7 +65,7 @@ func (s *RedisOp) SetTmpGoogleSecertKey(uid uint64, code string) (err error) {
 	return
 }
 
-func (s *RedisOp) GetTmpGoogleSecertKey(uid uint64) (key string, err error) {
+func (s *RedisOp) GetTmpGoogleSecertKey(uid int32) (key string, err error) {
 	key, err = DB.GetRedisConn().Get(GetUserTagByLogic(uid, UID_TAG_GOOGLE_SECERT_KEY)).Result()
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -74,7 +74,7 @@ func (s *RedisOp) GetTmpGoogleSecertKey(uid uint64) (key string, err error) {
 	return
 }
 
-func (s *RedisOp) SetUserBaseInfo(uid uint64, data string) (err error) {
+func (s *RedisOp) SetUserBaseInfo(uid int32, data string) (err error) {
 	err = DB.GetRedisConn().Set(GetUserTagByLogic(uid, UID_TAG_BASE_INFO), data, 1800*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -83,7 +83,7 @@ func (s *RedisOp) SetUserBaseInfo(uid uint64, data string) (err error) {
 	return
 }
 
-func (s *RedisOp) GetUserBaseInfo(uid uint64) (rsp string, err error) {
+func (s *RedisOp) GetUserBaseInfo(uid int32) (rsp string, err error) {
 	rsp, err = DB.GetRedisConn().Get(GetUserTagByLogic(uid, UID_TAG_BASE_INFO)).Result()
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -92,7 +92,7 @@ func (s *RedisOp) GetUserBaseInfo(uid uint64) (rsp string, err error) {
 	return
 }
 
-func (s *RedisOp) SetUserToken(token string, uid uint64) (err error) {
+func (s *RedisOp) SetUserToken(token string, uid int32) (err error) {
 	err = DB.GetRedisConn().Set(token, uid, 604800*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
