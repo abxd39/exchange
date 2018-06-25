@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"context"
 	. "digicon/currency_service/log"
 	"digicon/currency_service/model"
@@ -10,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"digicon/common/encryption"
 )
 
 // 获取订单列表
@@ -75,7 +75,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		fmt.Println(err.Error())
 	}
 
-	od.OrderId = createOrderId(req.Uid, od.TokenId)
+	od.OrderId = encryption.CreateOrderId(req.Uid, od.TokenId)
 	od.States = 1
 	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
@@ -86,26 +86,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	return nil
 }
 
-// 产生订单 ID
-//  uid, 时间秒,
-func createOrderId(userId int32, tokenId uint64) (orderId string) {
-	tn := time.Now()
-	tnn := tn.UnixNano()
-	tnnStr := strconv.FormatInt(tnn, 10) // 获取微秒时间
-	tnnStrLen := len(tnnStr)
-	tStr := tn.Format("2006-01-02 15:04:05.34234")
 
-	var buffer bytes.Buffer
-	buffer.WriteString(strconv.FormatInt(int64(userId), 10))
-	buffer.WriteString(tStr[2:4])    // 年
-	buffer.WriteString(tStr[5:7])    // 月
-	buffer.WriteString(tStr[8:10])   // 日
-	buffer.WriteString(tStr[17:19])  // 秒
-	//buffer.WriteString(tStr[22:24])
-	buffer.WriteString(tnnStr[tnnStrLen-5 : tnnStrLen-2]) // 微秒
-	orderId = buffer.String()
-	return
-}
 
 
 

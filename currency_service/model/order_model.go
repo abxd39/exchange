@@ -179,10 +179,6 @@ func (this *Order) Add() (id uint64, code int32) {
 	session := engine.NewSession()
 
 	/// 1. 卖家冻结
-<<<<<<< HEAD
-	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
-	_, err = session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
-=======
 	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
 	sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
 	if err != nil {
@@ -198,7 +194,6 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 	err = engine.ClearCache(new(UserCurrency))
->>>>>>> 772af1efeede1b4513ed5d5f6f25d0be65ac0bd1
 	if err != nil {
 		Log.Errorln(err.Error())
 		session.Rollback()
