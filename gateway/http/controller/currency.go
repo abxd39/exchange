@@ -18,12 +18,12 @@ type CurrencyGroup struct{}
 func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency")
 	{
-		Currency.GET("/ads", this.GetAds)                           // 获取广告(买卖)
-		Currency.POST("/add_ads", this.AddAds)                      // 新增广告(买卖)
-		Currency.POST("/updated_ads", this.UpdatedAds)              // 修改广告(买卖)
-		Currency.POST("/updated_ads_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
-		Currency.POST("/ads_list", this.AdsList)                    // 法币交易列表 - (广告(买卖))
-		Currency.POST("/ads_user_list", this.AdsUserList)           // 个人法币交易列表 - (广告(买卖))
+		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)
+		Currency.POST("/add_otc", this.AddAds)                      // 新增广告(买卖)
+		Currency.POST("/updated_otc", this.UpdatedAds)              // 修改广告(买卖)
+		Currency.POST("/updated_otc_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
+		Currency.GET("/otc_list", this.AdsList)                     // 法币交易列表 - (广告(买卖))
+		Currency.GET("/otc_user_list", this.AdsUserList)            // 个人法币交易列表 - (广告(买卖))
 		Currency.GET("/tokens", this.GetTokens)                     // 获取货币类型
 		Currency.GET("/tokens_list", this.GetTokensList)            // 获取货币类型列表
 		Currency.GET("/pays", this.GetPays)                         // 获取支付方式
@@ -76,7 +76,7 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 请求的数据结构
@@ -109,7 +109,7 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 	}
 
 	ret.SetErrCode(ERRCODE_SUCCESS)
-	ret.SetDataSection(RET_DATA, CurrencyAds{
+	ret.SetDataValue(CurrencyAds{
 		Id:          data.Id,
 		Uid:         data.Uid,
 		TypeId:      data.TypeId,
@@ -464,7 +464,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 请求的数据结构
@@ -538,7 +538,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		reaList.List = append(reaList.List, adsLists)
 	}
 
-	ret.SetDataSection(RET_DATA, reaList)
+	ret.SetDataValue(reaList)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
@@ -548,7 +548,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 请求的数据结构
@@ -614,7 +614,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		reaList.List = append(reaList.List, adsLists)
 	}
 
-	ret.SetDataSection(RET_DATA, reaList)
+	ret.SetDataValue(reaList)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
@@ -624,7 +624,7 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 请求的数据结构
@@ -660,7 +660,7 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection(RET_DATA, data)
+	ret.SetDataValue(data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
@@ -670,7 +670,7 @@ func (this *CurrencyGroup) GetTokensList(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 调用 rpc 获取货币类型列表
@@ -682,7 +682,7 @@ func (this *CurrencyGroup) GetTokensList(c *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection(RET_DATA, data)
+	ret.SetDataValue(data.Data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }
 
@@ -691,7 +691,7 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 请求的数据结构
@@ -727,7 +727,7 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection(RET_DATA, data)
+	ret.SetDataValue(data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
@@ -737,7 +737,7 @@ func (this *CurrencyGroup) GetPaysList(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 调用 rpc 获取支付方式列表
@@ -749,7 +749,7 @@ func (this *CurrencyGroup) GetPaysList(c *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection(RET_DATA, data)
+	ret.SetDataValue(data.Data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }
 
@@ -810,7 +810,7 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 
 	ret := NewPublciError()
 	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.JSON(http.StatusOK, ret.GetData())
 	}()
 
 	// 请求的数据结构
@@ -841,6 +841,6 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection(RET_DATA, data)
+	ret.SetDataValue(data.Data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }

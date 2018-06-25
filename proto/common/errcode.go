@@ -166,3 +166,13 @@ func (s *PublicErrorType) GetResult() gin.H {
 	s.ret[RET_DATA] = s.data
 	return s.ret
 }
+
+// 补充-设置数据部分内容
+func (s *PublicErrorType) SetDataValue(value interface{}) {
+	s.ret[RET_DATA] = value
+}
+
+// 补充-返回最终的数据
+func (s *PublicErrorType) GetData() gin.H {
+	return s.ret
+}
