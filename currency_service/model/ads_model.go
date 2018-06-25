@@ -49,7 +49,7 @@ func (this *Ads) Get(id uint64) *Ads {
 func (this *Ads) Add() int {
 
 	data := new(Ads)
-	isdata, err := dao.DB.GetMysqlConn().Where("uid=? AND token_id=?").Get(data)
+	isdata, err := dao.DB.GetMysqlConn().Where("uid=? AND token_id=? AND type_id=?", this.Uid, this.TokenId, this.TypeId).Get(data)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
