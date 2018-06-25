@@ -38,3 +38,6 @@
 ./currency_service/logfile/
 ./token_service/logfile/
 ./public_service/logfile/
+
+bin/
+build.sh

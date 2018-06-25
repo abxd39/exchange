@@ -2,7 +2,7 @@ package check
 
 import "regexp"
 
-func CheckPhone(phone string) bool {
+func CheckPhone2(phone string) bool {
 	reg := `^1([38][0-9]|14[57]|5[^4])\d{8}$`
 	rgx := regexp.MustCompile(reg)
 	if ok := rgx.MatchString(phone); !ok {

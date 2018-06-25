@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"github.com/liudng/godump"
 )
 
 func main() {
@@ -28,8 +27,7 @@ func main() {
 		syscall.SIGTERM,
 		syscall.SIGHUP,
 	)
-	g:=model.GetKLine("bchbtc","5min",150)
-	godump.Dump(g)
+	//g:=model.GetKLine("bchbtc","5min",150)
 	sig := <-quitChan
 	Log.Infof("server close by sig %s", sig.String())
 }

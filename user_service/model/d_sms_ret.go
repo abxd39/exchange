@@ -11,8 +11,8 @@ import (
 
 const (
 	SMS_REGISTER   = 1 //注册业务
-	SMS_FORGET     = 2
-	SMS_CHANGE_PWD = 3
+	SMS_FORGET     = 2//忘记密码
+	SMS_CHANGE_PWD = 3//
 
 	SMS_MAX = 4
 )
@@ -27,7 +27,7 @@ func SendSms(phone string, ty int32) (ret int32, err_msg string) {
 		return
 	}
 
-	ret, msg := tools.Send253YunSms(phone, code)
+	ret, msg := tools.SendInter253YunSms(phone, code)
 	err_msg = msg
 	return
 }

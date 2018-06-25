@@ -162,12 +162,8 @@ func (this *Order) Add() (id uint64, code int32) {
 	/// 1. 卖家冻结
 	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
 	_, err = session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
-	if err != nil {
-		Log.Errorln(err.Error())
-		session.Rollback()
-		code = ERRCODE_UNKNOWN
-		return
-	}
+
+
 
 	/// 2. 记录卖家冻结
 	var buffer bytes.Buffer

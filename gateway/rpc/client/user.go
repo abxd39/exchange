@@ -25,7 +25,7 @@ func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse, err error
 	return
 }
 
-func (s *UserRPCCli) CallRegister(ukey string, pwd, invite_code string, country int32, code string, ty int32) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallRegister(ukey string, pwd, invite_code string, country string, code string, ty int32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.Register(context.TODO(), &proto.RegisterRequest{
 		Ukey:       ukey,
 		Pwd:        pwd,

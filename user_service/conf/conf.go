@@ -28,8 +28,8 @@ func init() {
 
 func Init() {
 	Cfg = NewConfig(confPath)
-	SmsAccount = Cfg.MustValue("sms", "account", "N2562426")
-	SmsPwd = Cfg.MustValue("sms", "pwd", "rSLFN2Io96772f")
-	SmsWebUrl = Cfg.MustValue("sms", "sms_url", "http://smssh1.253.com/msg/send/json")
+	SmsAccount = Cfg.MustValue("sms", "account", "I1757342")
+	SmsPwd = Cfg.MustValue("sms", "pwd", "i1PYZXVaWt2de6")
+	SmsWebUrl = Cfg.MustValue("sms", "sms_url", "http://intapi.253.com/send/json")
 
 }

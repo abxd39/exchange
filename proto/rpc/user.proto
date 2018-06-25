@@ -35,7 +35,7 @@ service UserRPC {
     //获取实名信息
     rpc GetUserRealName(UserInfoRequest) returns (UserRealNameResponse) {}
 
-    //
+    //获取邀请信息
     rpc GetUserInvite(UserInfoRequest) returns (UserInviteResponse) {}
 
     //modify user password
@@ -61,7 +61,7 @@ message RegisterRequest {
     string ukey=1;
     string pwd=2;
     string invite_code=4;
-    int32  country=5;
+    string  country=5; //国家代码
     string code=6;
     int32  type=7;
 }
@@ -81,7 +81,7 @@ message LoginRequest {
 }
 
 message LoginUserBaseData{
-    int32 uid       =1;
+    uint64 uid       =1;
     bytes token    =2;
 }
 
@@ -135,7 +135,7 @@ message ModifyPwdRequest {
 
 
 message GoogleAuthRequest {
-    int32 uid       =1;
+    uint64 uid       =1;
 }
 
 message GoogleAuthResponse {
@@ -146,21 +146,21 @@ message GoogleAuthResponse {
 }
 
 message AuthGoogleSecretKeyRequest {
-    int32 uid       =1;
+    uint64 uid       =1;
     uint32 code      =2;
 }
 
 message DelGoogleSecretKeyRequest {
-    int32 uid       =1;
+    uint64 uid       =1;
     uint32 code      =2;
 }
 
 message UserInfoRequest{
-    int32 uid       =1;
+    uint64 uid       =1;
 }
 
 message UserBaseData{
-    int32 uid                   =1;
+    uint64 uid                   =1;
     string account              =2;
     string phone                =3;
     string email                =4;
