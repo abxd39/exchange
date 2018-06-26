@@ -640,6 +640,8 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(data)
+
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{Page: data.Page, PageNum: data.PageNum, Total: data.Total}
 	for _, v := range data.Data {

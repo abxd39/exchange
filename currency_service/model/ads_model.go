@@ -161,7 +161,7 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurren
 }
 
 // 个人法币交易列表 - (广告(买卖))
-func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]Ads, int64) {
+func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUserCurrencyCount, int64) {
 
 	total, err := dao.DB.GetMysqlConn().Where("uid=? AND type_id=?", Uid, TypeId).Count(new(Ads))
 	if err != nil {
@@ -177,8 +177,14 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]Ads, i
 		limit = int((Page - 1) * PageNum)
 	}
 
-	data := make([]Ads, 0)
-	err = dao.DB.GetMysqlConn().Where("uid=? AND type_id=?", Uid, TypeId).Desc("updated_time").Limit(int(PageNum), limit).Find(&data)
+	data := make([]AdsUserCurrencyCount, 0)
+	err = dao.DB.GetMysqlConn().
+		Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
+		Where("ads.uid=? AND ads.type_id=?", Uid, TypeId).
+		Desc("updated_time").
+		Limit(int(PageNum), limit).
+		Find(&data)
+
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil, 0
