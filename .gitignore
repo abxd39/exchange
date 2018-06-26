@@ -4,6 +4,7 @@
 *.so
 *.dylib
 *.log
+*.ini
 
 # Test binary, build with `go test -c`
 *.test
@@ -13,25 +14,11 @@
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
-
+.vscode
 
 /proto/rpc/*.go
 
 .idea/
-/user_service/*.ini
-/gateway/*.ini
-/wallet_service/*.ini
-/currency_service/*.ini
-/token_service/*.ini
-/public_service/*.ini
-
-./usr_service/*.exe
-./gateway/*.exe
-./wallet_service/*.exe
-./currency_service/*.exe
-./token_service/*.exe
-./public_service/*.exe
-
 ./usr_service/logfile/
 ./gateway/logfile/
 ./wallet_service/logfile/
