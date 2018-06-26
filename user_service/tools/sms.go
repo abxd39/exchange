@@ -13,7 +13,6 @@ import (
 )
 
 func Send253YunSms(phone, code string) (rcode int32, err error) {
-
 	content := fmt.Sprintf("【253云通讯】您好，您的验证码是%s", code)
 	ret, err := sms.Send253Sms(phone, cf.SmsAccount, cf.SmsPwd, content, cf.SmsWebUrl)
 	if err != nil {
@@ -41,15 +40,6 @@ func Send253YunSms(phone, code string) (rcode int32, err error) {
 	switch int32(code_) {
 	case 0:
 		rcode = ERRCODE_SUCCESS
-		return
-	case 109:
-		rcode = ERRCODE_SMS_MONEY_ENGOUGE
-		return
-	case 104:
-		rcode = ERRCODE_SMS_SYS_BUSY
-		return
-	case 103:
-		rcode = ERRCODE_SMS_COMMIT_QUICK
 		return
 	default:
 		rcode = ERRCODE_UNKNOWN

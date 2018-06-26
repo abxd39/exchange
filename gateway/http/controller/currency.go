@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"fmt"
+	"digicon/gateway/utils"
 )
 
 type CurrencyGroup struct{}
@@ -507,6 +508,14 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 	if req.PageNum <= 0 {
 		req.PageNum = 9
 	}
+	if req.FiatCurrency == "" {
+		req.FiatCurrency = "cny"
+	} else {
+		req.FiatCurrency = strings.ToLower(req.FiatCurrency)
+	}
+	if req.FiatCurrency != "cny" && req.FiatCurrency != "usd" {
+		req.FiatCurrency = "cny"
+	}
 
 	// 调用 rpc 法币交易列表 - (广告(买卖))
 	data, err := rpc.InnerService.CurrencyService.CallAdsList(&proto.AdsListRequest{
@@ -541,10 +550,10 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 			adsLists := AdsListsData{
 				Id:          data.Data[i].Id,
 				Uid:         data.Data[i].Uid,
-				Price:       convert.Int64ToFloat64By8Bit(int64(data.Data[i].Price)),
-				Num:         convert.Int64ToFloat64By8Bit(int64(data.Data[i].Num)),
+				Price:       utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
+				Num:         utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
 				MinLimit:    data.Data[i].MinLimit,
-				MaxLimit:    data.Data[i].MaxLimit,
+				MaxLimit:    uint32(utils.PriceFiatMaxLimit(int64(data.Data[i].MaxLimit), data.Data[i].Balance, int32(data.Data[i].TypeId), req.FiatCurrency)),
 				Pays:        data.Data[i].Pays,
 				CreatedTime: data.Data[i].CreatedTime,
 				UpdatedTime: data.Data[i].UpdatedTime,
@@ -639,6 +648,8 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
+
+	fmt.Println(data)
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{Page: data.Page, PageNum: data.PageNum, Total: data.Total}

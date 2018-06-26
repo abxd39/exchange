@@ -1,8 +1,8 @@
 package model
 
 import (
-	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
+	"digicon/currency_service/dao"
 )
 
 // 用户虚拟货币资产表
@@ -14,13 +14,21 @@ type UserCurrency struct {
 	Freeze    int64  `xorm:"BIGINT not null default 0"   json:"freeze"`                       // 冻结
 	Balance   int64  `xorm:"not null default 0 comment('余额') BIGINT"   json:"balance"`        // 余额
 	Address   string `xorm:"not null default '' comment('充值地址') VARCHAR(255)" json:"address"` // 充值地址
-	Version   int    `xorm:"version"`
+	Version   int64  `xorm:"version"`
 }
 
-func (this *UserCurrency) Get(uid uint64, token_id uint32) *UserCurrency {
+func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurrency {
 
 	data := new(UserCurrency)
-	isdata, err := dao.DB.GetMysqlConn().Where("uid=? AND token_id=?", uid, token_id).Get(data)
+	var isdata bool
+	var err error
+
+	if id > 0 {
+		isdata, err = dao.DB.GetMysqlConn().Id(id).Get(data)
+	} else {
+		isdata, err = dao.DB.GetMysqlConn().Where("uid=? AND token_id=?", uid, token_id).Get(data)
+	}
+
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil

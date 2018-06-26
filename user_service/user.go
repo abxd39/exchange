@@ -23,7 +23,7 @@ func main() {
 		syscall.SIGINT,
 		syscall.SIGTERM,
 	)
-	//model.SendSms("57002661", 10)
+//	model.SendSms("18664328365", "86",1)
 
 	sig := <-quitChan
 	Log.Infof("server close by sig %s", sig.String())

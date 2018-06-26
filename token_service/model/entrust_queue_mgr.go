@@ -4,7 +4,6 @@ import (
 	"digicon/common/genkey"
 	. "digicon/token_service/dao"
 	. "digicon/token_service/log"
-	"fmt"
 	"sync"
 )
 
@@ -42,11 +41,11 @@ func (s *EntrustQueneMgr) GetQuene(token_id, trade_token_id int) (d *EntrustQuen
 
 //添加一个币币交易
 func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
-	_, ok := s.dataMgr[e.TokenQueneId]
+	_, ok := s.dataMgr[e.TokenQueueId]
 	if ok {
-		Log.Fatalf("insert same quene id is %s", e.TokenQueneId)
+		Log.Fatalf("insert same quene id is %s", e.TokenQueueId)
 	}
-	s.dataMgr[e.TokenQueneId] = e
+	s.dataMgr[e.TokenQueueId] = e
 	return ok
 }
 
@@ -66,8 +65,8 @@ func (s *EntrustQueneMgr) Init() bool {
 	}
 
 	for _, v := range d {
-		quene_id := fmt.Sprintf("%d_%d", v.TokenId, v.TokenTradeId)
-		e := NewEntrustQuene(quene_id)
+		//quene_id := fmt.Sprintf("%d_%d", v.TokenId, v.TokenTradeId)
+		e := NewEntrustQueue( v.TokenId,v.TokenTradeId)
 		s.AddQuene(e)
 	}
 
