@@ -46,7 +46,7 @@ message  EntrustOrderRequest {
     int64 num                      =4;//委托数量
     ENTRUST_OPT  opt                      =5;
     ENTRUST_TYPE  type                  =6;
-    int32 uid                      =7;
+    uint64 uid                      =7;
 }
 
 message EntrustOrderResponse{
@@ -57,7 +57,7 @@ message EntrustOrderResponse{
 message AddTokenNumRequest {
     int32 err = 1;
     string message = 2;
-    int32 uid = 3;
+    uint64 uid = 3;
     int32 token_id = 4;
     int64 num = 6;
     TOKEN_OPT_TYPE opt = 7;

@@ -3,6 +3,7 @@ package dao
 import (
 	cf "digicon/token_service/conf"
 	"github.com/go-redis/redis"
+	. "digicon/token_service/log"
 )
 
 type RedisCli struct {
@@ -19,7 +20,16 @@ func NewRedisCli() *RedisCli {
 		DB:       0,  // use default DB
 	})
 
-	defer client.Close()
+	pong, err := client.Ping().Result()
+	if err != nil {
+		Log.Fatalf("redis connect faild ")
+	}
+	Log.Infoln(pong)
+	_,err = client.ZRangeWithScores("token:1/2", 0, 1).Result()
+	if err != nil {
+		Log.Fatalf("redis connect faild ")
+	}
+
 	return &RedisCli{
 		rcon: client,
 	}

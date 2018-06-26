@@ -8,6 +8,7 @@ import (
 	proto "digicon/proto/rpc"
 	"digicon/common/convert"
 	. "digicon/gateway/log"
+	"github.com/liudng/godump"
 )
 type TokenGroup struct{}
 
@@ -26,7 +27,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 	}()
 
 	type EntrustOrderParam struct {
-		Uid int32 `form:"uid" binding:"required"`
+		Uid uint64 `form:"uid" binding:"required"`
 		TokenId int32 `form:"token_id" binding:"required"`
 		Symbol string `form:"symbol" binding:"required"`
 		Opt int32 `form:"opt" `
@@ -47,7 +48,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM,err.Error())
 		return
 	}
-
+godump.Dump(o)
 
 	n,err:=convert.StringToInt64By8Bit(param.Num)
 	if err!=nil {

@@ -9,9 +9,7 @@ import (
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
 
-	"fmt"
 	"github.com/go-redis/redis"
-	"github.com/liudng/godump"
 )
 
 type RPCServer struct{}
@@ -26,10 +24,8 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
 	if req.Type == 1 { //手机注册
 		r := model.RedisOp{}
-		godump.Dump(req)
-		u := fmt.Sprintf("%s%s", req.Country, req.Ukey)
-		godump.Dump(u)
-		code, err := r.GetSmsCode(u, model.SMS_REGISTER)
+		//u := fmt.Sprintf("%s%s", req.Country, req.Ukey)
+		code, err := r.GetSmsCode(req.Ukey, model.SMS_REGISTER)
 		if err == redis.Nil {
 			rsp.Err = ERRCODE_SMS_CODE_NIL
 			rsp.Message = GetErrorMessage(rsp.Err)

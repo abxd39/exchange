@@ -2,6 +2,7 @@ package model
 
 import (
 	. "digicon/proto/common"
+	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
 	. "digicon/token_service/log"
 	"errors"
@@ -10,15 +11,15 @@ import (
 
 type UserToken struct {
 	Id      int64
-	Uid     int   `xorm:"unique(currency_uid) INT(11)"`
-	TokenId int   `xorm:"comment('币种') unique(currency_uid) INT(11)"`
-	Balance int64 `xorm:"comment('余额') BIGINT(20)"`
-	Fronzen int64 `xorm:"comment('冻结余额') BIGINT(20)"`
-	Version int
+	Uid     uint64 `xorm:"unique(currency_uid) INT(11)"`
+	TokenId int    `xorm:"comment('币种') unique(currency_uid) INT(11)"`
+	Balance int64  `xorm:"comment('余额') BIGINT(20)"`
+	Frozen  int64  `xorm:"comment('冻结余额') BIGINT(20)"`
+	Version int `xorm:"version"`
 }
 
 //获取实体
-func (s *UserToken) GetUserToken(uid, token_id int) (err error) {
+func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 	var ok bool
 	ok, err = DB.GetMysqlConn().Where("uid=? and token_id=?", uid, token_id).Get(s)
 	if err != nil {
@@ -207,23 +208,37 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 */
 
 //冻结资金
-func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_id string) (ret int32, err error) {
+func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_id string, ty int) (ret int32, err error) {
 	var aff int64
 	if s.Balance >= num {
 		s.Balance -= num
-		s.Fronzen += num
-		aff, err = sess.ID(s.Id).Update(s)
+		s.Frozen += num
+		aff, err = sess.ID(s.Id).Cols("balance", "frozen").Update(s)
 		if err != nil {
 			Log.Errorln(err.Error())
 			return
 		}
 
 		if aff == 0 {
-			err = errors.New("update balance err version is worong")
+			err = errors.New("update balance err version is wrong")
 			ret = ERRCODE_UNKNOWN
 			return
 		}
 
+		f := Frozen{
+			Uid:     s.Uid,
+			Ukey:    entrust_id,
+			Num:     num,
+			TokenId: s.TokenId,
+			Type:    ty,
+			Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
+		}
+
+		_, err = sess.Insert(f)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return
+		}
 		return
 	}
 
@@ -232,8 +247,39 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 }
 
 //消耗冻结资金
-func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id string) (ret int32, err error) {
+func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id string, ty int) (ret int32, err error) {
+	if s.Frozen < num {
+		ret = ERR_TOKEN_LESS
+		return
+	}
 
+	var aff int64
+	s.Frozen -= num
+	aff, err = sess.ID(s.Id).Cols("frozen").Update(s)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	if aff == 0 {
+		err = errors.New("update balance err version is wrong")
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	f := Frozen{
+		Uid:     s.Uid,
+		Ukey:    entrust_id,
+		Num:     num,
+		TokenId: s.TokenId,
+		Type:    ty,
+		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+	}
+
+	_, err = sess.Insert(f)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
 	return
 }
 

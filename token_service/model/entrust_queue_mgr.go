@@ -66,7 +66,7 @@ func (s *EntrustQueneMgr) Init() bool {
 
 	for _, v := range d {
 		//quene_id := fmt.Sprintf("%d_%d", v.TokenId, v.TokenTradeId)
-		e := NewEntrustQueue( v.TokenId,v.TokenTradeId)
+		e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price)
 		s.AddQuene(e)
 	}
 

@@ -24,7 +24,14 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 		return nil
 	}
 
-	q.EntrustReq(req)
+	ret, err := q.EntrustReq(req)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+	rsp.Err = ret
+	rsp.Message = GetErrorMessage(rsp.Err)
 	/*
 		q.JoinSellQuene(&model.EntrustDetail{
 			EntrustId:  genkey.GetTimeUnionKey(q.GetUUID()),
