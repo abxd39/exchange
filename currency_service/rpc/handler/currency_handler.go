@@ -6,7 +6,6 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"time"
-	"fmt"
 )
 
 type RPCServer struct{}
@@ -173,6 +172,8 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 			TypeId:      data[i].TypeId,
 			TokenId:     data[i].TokenId,
 			TokenName:   data[i].TokenName,
+			Balance:     data[i].Balance,
+			Freeze:      data[i].Freeze,
 		}
 		listData[i] = adsLists
 	}
@@ -307,6 +308,19 @@ func (s *RPCServer) CurrencyChatsList(ctx context.Context, req *proto.CurrencyCh
 
 // 获取用户虚拟货币资产
 func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.UserCurrency) error {
-	fmt.Println(req)
+	data := new(model.UserCurrency).Get(req.Id, req.Uid, req.TokenId)
+	if data == nil {
+		return nil
+	}
+
+	rsp.Id = data.Id
+	rsp.Uid = data.Uid
+	rsp.TokenId = data.TokenId
+	rsp.TokenName = data.TokenName
+	rsp.Freeze = data.Freeze
+	rsp.Balance = data.Balance
+	rsp.Address = data.Address
+	rsp.Version = data.Version
+
 	return nil
 }
