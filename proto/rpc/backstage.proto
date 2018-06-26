@@ -1,0 +1,17 @@
+
+syntax = "proto3";
+package g2u;
+
+service BackstageRPC {
+    rpc Test(TestRequest)returns (TestResponse){};
+}
+
+message TestRequest{
+    int32 tid   =1;
+}
+
+message TestResponse{
+    int32   code    =1;
+    string  data    =2;
+    string  msg     =3;
+}
