@@ -56,12 +56,11 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 
 	rsp, err := rpc.InnerService.TokenService.CallEntrustOrder(&proto.EntrustOrderRequest{
 		TokenId:param.TokenId,
-		TokenTradeId:param.TokenTradeId,
-		Opt:param.Opt,
+		Opt:proto.ENTRUST_OPT(param.Opt),
 		OnPrice:o,
 		Num:n,
 		Uid:param.Uid,
-		Type:param.Type,
+		Type: proto.ENTRUST_TYPE(param.Type),
 	})
 
 	if err != nil {
