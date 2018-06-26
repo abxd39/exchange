@@ -48,20 +48,7 @@ type EntrustQuene struct {
 	price int64
 }
 
-/*
-const (
-	ORDER_OPT_BUY  = 0 //买类型
-	ORDER_OPT_SELL = 1 //卖类型
 
-)
-
-const (
-	ENTRUST_MARKET_PRICE = 1 //市价委托
-	ENTRUST_LIMIT_PRICE  = 2 //限价委托
-
-)
-
-*/
 func NewEntrustQueue(token_id, token_trade_id int,price int64) *EntrustQuene {
 	quene_id:=fmt.Sprintf("%s%s",token_id,token_trade_id)
 	m := &EntrustQuene{
