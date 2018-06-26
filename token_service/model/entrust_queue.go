@@ -18,14 +18,14 @@ import (
 //交易队列类型
 type EntrustQuene struct {
 	//币币队列ID  格式主要货币_交易货币
-	TokenQueneId string
+	TokenQueueId string
 
 	TokenId      int
 	TokenTradeId int
 	//卖出队列key
-	SellQueneId string
+	SellQueueId string
 	//买入队列key
-	BuyQueneId string
+	BuyQueueId string
 
 	//当前队列自增ID
 	UUID int64
@@ -62,11 +62,12 @@ const (
 )
 
 */
-func NewEntrustQuene(quene_id string) *EntrustQuene {
+func NewEntrustQueue(token_id, token_trade_id int,price int64) *EntrustQuene {
+	quene_id:=fmt.Sprintf("%s%s",token_id,token_trade_id)
 	m := &EntrustQuene{
-		TokenQueneId: quene_id,
-		BuyQueneId:   fmt.Sprintf("%s:1", quene_id),
-		SellQueneId:  fmt.Sprintf("%s:2", quene_id),
+		TokenQueueId: quene_id,
+		BuyQueueId:   fmt.Sprintf("%s:1", quene_id),
+		SellQueueId:  fmt.Sprintf("%s:2", quene_id),
 		UUID:         1,
 		sourceData:   make(map[string]*EntrustData),
 		//newOrderDetail:    make(chan *EntrustData, 1000),
@@ -160,7 +161,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	return
 }
 
-//开始交易加入买入USDT-》BTC  ，卖出USDT-》BTC
+//开始交易加入举例买入USDT-》BTC  ，卖出USDT-》BTC  ,deal_num 买方实际获得BTC数量
 func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, deal_num int64) (err error) {
 	//var ret int32
 	buy_token_account := &UserToken{} //买方主账户余额
@@ -178,39 +179,43 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	}
 
 	sell_token_account := &UserToken{} //卖方主账户余额
-	err = sell_token_account.GetUserToken(seller.Uid, s.TokenId)
+	err = sell_token_account.GetUserToken(seller.Uid, s.TokenTradeId)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 
 	sell_trade_token_account := &UserToken{} //卖方交易账户余额
-	err = sell_trade_token_account.GetUserToken(buyer.Uid, s.TokenTradeId)
+	err = sell_trade_token_account.GetUserToken(seller.Uid, s.TokenId)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
+	num := deal_num * price //计算此次买家交易USDT 1
+
+	fee := num * 5 / 1000 //买家消耗手续费0.005个USDT
 	t := &Trade{
 		Uid:          buyer.Uid,
 		TokenId:      s.TokenId,
 		TokenTradeId: s.TokenTradeId,
 		Price:        price,
-		Num:          deal_num,
-		Fee:          price / 1000,
+		Num:          num - fee, //记录消耗本来USDT数量
+		Fee:          fee,
 		DealTime:     time.Now().Unix(),
+		Type:         int(proto.ENTRUST_OPT_BUY),
 	}
 
+	sell_fee := deal_num * 5 / 1000
 	o := &Trade{
 		Uid:          seller.Uid,
 		TokenId:      s.TokenId,
 		TokenTradeId: s.TokenTradeId,
 		Price:        price,
-		Num:          deal_num,
-		Fee:          price / 1000,
+		Num:          deal_num - sell_fee,
+		Fee:          sell_fee,
 		DealTime:     time.Now().Unix(),
+		Type:         int(proto.ENTRUST_OPT_SELL),
 	}
-
-	num := deal_num * seller.OnPrice //计算此次交易USDT
 
 	if seller.SurplusNum < deal_num { //卖方部分成交
 		t.States = TRADE_STATES_PART
@@ -230,7 +235,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	err = session.Begin()
 
 	//USDT left num
-
 	_, err = buy_token_account.NotifyDelFronzen(session, num, buyer.EntrustId)
 	if err != nil {
 		session.Rollback()
@@ -251,7 +255,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	err = sell_token_account.AddMoney(session, deal_num)
+	err = sell_token_account.AddMoney(session, num)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
@@ -280,7 +284,12 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 		other, err = s.popFirstEntrust(proto.ENTRUST_OPT_SELL)
 		if err == redis.Nil {
 			//没有对应委托单进入等待区
-			s.marketOrderDetail <- p
+			if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
+				s.joinSellQuene(p)
+			} else {
+				//平台吃单
+				s.marketOrderDetail <- p
+			}
 			return
 		} else if err != nil {
 			Log.Errorln(err.Error())
@@ -289,7 +298,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 
 		//市价交易撮合
 		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
-			num := p.SurplusNum / other.OnPrice
+			num := p.SurplusNum / other.OnPrice //买房愿意用花的比例兑换BTC的数量
 
 			if num > other.SurplusNum { //存在限价则成交
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
@@ -300,7 +309,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 				s.MakeDeal(p, other, other.OnPrice, p.SurplusNum)
 				s.joinSellQuene(other)
 			}
-
+			return
 		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
 			if p.OnPrice >= other.OnPrice {
 				if p.OnPrice <= s.price {
@@ -314,20 +323,30 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 				if p.SurplusNum > other.SurplusNum {
 					s.MakeDeal(p, other, s.price, other.SurplusNum)
 					s.match(p)
+
 				} else if p.SurplusNum == other.SurplusNum {
 					s.MakeDeal(p, other, s.price, other.SurplusNum)
+
 				} else {
 					s.MakeDeal(p, other, s.price, p.SurplusNum)
 					s.joinSellQuene(other)
+
 				}
+				return
 			}
+
 		}
 
 	} else if p.Opt == proto.ENTRUST_OPT_SELL {
 		other, err = s.popFirstEntrust(proto.ENTRUST_OPT_BUY)
 		if err == redis.Nil {
 			//没有对应委托单进入等待区
-			s.marketOrderDetail <- p
+			if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
+				s.joinSellQuene(p)
+			} else {
+				//平台吃单
+				s.marketOrderDetail <- p
+			}
 			return
 		} else if err != nil {
 			Log.Errorln(err.Error())
@@ -339,13 +358,14 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 			if p.SurplusNum > other.SurplusNum { //存在限价则成交
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
 				s.match(p)
+
 			} else if p.SurplusNum == other.SurplusNum {
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
 			} else {
 				s.MakeDeal(p, other, other.OnPrice, p.SurplusNum)
 				s.joinSellQuene(other)
 			}
-
+			return
 		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
 			if p.OnPrice >= other.OnPrice {
 				if p.OnPrice <= s.price {
@@ -359,17 +379,21 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 				if p.SurplusNum > other.SurplusNum {
 					s.MakeDeal(p, other, s.price, other.SurplusNum)
 					s.match(p)
+					return
 				} else if p.SurplusNum == other.SurplusNum {
 					s.MakeDeal(p, other, s.price, other.SurplusNum)
+					return
 				} else {
 					s.MakeDeal(p, other, s.price, p.SurplusNum)
 					s.joinSellQuene(other)
+					return
 				}
 			}
 		}
-
 	}
 
+	s.joinSellQuene(other)
+	s.joinSellQuene(p)
 	return
 }
 
@@ -382,9 +406,9 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustData) (ret int, err error) {
 
 	var quene_id string
 	if p.Opt == proto.ENTRUST_OPT_BUY {
-		quene_id = s.BuyQueneId
+		quene_id = s.BuyQueueId
 	} else if p.Opt == proto.ENTRUST_OPT_SELL {
-		quene_id = s.SellQueneId
+		quene_id = s.SellQueueId
 	}
 
 	//may be not exact
@@ -444,9 +468,9 @@ func (s *EntrustQuene) popFirstEntrust(opt proto.ENTRUST_OPT) (en *EntrustData, 
 	var z []redis.Z
 	var ok bool
 	if opt == proto.ENTRUST_OPT_BUY { //买入类型
-		z, err = DB.GetRedisConn().ZRangeWithScores(s.BuyQueneId, 0, 1).Result()
+		z, err = DB.GetRedisConn().ZRangeWithScores(s.BuyQueueId, 0, 1).Result()
 	} else if opt == proto.ENTRUST_OPT_SELL { //卖出类型
-		z, err = DB.GetRedisConn().ZRevRangeWithScores(s.BuyQueneId, 0, 1).Result()
+		z, err = DB.GetRedisConn().ZRevRangeWithScores(s.BuyQueueId, 0, 1).Result()
 	}
 
 	if err != nil {
@@ -458,7 +482,7 @@ func (s *EntrustQuene) popFirstEntrust(opt proto.ENTRUST_OPT) (en *EntrustData, 
 		d := z[0].Member.(string)
 		en, ok = s.GetOrderData(d)
 		if ok {
-			err = DB.GetRedisConn().ZRem(s.BuyQueneId, d).Err()
+			err = DB.GetRedisConn().ZRem(s.BuyQueueId, d).Err()
 			if err != nil {
 				return
 			}
@@ -467,7 +491,7 @@ func (s *EntrustQuene) popFirstEntrust(opt proto.ENTRUST_OPT) (en *EntrustData, 
 		}
 		err = errors.New("this is unrealize err when get order detail  ")
 		Log.WithFields(logrus.Fields{
-			"quene_id": s.TokenQueneId,
+			"quene_id": s.TokenQueueId,
 			"opt":      opt,
 			"member":   d,
 		}).Errorln(err.Error())
@@ -477,7 +501,7 @@ func (s *EntrustQuene) popFirstEntrust(opt proto.ENTRUST_OPT) (en *EntrustData, 
 
 	err = errors.New("this is sync data err ")
 	Log.WithFields(logrus.Fields{
-		"quene_id": s.TokenQueneId,
+		"quene_id": s.TokenQueueId,
 		"opt":      opt,
 	}).Errorln(err.Error())
 	return

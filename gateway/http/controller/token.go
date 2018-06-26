@@ -16,6 +16,7 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 	action := r.Group("/token")
 	{
 		action.POST("/entrust_order", s.EntrustOrder)
+		
 	}
 }
 
