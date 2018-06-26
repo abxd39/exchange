@@ -303,7 +303,7 @@ func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*
 	rsp, err := s.conn.ModifyTradePwd(context.TODO(), req)
 	return rsp, err
 }
-func (s *UserRPCCli) CallModifyNcikName(req *proto.UserModifyNickNameResquest) (*proto.UserModifyNickNameResponse, error) {
+func (s *UserRPCCli) CallModifyNickName(req *proto.UserModifyNickNameResquest) (*proto.UserModifyNickNameResponse, error) {
 	rsp, err := s.conn.ModifyNickName(context.TODO(), req)
 	return rsp, err
 }
