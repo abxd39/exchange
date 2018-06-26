@@ -30,6 +30,8 @@ service CurrencyRPC {
         rpc GetCurrencyChats(CurrencyChats) returns (CurrencyResponse){}
         // 获取订单聊天列表
         rpc CurrencyChatsList(CurrencyChats) returns (CurrencyChatsListResponse){}
+        // 获取用户虚拟货币资产
+        rpc GetUserCurrency(UserCurrencyRequest) returns (UserCurrency){}
 
         /// Order ///
         // 获取订单列表
@@ -125,6 +127,8 @@ message AdsLists {
     uint32 type_id      = 13; // 类型:1出售 2购买
     uint32 token_id     = 14; // 货币类型
     string token_name   = 15; // 货币名称
+    int64  balance      = 16; // 资产余额
+    int64  freeze       = 17; // 资产冻结
 }
 
 message AdsListRequest {
@@ -196,6 +200,25 @@ message CurrencyChatsListResponse {
     repeated CurrencyChats data = 1;
 }
 
+// ==
+
+// 用户虚拟货币资产
+message UserCurrency {
+    uint64 id           = 1;
+    uint64 uid          = 2;
+    uint32 token_id     = 3; // 货币类型
+    string token_name   = 4; // 货币名称
+    int64  balance      = 5; // 资产余额
+    int64  freeze       = 6; // 资产冻结
+    string address      = 7;
+    int64  version      = 8;
+}
+
+message UserCurrencyRequest {
+    uint64 id           = 1;
+    uint64 uid          = 2;
+    uint32 token_id     = 3;
+}
 
 ////////////////////////// Order ////////////////////////////
 

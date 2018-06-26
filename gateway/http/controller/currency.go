@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"fmt"
 )
 
 type CurrencyGroup struct{}
@@ -521,6 +522,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		return
 	}
 	dataLen := len(data.Data)
+	fmt.Println(data)
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{

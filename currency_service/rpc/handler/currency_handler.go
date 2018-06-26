@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"time"
+	"fmt"
 )
 
 type RPCServer struct{}
@@ -135,6 +136,8 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 			TypeId:      data[i].TypeId,
 			TokenId:     data[i].TokenId,
 			TokenName:   data[i].TokenName,
+			Balance:     data[i].Balance,
+			Freeze:      data[i].Freeze,
 		}
 		listData[i] = adsLists
 	}
@@ -299,5 +302,11 @@ func (s *RPCServer) CurrencyChatsList(ctx context.Context, req *proto.CurrencyCh
 	}
 
 	rsp.Data = listData
+	return nil
+}
+
+// 获取用户虚拟货币资产
+func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.UserCurrency) error {
+	fmt.Println(req)
 	return nil
 }
