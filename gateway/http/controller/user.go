@@ -467,3 +467,34 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err)
 }
+
+
+func (s *UserGroup) SetNickName(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Uid     int32  `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		NickName string `form:"nick_name" `
+		HeadSculpture string `form:"head_scul" ` 
+	}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallModifyTradePwd(&proto.UserSetNickNameRequest{
+		Uid:req.Uid,
+		Token:req.Token,
+		NickName:req.NickName,
+		HeadSculpture:req.HeadSculpture,
+	}
+	if err != nil {
+		Log.Errorf(err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err)
+}

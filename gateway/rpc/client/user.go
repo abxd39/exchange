@@ -286,20 +286,21 @@ func NewUserRPCCli() (u *UserRPCCli) {
 }
 
 func (s *UserRPCCli) CallModifyUserLoginPwd(req *proto.UserModifyLoginPwdRequest) (*proto.UserModifyLoginPwdResponse, error) {
-	rsp, err := s.conn.ModifyUserLoginPwd(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyUserLoginPwd(context.TODO(), req)
 }
 
 func (s *UserRPCCli) CallModifyPhone1(req *proto.UserModifyPhoneRequest) (*proto.UserModifyPhoneResponse, error) {
-	rsp, err := s.conn.ModifyPhone1(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyPhone1(context.TODO(), req)
 }
 
 func (s *UserRPCCli) CallModifyPhone2(req *proto.UserSetNewPhoneRequest) (*proto.UserSetNewPhoneResponse, error) {
-	rsp, err := s.conn.ModifyPhone2(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyPhone2(context.TODO(), req)
 }
+
 func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*proto.UserModifyTradePwdResponse, error) {
-	rsp, err := s.conn.ModifyTradePwd(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyTradePwd(context.TODO(), req)
+}
+
+func (s *UserRPCCli) CallSetNickName(req *proto.UserSetNickNameRequest) (*proto.UserSetNickNameResponse, error) {
+	return s.conn.SetNickName(context.TODO(), req)
 }

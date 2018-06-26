@@ -35,29 +35,59 @@ func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 	return
 }
 
-func (ex *UserEx) ModifyNickName(req *proto.UserModifyNickNameResquest, rsp *proto.UserModifyNickNameResponse) (ret int32, err error) {
+func (ex *UserEx) GetNickName(req *proto.UserGetNickNameResquest, rsp *proto.UserGetNickNameResponse) (ret int32, err error) {
 	//
 	engine := DB.GetMysqlConn()
-	for _, id := range req.Uid {
-		uex := &UserEx{}
-		ok, verr := engine.Where("uid=?", id).Get(uex)
-		if verr != nil {
-			Log.Errorln(err.Error())
-			ret = ERRCODE_UNKNOWN
-			err = verr
-			return
+
+	uex := make([]UserEx, 0)
+	err = engine.In("uid", req.Uid).Find(&uex)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	for _, value := range uex {
+		userEx := &proto.UserGetNickNameResponse_UserNickName{
+			Uid:           value.Uid,
+			NickName:      value.NickName,
+			HeadSculpture: value.HeadSculpture,
 		}
 
-		if ok {
-			userEx := &proto.UserModifyNickNameResponse_UserNickName{
-				Uid:           uex.Uid,
-				NackName:      uex.NickName,
-				HeadSculpture: uex.HeadSculpture,
-			}
+		rsp.User = append(rsp.User, userEx)
+	}
 
-			rsp.User = append(rsp.User, userEx)
-		}
+	ret = ERRCODE_SUCCESS
+	return
+}
 
+func (ex *UserEx) SetNickName(req *proto.UserSetNickNameRequest, rsp *proto.UserSetNickNameResponse) (ret int32, err error) {
+	//检查是否存在该uid
+	engine := DB.GetMysqlConn()
+	has, err := engine.Exist(&UserEx{
+		Uid: req.Uid,
+	})
+	if err != nil {
+		return ERRCODE_UNKNOWN, err
+	}
+	if !has {
+		ret = ERRCODE_ACCOUNT_NOTEXIST
+		return
+	}
+	//验证token
+	var result int64
+	result, err = engine.ID(req.Uid).Update(&UserEx{
+		Uid:           req.Uid,
+		NickName:      req.NickName,
+		HeadSculpture: req.HeadSculpture,
+	})
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	if result != 0 {
+		ret = ERRCODE_SUCCESS
 	}
 	return
+
 }
