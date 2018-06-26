@@ -304,6 +304,6 @@ func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*
 func (s *UserRPCCli) CallSetNickName(req *proto.UserSetNickNameRequest) (*proto.UserSetNickNameResponse, error) {
 	return s.conn.SetNickName(context.TODO(), req)
 }
-func (s *UserRPCCli) CallGetNickName(req *proto.UserGetNickNameResquest) (*proto.UserGetNickNameResponse, error) {
+func (s *UserRPCCli) CallGetNickName(req *proto.UserGetNickNameRequest) (*proto.UserGetNickNameResponse, error) {
 	return s.conn.GetNickName(context.TODO(), req)
 }

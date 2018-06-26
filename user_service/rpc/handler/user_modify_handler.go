@@ -44,7 +44,7 @@ func (s *RPCServer) ModifyTradePwd(ctx context.Context, req *proto.UserModifyTra
 	return nil
 }
 
-func (*RPCServer) GetNickName(ctx context.Context, req *proto.UserGetNickNameResquest, rsp *proto.UserGetNickNameResponse) (err error) {
+func (*RPCServer) GetNickName(ctx context.Context, req *proto.UserGetNickNameRequest, rsp *proto.UserGetNickNameResponse) (err error) {
 	u := model.UserEx{}
 	rsp.Err, err = u.GetNickName(req, rsp)
 	if err != nil {

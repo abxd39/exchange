@@ -558,7 +558,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		}
 
 		// 调用 rpc 用户头像和昵称
-		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameResquest{Uid: userList})
+		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameRequest{Uid: userList})
 		if err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())

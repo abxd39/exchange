@@ -47,7 +47,7 @@ service UserRPC {
     // modify user trade passward
     rpc ModifyTradePwd (UserModifyTradePwdRequest) returns (UserModifyTradePwdResponse){};
     //get user nick name and head sculpture
-    rpc GetNickName (UserGetNickNameResquest)returns (UserGetNickNameResponse){};
+    rpc GetNickName (UserGetNickNameRequest)returns (UserGetNickNameResponse){};
     // set user nick name and head sculpture
     rpc SetNickName(UserSetNickNameRequest)returns (UserSetNickNameResponse){};
 }
@@ -276,7 +276,7 @@ message UserModifyTradePwdResponse{
 }
 
 
-message UserGetNickNameResquest{
+message UserGetNickNameRequest{
     repeated uint64 uid=1;
 }
 

@@ -35,7 +35,7 @@ func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 	return
 }
 
-func (ex *UserEx) GetNickName(req *proto.UserGetNickNameResquest, rsp *proto.UserGetNickNameResponse) (ret int32, err error) {
+func (ex *UserEx) GetNickName(req *proto.UserGetNickNameRequest, rsp *proto.UserGetNickNameResponse) (ret int32, err error) {
 	//
 	engine := DB.GetMysqlConn()
 
