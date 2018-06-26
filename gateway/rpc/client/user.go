@@ -95,10 +95,11 @@ func (s *UserRPCCli) CallAuthSecurity(phone, phone_code, email_code string) (rsp
 	return
 }
 
-func (s *UserRPCCli) CallSendSms(phone string, ty int32) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallSendSms(phone, region string, ty int32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.SendSms(context.TODO(), &proto.SmsRequest{
-		Phone: phone,
-		Type:  ty,
+		Phone:  phone,
+		Type:   ty,
+		Region: region,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())

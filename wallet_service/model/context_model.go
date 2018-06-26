@@ -12,35 +12,35 @@ type Context struct {
 	Type    string `xorm:"comment('项目类型btc，eth') VARCHAR(10)"`
 }
 
-func (this *Context) MaxNumber(url string,chainid int) (int, error){
-	this.Id=0
-	ok,err:=utils.Engine_wallet.Where("node=? and chainid=?",url,chainid).Get(this)
+func (this *Context) MaxNumber(url string, chainid int) (int, error) {
+	this.Id = 0
+	ok, err := utils.Engine_wallet.Where("node=? and chainid=?", url, chainid).Get(this)
 	if err != nil {
-		return 0,nil
+		return 0, nil
 	}
-	if ok{
-		return this.Number,nil
+	if ok {
+		return this.Number, nil
 	}
-	ok,err=utils.Engine_wallet.Where("chainid=?",chainid).Get(this)
+	ok, err = utils.Engine_wallet.Where("chainid=?", chainid).Get(this)
 	if err != nil {
-		return 0,nil
+		return 0, nil
 	}
-	if ok{
-		return this.Number,nil
+	if ok {
+		return this.Number, nil
 	}
 	return 0, nil
 }
-func (this *Context)Save(node string,chainid int,blocknumber int)(int ,error){
+func (this *Context) Save(node string, chainid int, blocknumber int) (int, error) {
 	this.Node = node
 	this.Chainid = chainid
 	this.Number = blocknumber
-	affected,err:=utils.Engine_wallet.Where("node=? and chainid=?",node,chainid).Update(this)
+	affected, err := utils.Engine_wallet.Where("node=? and chainid=?", node, chainid).Update(this)
 	if err != nil {
-		return 0,err
+		return 0, err
 	}
 	if affected > 0 {
-		return int(affected),nil
+		return int(affected), nil
 	}
-	affected,err = utils.Engine_wallet.InsertOne(this)
-	return int(affected),nil
+	affected, err = utils.Engine_wallet.InsertOne(this)
+	return int(affected), nil
 }

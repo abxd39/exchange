@@ -1,8 +1,10 @@
 package models
-import(
-	"time"
+
+import (
 	"digicon/wallet_service/utils"
+	"time"
 )
+
 type TokenChainInout struct {
 	Id          int       `xorm:"INT(11)"`
 	Txhash      string    `xorm:"comment('交易hash') VARCHAR(255)"`
@@ -19,25 +21,25 @@ type TokenChainInout struct {
 	CreatedTime time.Time `xorm:"default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 }
 
-func (this *TokenChainInout)Insert(txhash,from,to,value,contract string,chainid int,uid int,tokenid int,tokenname string) (int,error){
-	this.Id=0
-	this.Txhash=txhash
+func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string) (int, error) {
+	this.Id = 0
+	this.Txhash = txhash
 	this.From = from
 	this.To = to
-	this.Value =value
-	this.Contract=contract
-	this.Chainid=chainid
-	this.Type=1
+	this.Value = value
+	this.Contract = contract
+	this.Chainid = chainid
+	this.Type = 1
 
-	this.Tokenid=tokenid
-	this.TokenName=tokenname
-	this.Uid= uid
+	this.Tokenid = tokenid
+	this.TokenName = tokenname
+	this.Uid = uid
 	//utils.Engine_wallet.ShowSQL(true)
-	affected,err:=utils.Engine_wallet.InsertOne(this)
+	affected, err := utils.Engine_wallet.InsertOne(this)
 	//fmt.Println("aaaa",uid,err)
-	return int(affected),err
+	return int(affected), err
 }
-func (this *TokenChainInout)TxhashExist(hash string,chainid int)(bool,error){
-	return utils.Engine_wallet.Where("txhash=? and chainid=?",hash,chainid).Get(this)
+func (this *TokenChainInout) TxhashExist(hash string, chainid int) (bool, error) {
+	return utils.Engine_wallet.Where("txhash=? and chainid=?", hash, chainid).Get(this)
 
 }

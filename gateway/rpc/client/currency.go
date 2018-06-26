@@ -112,3 +112,9 @@ func (s *CurrencyRPCCli) CallCurrencyChatsList(req *proto.CurrencyChats) (*proto
 	rsp, err := s.conn.CurrencyChatsList(context.TODO(), req)
 	return rsp, err
 }
+
+// 调用 rpc 获取用户虚拟货币资产
+func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*proto.UserCurrency, error) {
+	rsp, err := s.conn.GetUserCurrency(context.TODO(), req)
+	return rsp, err
+}

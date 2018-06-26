@@ -1,19 +1,20 @@
 package client
 
 import (
-"context"
-cf "digicon/gateway/conf"
-. "digicon/gateway/log"
-proto "digicon/proto/rpc"
-"github.com/micro/go-micro"
-"github.com/micro/go-micro/registry"
-"github.com/micro/go-plugins/registry/consul"
+	"context"
+	cf "digicon/gateway/conf"
+	. "digicon/gateway/log"
+	proto "digicon/proto/rpc"
+	"github.com/micro/go-micro"
+	"github.com/micro/go-micro/registry"
+	"github.com/micro/go-plugins/registry/consul"
 )
 
 type WalletRPCCli struct {
 	conn proto.Gateway2WallerService
 }
-func NewWalletRPCCli() (w *WalletRPCCli){
+
+func NewWalletRPCCli() (w *WalletRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))
 	service := micro.NewService(
@@ -31,7 +32,7 @@ func NewWalletRPCCli() (w *WalletRPCCli){
 
 }
 
-func (this *WalletRPCCli)Callhello(name string) (rsp *proto.HelloResponse2,err error){
+func (this *WalletRPCCli) Callhello(name string) (rsp *proto.HelloResponse2, err error) {
 	rsp, err = this.conn.Hello(context.TODO(), &proto.HelloRequest2{Name: name})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -40,64 +41,64 @@ func (this *WalletRPCCli)Callhello(name string) (rsp *proto.HelloResponse2,err e
 	return
 }
 
-func (this *WalletRPCCli)CallCreateWallet(userid int,tokenid int) (rsp *proto.CreateWalletResponse,err error){
-	rsp, err = this.conn.CreateWallet(context.TODO(), &proto.CreateWalletRequest{Userid: int32(userid),	Tokenid:int32(tokenid)})
+func (this *WalletRPCCli) CallCreateWallet(userid int, tokenid int) (rsp *proto.CreateWalletResponse, err error) {
+	rsp, err = this.conn.CreateWallet(context.TODO(), &proto.CreateWalletRequest{Userid: int32(userid), Tokenid: int32(tokenid)})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
-func (this *WalletRPCCli)CallSigntx(userid int,tokenid int,to string,gasprice int64,mount string) (rsp *proto.SigntxResponse,err error){
-	rsp, err = this.conn.Signtx(context.TODO(), &proto.SigntxRequest{Userid: int32(userid),	Tokenid:int32(tokenid),To:to,Gasprice:(gasprice),Mount:mount})
+func (this *WalletRPCCli) CallSigntx(userid int, tokenid int, to string, gasprice int64, mount string) (rsp *proto.SigntxResponse, err error) {
+	rsp, err = this.conn.Signtx(context.TODO(), &proto.SigntxRequest{Userid: int32(userid), Tokenid: int32(tokenid), To: to, Gasprice: (gasprice), Mount: mount})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
-func (this *WalletRPCCli)CallSendRawTx(tokenid int32,signtx string) (rsp *proto.SendRawTxResponse,err error){
-	rsp, err = this.conn.SendRawTx(context.TODO(), &proto.SendRawTxRequest{TokenId:tokenid,Signtx:signtx})
+func (this *WalletRPCCli) CallSendRawTx(tokenid int32, signtx string) (rsp *proto.SendRawTxResponse, err error) {
+	rsp, err = this.conn.SendRawTx(context.TODO(), &proto.SendRawTxRequest{TokenId: tokenid, Signtx: signtx})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
-func (this *WalletRPCCli)CallTibi(uid int32,token_id int32,to string,gasprice int32,amount string) (rsp *proto.TibiResponse,err error){
-	rsp, err = this.conn.Tibi(context.TODO(), &proto.TibiRequest{Uid: (uid),	Tokenid:(token_id),To:to,Gasprice:(gasprice),Amount:amount})
+func (this *WalletRPCCli) CallTibi(uid int32, token_id int32, to string, gasprice int32, amount string) (rsp *proto.TibiResponse, err error) {
+	rsp, err = this.conn.Tibi(context.TODO(), &proto.TibiRequest{Uid: (uid), Tokenid: (token_id), To: to, Gasprice: (gasprice), Amount: amount})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
-func (this *WalletRPCCli)CallGetValue(uid int32,token_id int32) (rsp *proto.GetValueResponse,err error){
-	rsp, err = this.conn.GetValue(context.TODO(), &proto.GetValueRequest{Uid: (uid),	Tokenid:(token_id)})
+func (this *WalletRPCCli) CallGetValue(uid int32, token_id int32) (rsp *proto.GetValueResponse, err error) {
+	rsp, err = this.conn.GetValue(context.TODO(), &proto.GetValueRequest{Uid: (uid), Tokenid: (token_id)})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
-func (this *WalletRPCCli)CallAddressSave(uid int32,tokenid int32,address string,mark string) (rsp *proto.AddressSaveResponse,err error){
-	rsp, err = this.conn.AddressSave(context.TODO(), &proto.AddressSaveRequest{Uid: (uid),	Tokenid:(tokenid),Address:address,Mark:mark})
+func (this *WalletRPCCli) CallAddressSave(uid int32, tokenid int32, address string, mark string) (rsp *proto.AddressSaveResponse, err error) {
+	rsp, err = this.conn.AddressSave(context.TODO(), &proto.AddressSaveRequest{Uid: (uid), Tokenid: (tokenid), Address: address, Mark: mark})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
-func (this *WalletRPCCli)CallAddressList(uid int32,tokenid int32) (rsp *proto.AddressListResponse,err error){
-	rsp, err = this.conn.AddressList(context.TODO(), &proto.AddressListRequest{Uid: int32(uid),	Tokenid:int32(tokenid)})
+func (this *WalletRPCCli) CallAddressList(uid int32, tokenid int32) (rsp *proto.AddressListResponse, err error) {
+	rsp, err = this.conn.AddressList(context.TODO(), &proto.AddressListRequest{Uid: int32(uid), Tokenid: int32(tokenid)})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 	return
 }
-func (this *WalletRPCCli)CallAddressDelete(uid int32,id int32) (rsp *proto.AddressDeleteResponse,err error){
-	rsp, err = this.conn.AddressDelete(context.TODO(), &proto.AddressDeleteRequest{Uid: (uid),	Id:id})
+func (this *WalletRPCCli) CallAddressDelete(uid int32, id int32) (rsp *proto.AddressDeleteResponse, err error) {
+	rsp, err = this.conn.AddressDelete(context.TODO(), &proto.AddressDeleteRequest{Uid: (uid), Id: id})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

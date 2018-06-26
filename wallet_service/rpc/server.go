@@ -2,8 +2,8 @@ package rpc
 
 import (
 	proto "digicon/proto/rpc"
-	. "digicon/wallet_service/utils"
 	"digicon/wallet_service/rpc/handler"
+	. "digicon/wallet_service/utils"
 	"fmt"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -32,4 +32,3 @@ func RPCServerInit() {
 	}
 
 }
-

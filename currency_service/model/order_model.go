@@ -1,62 +1,58 @@
 package model
 
 import (
+	"bytes"
 	"digicon/currency_service/conf"
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
 	. "digicon/proto/common"
 	"strconv"
-	"bytes"
 	"time"
 )
 
-
 // 订单表
 type Order struct {
-	Id          uint64       `xorm:"not null pk autoincr comment('ID')  INT(10)"  json:"id"`
-	OrderId     string       `xorm:"not null pk comment('订单ID') INT(10)"   json:"order_id"`  // hash( type_id, 6( user_id, + 时间秒）
-	AdId        uint64       `xorm:"not null default 0 comment('广告ID') index INT(10)"  json:"ad_id"`
-	AdType      uint32       `xorm:"not null default 0 comment('广告类型:1出售 2购买') TINYINT(1)"  json:"ad_type"`
-	Price       int64        `xorm:"not null default 0 comment('价格') BIGINT(64)"   json:"price"`
-	Num         int64        `xorm:"not null default 0 comment('数量') BIGINT(64)"   json:"num"`
-	TokenId     uint64       `xorm:"not null default 0 comment('货币类型') INT(10)"       json:"token_id"`
-	PayId       uint64       `xorm:"not null default 0 comment('支付类型') INT(10)"       json:"pay_id"`
-	SellId      uint64       `xorm:"not null default 0 comment('卖家id') INT(10)"         json:"sell_id"`
-	SellName    string       `xorm:"not null default '' comment('卖家昵称') VARCHAR(64)"  json:"sell_name"`
-	BuyId       uint64       `xorm:"not null default 0 comment('买家id') INT(10)"    json:"buy_id"`
-	BuyName     string       `xorm:"not null default '' comment('买家昵称') VARCHAR(64)"   json:"buy_name"`
-	Fee         int64        `xorm:"not null default 0 comment('手续费用') BIGINT(64)"  json:"fee"`
-	States      uint32       `xorm:"not null default 0 comment('订单状态: 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消') TINYINT(1)"   json:"states"`
-	PayStatus   uint32       `xorm:"not null default 0 comment('支付状态: 1待支付 2待放行(已支付) 3确认支付(已完成)') TINYINT(1)"  json:"pay_status"`
-	CancelType  uint32       `xorm:"not null default 0 comment('取消类型: 1卖方 2 买方') TINYINT(1)"   json:"cancel_type"`
-	CreatedTime string       `xorm:"not null comment('创建时间') DATETIME"  json:"created_time"`
-	UpdatedTime string       `xorm:"comment('修改时间') DATETIME"    json:"updated_time"`
+	Id          uint64 `xorm:"not null pk autoincr comment('ID')  INT(10)"  json:"id"`
+	OrderId     string `xorm:"not null pk comment('订单ID') INT(10)"   json:"order_id"` // hash( type_id, 6( user_id, + 时间秒）
+	AdId        uint64 `xorm:"not null default 0 comment('广告ID') index INT(10)"  json:"ad_id"`
+	AdType      uint32 `xorm:"not null default 0 comment('广告类型:1出售 2购买') TINYINT(1)"  json:"ad_type"`
+	Price       int64  `xorm:"not null default 0 comment('价格') BIGINT(64)"   json:"price"`
+	Num         int64  `xorm:"not null default 0 comment('数量') BIGINT(64)"   json:"num"`
+	TokenId     uint64 `xorm:"not null default 0 comment('货币类型') INT(10)"       json:"token_id"`
+	PayId       uint64 `xorm:"not null default 0 comment('支付类型') INT(10)"       json:"pay_id"`
+	SellId      uint64 `xorm:"not null default 0 comment('卖家id') INT(10)"         json:"sell_id"`
+	SellName    string `xorm:"not null default '' comment('卖家昵称') VARCHAR(64)"  json:"sell_name"`
+	BuyId       uint64 `xorm:"not null default 0 comment('买家id') INT(10)"    json:"buy_id"`
+	BuyName     string `xorm:"not null default '' comment('买家昵称') VARCHAR(64)"   json:"buy_name"`
+	Fee         int64  `xorm:"not null default 0 comment('手续费用') BIGINT(64)"  json:"fee"`
+	States      uint32 `xorm:"not null default 0 comment('订单状态: 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消') TINYINT(1)"   json:"states"`
+	PayStatus   uint32 `xorm:"not null default 0 comment('支付状态: 1待支付 2待放行(已支付) 3确认支付(已完成)') TINYINT(1)"  json:"pay_status"`
+	CancelType  uint32 `xorm:"not null default 0 comment('取消类型: 1卖方 2 买方') TINYINT(1)"   json:"cancel_type"`
+	CreatedTime string `xorm:"not null comment('创建时间') DATETIME"  json:"created_time"`
+	UpdatedTime string `xorm:"comment('修改时间') DATETIME"    json:"updated_time"`
 }
 
-
-
-
 //列出订单
-func (this *Order)  List(Page, PageNum int32,
+func (this *Order) List(Page, PageNum int32,
 	AdType, States uint32, Id uint64,
-	TokenId float64, StartTime, EndTime string, o *[]Order) (total int64,rPage int32, rPageNum int32, code int32) {
+	TokenId float64, StartTime, EndTime string, o *[]Order) (total int64, rPage int32, rPageNum int32, code int32) {
 
 	engine := dao.DB.GetMysqlConn()
 	if Page <= 1 {
 		Page = 1
 	}
-	if PageNum <= 0{
+	if PageNum <= 0 {
 		PageNum = 10
 	}
 
 	query := engine.Desc("id")
 	orderModel := new(Order)
 
-	if States == 0 {                            // 状态为0，表示已经删除
+	if States == 0 { // 状态为0，表示已经删除
 		return 0, 0, 0, ERRCODE_SUCCESS
-	}else if States == 100{                     // 默认传递的States
+	} else if States == 100 { // 默认传递的States
 		query = query.Where("states != 0")
-	}else{
+	} else {
 		query = query.Where("states = ?", States)
 	}
 
@@ -70,17 +66,17 @@ func (this *Order)  List(Page, PageNum int32,
 		query = query.Where("token_id = ?", TokenId)
 	}
 	//fmt.Println(StartTime, EndTime)
-	if StartTime  !=  ``   {
+	if StartTime != `` {
 		query = query.Where("created_time >= ?", StartTime)
 	}
-	if EndTime != ``{
+	if EndTime != `` {
 		query = query.Where("created_time <= ?", EndTime)
 	}
 
 	tmpQuery := *query
 	countQuery := &tmpQuery
-	err := query.Limit(int(PageNum), (int(Page) - 1) * int(PageNum)).Find(o)
-	total, _= countQuery.Count(orderModel)
+	err := query.Limit(int(PageNum), (int(Page)-1)*int(PageNum)).Find(o)
+	total, _ = countQuery.Count(orderModel)
 
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -88,7 +84,7 @@ func (this *Order)  List(Page, PageNum int32,
 		rPage = 0
 		rPageNum = 0
 		code = ERRCODE_UNKNOWN
-	}else{
+	} else {
 		total = total
 		rPage = Page
 		rPageNum = PageNum
@@ -97,14 +93,13 @@ func (this *Order)  List(Page, PageNum int32,
 	return
 }
 
-
 // 删除订单(将states设置成0)
 // id     uint64
 // set state = 0
-func (this *Order) Delete(Id uint64,  updateTimeStr string) (int32, string){
+func (this *Order) Delete(Id uint64, updateTimeStr string) (int32, string) {
 	var err error
 	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=? and `states` != 2 "
-	_, err = dao.DB.GetMysqlConn().Exec(sql,0, updateTimeStr, Id)
+	_, err = dao.DB.GetMysqlConn().Exec(sql, 0, updateTimeStr, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, "delete Error!"
@@ -112,15 +107,13 @@ func (this *Order) Delete(Id uint64,  updateTimeStr string) (int32, string){
 	return ERRCODE_SUCCESS, ""
 }
 
-
-
 // 取消订单
 // set state == 4
 // params: id userid, CancelType: 取消类型: 1卖方 2 买方
-func (this *Order) Cancel(Id uint64, CancelType uint32,  updateTimeStr string) (code int32, msg string ){
+func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string) (code int32, msg string) {
 	var err error
 	sql := "UPDATE   `order`   SET   `states`=? , `cancel_type`=?, `updated_time`=?  WHERE  `id`=?"
-	_, err = dao.DB.GetMysqlConn().Exec(sql, 4,CancelType, updateTimeStr ,Id)
+	_, err = dao.DB.GetMysqlConn().Exec(sql, 4, CancelType, updateTimeStr, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
 		//fmt.Println(err.Error())
@@ -133,24 +126,21 @@ func (this *Order) Cancel(Id uint64, CancelType uint32,  updateTimeStr string) (
 	return
 }
 
-
-
 // 待放行
 // set states=2
-func (this *Order)Ready(Id uint64,  updateTimeStr string) (code int32, msg string) {
+func (this *Order) Ready(Id uint64, updateTimeStr string) (code int32, msg string) {
 	engine := dao.DB.GetMysqlConn()
 	var err error
 	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=?"
-	_, err = engine.Exec(sql, 2, updateTimeStr,Id)
+	_, err = engine.Exec(sql, 2, updateTimeStr, Id)
 	if err != nil {
 		Log.Errorln(err.Error())
 		code, msg = ERRCODE_UNKNOWN, "Approved Error!"
 		return
 	}
-	code , msg = ERRCODE_SUCCESS, ""
+	code, msg = ERRCODE_SUCCESS, ""
 	return
 }
-
 
 // 添加订单
 func (this *Order) Add() (id uint64, code int32) {
@@ -180,17 +170,17 @@ func (this *Order) Add() (id uint64, code int32) {
 
 	/// 1. 卖家冻结
 	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
-	sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
+	sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		Log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return
 	}
-	if rst, _ := sqlRest.RowsAffected(); rst == 0{
+	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
 		Log.Errorln("冻结失败!")
 		session.Rollback()
-		code =ERRCODE_ORDER_ERROR
+		code = ERRCODE_ORDER_ERROR
 		return
 	}
 	err = engine.ClearCache(new(UserCurrency))
@@ -208,10 +198,10 @@ func (this *Order) Add() (id uint64, code int32) {
 	buffer.WriteString("values (?, ?, ?, ?, ?,  ?, ?, ?, ? , ?)")
 	insertSql := buffer.String()
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId,this.OrderId, this.TokenId,  this.Num , 0 , 5, "", this.States, nowTime, nowTime,      // 卖家记录 , 5 为冻结
+		this.SellId, this.OrderId, this.TokenId, this.Num, 0, 5, "", this.States, nowTime, nowTime, // 卖家记录 , 5 为冻结
 	)
 
-	if err != nil{
+	if err != nil {
 		Log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
@@ -236,30 +226,24 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 	id = this.Id
-	code =  ERRCODE_SUCCESS
+	code = ERRCODE_SUCCESS
 	return
 }
 
-
-
 // 确认放行(支付完成)
 // set state = 3
-func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string){
+func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string) {
 	code, err := this.ConfirmSession(Id, updateTimeStr)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return code, "confirm Error!"
-	}else{
+	} else {
 		return ERRCODE_SUCCESS, ""
 	}
 }
 
-
-
-
-
 // 确认放行事务
-func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32, err error) {
+func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, err error) {
 	engine := dao.DB.GetMysqlConn()
 
 	_, err = engine.Table(`order`).Where("id=?", Id).Get(this)
@@ -293,7 +277,7 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 	}
 
 	sellNum := allNum + rateFee
-	if  uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
+	if uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
 		Log.Println("余额不足!")
 		code = ERRCODE_SELLER_LESS
 		return
@@ -316,13 +300,13 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 	////////////////////////////////////////////////////////
 
 	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
-	sqlRest, err := session.Exec(sellSql, sellNum, this.SellId, this.TokenId,  uCurrency.Version )         // 卖家 扣除平台费用
+	sqlRest, err := session.Exec(sellSql, sellNum, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		Log.Println(err.Error())
 		session.Rollback()
 		return
 	}
-	if rst, _ := sqlRest.RowsAffected(); rst == 0{
+	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
 		Log.Errorln("卖家扣除失败!", err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
@@ -336,9 +320,8 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 		return
 	}
 
-
 	buySql := "INSERT  INTO user_currency(`uid`, `token_id`, `token_name`,  `balance`)  values(?, ?, ?, ? ) ON DUPLICATE  KEY  UPDATE  `balance`=`balance`+?,`version`=`version`+1  WHERE `uid`=? and `token_id`=? and `version`=?"
-	sqlRest, err = session.Exec(buySql, this.BuyId, this.TokenId, tokenName ,  allNum, allNum, this.BuyId, this.TokenId, uCurrency.Version)
+	sqlRest, err = session.Exec(buySql, this.BuyId, this.TokenId, tokenName, allNum, allNum, this.BuyId, this.TokenId, uCurrency.Version)
 	if err != nil {
 		Log.Println(err.Error())
 		session.Rollback()
@@ -346,7 +329,7 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 		return
 	}
 
-	if rst, _ := sqlRest.RowsAffected(); rst == 0{
+	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
 		Log.Errorln("买家扣除失败!", err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
@@ -360,9 +343,6 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 		return
 	}
 
-
-
-
 	//////////////////////////////////////////////////
 	// 2. 插入记录 user_currency_history, 转入，转出，卖家扣费用
 	/////////////////////////////////////////////////
@@ -373,10 +353,10 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 	insertSql := buffer.String()
 
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId,this.OrderId, this.TokenId, sellNum , rateFee , 2, "", this.States,  updateTimeStr,   // 卖家记录 , 2订单转出
-		this.BuyId, this.OrderId, this.TokenId, this.Num, 0       , 1, "", this.States,  updateTimeStr,   // 买家记录 , 1订单转入
-		)
-	if err != nil{
+		this.SellId, this.OrderId, this.TokenId, sellNum, rateFee, 2, "", this.States, updateTimeStr, // 卖家记录 , 2订单转出
+		this.BuyId, this.OrderId, this.TokenId, this.Num, 0, 1, "", this.States, updateTimeStr, // 买家记录 , 1订单转入
+	)
+	if err != nil {
 		Log.Println(err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
@@ -389,7 +369,6 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 		code = ERRCODE_UNKNOWN
 		return
 	}
-
 
 	////////////////////////////////////////////////////////
 	// 3. 统计表 加 1
@@ -412,12 +391,11 @@ func (this *Order) ConfirmSession (Id uint64, updateTimeStr string) (code int32,
 		return
 	}
 
-
 	//////////////////////////////////////////////////////
 	// 4. 更新状态
 	//////////////////////////////////////////////////////
 	updateStatesSql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?, `fee`=?  WHERE  `id`=?"
-	_, err = session.Exec(updateStatesSql,3, updateTimeStr, rateFee, Id )
+	_, err = session.Exec(updateStatesSql, 3, updateTimeStr, rateFee, Id)
 	if err != nil {
 		Log.Println(err.Error())
 		session.Rollback()

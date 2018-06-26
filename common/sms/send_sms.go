@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/liudng/godump"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"unsafe"
 	"strings"
-	"github.com/liudng/godump"
 	"time"
+	"unsafe"
 )
 
 func Send253Sms(phone, account, pwd, content, weburl string) (rsp string, err error) {
@@ -49,8 +49,6 @@ func Send253Sms(phone, account, pwd, content, weburl string) (rsp string, err er
 	return
 }
 
-
-
 // Http Get请求基础函数, 通过封装Go语言Http请求, 支持火币网REST API的HTTP Get请求
 // strUrl: 请求的URL
 // strParams: string类型的请求参数, user=lxz&pwd=lxz
@@ -65,14 +63,14 @@ func HttpGetRequest(strUrl string, mapParams map[string]string) string {
 		strParams := Map2UrlQuery(mapParams)
 		strRequestUrl = strUrl + "?" + strParams
 	}
-godump.Dump(strRequestUrl)
+	godump.Dump(strRequestUrl)
 	// 构建Request, 并且按官方要求添加Http Header
 	request, err := http.NewRequest("GET", strRequestUrl, nil)
 	if nil != err {
 		return err.Error()
 	}
 	request.Header.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36")
-godump.Dump(time.Now().Unix())
+	godump.Dump(time.Now().Unix())
 	// 发出请求
 	response, err := httpClient.Do(request)
 	//defer response.Body.Close()

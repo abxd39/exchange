@@ -23,7 +23,6 @@ func (s *TokenRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err erro
 	return
 }
 
-
 func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.EntrustOrder(context.TODO(), p)
 	if err != nil {
