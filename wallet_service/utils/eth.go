@@ -46,8 +46,24 @@ func RpcGetValue(url string,address string,contract string,deci int)(string,erro
 	balance ,ok = result.(string)
 	temp,_:=new(big.Int).SetString(balance[2:],16)
 	amount := decimal.NewFromBigInt(temp,int32(8-deci)).IntPart()
+	re :=decimal.New(amount,-8)
 	fmt.Println("value",amount)
-	return string(amount),nil
+	return re.String(),nil
+}
+func RpcSendRawTx(url string,signtx string)(map[string]interface{},error){
+	data := make(map[string]interface{})
+	data["id"]=1
+	data["jsonrpc"]="2.0"
+	data["method"]="eth_sendRawTransaction"
+	data["params"] = []string{signtx}
+	rsp,err:=RpcPost(url,data)
+	fmt.Println(string(rsp))
+	if err != nil {
+		return nil, err
+	}
+	ret := make(map[string]interface{})
+	err = json.Unmarshal(rsp,&ret)
+	return ret,err
 }
 func RpcPost(url string,send map[string]interface{}) ([]byte,error){
 	bytesData, err := json.Marshal(send)

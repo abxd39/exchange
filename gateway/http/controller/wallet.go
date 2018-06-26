@@ -17,6 +17,7 @@ func (this *WalletGroup) Router(router *gin.Engine){
 	r := router.Group("wallet")
 	r.GET("create",this.Create)
 	r.GET("signtx",this.Signtx)
+	r.GET("sendrawtx",this.SendRawTx)
 	r.GET("tibi",this.Tibi)
 	r.GET("getvalue",this.GetValue)
 	r.GET("address/save",this.AddressSave)
@@ -45,7 +46,7 @@ func (this *WalletGroup)Signtx(ctx *gin.Context){
 	tokenid ,err2	:= strconv.Atoi(   ctx.Query("token_id"))
 	//to := "0x8e430b7fc9c41736911e1699dbcb6d4753cbe3b6"
 	to := ctx.Query("to")
-	gasprice,err3 := strconv.Atoi( ctx.Query("gasprice"))
+	gasprice,err3 := strconv.ParseInt( ctx.Query("gasprice"),10,64)
 	amount := ctx.Query("amount")
 	if err1 != nil || err2!=nil || err3!=nil {
 		ctx.String(http.StatusOK, "参数错误")
@@ -70,7 +71,29 @@ func (this *WalletGroup)Update(ctx *gin.Context){
 	ctx.JSON(http.StatusOK, rsp)
 }
 
+func (this *WalletGroup)SendRawTx(ctx *gin.Context){
+	ret := NewPublciError()
+	type Param struct {
+		TokenId     int32 `form:"token_id" binding:"required"`
+		Signtx  	string `form:"signtx" binding:"required"`
 
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ctx.JSON(http.StatusOK, ret)
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId,param.Signtx)
+	if err != nil {
+		ctx.String(http.StatusOK, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, rsp)
+	return
+}
+//申请提币
 func (this *WalletGroup)Tibi(ctx *gin.Context){
 	ret := NewPublciError()
 	//defer func() {
@@ -86,6 +109,7 @@ func (this *WalletGroup)Tibi(ctx *gin.Context){
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ctx.JSON(http.StatusOK, ret)
 		return
 	}
 	rsp, err := rpc.InnerService.WalletSevice.CallTibi(param.Uid,param.Token_id,param.To,param.Gasprice,param.Amount)
@@ -97,6 +121,7 @@ func (this *WalletGroup)Tibi(ctx *gin.Context){
 	return
 }
 
+//查询钱包链上额度
 func (this *WalletGroup)GetValue(ctx *gin.Context){
 	ret := NewPublciError()
 	type Param struct {
@@ -119,6 +144,7 @@ func (this *WalletGroup)GetValue(ctx *gin.Context){
 	ctx.JSON(http.StatusOK, rsp)
 	return
 }
+
 func (this *WalletGroup)AddressSave(ctx *gin.Context){
 	ret := NewPublciError()
 
@@ -161,11 +187,12 @@ func (this *WalletGroup)AddressList(ctx *gin.Context){
 		return
 	}
 
-	rsp, err := rpc.InnerService.WalletSevice.CallAddressSave(param.Uid,param.Token_id,param.Address,param.Mark)
+	rsp, err := rpc.InnerService.WalletSevice.CallAddressList(param.Uid,param.Token_id)
 	if err != nil {
 		ctx.String(http.StatusOK, err.Error())
 		return
 	}
+
 	ctx.JSON(http.StatusOK, rsp)
 	return
 }
@@ -173,7 +200,7 @@ func (this *WalletGroup)AddressDelete(ctx *gin.Context)  {
 	ret := NewPublciError()
 	type Param struct {
 		Uid       int32 `form:"uid" binding:"required"`
-		Id  int32 `form:"Id" binding:"required"`
+		Id  int32 `form:"id" binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {

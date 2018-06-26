@@ -1,10 +1,13 @@
 package model
 
+import "github.com/go-xorm/xorm"
+
 const (
-	TRADE_STATES_PART=1
-	TRADE_STATES_ALL=2
-	TRADE_STATES_DEL=3
+	TRADE_STATES_PART = 1
+	TRADE_STATES_ALL  = 2
+	TRADE_STATES_DEL  = 3
 )
+
 type Trade struct {
 	TradeId      int    `xorm:"not null pk comment('交易表的id') INT(11)"`
 	TradeNo      string `xorm:"comment('订单号') VARCHAR(32)"`
@@ -16,6 +19,11 @@ type Trade struct {
 	Money        int64  `xorm:"BIGINT(20)"`
 	Fee          int64  `xorm:"comment('手续费') BIGINT(20)"`
 	Type         int    `xorm:"comment(' buy  0或sell 1') index TINYINT(255)"`
-	DealTime     int64    `xorm:"comment('成交时间') BIGINT(20)"`
-	States       int 	`xorm:"comment('1是挂单，2是部分成交,3成交， 4撤销') TINYINT(4)"`
+	DealTime     int64  `xorm:"comment('成交时间') BIGINT(20)"`
+	States       int    `xorm:"comment('1是挂单，2是部分成交,3成交， 4撤销') TINYINT(4)"`
+}
+
+func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
+	_, err = session.Insert(t)
+	return
 }

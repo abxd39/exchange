@@ -48,8 +48,16 @@ func (this *WalletRPCCli)CallCreateWallet(userid int,tokenid int) (rsp *proto.Cr
 	}
 	return
 }
-func (this *WalletRPCCli)CallSigntx(userid int,tokenid int,to string,gasprice int,mount string) (rsp *proto.SigntxResponse,err error){
-	rsp, err = this.conn.Signtx(context.TODO(), &proto.SigntxRequest{Userid: int32(userid),	Tokenid:int32(tokenid),To:to,Gasprice:int32(gasprice),Mount:mount})
+func (this *WalletRPCCli)CallSigntx(userid int,tokenid int,to string,gasprice int64,mount string) (rsp *proto.SigntxResponse,err error){
+	rsp, err = this.conn.Signtx(context.TODO(), &proto.SigntxRequest{Userid: int32(userid),	Tokenid:int32(tokenid),To:to,Gasprice:(gasprice),Mount:mount})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+func (this *WalletRPCCli)CallSendRawTx(tokenid int32,signtx string) (rsp *proto.SendRawTxResponse,err error){
+	rsp, err = this.conn.SendRawTx(context.TODO(), &proto.SendRawTxRequest{TokenId:tokenid,Signtx:signtx})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -80,8 +88,8 @@ func (this *WalletRPCCli)CallAddressSave(uid int32,tokenid int32,address string,
 	}
 	return
 }
-func (this *WalletRPCCli)CallAddressList(uid int32,tokenid int32,address string,mark string) (rsp *proto.AddressListResponse,err error){
-	rsp, err = this.conn.AddressList(context.TODO(), &proto.AddressListRequest{Uid: (uid),	Tokenid:(tokenid)})
+func (this *WalletRPCCli)CallAddressList(uid int32,tokenid int32) (rsp *proto.AddressListResponse,err error){
+	rsp, err = this.conn.AddressList(context.TODO(), &proto.AddressListRequest{Uid: int32(uid),	Tokenid:int32(tokenid)})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

@@ -4,7 +4,7 @@ import (
 	"time"
 	"errors"
 	. "digicon/wallet_service/utils"
-	. "github.com/ethereum/go-ethereum/cmd/wallet"
+	//. "github.com/ethereum/go-ethereum/cmd/wallet"
 	"math/big"
 	"fmt"
 )
@@ -40,14 +40,14 @@ func (this *WalletToken)AddrExist(addr string,chainid int,contract string)(bool,
 	//fmt.Println(addr,chainid,contract)
 	return Engine_wallet.Where("address=? and chainid=? and contract=?",addr,chainid,contract).Get(this)
 }
-func (this *WalletToken)Signtx(to string,mount *big.Int,gasprice int)( []byte,error){
+func (this *WalletToken)Signtx(to string,mount *big.Int,gasprice int64)( []byte,error){
 	//func Signtx(key *keystore.Key,nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int) ([]byte,error)
 	key,err :=Unlock_keystore([]byte(this.Keystore),this.Password)
 	if err != nil {
 		return nil,err
 	}
 	token := &Tokens{Id:this.Tokenid}
-	ok,err:=token.GetByid()
+	ok,err:=token.GetByid(this.Tokenid)
 	if !ok{
 		return nil,err
 	}
@@ -55,10 +55,10 @@ func (this *WalletToken)Signtx(to string,mount *big.Int,gasprice int)( []byte,er
 	this.NonceIncr(this.Id)
 	switch token.Signature {
 	case "eip155":
-		gaslimit :=235600
+		gaslimit :=60000
 		return Signtx(key,nonce,to,mount,gaslimit,gasprice,token.Contract,this.Chainid)
 	case "eth":
-		gaslimit :=235600
+		gaslimit :=60000
 		return Signtx(key,nonce,to,mount,gaslimit,gasprice,token.Contract,0)
 	default:
 		return nil, errors.New("unknow type")

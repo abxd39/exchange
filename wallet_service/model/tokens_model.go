@@ -21,8 +21,9 @@ type Tokens struct {
 }
 
 
-func (this *Tokens) GetByid()(bool, error){
-	return Engine_common.Id(this.Id).Get(this)
+func (this *Tokens) GetByid(id int)(bool, error){
+
+	return Engine_common.Id(id).Get(this)
 }
 
 func (this *Tokens)GetidByContract(contract string,chainid int) (int,error){
@@ -40,7 +41,7 @@ func (this *Tokens)GetidByContract(contract string,chainid int) (int,error){
 
 func (this *Tokens)GetDecimal(id int)(int,error){
 	this.Id = id
-	ok,err:=this.GetByid()
+	ok,err:=this.GetByid(id)
 	if err != nil{
 		return 0,err
 	}

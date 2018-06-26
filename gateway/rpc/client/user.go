@@ -130,7 +130,7 @@ func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, 
 // 	return
 // }
 
-func (s *UserRPCCli) CallGoogleSecretKey(uid int32) (rsp *proto.GoogleAuthResponse, err error) {
+func (s *UserRPCCli) CallGoogleSecretKey(uid uint64) (rsp *proto.GoogleAuthResponse, err error) {
 	rsp, err = s.conn.GetGoogleSecretKey(context.TODO(), &proto.GoogleAuthRequest{
 		Uid: uid,
 	})
@@ -141,7 +141,7 @@ func (s *UserRPCCli) CallGoogleSecretKey(uid int32) (rsp *proto.GoogleAuthRespon
 	return
 }
 
-func (s *UserRPCCli) CallAuthGoogleSecretKey(uid int32, code uint32) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallAuthGoogleSecretKey(uid uint64, code uint32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.AuthGoogleSecretKey(context.TODO(), &proto.AuthGoogleSecretKeyRequest{
 		Uid:  uid,
 		Code: code,
@@ -153,7 +153,7 @@ func (s *UserRPCCli) CallAuthGoogleSecretKey(uid int32, code uint32) (rsp *proto
 	return
 }
 
-func (s *UserRPCCli) CallDelGoogleSecretKey(uid int32, code uint32) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.DelGoogleSecretKey(context.TODO(), &proto.DelGoogleSecretKeyRequest{
 		Uid:  uid,
 		Code: code,
@@ -166,7 +166,7 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid int32, code uint32) (rsp *proto.
 }
 
 type UserBaseData struct {
-	Uid            int32  `json:"uid"`
+	Uid            uint64  `json:"uid"`
 	Account        string `json:"account"`
 	Phone          string `json:"phone"`
 	Email          string `json:"email"`
@@ -178,7 +178,7 @@ type UserBaseData struct {
 	NeedPwdTime    int32  `json:"need_pwd_time"`
 }
 
-func (s *UserRPCCli) CallGetUserBaseInfo(uid int32) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
+func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
 	rsp, err = s.conn.GetUserInfo(context.TODO(), &proto.UserInfoRequest{
 		Uid: uid,
 	})
@@ -215,7 +215,7 @@ type UserRealData struct {
 	IdentifyCard string `json:"identify_card"`
 }
 
-func (s *UserRPCCli) CallGetUserRealName(uid int32) (rsp *proto.UserRealNameResponse, u *UserRealData, err error) {
+func (s *UserRPCCli) CallGetUserRealName(uid uint64) (rsp *proto.UserRealNameResponse, u *UserRealData, err error) {
 	rsp, err = s.conn.GetUserRealName(context.TODO(), &proto.UserInfoRequest{
 		Uid: uid,
 	})
@@ -244,7 +244,7 @@ type UserInviteData struct {
 	Invites    int32  `json:"invites"`
 }
 
-func (s *UserRPCCli) CallGetUserInvite(uid int32) (rsp *proto.UserInviteResponse, u *UserInviteData, err error) {
+func (s *UserRPCCli) CallGetUserInvite(uid uint64) (rsp *proto.UserInviteResponse, u *UserInviteData, err error) {
 	rsp, err = s.conn.GetUserInvite(context.TODO(), &proto.UserInfoRequest{
 		Uid: uid,
 	})
@@ -301,5 +301,9 @@ func (s *UserRPCCli) CallModifyPhone2(req *proto.UserSetNewPhoneRequest) (*proto
 }
 func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*proto.UserModifyTradePwdResponse, error) {
 	rsp, err := s.conn.ModifyTradePwd(context.TODO(), req)
+	return rsp, err
+}
+func (s *UserRPCCli) CallModifyNickName(req *proto.UserModifyNickNameResquest) (*proto.UserModifyNickNameResponse, error) {
+	rsp, err := s.conn.ModifyNickName(context.TODO(), req)
 	return rsp, err
 }
