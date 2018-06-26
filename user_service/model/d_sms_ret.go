@@ -7,6 +7,7 @@ import (
 	. "digicon/proto/common"
 	"digicon/user_service/tools"
 	"github.com/go-redis/redis"
+	"fmt"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 )
 
 //发送短信
-func SendSms(phone string, ty int32) (ret int32, err_msg string) {
+func SendSms(phone ,region string, ty int32) (ret int32, err_msg string) {
 	code := random.Random6dec()
 	r := &RedisOp{}
 	err := r.SetSmsCode(phone, code, ty)
@@ -27,7 +28,7 @@ func SendSms(phone string, ty int32) (ret int32, err_msg string) {
 		return
 	}
 
-	ret, msg := tools.Send253YunSms(phone, code)
+	ret, msg := tools.Send253YunSms(fmt.Sprintf("%s%s",region,phone), code)
 	err_msg = msg
 	return
 }

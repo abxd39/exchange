@@ -207,13 +207,13 @@ func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *pro
 			return nil
 		}
 
-		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
+		rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
 	} else if req.Type == model.SMS_FORGET {
 		//TODO判断
-		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
+		rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
 	} else if req.Type == model.SMS_CHANGE_PWD {
 		//TODO判断
-		rsp.Err, rsp.Message = model.SendSms(req.Phone, req.Type)
+		rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
 	} else {
 		rsp.Err = ERRCODE_PARAM
 		rsp.Message = GetErrorMessage(rsp.Err)

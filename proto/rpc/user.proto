@@ -123,6 +123,7 @@ message SecurityResponse{
 message SmsRequest {
     string phone            =1;
     int32 type              =2;//1表示注册
+    string region           =3;
 }
 
 message EmailRequest{

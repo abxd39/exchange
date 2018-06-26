@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/liudng/godump"
 )
 
 type UserGroup struct{}
@@ -58,7 +57,7 @@ func (s *UserGroup) RegisterController(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-godump.Dump(param)
+
 	if param.Type==1 {
 		if param.Country=="" {
 			ret.SetErrCode(ERRCODE_PARAM)
@@ -266,7 +265,7 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 	}()
 
 	type PhoneParam struct {
-
+		Region string `form:"region" binding:"required"`
 		Phone string `form:"phone" binding:"required"`
 		Type  int32  `form:"type" binding:"required"`
 	}
@@ -278,7 +277,7 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Type)
+	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Region,param.Type)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
