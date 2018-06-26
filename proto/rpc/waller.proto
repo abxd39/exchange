@@ -10,7 +10,7 @@ service Gateway2Waller {
 	rpc AddressList(AddressListRequest) returns (AddressListResponse){}
 	rpc AddressDelete(AddressDeleteRequest) returns (AddressDeleteResponse){}
 	rpc GetValue(GetValueRequest) returns (GetValueResponse){}
-
+    rpc SendRawTx(SendRawTxRequest) returns (SendRawTxResponse){}
 }
 
 message HelloRequest2 {
@@ -41,7 +41,7 @@ message SigntxRequest{
     int32 userid=1;
     int32 tokenid=2;
     string mount=3;
-    int32 gasprice=5;
+    int64 gasprice=5;
     string to=6;
 }
 message SigntxPos{
@@ -51,6 +51,18 @@ message SigntxResponse{
     string code=1;
     string msg=2;
     SigntxPos data=3;
+}
+message SendRawTxPos{
+    string result=1;
+}
+message SendRawTxRequest{
+    int32 token_id=1;
+    string signtx=2;
+}
+message SendRawTxResponse{
+    string code=1;
+    string msg=2;
+    SendRawTxPos data=3;
 }
 
 message NilPos{

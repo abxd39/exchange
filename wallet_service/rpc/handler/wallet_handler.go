@@ -27,7 +27,7 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	var addr string
 	rsp.Data = new(proto.CreateWalletPos)
 	tokenModel := &Tokens{Id:int(req.Tokenid)}
-	_,err =tokenModel.GetByid()
+	_,err =tokenModel.GetByid(int(req.Tokenid))
 
 
 	switch tokenModel.Signature {
@@ -79,7 +79,7 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	}
 	deci_temp,err :=decimal.NewFromString(req.Mount)
 	mount := deci_temp.Round(int32(deciml)).Coefficient()
-	signtxstr ,err := keystore.Signtx(req.To,mount,int(req.Gasprice))
+	signtxstr ,err := keystore.Signtx(req.To,mount,req.Gasprice)
 
 	if err != nil {
 		rsp.Code="1"
@@ -93,6 +93,38 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	rsp.Data.Signtx = hex.EncodeToString(signtxstr)
 	return nil
 }
+
+func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRequest, rsp *proto.SendRawTxResponse)error{
+	log.Print("Received Say.SendRawTx request")
+	TokenModel :=new(Tokens)
+	ok,err:=TokenModel.GetByid(int(req.TokenId))
+	if err!=nil || !ok {
+		rsp.Code="1"
+		rsp.Msg="token不存在"
+		return nil
+	}
+	rets,err :=utils.RpcSendRawTx(TokenModel.Node,req.Signtx)
+	if err != nil {
+		rsp.Code="1"
+		rsp.Msg=err.Error()
+		return nil
+	}
+	txhash,ok:=rets["result"]
+	if ok {
+		rsp.Code="0"
+		rsp.Msg="发送成功"
+		rsp.Data= new(proto.SendRawTxPos)
+		rsp.Data.Result=txhash.(string)
+		return nil
+	}
+	if !ok {
+		error:=rets["error"].(map[string]string)
+		rsp.Code=error["code"]
+		rsp.Msg=error["message"]
+		return nil
+	}
+	return nil
+}
 func (this *WalletHandler) Tibi(ctx context.Context, req *proto.TibiRequest, rsp *proto.TibiResponse) error {
 	rsp.Code = "0"
 	rsp.Msg  = "生成成功"
@@ -100,25 +132,7 @@ func (this *WalletHandler) Tibi(ctx context.Context, req *proto.TibiRequest, rsp
 	return nil
 }
 
-func (this *WalletHandler) AddressSave(ctx context.Context, req *proto.AddressSaveRequest, rsp *proto.AddressSaveResponse) error {
-	rsp.Code = "0"
-	rsp.Msg  = "生成成功"
-	rsp.Data = new(proto.NilPos)
-	return nil
-}
 
-func (this *WalletHandler) AddressList(ctx context.Context, req *proto.AddressListRequest, rsp *proto.AddressListResponse) error {
-	rsp.Code = "0"
-	rsp.Msg  = "生成成功"
-	//rsp.Data = []AddrlistPos
-	return nil
-}
-func (this *WalletHandler) AddressDelete(ctx context.Context, req *proto.AddressDeleteRequest, rsp *proto.AddressDeleteResponse) error {
-	rsp.Code = "0"
-	rsp.Msg  = "操作成功"
-	rsp.Data = new(proto.NilPos)
-	return nil
-}
 
 func (this *WalletHandler) GetValue(ctx context.Context, req *proto.GetValueRequest, rsp *proto.GetValueResponse) error {
 	rsp.Code = "0"
@@ -157,5 +171,47 @@ func (this *WalletHandler) GetValue(ctx context.Context, req *proto.GetValueRequ
 		return nil
 	}
 	rsp.Data.Value=value
+	return nil
+}
+//添加提币地址
+func (this *WalletHandler) AddressSave(ctx context.Context, req *proto.AddressSaveRequest, rsp *proto.AddressSaveResponse) error {
+	rsp.Code = "0"
+	rsp.Msg  = "添加1成功"
+	rsp.Data = new(proto.NilPos)
+	TibiAddressModel := new(TibiAddress)
+	_,err:=TibiAddressModel.Save(int(req.Uid),int(req.Tokenid),req.Address,req.Mark)
+	if err!=nil {
+		rsp.Code = "1"
+		rsp.Msg  = err.Error()
+	}
+	return nil
+}
+//提币地址列表
+func (this *WalletHandler) AddressList(ctx context.Context, req *proto.AddressListRequest, rsp *proto.AddressListResponse) error {
+	rsp.Code = "0"
+	rsp.Msg  = "列表成功"
+	//rsp.Data = []AddrlistPos
+	TibiAddressModel := new(TibiAddress)
+	rets,err:=TibiAddressModel.List(int(req.Uid),int(req.Tokenid))
+	if err != nil {
+		return err
+	}
+	rsp.Data=rets
+	fmt.Println(rets)
+	return nil
+}
+//提币地址删除
+func (this *WalletHandler) AddressDelete(ctx context.Context, req *proto.AddressDeleteRequest, rsp *proto.AddressDeleteResponse) error {
+	TibiAddressModel := new(TibiAddress)
+	_,err :=TibiAddressModel.DeleteByid(int(req.Id),int(req.Uid))
+	if err!=nil {
+		rsp.Code = "1"
+		rsp.Msg  = err.Error()
+		rsp.Data = new(proto.NilPos)
+		return nil
+	}
+	rsp.Code = "0"
+	rsp.Msg  = "操作成功"
+	rsp.Data = new(proto.NilPos)
 	return nil
 }
