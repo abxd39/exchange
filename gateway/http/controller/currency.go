@@ -520,30 +520,67 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
+	dataLen := len(data.Data)
 
 	// 法币交易列表 - 响应数据结构
-	reaList := AdsListResponse{Page: data.Page, PageNum: data.PageNum, Total: data.Total}
-	for _, v := range data.Data {
+	reaList := AdsListResponse{
+		Page: data.Page,
+		PageNum: data.PageNum,
+		Total: data.Total,
+	}
 
-		adsLists := AdsListsData{
-			Id:          v.Id,
-			Uid:         v.Uid,
-			Price:       convert.Int64ToFloat64By8Bit(int64(v.Price)),
-			Num:         convert.Int64ToFloat64By8Bit(int64(v.Num)),
-			MinLimit:    v.MinLimit,
-			MaxLimit:    v.MaxLimit,
-			Pays:        v.Pays,
-			CreatedTime: v.CreatedTime,
-			UpdatedTime: v.UpdatedTime,
-			UserName:    v.UserName,
-			UserFace:    v.UserFace,
-			UserVolume:  v.UserVolume,
-			TypeId:      v.TypeId,
-			TokenId:     v.TokenId,
-			TokenName:   v.TokenName,
+	if dataLen != 0 {
+		reaList.List = make([]AdsListsData, dataLen)
+
+		// 收集用户id 和 移动数据
+		userList := make([]uint64, 0, dataLen)
+		for i := 0; i < dataLen; i++ {
+
+			adsLists := AdsListsData{
+				Id:          data.Data[i].Id,
+				Uid:         data.Data[i].Uid,
+				Price:       convert.Int64ToFloat64By8Bit(int64(data.Data[i].Price)),
+				Num:         convert.Int64ToFloat64By8Bit(int64(data.Data[i].Num)),
+				MinLimit:    data.Data[i].MinLimit,
+				MaxLimit:    data.Data[i].MaxLimit,
+				Pays:        data.Data[i].Pays,
+				CreatedTime: data.Data[i].CreatedTime,
+				UpdatedTime: data.Data[i].UpdatedTime,
+				//UserName:    data.Data[i].UserName,
+				//UserFace:    data.Data[i].UserFace,
+				UserVolume:  data.Data[i].UserVolume,
+				TypeId:      data.Data[i].TypeId,
+				TokenId:     data.Data[i].TokenId,
+				TokenName:   data.Data[i].TokenName,
+			}
+			userList = append(userList, data.Data[i].Uid)
+			reaList.List[i] = adsLists
 		}
 
-		reaList.List = append(reaList.List, adsLists)
+		// 调用 rpc 用户头像和昵称
+		ulist, err := rpc.InnerService.UserSevice.CallModifyNickName(&proto.UserModifyNickNameResquest{Uid:userList})
+		if err != nil {
+			Log.Errorf(err.Error())
+			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+			return
+		}
+		if len(ulist.User) == 0 {
+			ret.SetErrCode(ERRCODE_UNKNOWN, "获取用户头像和昵称失败")
+			return
+		}
+
+		// 添加 用户头像和昵称
+		for l := 0; l < dataLen; l++ {
+			for _, u := range ulist.User {
+				if reaList.List[l].Uid == u.Uid {
+					reaList.List[l].UserName = u.NackName
+					reaList.List[l].UserFace = u.HeadSculpture
+					break
+				}
+			}
+		}
+
+		//fmt.Println(userList)
 	}
 
 	ret.SetDataValue(reaList)
