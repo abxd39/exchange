@@ -166,7 +166,7 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 }
 
 type UserBaseData struct {
-	Uid            uint64  `json:"uid"`
+	Uid            uint64 `json:"uid"`
 	Account        string `json:"account"`
 	Phone          string `json:"phone"`
 	Email          string `json:"email"`
@@ -304,7 +304,6 @@ func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*
 func (s *UserRPCCli) CallSetNickName(req *proto.UserSetNickNameRequest) (*proto.UserSetNickNameResponse, error) {
 	return s.conn.SetNickName(context.TODO(), req)
 }
-func (s *UserRPCCli) CallModifyNickName(req *proto.UserModifyNickNameResquest) (*proto.UserModifyNickNameResponse, error) {
-	rsp, err := s.conn.ModifyNickName(context.TODO(), req)
-	return rsp, err
+func (s *UserRPCCli) CallGetNickName(req *proto.UserGetNickNameResquest) (*proto.UserGetNickNameResponse, error) {
+	return s.conn.GetNickName(context.TODO(), req)
 }

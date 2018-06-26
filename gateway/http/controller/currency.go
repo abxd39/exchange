@@ -524,9 +524,9 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{
-		Page: data.Page,
+		Page:    data.Page,
 		PageNum: data.PageNum,
-		Total: data.Total,
+		Total:   data.Total,
 	}
 
 	if dataLen != 0 {
@@ -548,17 +548,17 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 				UpdatedTime: data.Data[i].UpdatedTime,
 				//UserName:    data.Data[i].UserName,
 				//UserFace:    data.Data[i].UserFace,
-				UserVolume:  data.Data[i].UserVolume,
-				TypeId:      data.Data[i].TypeId,
-				TokenId:     data.Data[i].TokenId,
-				TokenName:   data.Data[i].TokenName,
+				UserVolume: data.Data[i].UserVolume,
+				TypeId:     data.Data[i].TypeId,
+				TokenId:    data.Data[i].TokenId,
+				TokenName:  data.Data[i].TokenName,
 			}
 			userList = append(userList, data.Data[i].Uid)
 			reaList.List[i] = adsLists
 		}
 
 		// 调用 rpc 用户头像和昵称
-		ulist, err := rpc.InnerService.UserSevice.CallModifyNickName(&proto.UserModifyNickNameResquest{Uid:userList})
+		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameResquest{Uid: userList})
 		if err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
@@ -573,7 +573,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		for l := 0; l < dataLen; l++ {
 			for _, u := range ulist.User {
 				if reaList.List[l].Uid == u.Uid {
-					reaList.List[l].UserName = u.NackName
+					reaList.List[l].UserName = u.NickName
 					reaList.List[l].UserFace = u.HeadSculpture
 					break
 				}
