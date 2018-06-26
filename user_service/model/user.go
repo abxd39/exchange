@@ -17,9 +17,8 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 )
 
-
 type User struct {
-	Uid              uint64  `xorm:"not null pk autoincr comment('用户ID') BIGINT(11)"`
+	Uid              uint64 `xorm:"not null pk autoincr comment('用户ID') BIGINT(11)"`
 	Account          string `xorm:"comment('账号') unique VARCHAR(64)"`
 	Pwd              string `xorm:"comment('密码') VARCHAR(255)"`
 	Country          string `xorm:"comment('地区号') VARCHAR(32)"`
@@ -29,12 +28,11 @@ type User struct {
 	EmailVerifyTime  int    `xorm:"comment('邮箱验证时间') INT(11)"`
 	GoogleVerifyId   string `xorm:"comment('谷歌私钥') VARCHAR(128)"`
 	GoogleVerifyTime int    `xorm:"comment('谷歌验证时间') INT(255)"`
-	SmsTip           bool    `xorm:"default 0 comment('短信提醒') TINYINT(1)"`
+	SmsTip           bool   `xorm:"default 0 comment('短信提醒') TINYINT(1)"`
 	PayPwd           string `xorm:"comment('支付密码') VARCHAR(255)"`
-	NeedPwd          bool    `xorm:"comment('免密设置1开启0关闭') TINYINT(1)"`
+	NeedPwd          bool   `xorm:"comment('免密设置1开启0关闭') TINYINT(1)"`
 	NeedPwdTime      int    `xorm:"comment('免密周期') INT(11)"`
 }
-
 
 /*
 type User struct {
@@ -218,7 +216,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		Account: req.Ukey,
 		Country: req.Country,
 	}
-	_, err := DB.GetMysqlConn().Cols("pwd", filed, "account","country").Insert(e)
+	_, err := DB.GetMysqlConn().Cols("pwd", filed, "account", "country").Insert(e)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -255,8 +253,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 			return ERRCODE_UNKNOWN
 		}
 
-
-		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Incr("invites",1).Update(d)
+		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Incr("invites", 1).Update(d)
 		if err != nil {
 			Log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN

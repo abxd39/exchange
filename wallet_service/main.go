@@ -14,7 +14,7 @@ func main() {
 	flag.Parse()
 
 	go rpc.RPCServerInit()
-	 //new(client.Watch).Start("https://rinkeby.infura.io/mew")
+	//new(client.Watch).Start("https://rinkeby.infura.io/mew")
 	//return
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

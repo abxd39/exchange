@@ -1,12 +1,12 @@
 package models
 
 import (
-	"time"
-	"errors"
 	. "digicon/wallet_service/utils"
+	"errors"
+	"time"
 	//. "github.com/ethereum/go-ethereum/cmd/wallet"
-	"math/big"
 	"fmt"
+	"math/big"
 )
 
 type WalletToken struct {
@@ -26,59 +26,56 @@ type WalletToken struct {
 	CreatedTime time.Time `xorm:"not null default 'CURRENT_TIMESTAMP' comment('创建时间') TIMESTAMP"`
 }
 
-
-
-func (this *WalletToken)Create() error{
+func (this *WalletToken) Create() error {
 	this.UpdatedTime = time.Now()
 	this.CreatedTime = time.Now()
-	_,err := Engine_wallet.Insert(this)
+	_, err := Engine_wallet.Insert(this)
 	return err
 }
 
-func (this *WalletToken)AddrExist(addr string,chainid int,contract string)(bool,error){
+func (this *WalletToken) AddrExist(addr string, chainid int, contract string) (bool, error) {
 	//Engine_wallet.ShowSQL(true)
 	//fmt.Println(addr,chainid,contract)
-	return Engine_wallet.Where("address=? and chainid=? and contract=?",addr,chainid,contract).Get(this)
+	return Engine_wallet.Where("address=? and chainid=? and contract=?", addr, chainid, contract).Get(this)
 }
-func (this *WalletToken)Signtx(to string,mount *big.Int,gasprice int64)( []byte,error){
+func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64) ([]byte, error) {
 	//func Signtx(key *keystore.Key,nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int) ([]byte,error)
-	key,err :=Unlock_keystore([]byte(this.Keystore),this.Password)
+	key, err := Unlock_keystore([]byte(this.Keystore), this.Password)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	token := &Tokens{Id:this.Tokenid}
-	ok,err:=token.GetByid(this.Tokenid)
-	if !ok{
-		return nil,err
+	token := &Tokens{Id: this.Tokenid}
+	ok, err := token.GetByid(this.Tokenid)
+	if !ok {
+		return nil, err
 	}
 	nonce := this.Nonce
 	this.NonceIncr(this.Id)
 	switch token.Signature {
 	case "eip155":
-		gaslimit :=60000
-		return Signtx(key,nonce,to,mount,gaslimit,gasprice,token.Contract,this.Chainid)
+		gaslimit := 60000
+		return Signtx(key, nonce, to, mount, gaslimit, gasprice, token.Contract, this.Chainid)
 	case "eth":
-		gaslimit :=60000
-		return Signtx(key,nonce,to,mount,gaslimit,gasprice,token.Contract,0)
+		gaslimit := 60000
+		return Signtx(key, nonce, to, mount, gaslimit, gasprice, token.Contract, 0)
 	default:
 		return nil, errors.New("unknow type")
 	}
 
 }
-func (this *WalletToken)NonceIncr(id int){
-	Engine_wallet.Exec("update wallet_token set nonce=nonce+1 where id=?",id)
-	fmt.Println("update wallet_token set nonce=nonce+1 where id=?",id)
+func (this *WalletToken) NonceIncr(id int) {
+	Engine_wallet.Exec("update wallet_token set nonce=nonce+1 where id=?", id)
+	fmt.Println("update wallet_token set nonce=nonce+1 where id=?", id)
 }
-//创建以太坊钱包
-func Neweth(userid int,tokenid int,password string,chainid int)(addr string,err error){
-	var walletTokenModel = WalletToken{Uid:userid,Password:password,Tokenid:tokenid,Type:"eth",Chainid:chainid}
 
-	walletTokenModel.Address,walletTokenModel.Keystore,walletTokenModel.Privatekey,err =New_keystore(password)
+//创建以太坊钱包
+func Neweth(userid int, tokenid int, password string, chainid int) (addr string, err error) {
+	var walletTokenModel = WalletToken{Uid: userid, Password: password, Tokenid: tokenid, Type: "eth", Chainid: chainid}
+
+	walletTokenModel.Address, walletTokenModel.Keystore, walletTokenModel.Privatekey, err = New_keystore(password)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 	err = walletTokenModel.Create()
-	return walletTokenModel.Address,err
+	return walletTokenModel.Address, err
 }
-
-

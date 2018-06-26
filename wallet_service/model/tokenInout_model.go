@@ -1,10 +1,10 @@
 package models
 
 import (
-	"time"
 	"digicon/wallet_service/utils"
 	"github.com/shopspring/decimal"
 	"math/big"
+	"time"
 )
 
 type TokenInout struct {
@@ -23,21 +23,20 @@ type TokenInout struct {
 	CreatedTime time.Time `xorm:"comment('创建时间') TIMESTAMP"`
 }
 
-func (this *TokenInout)Insert(txhash,from,to,value,contract string,chainid int,uid int,tokenid int,tokenname string,decim int) (int,error){
-	this.Id=0
-	this.Txhash=txhash
+func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string, decim int) (int, error) {
+	this.Id = 0
+	this.Txhash = txhash
 	this.From = from
 	this.To = to
-	this.Value =value
-		temp,_:=new(big.Int).SetString(value[2:],16)
-		amount := decimal.NewFromBigInt(temp,int32(8-decim)).IntPart()
+	this.Value = value
+	temp, _ := new(big.Int).SetString(value[2:], 16)
+	amount := decimal.NewFromBigInt(temp, int32(8-decim)).IntPart()
 	this.Amount = amount
-	this.Contract=contract
-	this.Chainid=chainid
-	this.Tokenid=tokenid
-	this.TokenName=tokenname
+	this.Contract = contract
+	this.Chainid = chainid
+	this.Tokenid = tokenid
+	this.TokenName = tokenname
 	this.Uid = uid
-	affected,err:=utils.Engine_wallet.InsertOne(this)
-	return int(affected),err
+	affected, err := utils.Engine_wallet.InsertOne(this)
+	return int(affected), err
 }
-

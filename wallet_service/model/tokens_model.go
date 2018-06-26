@@ -1,6 +1,6 @@
 package models
 
-import(
+import (
 	. "digicon/wallet_service/utils"
 	"errors"
 )
@@ -20,34 +20,33 @@ type Tokens struct {
 	Decimal   int    `xorm:"not null default 1 comment('精度 1个eos最小精度的10的18次方') INT(11)"`
 }
 
-
-func (this *Tokens) GetByid(id int)(bool, error){
+func (this *Tokens) GetByid(id int) (bool, error) {
 
 	return Engine_common.Id(id).Get(this)
 }
 
-func (this *Tokens)GetidByContract(contract string,chainid int) (int,error){
+func (this *Tokens) GetidByContract(contract string, chainid int) (int, error) {
 	this.Id = 0
-	ok,err := Engine_common.Where("contract=? and chainid=?",contract,chainid).Get(this)
+	ok, err := Engine_common.Where("contract=? and chainid=?", contract, chainid).Get(this)
 	//fmt.Println(contract,chainid)
-	if err != nil{
+	if err != nil {
 		return 0, err
 	}
 	if !ok {
-		return 0,errors.New("token not exist")
+		return 0, errors.New("token not exist")
 	}
-	return this.Id,nil
+	return this.Id, nil
 }
 
-func (this *Tokens)GetDecimal(id int)(int,error){
+func (this *Tokens) GetDecimal(id int) (int, error) {
 	this.Id = id
-	ok,err:=this.GetByid(id)
-	if err != nil{
-		return 0,err
+	ok, err := this.GetByid(id)
+	if err != nil {
+		return 0, err
 	}
 
 	if !ok {
-		return 0,errors.New("connot find this token")
+		return 0, errors.New("connot find this token")
 	}
-	return this.Decimal,nil
+	return this.Decimal, nil
 }

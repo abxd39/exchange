@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"digicon/common/encryption"
 	. "digicon/currency_service/log"
 	"digicon/currency_service/model"
 	proto "digicon/proto/rpc"
@@ -9,7 +10,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"digicon/common/encryption"
 )
 
 // 获取订单列表
@@ -85,9 +85,3 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	rsp.Data = strconv.FormatUint(id, 10)
 	return nil
 }
-
-
-
-
-
-

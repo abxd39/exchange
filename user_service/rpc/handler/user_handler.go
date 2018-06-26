@@ -9,8 +9,8 @@ import (
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
 
-	"github.com/go-redis/redis"
 	"fmt"
+	"github.com/go-redis/redis"
 	"github.com/liudng/godump"
 )
 
@@ -24,10 +24,10 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 
 //注册
 func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
-	if req.Type == 1 {//手机注册
+	if req.Type == 1 { //手机注册
 		r := model.RedisOp{}
 		godump.Dump(req)
-		u:=fmt.Sprintf("%s%s",req.Country,req.Ukey)
+		u := fmt.Sprintf("%s%s", req.Country, req.Ukey)
 		godump.Dump(u)
 		code, err := r.GetSmsCode(u, model.SMS_REGISTER)
 		if err == redis.Nil {
@@ -191,33 +191,46 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 
 //发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
-	if req.Type == model.SMS_REGISTER {
-		//TODO判断
-		u := model.User{}
-		ret, err := u.CheckUserExist(req.Phone, "phone")
-		if err != nil {
-			rsp.Err = ERRCODE_UNKNOWN
-			rsp.Message = err.Error()
-			return nil
-		}
 
-		if ret != ERRCODE_SUCCESS {
-			rsp.Err = ret
-			rsp.Message = GetErrorMessage(rsp.Err)
-			return nil
-		}
-
-		rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
-	} else if req.Type == model.SMS_FORGET {
-		//TODO判断
-		rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
-	} else if req.Type == model.SMS_CHANGE_PWD {
-		//TODO判断
-		rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
-	} else {
-		rsp.Err = ERRCODE_PARAM
-		rsp.Message = GetErrorMessage(rsp.Err)
+	ret, err := model.ProcessSmsLogic(req.Type, req.Phone, req.Region)
+	if err != nil {
+		rsp.Err = ret
+		rsp.Message = err.Error()
+		return nil
 	}
+	rsp.Err = ret
+	rsp.Message = GetErrorMessage(rsp.Err)
+	return nil
+	/*
+		if req.Type == model.SMS_REGISTER {
+			//TODO判断
+			u := model.User{}
+			ret, err := u.CheckUserExist(req.Phone, "phone")
+			if err != nil {
+				rsp.Err = ERRCODE_UNKNOWN
+				rsp.Message = err.Error()
+				return nil
+			}
+
+			if ret != ERRCODE_SUCCESS {
+				rsp.Err = ret
+				rsp.Message = GetErrorMessage(rsp.Err)
+				return nil
+			}
+
+			rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
+		} else if req.Type == model.SMS_FORGET {
+			//TODO判断
+			rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
+		} else if req.Type == model.SMS_CHANGE_PWD {
+			//TODO判断
+			rsp.Err, rsp.Message = model.SendSms(req.Phone,req.Region, req.Type)
+		} else {
+			rsp.Err = ERRCODE_PARAM
+			rsp.Message = GetErrorMessage(rsp.Err)
+		}
+
+	*/
 	return nil
 }
 

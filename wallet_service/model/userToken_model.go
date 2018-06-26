@@ -8,6 +8,6 @@ type UserToken struct {
 	Balance string `xorm:"comment('余额') DECIMAL(64,8)"`
 }
 
-func (this *UserToken)Add(amount string,uid,tokenid int){
-	utils.Engine_token.Incr("balance",amount).Where("uid=? and token_id",uid,tokenid)
+func (this *UserToken) Add(amount string, uid, tokenid int) {
+	utils.Engine_token.Incr("balance", amount).Where("uid=? and token_id", uid, tokenid)
 }

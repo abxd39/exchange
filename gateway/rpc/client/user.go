@@ -95,11 +95,11 @@ func (s *UserRPCCli) CallAuthSecurity(phone, phone_code, email_code string) (rsp
 	return
 }
 
-func (s *UserRPCCli) CallSendSms(phone ,region string, ty int32) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallSendSms(phone, region string, ty int32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.SendSms(context.TODO(), &proto.SmsRequest{
-		Phone: phone,
-		Type:  ty,
-		Region:region,
+		Phone:  phone,
+		Type:   ty,
+		Region: region,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -167,7 +167,7 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 }
 
 type UserBaseData struct {
-	Uid            uint64  `json:"uid"`
+	Uid            uint64 `json:"uid"`
 	Account        string `json:"account"`
 	Phone          string `json:"phone"`
 	Email          string `json:"email"`
@@ -287,24 +287,24 @@ func NewUserRPCCli() (u *UserRPCCli) {
 }
 
 func (s *UserRPCCli) CallModifyUserLoginPwd(req *proto.UserModifyLoginPwdRequest) (*proto.UserModifyLoginPwdResponse, error) {
-	rsp, err := s.conn.ModifyUserLoginPwd(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyUserLoginPwd(context.TODO(), req)
 }
 
 func (s *UserRPCCli) CallModifyPhone1(req *proto.UserModifyPhoneRequest) (*proto.UserModifyPhoneResponse, error) {
-	rsp, err := s.conn.ModifyPhone1(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyPhone1(context.TODO(), req)
 }
 
 func (s *UserRPCCli) CallModifyPhone2(req *proto.UserSetNewPhoneRequest) (*proto.UserSetNewPhoneResponse, error) {
-	rsp, err := s.conn.ModifyPhone2(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyPhone2(context.TODO(), req)
 }
+
 func (s *UserRPCCli) CallModifyTradePwd(req *proto.UserModifyTradePwdRequest) (*proto.UserModifyTradePwdResponse, error) {
-	rsp, err := s.conn.ModifyTradePwd(context.TODO(), req)
-	return rsp, err
+	return s.conn.ModifyTradePwd(context.TODO(), req)
 }
-func (s *UserRPCCli) CallModifyNickName(req *proto.UserModifyNickNameResquest) (*proto.UserModifyNickNameResponse, error) {
-	rsp, err := s.conn.ModifyNickName(context.TODO(), req)
-	return rsp, err
+
+func (s *UserRPCCli) CallSetNickName(req *proto.UserSetNickNameRequest) (*proto.UserSetNickNameResponse, error) {
+	return s.conn.SetNickName(context.TODO(), req)
+}
+func (s *UserRPCCli) CallGetNickName(req *proto.UserGetNickNameResquest) (*proto.UserGetNickNameResponse, error) {
+	return s.conn.GetNickName(context.TODO(), req)
 }

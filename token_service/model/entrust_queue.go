@@ -291,7 +291,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
 			num := p.SurplusNum / other.OnPrice
 
-			if num > other.SurplusNum {//存在限价则成交
+			if num > other.SurplusNum { //存在限价则成交
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
 				s.match(p)
 			} else if num == other.SurplusNum {
@@ -323,7 +323,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 			}
 		}
 
-	}else 	if p.Opt == proto.ENTRUST_OPT_SELL {
+	} else if p.Opt == proto.ENTRUST_OPT_SELL {
 		other, err = s.popFirstEntrust(proto.ENTRUST_OPT_BUY)
 		if err == redis.Nil {
 			//没有对应委托单进入等待区
@@ -334,19 +334,19 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 			return
 		}
 
-		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE {//市价交易撮合
+		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE { //市价交易撮合
 
-			if p.SurplusNum > other.SurplusNum {//存在限价则成交
+			if p.SurplusNum > other.SurplusNum { //存在限价则成交
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
 				s.match(p)
-			} else if p.SurplusNum  == other.SurplusNum {
+			} else if p.SurplusNum == other.SurplusNum {
 				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
 			} else {
 				s.MakeDeal(p, other, other.OnPrice, p.SurplusNum)
 				s.joinSellQuene(other)
 			}
 
-		}else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
+		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
 			if p.OnPrice >= other.OnPrice {
 				if p.OnPrice <= s.price {
 					s.price = p.OnPrice

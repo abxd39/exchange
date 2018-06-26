@@ -56,7 +56,7 @@ func (s *ActionGroup) AuthGoogleCode(c *gin.Context) {
 	}()
 
 	type GoogleAuthCodeParam struct {
-		Uid  uint64  `form:"uid" binding:"required"`
+		Uid  uint64 `form:"uid" binding:"required"`
 		Code uint32 `form:"code" binding:"required"`
 	}
 	var param GoogleAuthCodeParam
@@ -81,7 +81,7 @@ func (s *ActionGroup) DelGoogleCode(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type GoogleDelCodeParam struct {
-		Uid  uint64  `form:"uid" binding:"required"`
+		Uid  uint64 `form:"uid" binding:"required"`
 		Code uint32 `form:"code" binding:"required"`
 	}
 	var param GoogleDelCodeParam

@@ -46,7 +46,7 @@ func (s *UserGroup) RegisterController(c *gin.Context) {
 		Pwd        string `form:"pwd" binding:"required"`
 		Confirm    string `form:"confirm" binding:"required"`
 		InviteCode string `form:"invite_code" `
-		Country    string  `form:"country" `
+		Country    string `form:"country" `
 		Code       string `form:"code" binding:"required"`
 		Type       int32  `form:"type" binding:"required"`
 	}
@@ -58,8 +58,9 @@ func (s *UserGroup) RegisterController(c *gin.Context) {
 		return
 	}
 
-	if param.Type==1 {
-		if param.Country=="" {
+	if param.Type == 1 {
+		if param.Country == "" {
+
 			ret.SetErrCode(ERRCODE_PARAM)
 			return
 		}
@@ -266,8 +267,8 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 
 	type PhoneParam struct {
 		Region string `form:"region" binding:"required"`
-		Phone string `form:"phone" binding:"required"`
-		Type  int32  `form:"type" binding:"required"`
+		Phone  string `form:"phone" binding:"required"`
+		Type   int32  `form:"type" binding:"required"`
 	}
 
 	var param PhoneParam
@@ -277,7 +278,7 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Region,param.Type)
+	rsp, err := rpc.InnerService.UserSevice.CallSendSms(param.Phone, param.Region, param.Type)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
@@ -338,7 +339,7 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid        uint64  `form:"uid" binding:"required"`
+		Uid        uint64 `form:"uid" binding:"required"`
 		Token      string `form:"token" binding:"required"`
 		Phone      string `form:"phone" binding:"required"`
 		OldPwd     string `form:"old_pwd" binding:"required"`
@@ -373,7 +374,7 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid    uint64  `form:"uid" binding:"required"`
+		Uid    uint64 `form:"uid" binding:"required"`
 		Token  string `form:"token" binding:"required"`
 		Phone  string `form:"phone" binding:"required"`
 		verify string `form:"verify" binding:"required"`
@@ -405,7 +406,7 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid     uint64  `form:"uid" binding:"required"`
+		Uid     uint64 `form:"uid" binding:"required"`
 		Token   string `form:"token" binding:"required"`
 		Country string `form:"country" binding:"required"`
 		Phone   string `form:"phone" binding:"required"`
@@ -439,7 +440,7 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid        uint64  `form:"uid" binding:"required"`
+		Uid        uint64 `form:"uid" binding:"required"`
 		Token      string `form:"token" binding:"required"`
 		Phone      string `form:"phone" binding:"required"`
 		NewPwd     string `form:"new_pwd" binding:"required"`
@@ -459,6 +460,36 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 		NewPwd:     req.NewPwd,
 		ConfirmPwd: req.ConfirmPwd,
 		Verify:     req.Verify,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err)
+}
+
+func (s *UserGroup) SetNickName(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Uid           uint64 `form:"uid" binding:"required"`
+		Token         string `form:"token" binding:"required"`
+		NickName      string `form:"nick_name" `
+		HeadSculpture string `form:"head_scul" `
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallSetNickName(&proto.UserSetNickNameRequest{
+		Uid:           req.Uid,
+		Token:         req.Token,
+		NickName:      req.NickName,
+		HeadSculpture: req.HeadSculpture,
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
