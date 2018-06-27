@@ -7,6 +7,7 @@ import (
 	. "digicon/token_service/log"
 	"errors"
 	"github.com/go-xorm/xorm"
+	"github.com/liudng/godump"
 )
 
 type UserToken struct {
@@ -222,7 +223,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 	if s.Balance >= num {
 		s.Balance -= num
 		s.Frozen += num
-		aff, err = sess.ID(s.Id).Cols("balance", "frozen").Update(s)
+		aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance", "frozen").Update(s)
 		if err != nil {
 			Log.Errorln(err.Error())
 			ret = ERRCODE_UNKNOWN
@@ -269,7 +270,10 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 
 	var aff int64
 	s.Frozen -= num
-	aff, err = sess.ID(s.Id).Cols("frozen").Update(s)
+
+	godump.Dump(s.Frozen)
+
+	aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
 	if err != nil {
 
 		Log.Errorln(err.Error())

@@ -356,7 +356,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 					s.match(p)
 
 				} else if num == other.SurplusNum {
-					s.MakeDeal(other, p, s.price, other.SurplusNum)
+					s.MakeDeal(other, p, s.price, num)
 
 				} else {
 					s.MakeDeal(other, p, s.price, num)
@@ -422,7 +422,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 					s.match(p)
 
 				} else if num == p.SurplusNum {
-					s.MakeDeal(p, other, s.price, other.SurplusNum)
+					s.MakeDeal(p, other, s.price, num)
 				} else {
 					s.MakeDeal(p, other, s.price, num)
 					s.joinSellQuene(other)
@@ -497,7 +497,7 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustData) (ret int, err error) {
 	}
 
 	err = DB.GetRedisConn().ZAdd(quene_id, redis.Z{
-		Member: quene_id,
+		Member: p.EntrustId,
 		Score:  x,
 	}).Err()
 	if err != nil {
@@ -505,7 +505,7 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustData) (ret int, err error) {
 		return
 	}
 
-	rsp := DB.GetRedisConn().Set(GenSourceKey(quene_id), b, 0)
+	rsp := DB.GetRedisConn().Set(GenSourceKey(p.EntrustId), b, 0)
 	err = rsp.Err()
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -564,7 +564,9 @@ func (s *EntrustQuene) popFirstEntrust(opt proto.ENTRUST_OPT) (en *EntrustData, 
 		var b []byte
 		b, err = DB.GetRedisConn().Get(GenSourceKey(d)).Bytes()
 		if err != nil {
-			Log.Errorln(err)
+			Log.WithFields(logrus.Fields{
+				"en_id":    d,
+			}).Fatalln("print data")
 			return
 		}
 

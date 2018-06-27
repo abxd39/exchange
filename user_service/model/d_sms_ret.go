@@ -42,6 +42,9 @@ func SendSms(phone, country string, ty int32) (ret int32, err error) {
 
 //验证短信
 func AuthSms(phone string, ty int32, code string) (ret int32, err error) {
+	godump.Dump(phone)
+	godump.Dump(code)
+	godump.Dump(ty)
 	r := RedisOp{}
 	auth_code, err := r.GetSmsCode(phone, ty)
 	if err == redis.Nil {
