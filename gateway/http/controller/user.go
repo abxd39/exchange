@@ -29,7 +29,7 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/send_email", s.SendEmailController)
 		user.POST("/modify_login_pwd", s.ModifyLoginPwd)
 		user.POST("/modify_phone", s.ModifyPhone1)
-		user.POST("/set_new_phon", s.ModifyPhone2)
+		user.POST("/set_new_phone", s.ModifyPhone2)
 		user.POST("/modify_trade_pwd", s.ResetTradePwd)
 	}
 }
@@ -377,7 +377,7 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 		Uid    uint64 `form:"uid" binding:"required"`
 		Token  string `form:"token" binding:"required"`
 		Phone  string `form:"phone" binding:"required"`
-		verify string `form:"verify" binding:"required"`
+		Verify string `form:"verify" binding:"required"`
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
@@ -385,12 +385,15 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+	fmt.Println("000000000000000000000000000000000000")
+	fmt.Println(req)
 	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone1(&proto.UserModifyPhoneRequest{
 		Uid:    req.Uid,
 		Token:  req.Token,
 		Phone:  req.Phone,
-		Verify: req.verify,
+		Verify: req.Verify,
 	})
+
 	if err != nil {
 		Log.Errorf(err.Error())
 		return

@@ -5,6 +5,7 @@ import (
 	cf "digicon/gateway/conf"
 	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+	"fmt"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/micro/go-micro"
@@ -177,7 +178,7 @@ type UserBaseData struct {
 	PaySwitch      bool   `json:"pay_switch"`
 	NeedPwd        bool   `json:"need_pwd"`
 	NeedPwdTime    int32  `json:"need_pwd_time"`
-	Country    	   string  `json:"country"`
+	Country        string `json:"country"`
 }
 
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
@@ -207,7 +208,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		PaySwitch:      out.PaySwitch,
 		NeedPwd:        out.NeedPwd,
 		NeedPwdTime:    out.NeedPwdTime,
-		Country:out.Country,
+		Country:        out.Country,
 	}
 
 	return
@@ -293,6 +294,8 @@ func (s *UserRPCCli) CallModifyUserLoginPwd(req *proto.UserModifyLoginPwdRequest
 }
 
 func (s *UserRPCCli) CallModifyPhone1(req *proto.UserModifyPhoneRequest) (*proto.UserModifyPhoneResponse, error) {
+	fmt.Println("1111111111111111111111")
+	fmt.Println(req)
 	return s.conn.ModifyPhone1(context.TODO(), req)
 }
 

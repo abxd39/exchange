@@ -4,6 +4,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/user_service/dao"
+	"fmt"
 	"strings"
 )
 
@@ -34,6 +35,8 @@ func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32,
 
 func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, err error) {
 	//验证短信
+	fmt.Println("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
+	fmt.Println("电话号码为：", req.Phone, "验证码为：", req.Verify)
 	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
 		return
