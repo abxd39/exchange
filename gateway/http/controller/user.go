@@ -413,7 +413,7 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 		Token   string `form:"token" binding:"required"`
 		Country string `form:"country" binding:"required"`
 		Phone   string `form:"phone" binding:"required"`
-		verify  string `form:"verify" binding:"required"`
+		Verify  string `form:"verify" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		Log.Errorf(err.Error())
@@ -427,7 +427,7 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 		Token:   req.Token,
 		Country: req.Country,
 		Phone:   req.Phone,
-		Verify:  req.verify,
+		Verify:  req.Verify,
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
