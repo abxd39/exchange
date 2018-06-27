@@ -33,3 +33,19 @@ func Float64ToInt64By8Bit(s float64) int64 {
 	l := d.Round(8).Coefficient().Int64()
 	return l
 }
+
+func Int64MulInt64By8Bit(a int64,b int64)int64  {
+	dd:=decimal.New(a,0)
+	dp:=decimal.New(b,0)
+
+	num:= dd.Mul(dp).Div(decimal.New(100000000,0)).IntPart()
+	return num
+}
+
+func Int64DivInt64By8Bit(a int64,b int64) int64  {
+	dd:=decimal.New(a,0)
+	dp:=decimal.New(b,0)
+
+	num := dd.Div(dp).Round(8).Coefficient().Int64()
+	return num
+}

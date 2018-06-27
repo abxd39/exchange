@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/liudng/godump"
 )
 
 type User struct {
@@ -34,24 +35,6 @@ type User struct {
 	NeedPwdTime      int    `xorm:"comment('免密周期') INT(11)"`
 }
 
-/*
-type User struct {
-	Uid              uint64    `xorm:"not null pk autoincr INT(11)"`
-	Account          string `xorm:"unique VARCHAR(128)"`
-	Pwd              string `xorm:"VARCHAR(255)"`
-	Country			 string  `xorm:"VARCHAR(32)"`
-	Phone            string `xorm:"unique VARCHAR(64)"`
-	PhoneVerifyTime  int    `xorm:"comment('手机验证时间') INT(11)"`
-	Email            string `xorm:"unique VARCHAR(128)"`
-	EmailVerifyTime  int    `xorm:"INT(11)"`
-	GoogleVerifyId   string `xorm:"VARCHAR(128)"`
-	GoogleVerifyTime int    `xorm:"INT(255)"`
-	SmsTip           bool   `xorm:"INT(4)"`
-	PayPwd           string `xorm:"comment('支付密码') VARCHAR(255)"`
-	NeedPwd          bool   `xorm:"INT(4)"`
-	NeedPwdTime      int    `xorm:"INT(11)"`
-}
-*/
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
@@ -87,6 +70,8 @@ func (s *User) GetUserByPhone(phone string) (ret int32, err error) {
 
 //序列化用户基础数据
 func (s *User) SerialJsonData() (data string, err error) {
+	godump.Dump("ggggggggggggggg")
+	godump.Dump(s.Country)
 	var (
 		google_switch bool
 		pay_switch    bool
@@ -111,6 +96,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 		return
 	}
 
+
 	r := &proto.UserAllData{
 		Base: &proto.UserBaseData{
 			Uid:            s.Uid,
@@ -123,6 +109,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 			NeedPwd:        s.NeedPwd,
 			NeedPwdTime:    int32(s.NeedPwdTime),
 			LoginPwdLevel:  pwd_level,
+			Country:		s.Country,
 		},
 
 		Real: &proto.UserRealData{
@@ -135,6 +122,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 			Invites:    int32(ex.Invites),
 		},
 	}
+
 	m := jsonpb.Marshaler{EmitDefaults: true}
 
 	data, err = m.MarshalToString(r)
@@ -142,13 +130,6 @@ func (s *User) SerialJsonData() (data string, err error) {
 		Log.Errorln(err.Error())
 	}
 
-	/*
-		b,err:=json.Marshal(r)
-		if err != nil {
-			Log.Errorln(err.Error())
-		}
-		data=string(b)
-	*/
 	return
 }
 

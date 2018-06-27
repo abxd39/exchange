@@ -15,7 +15,7 @@ type UserToken struct {
 	TokenId int    `xorm:"comment('币种') unique(currency_uid) INT(11)"`
 	Balance int64  `xorm:"comment('余额') BIGINT(20)"`
 	Frozen  int64  `xorm:"comment('冻结余额') BIGINT(20)"`
-	Version int `xorm:"version"`
+	Version int    `xorm:"version"`
 }
 
 //获取实体
@@ -54,12 +54,16 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 
 //加代币数量
 func (s *UserToken) AddMoney(session *xorm.Session, num int64) (err error) {
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
+
+	s.Balance += num
+	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
+	//_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
 
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
+	s.Version += 1
 	return
 }
 
@@ -119,12 +123,17 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err e
 		ret = ERR_TOKEN_LESS
 	}
 
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
+	s.Balance -= num
+	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
+	//_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(s)
 
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
+
+	s.Version += 1
+
 	return
 }
 
@@ -216,6 +225,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 		aff, err = sess.ID(s.Id).Cols("balance", "frozen").Update(s)
 		if err != nil {
 			Log.Errorln(err.Error())
+			ret = ERRCODE_UNKNOWN
 			return
 		}
 
@@ -224,6 +234,8 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 			ret = ERRCODE_UNKNOWN
 			return
 		}
+
+		s.Version += 1
 
 		f := Frozen{
 			Uid:     s.Uid,
@@ -237,8 +249,10 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 		_, err = sess.Insert(f)
 		if err != nil {
 			Log.Errorln(err.Error())
+			ret = ERRCODE_UNKNOWN
 			return
 		}
+
 		return
 	}
 
@@ -257,7 +271,9 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 	s.Frozen -= num
 	aff, err = sess.ID(s.Id).Cols("frozen").Update(s)
 	if err != nil {
+
 		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
 		return
 	}
 	if aff == 0 {
@@ -265,6 +281,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 		ret = ERRCODE_UNKNOWN
 		return
 	}
+	s.Version += 1
 
 	f := Frozen{
 		Uid:     s.Uid,
@@ -280,6 +297,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 		Log.Errorln(err.Error())
 		return
 	}
+
 	return
 }
 

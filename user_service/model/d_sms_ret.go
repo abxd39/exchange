@@ -26,7 +26,7 @@ const (
 )
 
 //发送短信
-func SendSms(phone, region string, ty int32) (ret int32, err error) {
+func SendSms(phone, country string, ty int32) (ret int32, err error) {
 	code := random.Random6dec()
 	r := &RedisOp{}
 	err = r.SetSmsCode(phone, code, ty)
@@ -34,9 +34,7 @@ func SendSms(phone, region string, ty int32) (ret int32, err error) {
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-	g:=fmt.Sprintf("%s%s", region, phone)
-	godump.Dump(g)
-
+	g:=fmt.Sprintf("%s%s", country, phone)
 	ret, err = SendInterSms(g, code)
 
 	return

@@ -177,6 +177,7 @@ type UserBaseData struct {
 	PaySwitch      bool   `json:"pay_switch"`
 	NeedPwd        bool   `json:"need_pwd"`
 	NeedPwdTime    int32  `json:"need_pwd_time"`
+	Country    	   string  `json:"country"`
 }
 
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
@@ -206,6 +207,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		PaySwitch:      out.PaySwitch,
 		NeedPwd:        out.NeedPwd,
 		NeedPwdTime:    out.NeedPwdTime,
+		Country:out.Country,
 	}
 
 	return

@@ -175,6 +175,7 @@ message UserBaseData{
     bool pay_switch             =8;
     bool need_pwd               =9;
     int32 need_pwd_time         =10;
+    string country                =11;
 }
 
 message UserRealData{

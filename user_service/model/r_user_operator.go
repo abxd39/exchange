@@ -30,7 +30,7 @@ func GetPhoneTagByLogic(phone string, ty int32) string {
 
 //获取用户标签
 func GetUserTagByLogic(uid uint64, tag string) string {
-	return fmt.Sprintf("user:%s:info:%s", uid, tag)
+	return fmt.Sprintf("user:%d:info:%s", uid, tag)
 }
 
 //获取用户短信标签
