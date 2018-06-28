@@ -9,13 +9,14 @@ import (
 const (
 	MONEY_UKEY_TYPE_HASH    = 1
 	MONEY_UKEY_TYPE_ENTRUST = 2
+	MONEY_UKEY_TYPE_TRADE   = 3
 )
 
 type MoneyRecord struct {
-	Id          int64  `xorm:"pk autoincr BIGINT(20)"`
-	Uid         int    `xorm:"comment('用户ID') INT(11)"`
+	Id          uint64 `xorm:"pk autoincr BIGINT(20)"`
+	Uid         uint64 `xorm:"comment('用户ID') unique(hash_index)  INT(11)"`
 	TokenId     int    `xorm:"comment('代币ID') INT(11)"`
-	Ukey        string `xorm:"comment('联合key') unique VARCHAR(128)"`
+	Ukey        string `xorm:"comment('联合key') unique(hash_index) VARCHAR(128)"`
 	Type        int    `xorm:"comment('流水类型1区块2委托') INT(11)"`
 	Opt         int    `xorm:"comment('操作方向1加2减') TINYINT(4)"`
 	Num         int64  `xorm:"comment('数量') BIGINT(20)"`

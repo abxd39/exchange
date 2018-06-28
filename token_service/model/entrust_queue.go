@@ -2,6 +2,7 @@ package model
 
 import (
 	"digicon/common/convert"
+	"digicon/common/encryption"
 	"digicon/common/genkey"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -136,7 +137,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 
 	//交易流水
 	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
-		Uid:     int(p.Uid),
+		Uid:     p.Uid,
 		TokenId: token_id,
 		Ukey:    g.EntrustId,
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
@@ -172,28 +173,28 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 //开始交易加入举例买入USDT-》BTC  ，卖出USDT-》BTC  ,deal_num 买方实际获得BTC数量
 func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, deal_num int64) (err error) {
 	//var ret int32
-	buy_token_account := &UserToken{} //买方主账户余额
+	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 
-	buy_trade_token_account := &UserToken{} //买方交易账户余额
+	buy_trade_token_account := &UserToken{} //买方交易账户余额 BTC
 	err = buy_trade_token_account.GetUserToken(buyer.Uid, s.TokenTradeId)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 
-	sell_token_account := &UserToken{} //卖方主账户余额
+	sell_token_account := &UserToken{} //卖方主账户余额  BTC
 	err = sell_token_account.GetUserToken(seller.Uid, s.TokenTradeId)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 
-	sell_trade_token_account := &UserToken{} //卖方交易账户余额
+	sell_trade_token_account := &UserToken{} //卖方交易账户余额 USDT
 	err = sell_trade_token_account.GetUserToken(seller.Uid, s.TokenId)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -206,7 +207,9 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	fee := num * 5 / 1000 //买家消耗手续费0.005个USDT
 	godump.Dump(fee)
 
+	no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
 	t := &Trade{
+		TradeNo:      no,
 		Uid:          buyer.Uid,
 		TokenId:      s.TokenId,
 		TokenTradeId: s.TokenTradeId,
@@ -214,11 +217,12 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Num:          num - fee, //记录消耗本来USDT数量
 		Fee:          fee,
 		DealTime:     time.Now().Unix(),
-		Type:         int(proto.ENTRUST_OPT_BUY),
+		Opt:         int(proto.ENTRUST_OPT_BUY),
 	}
 
 	sell_fee := deal_num * 5 / 1000
 	o := &Trade{
+		TradeNo:      no,
 		Uid:          seller.Uid,
 		TokenId:      s.TokenId,
 		TokenTradeId: s.TokenTradeId,
@@ -226,7 +230,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Num:          deal_num - sell_fee,
 		Fee:          sell_fee,
 		DealTime:     time.Now().Unix(),
-		Type:         int(proto.ENTRUST_OPT_SELL),
+		Opt:         int(proto.ENTRUST_OPT_SELL),
 	}
 
 	if seller.SurplusNum < deal_num { //卖方部分成交
@@ -247,7 +251,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	err = session.Begin()
 
 	//USDT left num
-	_, err = buy_token_account.NotifyDelFronzen(session, num, buyer.EntrustId, FROZEN_LOGIC_TYPE_DEAL)
+	_, err = buy_token_account.NotifyDelFronzen(session, num, t.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
@@ -261,25 +265,55 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
+	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+		Uid:     buyer.Uid,
+		TokenId: buy_trade_token_account.TokenId,
+		Ukey:    t.TradeNo,
+		Opt:     int(proto.ENTRUST_OPT_BUY),
+		Type:    MONEY_UKEY_TYPE_TRADE,
+		Num:     deal_num,
+	})
+
+	if err != nil {
+		session.Rollback()
+		Log.Errorln(err.Error())
+		return
+	}
+
 	if buyer.Uid == seller.Uid { //还没处理
 		sell_trade_token_account = buy_token_account
 		sell_token_account = buy_trade_token_account
 
 	}
-	_, err = sell_trade_token_account.NotifyDelFronzen(session, deal_num, seller.EntrustId, FROZEN_LOGIC_TYPE_DEAL)
+	_, err = sell_token_account.NotifyDelFronzen(session, deal_num, o.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
 		return
 	}
 
-	err = sell_token_account.AddMoney(session, num)
+	err = sell_trade_token_account.AddMoney(session, num)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
 		return
 	}
 
+	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+		Uid:     seller.Uid,
+		TokenId: sell_trade_token_account.TokenId,
+		Ukey:    o.TradeNo,
+		Opt:     int(proto.ENTRUST_OPT_SELL),
+		Type:    MONEY_UKEY_TYPE_TRADE,
+		Num:     num,
+	})
+	if err != nil {
+		session.Rollback()
+		Log.Errorln(err.Error())
+		return
+	}
+
+	Log.Debugf("uid=? and other=?",t.Uid,o.Uid)
 	err = new(Trade).Insert(session, t, o)
 	if err != nil {
 		session.Rollback()
@@ -302,7 +336,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 	if p.Opt == proto.ENTRUST_OPT_BUY {
 		other, err = s.popFirstEntrust(proto.ENTRUST_OPT_SELL)
 		if err == redis.Nil {
-			fmt.Printf("get pop nil time=%d",time.Now().Unix())
+			fmt.Printf("get pop nil time=%d", time.Now().Unix())
 			//没有对应委托单进入等待区
 			if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
 				s.joinSellQuene(p)
@@ -348,18 +382,17 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 				}
 
 				//num := p.SurplusNum / s.price//买房愿意用花的比例兑换BTC的数量
-
 				num := convert.Int64DivInt64By8Bit(p.SurplusNum, s.price)
 				godump.Dump(num)
 				if num > other.SurplusNum {
-					s.MakeDeal(other, p, s.price, other.SurplusNum)
+					s.MakeDeal(p, other, s.price, other.SurplusNum)
 					s.match(p)
 
 				} else if num == other.SurplusNum {
-					s.MakeDeal(other, p, s.price, num)
+					s.MakeDeal(p, other, s.price, num)
 
 				} else {
-					s.MakeDeal(other, p, s.price, num)
+					s.MakeDeal(p, other, s.price, num)
 					s.joinSellQuene(other)
 				}
 				return
@@ -370,7 +403,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 		other, err = s.popFirstEntrust(proto.ENTRUST_OPT_BUY)
 		if err == redis.Nil {
 			//没有对应委托单进入等待区
-			fmt.Printf("get pop nil time=%d",time.Now().Unix())
+			fmt.Printf("get pop nil time=%d", time.Now().Unix())
 			if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
 				s.joinSellQuene(p)
 			} else {
@@ -385,7 +418,6 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 
 		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE { //市价交易撮合
 			s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
-			//num := convert.Int64MulInt64By8Bit(p.SurplusNum, other.OnPrice)//卖房愿意用花的BTC比例兑换USDT的数量
 
 			num := convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice) //买房愿意用花的USDT比例兑换BTC的数量
 			if num > p.SurplusNum {                                             //存在限价则成交
@@ -412,19 +444,17 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 				} else if s.price > p.OnPrice && s.price < other.OnPrice {
 					s.price = s.price
 				}
-				//num := p.SurplusNum/s.price////卖方愿意用花的BTC比例兑换USDT的数量
 
 				num := convert.Int64DivInt64By8Bit(other.SurplusNum, s.price) //买房愿意用花的USDT比例兑换BTC的数量
 
-				godump.Dump(num)
 				if num > p.SurplusNum {
-					s.MakeDeal(p, other, s.price, p.SurplusNum)
+					s.MakeDeal(other, p, s.price, p.SurplusNum)
 					s.match(p)
 
 				} else if num == p.SurplusNum {
-					s.MakeDeal(p, other, s.price, num)
+					s.MakeDeal(other, p, s.price, num)
 				} else {
-					s.MakeDeal(p, other, s.price, num)
+					s.MakeDeal(other, p, s.price, num)
 					s.joinSellQuene(other)
 				}
 				return
@@ -565,8 +595,9 @@ func (s *EntrustQuene) popFirstEntrust(opt proto.ENTRUST_OPT) (en *EntrustData, 
 		b, err = DB.GetRedisConn().Get(GenSourceKey(d)).Bytes()
 		if err != nil {
 			Log.WithFields(logrus.Fields{
-				"en_id":    d,
-			}).Fatalln("print data")
+				"en_id": d,
+				"err":   err.Error(),
+			}).Errorln("print data")
 			return
 		}
 
