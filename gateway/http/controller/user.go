@@ -344,7 +344,7 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 		Phone      string `form:"phone" binding:"required"`
 		OldPwd     string `form:"old_pwd" binding:"required"`
 		NewPwd     string `form:"new_pwd" binding:"required"`
-		ConfirmPwd string `form:"confirm" binding:"required"`
+		ConfirmPwd string `form:"confirm_pwd" binding:"required"`
 		Verify     string `form:"verify" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
@@ -359,6 +359,7 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 		OldPwd:     req.OldPwd,
 		NewPwd:     req.NewPwd,
 		ConfirmPwd: req.ConfirmPwd,
+		Verify:     req.Verify,
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
