@@ -55,3 +55,11 @@ func (s *PublciRPCCli) CallArticleList(ty, page, page_num int32) (*proto.Article
 		PageNum:     page_num,
 	})
 }
+
+func (s *PublciRPCCli) CallAddFriendlyLink(req *proto.AddFriendlyLinkRequest) (rsp *proto.AddFriendlyLinkResponse, err error) {
+	return s.conn.AddFriendlyLink(context.TODO(), req)
+}
+
+func (s *PublciRPCCli) CallGetFriendlyLink(req *proto.FriendlyLinkRequest) (rsp *proto.FriendlyLinkResponse, err error) {
+	return s.conn.GetFriendlyLink(context.TODO(), req)
+}

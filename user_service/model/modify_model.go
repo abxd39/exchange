@@ -10,6 +10,8 @@ import (
 
 func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {
 
+	fmt.Println("lllllllllllllllllllllllllllllllllll")
+	fmt.Println(req)
 	if va := strings.Compare(req.ConfirmPwd, req.NewPwd); va != 0 {
 		return ERRCODE_PWD_COMFIRM, nil
 	}
@@ -17,6 +19,7 @@ func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32,
 	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
 	if err != nil {
 		return
+
 	}
 	if result != ERRCODE_SUCCESS {
 		return

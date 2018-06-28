@@ -3,7 +3,7 @@ package controller
 import (
 	"digicon/gateway/log"
 	"digicon/gateway/rpc"
-	x "digicon/proto/common"
+	Err "digicon/proto/common"
 	"encoding/json"
 	"net/http"
 
@@ -23,7 +23,7 @@ func (this *ArticleGroup) Router(r *gin.Engine) {
 }
 
 func (this *ArticleGroup) Article(c *gin.Context) {
-	ret := x.NewPublciError()
+	ret := Err.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
@@ -33,14 +33,15 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 	var param ArticleParam
 	if err := c.ShouldBindQuery(&param); err != nil {
 		log.Log.Errorf(err.Error())
-		ret.SetErrCode(x.ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.PublicService.CallArticle(param.Id)
 
 	if err != nil {
-		ret.SetErrCode(x.ERRCODE_UNKNOWN, err.Error())
+		log.Log.Errorf(err.Error())
+		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	type Article struct {
@@ -66,6 +67,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 	arti := &Article{}
 	if err = json.Unmarshal([]byte(rsp.Data), arti); err != nil {
 		log.Log.Errorf(err.Error())
+		ret.SetErrCode(Err.ERRCODE_UNKNOWN)
 	}
 	ret.SetErrCode(rsp.Err)
 	ret.SetDataSection("article", &arti)
@@ -74,7 +76,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 
 func (this *ArticleGroup) ArticleList(c *gin.Context) {
 
-	ret := x.NewPublciError()
+	ret := Err.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
@@ -87,14 +89,14 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 	//fmt.Println("param1:", param)
 	if err := c.ShouldBindQuery(&param); err != nil {
 		log.Log.Errorf(err.Error())
-		ret.SetErrCode(x.ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
 	//fmt.Println("param2:", param)
 	rsp, err := rpc.InnerService.PublicService.CallArticleList(param.ArticleType, param.Page, param.PageNum)
 	if err != nil {
 		log.Log.Errorf(err.Error())
-		ret.SetErrCode(x.ERRCODE_UNKNOWN, err.Error())
+		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	//fmt.Println("gatway return value ", rsp.Article)

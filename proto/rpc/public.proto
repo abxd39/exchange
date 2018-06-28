@@ -2,13 +2,19 @@ syntax = "proto3";
 package g2u;
 
 import "rpc/currency.proto";
+import "rpc/backstage.proto";
 
 service PublicRPC {
 	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
 	//Article list
-	rpc ArticleList(ArticleListRequest) returns (ArticleListResponse) {}
+	rpc ArticleList(ArticleListRequest) returns (ArticleListResponse) {};
 	//Article 
-	rpc Article(ArticleRequest) returns (ArticleResponse) {}
+	rpc Article(ArticleRequest) returns (ArticleResponse) {};
+	 //get friendly link list
+	 rpc  GetFriendlyLink (FriendlyLinkRequest) returns (FriendlyLinkResponse){};
+	 //add one item friendly link 
+	 rpc AddFriendlyLink (AddFriendlyLinkRequest) returns (AddFriendlyLinkResponse){};
+
 }
 
 
