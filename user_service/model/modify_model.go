@@ -6,17 +6,32 @@ import (
 	"digicon/user_service/dao"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {
 
-	fmt.Println("lllllllllllllllllllllllllllllllllll")
-	fmt.Println(req)
 	if va := strings.Compare(req.ConfirmPwd, req.NewPwd); va != 0 {
 		return ERRCODE_PWD_COMFIRM, nil
 	}
+	//modify DB
+	engine := dao.DB.GetMysqlConn()
+	ph := new(User)
+	var ok bool
+	ok, err = engine.ID(req.Uid).Get(ph)
+	if err != nil {
+		result = ERRCODE_UNKNOWN
+		return
+	}
+	if !ok {
+		result = ERRCODE_UNKNOWN
+		err = errors.New("get phone number failed")
+	}
+	fmt.Println("lllllllllllllllllllllllllllllllllll")
+	fmt.Println(ph.Phone)
 	//验证短信
-	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+	result, err = AuthSms(ph.Phone, SMS_MODIFY_LOGIN_PWD, req.Verify)
 	if err != nil {
 		return
 
@@ -26,8 +41,6 @@ func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32,
 	}
 	//token
 
-	//modify DB
-	engine := dao.DB.GetMysqlConn()
 	_, err = engine.ID(req.Uid).Update(&User{Pwd: req.NewPwd})
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
@@ -38,9 +51,21 @@ func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32,
 
 func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, err error) {
 	//验证短信
+	engine := dao.DB.GetMysqlConn()
+	ph := new(User)
+	var ok bool
+	ok, err = engine.ID(req.Uid).Get(ph)
+	if err != nil {
+		result = ERRCODE_UNKNOWN
+		return
+	}
+	if !ok {
+		result = ERRCODE_UNKNOWN
+		err = errors.New("get phone number failed")
+	}
 	fmt.Println("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
-	fmt.Println("电话号码为：", req.Phone, "验证码为：", req.Verify)
-	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+	fmt.Println("电话号码为：", ph.Phone, "验证码为：", req.Verify)
+	result, err = AuthSms(ph.Phone, SMS_MODIFY_PHONE, req.Verify)
 	if err != nil {
 		return
 	}
@@ -53,7 +78,8 @@ func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, 
 }
 
 func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, err error) {
-	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+
+	result, err = AuthSms(req.Phone, SMS_MODIFY_PHONE, req.Verify)
 	if err != nil {
 		return
 	}
@@ -71,7 +97,20 @@ func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, 
 }
 
 func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (result int32, err error) {
-	result, err = AuthSms(req.Phone, SMS_RESET_TRADE_PWD, req.Verify)
+	engine := dao.DB.GetMysqlConn()
+	ph := new(User)
+	var ok bool
+	ok, err = engine.ID(req.Uid).Get(ph)
+	if err != nil {
+		result = ERRCODE_UNKNOWN
+		return
+	}
+	if !ok {
+		result = ERRCODE_UNKNOWN
+		err = errors.New("get phone number failed")
+	}
+
+	result, err = AuthSms(ph.Phone, SMS_RESET_TRADE_PWD, req.Verify)
 	if err != nil {
 		return
 	}
@@ -80,7 +119,7 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (result int3
 	}
 	//验证token
 	//修改数据库字段
-	engine := dao.DB.GetMysqlConn()
+
 	_, err = engine.ID(req.Uid).Update(&User{PayPwd: req.NewPwd})
 	if err != nil {
 		return ERRCODE_UNKNOWN, err

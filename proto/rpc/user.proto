@@ -221,11 +221,10 @@ message UserInviteResponse{
 message UserModifyLoginPwdRequest{
     uint64 uid           =1;
     string token        =2;
-    string phone        =3;
-    string oldPwd       =4;
-    string newPwd       =5;
-    string confirmPwd   =6;
-    string verify       =7;
+    string oldPwd       =3;
+    string newPwd       =4;
+    string confirmPwd   =5;
+    string verify       =6;
 }
 
 message UserModifyLoginPwdResponse{
@@ -237,8 +236,7 @@ message UserModifyLoginPwdResponse{
 message UserModifyPhoneRequest{
     uint64 uid           =1;
     string token        =2;
-    string phone        =3;
-    string verify       =4;
+    string verify       =3;
 }
 
 message UserModifyPhoneResponse{
@@ -265,10 +263,9 @@ message UserSetNewPhoneResponse{
 message UserModifyTradePwdRequest{
     uint64 uid           =1;
     string token        =2;
-    string phone        =3;
-    string newPwd       =4;
-    string confirmPwd   =5;
-    string verify       =6;
+    string newPwd       =3;
+    string confirmPwd   =4;
+    string verify       =5;
 } 
 
 message UserModifyTradePwdResponse{
