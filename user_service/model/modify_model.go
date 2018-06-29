@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {
+func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {
 	fmt.Println("0..0.0.0.0.0.0.0.0.0.0.00.0.0.0.0000.0.0.0.")
 	fmt.Println(req)
 	if va := strings.Compare(req.ConfirmPwd, req.NewPwd); va != 0 {
@@ -46,11 +46,12 @@ func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32,
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
+	s.RefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil
 
 }
 
-func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, err error) {
+func (s *User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, err error) {
 	//验证短信
 	engine := dao.DB.GetMysqlConn()
 	ph := new(User)
@@ -78,7 +79,7 @@ func (*User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32, 
 	return 0, nil
 }
 
-func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, err error) {
+func (s *User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, err error) {
 
 	result, err = AuthSms(req.Phone, SMS_MODIFY_PHONE, req.Verify)
 	if err != nil {
@@ -94,6 +95,7 @@ func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, 
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
+	s.RefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil
 }
 
@@ -125,5 +127,6 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (result int3
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
+	s.RefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil
 }
