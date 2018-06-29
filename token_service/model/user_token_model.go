@@ -7,6 +7,7 @@ import (
 	. "digicon/token_service/log"
 	"errors"
 	"github.com/go-xorm/xorm"
+	"github.com/sirupsen/logrus"
 )
 
 type UserToken struct {
@@ -54,6 +55,12 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 
 //加代币数量
 func (s *UserToken) AddMoney(session *xorm.Session, num int64) (err error) {
+	Log.WithFields(logrus.Fields{
+		"num":      num,
+		"uid":      s.Uid,
+		"token_id": s.TokenId,
+		"balance":  s.Balance,
+	}).Info("add money info data")
 
 	s.Balance += num
 	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)

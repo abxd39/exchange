@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"sync/atomic"
 	"time"
+	"github.com/alex023/clock"
 )
 
 const (
@@ -57,6 +58,8 @@ type EntrustQuene struct {
 	//sellMarketOrderDetail chan *EntrustData
 	//上一次成交价格
 	price int64
+
+	amout int64
 }
 
 func GenSourceKey(en string) string {
@@ -266,6 +269,9 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 //开始交易加入举例买入USDT-》BTC  ，卖出USDT-》BTC  ,deal_num 买方实际获得BTC数量
 func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, deal_num int64) (err error) {
 	//var ret int32
+	if buyer.Opt!= proto.ENTRUST_OPT_BUY {
+		Log.Fatalln("wrong type")
+	}
 	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {
@@ -341,16 +347,16 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
-
+	var ret int32
 	//USDT left num
-	_, err = buy_token_account.NotifyDelFronzen(session, num, t.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
-	if err != nil {
+	ret, err = buy_token_account.NotifyDelFronzen(session, num, t.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
+	if err != nil ||ret!=ERRCODE_SUCCESS{
 		session.Rollback()
 		Log.Errorln(err.Error())
 		return
 	}
 
-	err = buy_trade_token_account.AddMoney(session, deal_num)
+	err = buy_trade_token_account.AddMoney(session, t.Num)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
@@ -377,14 +383,14 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		sell_token_account = buy_trade_token_account
 
 	}
-	_, err = sell_token_account.NotifyDelFronzen(session, deal_num, o.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
-	if err != nil {
+	ret, err = sell_token_account.NotifyDelFronzen(session, deal_num, o.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
+	if err != nil ||ret!=ERRCODE_SUCCESS{
 		session.Rollback()
 		Log.Errorln(err.Error())
 		return
 	}
 
-	err = sell_trade_token_account.AddMoney(session, num)
+	err = sell_trade_token_account.AddMoney(session, o.Num)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
@@ -422,7 +428,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 }
 
 func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
-
 	var other *EntrustData
 	if p.Opt == proto.ENTRUST_OPT_BUY {
 
@@ -432,6 +437,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			//没有对应委托单进入等待区
 			if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
 				s.joinSellQuene(p)
+				return
 			} else {
 				//平台吃单
 				var d *EntrustData
@@ -451,7 +457,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				}
 
 				if ret != ERRCODE_SUCCESS {
-					s.marketOrderDetail <- p
+					s.joinSellQuene(p)
+					//s.marketOrderDetail <- p
 					return
 				}
 
@@ -496,7 +503,6 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				num = convert.Int64DivInt64By8Bit(p.SurplusNum, p.OnPrice)
 				price = p.OnPrice
 			} else {
-
 				if p.OnPrice >= other.OnPrice {
 					if p.OnPrice <= s.price {
 						price = p.OnPrice
@@ -512,6 +518,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 
 				num = convert.Int64DivInt64By8Bit(p.SurplusNum, price) //计算买家最大买入BTC数量
 			}
+			s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
 
 			if num > other.SurplusNum {
 				err = s.MakeDeal(p, other, price, other.SurplusNum)
@@ -538,6 +545,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				s.SetPrice(price)
 				s.joinSellQuene(other)
 			}
+			return
 		}
 
 	} else if p.Opt == proto.ENTRUST_OPT_SELL {
@@ -549,9 +557,31 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				s.joinSellQuene(p)
 			} else {
 				//平台吃单
-				s.marketOrderDetail <- p
+				var d *EntrustData
+
+				d, ret, err = s.EntrustAl(&proto.EntrustOrderRequest{
+					Symbol:  s.TokenQueueId,
+					OnPrice: s.price,
+					Num:     convert.Int64MulInt64By8Bit(p.SurplusNum, s.price),
+					Opt:     proto.ENTRUST_OPT_BUY,
+					Type:    proto.ENTRUST_TYPE_LIMIT_PRICE,
+					Uid:     ADMIN_UID,
+				})
+
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+
+				if ret != ERRCODE_SUCCESS {
+					s.joinSellQuene(p)
+					//s.marketOrderDetail <- p
+					return
+				}
+
+				other = d
 			}
-			return
+
 		} else if err != nil {
 			Log.Errorln(err.Error())
 			return
@@ -570,7 +600,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 
 			//num := convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice) //买房愿意用花的USDT比例兑换BTC的数量
 			if num > p.SurplusNum { //存在限价则成交
-				err = s.MakeDeal(p, other, price, p.SurplusNum)
+				err = s.MakeDeal(other,p, price, p.SurplusNum)
 				if err != nil {
 					Log.Errorln(err.Error())
 					return
@@ -579,14 +609,14 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				s.match(p)
 
 			} else if num == p.SurplusNum {
-				err = s.MakeDeal(p, other, price, num)
+				err = s.MakeDeal(other,p , price, num)
 				if err != nil {
 					Log.Errorln(err.Error())
 					return
 				}
 				s.SetPrice(price)
 			} else {
-				err = s.MakeDeal(p, other, price, num)
+				err = s.MakeDeal(other,p, price, num)
 				if err != nil {
 					Log.Errorln(err.Error())
 					return
@@ -596,36 +626,63 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			}
 			return
 		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
-			if p.OnPrice >= other.OnPrice {
-				s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
+			var num, price int64 //BTC数量，成交价格
 
-				if p.OnPrice <= s.price {
-					s.price = p.OnPrice
-				} else if other.OnPrice >= s.price {
-					s.price = other.OnPrice
-				} else if s.price > p.OnPrice && s.price < other.OnPrice {
-					s.price = s.price
-				}
-
-				num := convert.Int64DivInt64By8Bit(other.SurplusNum, s.price) //买房愿意用花的USDT比例兑换BTC的数量
-
-				if num > p.SurplusNum {
-					s.MakeDeal(other, p, s.price, p.SurplusNum)
-					s.match(p)
-
-				} else if num == p.SurplusNum {
-					s.MakeDeal(other, p, s.price, num)
+			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+				num = convert.Int64DivInt64By8Bit(other.SurplusNum, p.OnPrice)
+				price = p.OnPrice
+			} else {
+				if p.OnPrice >= other.OnPrice {
+					if p.OnPrice <= s.price {
+						s.price = p.OnPrice
+					} else if other.OnPrice >= s.price {
+						price = other.OnPrice
+					} else if s.price > p.OnPrice && s.price < other.OnPrice {
+						price = s.price
+					}
 				} else {
-					s.MakeDeal(other, p, s.price, num)
-					s.joinSellQuene(other)
+					return
 				}
-				return
+
+				num = convert.Int64DivInt64By8Bit(other.SurplusNum, price) //买房愿意用花的USDT比例兑换BTC的数量
 			}
+
+			s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
+
+			if num > p.SurplusNum {
+				err = s.MakeDeal(other, p, price, p.SurplusNum)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
+
+				s.match(p)
+
+			} else if num == p.SurplusNum {
+				err = s.MakeDeal(other, p, price, num)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
+
+			} else {
+				err = s.MakeDeal(other, p, price, num)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
+				s.joinSellQuene(other)
+			}
+			return
+
 		}
 	}
 
-	s.joinSellQuene(other)
-	s.joinSellQuene(p)
+	//s.joinSellQuene(other)
+	//s.joinSellQuene(p)
 	return
 }
 
@@ -669,6 +726,25 @@ func (s *EntrustQuene) process() {
 
 		}
 	}
+}
+
+//定时器
+func (s *EntrustQuene) Clock()  {
+	type MinPrice struct {
+		Open int64
+		Close int64
+		Low int64
+		High int64
+		Amount int64
+		Vol int64
+		Count int64
+	}
+
+	c := clock.NewClock()
+	c.AddJobWithInterval(60*time.Second, func() {
+
+	})
+
 }
 
 //限价委托入队列 opt 0 buy ,1 sell
