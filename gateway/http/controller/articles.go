@@ -67,7 +67,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 	arti := &Article{}
 	if err = json.Unmarshal([]byte(rsp.Data), arti); err != nil {
 		log.Log.Errorf(err.Error())
-		ret.SetErrCode(Err.ERRCODE_UNKNOWN)
+		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 	}
 	ret.SetErrCode(rsp.Err)
 	ret.SetDataSection("article", &arti)
