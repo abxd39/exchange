@@ -11,7 +11,8 @@ import (
 )
 
 func (*User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {
-
+	fmt.Println("0..0.0.0.0.0.0.0.0.0.0.00.0.0.0.0000.0.0.0.")
+	fmt.Println(req)
 	if va := strings.Compare(req.ConfirmPwd, req.NewPwd); va != 0 {
 		return ERRCODE_PWD_COMFIRM, nil
 	}

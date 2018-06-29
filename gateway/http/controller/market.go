@@ -1,14 +1,13 @@
 package controller
 
-
 import (
+	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	. "digicon/gateway/log"
-)
 
+	"github.com/gin-gonic/gin"
+)
 
 type MarketGroup struct{}
 
@@ -19,7 +18,6 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 	}
 }
 
-
 func (s *MarketGroup) HistoryKline(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -28,8 +26,8 @@ func (s *MarketGroup) HistoryKline(c *gin.Context) {
 
 	type KlineParam struct {
 		Symbol string `form:"symbol" binding:"required"`
-		Period  string `form:"period" binding:"required"`
-		Size int32 `form:"size" binding:"required"`
+		Period string `form:"period" binding:"required"`
+		Size   int32  `form:"size" binding:"required"`
 	}
 
 	var param KlineParam
@@ -40,11 +38,11 @@ func (s *MarketGroup) HistoryKline(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.TokenService.CallHistoryKline(param.Symbol,param.Period,param.Size)
+	rsp, err := rpc.InnerService.TokenService.CallHistoryKline(param.Symbol, param.Period, param.Size)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(ERRCODE_SUCCESS)
-	ret.SetDataSection("list",rsp)
+	ret.SetDataSection("list", rsp)
 }

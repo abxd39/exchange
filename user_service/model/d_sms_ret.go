@@ -92,6 +92,16 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 		ret, err = SendSms(phone, region, ty)
 	case SMS_MODIFY_LOGIN_PWD:
 		ret, err = SendSms(phone, region, ty)
+	case SMS_AIL_PAY:
+		ret, err = SendSms(phone, region, ty)
+	case SMS_BANK_PAY:
+		ret, err = SendSms(phone, region, ty)
+	case SMS_PAYPAL_PAY:
+		ret, err = SendSms(phone, region, ty)
+	case SMS_RESET_TRADE_PWD:
+		ret, err = SendSms(phone, region, ty)
+	case SMS_WECHAT_PAY:
+		ret, err = SendSms(phone, region, ty)
 	default:
 		ret, err = SendSms(phone, region, ty)
 		return

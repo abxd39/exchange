@@ -342,7 +342,6 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 	req := struct {
 		Uid        uint64 `form:"uid" binding:"required"`
 		Token      string `form:"token" binding:"required"`
-		Phone      string `form:"phone" binding:"required"`
 		OldPwd     string `form:"old_pwd" binding:"required"`
 		NewPwd     string `form:"new_pwd" binding:"required"`
 		ConfirmPwd string `form:"confirm_pwd" binding:"required"`
@@ -378,7 +377,6 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 	req := struct {
 		Uid    uint64 `form:"uid" binding:"required"`
 		Token  string `form:"token" binding:"required"`
-		Phone  string `form:"phone" binding:"required"`
 		Verify string `form:"verify" binding:"required"`
 	}{}
 
