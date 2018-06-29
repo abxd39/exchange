@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
+	"github.com/liudng/godump"
 )
 
 type RedisOp struct {
@@ -48,6 +49,7 @@ func (s *RedisOp) SetSmsCode(phone string, code string, ty int32) (err error) {
 }
 
 func (s *RedisOp) GetSmsCode(phone string, ty int32) (code string, err error) {
+	godump.Dump(GetPhoneTagByLogic(phone, ty))
 	code, err = DB.GetRedisConn().Get(GetPhoneTagByLogic(phone, ty)).Result()
 	if err != nil {
 		Log.Errorln(err.Error())

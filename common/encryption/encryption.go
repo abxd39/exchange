@@ -25,7 +25,7 @@ func GenBase64(input string) []byte {
 
 // 产生订单 ID
 //  uid, 时间秒,
-func CreateOrderId(userId int32, tokenId uint64) (orderId string) {
+func CreateOrderId(userId uint64, tokenId int32) (orderId string) {
 	tn := time.Now()
 	tnn := tn.UnixNano()
 	tnnStr := strconv.FormatInt(tnn, 10) // 获取微秒时间

@@ -419,13 +419,14 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 		Phone   string `form:"phone" binding:"required"`
 		Verify  string `form:"verify" binding:"required"`
 	}{}
+
+
 	if err := c.ShouldBind(&req); err != nil {
 		Log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
-	fmt.Println(req)
 	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone2(&proto.UserSetNewPhoneRequest{
 		Uid:     req.Uid,
 		Token:   req.Token,

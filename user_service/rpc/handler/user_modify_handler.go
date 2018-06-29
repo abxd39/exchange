@@ -6,6 +6,7 @@ import (
 	"digicon/user_service/model"
 
 	"golang.org/x/net/context"
+	"github.com/liudng/godump"
 )
 
 func (s *RPCServer) ModifyUserLoginPwd(ctx context.Context, req *proto.UserModifyLoginPwdRequest, rsp *proto.UserModifyLoginPwdResponse) (err error) {
@@ -28,6 +29,7 @@ func (s *RPCServer) ModifyPhone1(ctx context.Context, req *proto.UserModifyPhone
 
 func (s *RPCServer) ModifyPhone2(ctx context.Context, req *proto.UserSetNewPhoneRequest, rsp *proto.UserSetNewPhoneResponse) (err error) {
 	u := model.User{}
+	godump.Dump(req)
 	rsp.Err, err = u.ModifyUserPhone2(req)
 	if err != nil {
 		log.Log.Errorf(err.Error())
