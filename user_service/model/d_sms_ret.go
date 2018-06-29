@@ -21,8 +21,8 @@ const (
 	SMS_REGISTER   = 1 //注册业务
 	SMS_FORGET     = 2
 	SMS_CHANGE_PWD = 3
-
-	SMS_MAX = 4
+	SMS_RESET_GOOGLE = 4
+	SMS_MAX = 5
 )
 
 //发送短信
@@ -83,6 +83,8 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 	case SMS_FORGET:
 		ret, err = SendSms(phone, region, ty)
 	case SMS_CHANGE_PWD:
+		ret, err = SendSms(phone, region, ty)
+	case SMS_RESET_GOOGLE:
 		ret, err = SendSms(phone, region, ty)
 	default:
 		return

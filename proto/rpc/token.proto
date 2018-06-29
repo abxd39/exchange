@@ -40,7 +40,6 @@ enum TOKEN_OPT_TYPE //金钱操作类型
 }
 
 message  EntrustOrderRequest {
-    int32 token_id                  =1;//tokenid_tokenid
     string symbol                    =2;//交易币种
     int64 on_price                    =3;//委托价格
     int64 num                      =4;//委托数量

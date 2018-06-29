@@ -75,7 +75,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		fmt.Println(err.Error())
 	}
 
-	od.OrderId = encryption.CreateOrderId(req.Uid, od.TokenId)
+	od.OrderId = encryption.CreateOrderId(uint64(req.Uid), int32(od.TokenId))
 	od.States = 1
 	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")

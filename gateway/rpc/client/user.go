@@ -166,7 +166,18 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 	}
 	return
 }
-
+func (s *UserRPCCli) CallResetGoogleSecretKey(uid uint64, auth uint32,sms string) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.ResetGoogleSecretKey(context.TODO(), &proto.ResetGoogleSecretKeyRequest{
+		Uid:  uid,
+		SmsCode: sms,
+		AuthCode:auth,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
 type UserBaseData struct {
 	Uid            uint64 `json:"uid"`
 	Account        string `json:"account"`
