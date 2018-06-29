@@ -90,6 +90,7 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 	case SMS_RESET_GOOGLE:
 		ret, err = SendSms(phone, region, ty)
 	default:
+		ret, err = SendSms(phone, region, ty)
 		return
 
 	}

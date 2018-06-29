@@ -172,8 +172,8 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	}
 	return
 }
-func (s *EntrustQuene) SetPrice(price int64)  {
-		s.price=price
+func (s *EntrustQuene) SetPrice(price int64) {
+	s.price = price
 }
 
 //委托请求检查
@@ -468,7 +468,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
 			//num := p.SurplusNum / other.OnPrice //买房愿意用花的比例兑换BTC的数量
 			s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
-			var num, price int64
+			var num, price int64 //BTC数量，成交价格
 
 			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
 				num = convert.Int64DivInt64By8Bit(p.SurplusNum, s.price) //计算买家最大买入BTC数量
@@ -490,12 +490,11 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			return
 
 		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
-			var num, price int64
+			var num, price int64 //BTC数量，成交价格
 
 			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
 				num = convert.Int64DivInt64By8Bit(p.SurplusNum, p.OnPrice)
 				price = p.OnPrice
-
 			} else {
 
 				if p.OnPrice >= other.OnPrice {
@@ -564,14 +563,14 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
 				num = convert.Int64DivInt64By8Bit(other.SurplusNum, s.price) //计算买家最大买入BTC数量
 				price = s.price
-			}else {
+			} else {
 				num = convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice)
 				price = other.OnPrice
 			}
 
 			//num := convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice) //买房愿意用花的USDT比例兑换BTC的数量
-			if num > p.SurplusNum {                                             //存在限价则成交
-				err =s.MakeDeal(p, other, price, p.SurplusNum)
+			if num > p.SurplusNum { //存在限价则成交
+				err = s.MakeDeal(p, other, price, p.SurplusNum)
 				if err != nil {
 					Log.Errorln(err.Error())
 					return
