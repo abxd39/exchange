@@ -71,7 +71,7 @@ func (*User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32, 
 }
 
 func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (result int32, err error) {
-	result, err = AuthSms(req.Phone, SMS_CHANGE_PWD, req.Verify)
+	result, err = AuthSms(req.Phone, SMS_RESET_TRADE_PWD, req.Verify)
 	if err != nil {
 		return
 	}

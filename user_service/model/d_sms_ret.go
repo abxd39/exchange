@@ -4,25 +4,26 @@ import (
 	"digicon/common/random"
 	//"github.com/sirupsen/logrus"
 	//. "digicon/user_service/dao"
+	"bytes"
 	. "digicon/proto/common"
+	cf "digicon/user_service/conf"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+
 	"github.com/go-redis/redis"
 	"github.com/liudng/godump"
-	"bytes"
-	"net/http"
-	"encoding/json"
-	"io/ioutil"
-	cf "digicon/user_service/conf"
 	"github.com/pkg/errors"
-	"strconv"
 )
 
 const (
-	SMS_REGISTER   = 1 //注册业务
-	SMS_FORGET     = 2
-	SMS_CHANGE_PWD = 3
-
-	SMS_MAX = 4
+	SMS_REGISTER        = 1 //注册业务
+	SMS_FORGET          = 2
+	SMS_CHANGE_PWD      = 3
+	SMS_RESET_TRADE_PWD = 4
+	SMS_MAX             = 5
 )
 
 //发送短信
@@ -34,7 +35,7 @@ func SendSms(phone, country string, ty int32) (ret int32, err error) {
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-	g:=fmt.Sprintf("%s%s", country, phone)
+	g := fmt.Sprintf("%s%s", country, phone)
 	ret, err = SendInterSms(g, code)
 
 	return
@@ -90,17 +91,17 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 }
 
 //phone, cf.SmsAccount, cf.SmsPwd, content, cf.SmsWebUrl
-func SendInterSms(phone,code string) (ret int32,err error) {
+func SendInterSms(phone, code string) (ret int32, err error) {
 	params := make(map[string]interface{})
 	params["account"] = cf.SmsAccount
-	params["password"] =cf.SmsPwd
+	params["password"] = cf.SmsPwd
 	// 手机号码，格式(区号+手机号码)，例如：8615800000000，其中86为中国的区号
 	params["mobile"] = phone
-	content:=fmt.Sprintf("【爱来多科技】您的验证码是：%s",code)
-	params["msg"] =content
+	content := fmt.Sprintf("【爱来多科技】您的验证码是：%s", code)
+	params["msg"] = content
 	bytesData, err := json.Marshal(params)
 	if err != nil {
-		fmt.Println(err.Error() )
+		fmt.Println(err.Error())
 		return
 	}
 	reader := bytes.NewReader(bytesData)
@@ -123,7 +124,6 @@ func SendInterSms(phone,code string) (ret int32,err error) {
 		return
 	}
 
-
 	type SmsRet struct {
 		Code      string `json:"code"`
 		MessageId string `json:"msg_id"`
@@ -139,16 +139,16 @@ func SendInterSms(phone,code string) (ret int32,err error) {
 	}
 	godump.Dump(p)
 
-	g,err := strconv.Atoi(p.Code)
-	if err!=nil {
-		ret=int32(g)
+	g, err := strconv.Atoi(p.Code)
+	if err != nil {
+		ret = int32(g)
 		return
 	}
-	if g==0 {
-		ret=ERRCODE_SUCCESS
+	if g == 0 {
+		ret = ERRCODE_SUCCESS
 		return
 	}
-	ret=ERRCODE_UNKNOWN
-	err=errors.New(p.ErrorMsg)
+	ret = ERRCODE_UNKNOWN
+	err = errors.New(p.ErrorMsg)
 	return
 }

@@ -48,6 +48,7 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 
 	if err != nil {
 		log.Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(rsp.Code)
@@ -87,6 +88,7 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 	})
 	if err != nil {
 		log.Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(rsp.Code)
@@ -120,6 +122,7 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 	})
 	if err != nil {
 		log.Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(rsp.Code)
@@ -157,6 +160,7 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 	})
 	if err != nil {
 		log.Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	// ret.SetDataSection("data", rsp.Data)

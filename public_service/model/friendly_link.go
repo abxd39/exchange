@@ -30,7 +30,7 @@ func (f *FriendlyLink) Add(req *proto.AddFriendlyLinkRequest, rsp *proto.AddFrie
 		rsp.Code = Err.ERRCODE_UNKNOWN
 		return nil
 	}
-	if result != 0 {
+	if result == 0 {
 		log.Log.Errorf("friendly link insert fail!!")
 		rsp.Code = Err.ERRCODE_UNKNOWN
 		return nil
@@ -40,6 +40,11 @@ func (f *FriendlyLink) Add(req *proto.AddFriendlyLinkRequest, rsp *proto.AddFrie
 }
 
 func (f *FriendlyLink) GetFriendlyLinkList(req *proto.FriendlyLinkRequest, rsp *proto.FriendlyLinkResponse) error {
+	//page !=0
+	if 0 == req.Page {
+		req.Page = 1
+	}
+
 	defa := req.Count
 	if 0 == defa {
 		req.Count = 100

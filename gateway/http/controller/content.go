@@ -11,9 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ContentManage struct{}
+type ContentManageGroup struct{}
 
-func (c *ContentManage) Router(r *gin.Engine) {
+func (c *ContentManageGroup) Router(r *gin.Engine) {
 	cont := r.Group("/content")
 
 	{
@@ -23,7 +23,7 @@ func (c *ContentManage) Router(r *gin.Engine) {
 	}
 }
 
-func (cm *ContentManage) Banner(c *gin.Context) {
+func (cm *ContentManageGroup) Banner(c *gin.Context) {
 	ret := Err.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -31,7 +31,7 @@ func (cm *ContentManage) Banner(c *gin.Context) {
 	return
 }
 
-func (cm *ContentManage) AddFriendlyLink(c *gin.Context) {
+func (cm *ContentManageGroup) AddFriendlyLink(c *gin.Context) {
 	ret := Err.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -56,14 +56,14 @@ func (cm *ContentManage) AddFriendlyLink(c *gin.Context) {
 	})
 	if err != nil {
 		log.Log.Errorf(err.Error())
-		ret.SetErrCode(Err.ERRCODE_UNKNOWN)
+		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(rsp.Code)
 	return
 }
 
-func (cm *ContentManage) GetFriendlyLink(c *gin.Context) {
+func (cm *ContentManageGroup) GetFriendlyLink(c *gin.Context) {
 	ret := Err.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -84,7 +84,7 @@ func (cm *ContentManage) GetFriendlyLink(c *gin.Context) {
 	rsp, err := rpc.InnerService.PublicService.CallGetFriendlyLink(&proto.FriendlyLinkRequest{})
 	if err != nil {
 		log.Log.Errorf(err.Error())
-		ret.SetErrCode(Err.ERRCODE_UNKNOWN)
+		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(rsp.Code)
