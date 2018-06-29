@@ -19,11 +19,7 @@ func initRouter() *gin.Engine {
 	new(controller.CurrencyGroup).Router(r)
 	new(controller.KineGroup).Router(r)
 	new(controller.TokenGroup).Router(r)
-<<<<<<< HEAD
-	new(controller.MarketGroup).Router(r)
-=======
 	new(controller.ContentManageGroup).Router(r)
->>>>>>> b022b9ed479667f457bd75362cd5a5f6e7555df3
 	return r
 }
 
