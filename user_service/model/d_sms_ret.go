@@ -88,7 +88,7 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 		ret, err = SendSms(phone, region, ty)
 	case SMS_MODIFY_LOGIN_PWD:
 		ret, err = SendSms(phone, region, ty)
-	case SMS_RESET_GOOGLE:
+	case SMS_SET_GOOGLE_CODE:
 		ret, err = SendSms(phone, region, ty)
 	default:
 		return
