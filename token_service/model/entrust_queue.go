@@ -12,10 +12,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
-	"github.com/liudng/godump"
 	"github.com/sirupsen/logrus"
 	"sync/atomic"
 	"time"
+)
+
+const (
+	ADMIN_UID = 1
 )
 
 //交易队列类型
@@ -50,6 +53,8 @@ type EntrustQuene struct {
 
 	//市价等待队列
 	marketOrderDetail chan *EntrustData
+
+	//sellMarketOrderDetail chan *EntrustData
 	//上一次成交价格
 	price int64
 }
@@ -70,6 +75,7 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64) *EntrustQuene {
 		//sourceData:   make(map[string]*EntrustData),
 		//newOrderDetail:    make(chan *EntrustData, 1000),
 		waitOrderDetail: make(chan *EntrustData, 1000),
+		//sellMarketOrderDetail: make(chan *EntrustData, 1000),
 		//updateOrderDetail: make(chan *EntrustData, 1000),
 		marketOrderDetail: make(chan *EntrustData, 1000),
 		price:             price,
@@ -81,6 +87,93 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64) *EntrustQuene {
 //获取自增ID
 func (s *EntrustQuene) GetUUID() int64 {
 	return atomic.AddInt64(&s.UUID, 1)
+}
+
+func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, ret int32, err error) {
+	g := &EntrustDetail{
+		EntrustId:  genkey.GetTimeUnionKey(s.GetUUID()),
+		TokenId:    s.TokenTradeId,
+		Uid:        p.Uid,
+		AllNum:     p.Num,
+		SurplusNum: p.Num,
+		Opt:        int(p.Opt),
+		OnPrice:    p.OnPrice,
+		States:     0,
+		Type:       int(p.Type),
+	}
+
+	m := &UserToken{}
+	var token_id int
+	if p.Opt == proto.ENTRUST_OPT_BUY {
+		token_id = s.TokenId
+	} else {
+		token_id = s.TokenTradeId
+	}
+
+	err = m.GetUserToken(p.Uid, token_id)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+	if m.Balance < p.Num { //检查余额
+		ret = ERR_TOKEN_LESS
+		return
+	}
+
+	session := DB.GetMysqlConn().NewSession()
+	defer session.Close()
+	err = session.Begin()
+
+	//冻结资金
+	ret, err = m.SubMoneyWithFronzen(session, p.Num, g.EntrustId, FROZEN_LOGIC_TYPE_ENTRUST)
+	if err != nil || ret != ERRCODE_SUCCESS {
+		session.Rollback()
+		return
+	}
+
+	//记录委托
+	err = g.Insert(session)
+	if err != nil {
+		Log.Errorln(err.Error())
+		session.Rollback()
+		return
+	}
+
+	//交易流水
+	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+		Uid:     p.Uid,
+		TokenId: token_id,
+		Ukey:    g.EntrustId,
+		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+		Type:    MONEY_UKEY_TYPE_ENTRUST,
+		Num:     p.Num,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		session.Rollback()
+		return
+	}
+
+	err = session.Commit()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+	e = &EntrustData{
+		EntrustId:  g.EntrustId,
+		Uid:        g.Uid,
+		SurplusNum: g.SurplusNum,
+		Opt:        p.Opt,
+		OnPrice:    g.OnPrice,
+		States:     0,
+		Type:       p.Type,
+	}
+	return
+}
+func (s *EntrustQuene) SetPrice(price int64)  {
+		s.price=price
 }
 
 //委托请求检查
@@ -205,7 +298,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	fmt.Printf("price =%d,deal_num=%d ,num =%d \n", price, deal_num, num)
 
 	fee := num * 5 / 1000 //买家消耗手续费0.005个USDT
-	godump.Dump(fee)
 
 	no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
 	t := &Trade{
@@ -217,7 +309,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Num:          num - fee, //记录消耗本来USDT数量
 		Fee:          fee,
 		DealTime:     time.Now().Unix(),
-		Opt:         int(proto.ENTRUST_OPT_BUY),
+		Opt:          int(proto.ENTRUST_OPT_BUY),
 	}
 
 	sell_fee := deal_num * 5 / 1000
@@ -230,7 +322,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Num:          deal_num - sell_fee,
 		Fee:          sell_fee,
 		DealTime:     time.Now().Unix(),
-		Opt:         int(proto.ENTRUST_OPT_SELL),
+		Opt:          int(proto.ENTRUST_OPT_SELL),
 	}
 
 	if seller.SurplusNum < deal_num { //卖方部分成交
@@ -245,7 +337,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		o.States = TRADE_STATES_PART
 		seller.SurplusNum -= deal_num
 	}
-	godump.Dump(time.Now().Unix())
+
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
@@ -313,7 +405,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	Log.Debugf("uid=? and other=?",t.Uid,o.Uid)
 	err = new(Trade).Insert(session, t, o)
 	if err != nil {
 		session.Rollback()
@@ -326,14 +417,15 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Log.Errorln(err.Error())
 		return
 	}
-	godump.Dump(time.Now().Unix())
+
 	return
 }
 
-func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
-	godump.Dump(p)
+func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
+
 	var other *EntrustData
 	if p.Opt == proto.ENTRUST_OPT_BUY {
+
 		other, err = s.popFirstEntrust(proto.ENTRUST_OPT_SELL)
 		if err == redis.Nil {
 			fmt.Printf("get pop nil time=%d", time.Now().Unix())
@@ -342,60 +434,110 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 				s.joinSellQuene(p)
 			} else {
 				//平台吃单
-				s.marketOrderDetail <- p
+				var d *EntrustData
+
+				d, ret, err = s.EntrustAl(&proto.EntrustOrderRequest{
+					Symbol:  s.TokenQueueId,
+					OnPrice: s.price,
+					Num:     convert.Int64DivInt64By8Bit(p.SurplusNum, s.price),
+					Opt:     proto.ENTRUST_OPT_SELL,
+					Type:    proto.ENTRUST_TYPE_LIMIT_PRICE,
+					Uid:     ADMIN_UID,
+				})
+
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+
+				if ret != ERRCODE_SUCCESS {
+					s.marketOrderDetail <- p
+					return
+				}
+
+				other = d
+
 			}
-			return
+
 		} else if err != nil {
 			Log.Errorln(err.Error())
 			return
 		}
+
 		//市价交易撮合
 		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
 			//num := p.SurplusNum / other.OnPrice //买房愿意用花的比例兑换BTC的数量
-
 			s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
+			var num, price int64
 
-			num := convert.Int64DivInt64By8Bit(p.SurplusNum, other.OnPrice)
-			if num > other.SurplusNum { //存在限价则成交
-				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
+			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+				num = convert.Int64DivInt64By8Bit(p.SurplusNum, s.price) //计算买家最大买入BTC数量
+				price = s.price
+			} else {
+				num = convert.Int64DivInt64By8Bit(p.SurplusNum, other.OnPrice)
+				price = other.OnPrice
+			}
+
+			if num > other.SurplusNum { //存在对手单则成交
+				s.MakeDeal(p, other, price, other.SurplusNum)
 				s.match(p)
 			} else if num == other.SurplusNum {
-				s.MakeDeal(p, other, other.OnPrice, other.SurplusNum)
+				s.MakeDeal(p, other, price, num)
 			} else {
-				s.MakeDeal(p, other, other.OnPrice, num)
+				s.MakeDeal(p, other, price, num)
 				s.joinSellQuene(other)
 			}
 			return
 
 		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
-			if p.OnPrice >= other.OnPrice {
+			var num, price int64
 
-				s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
+			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+				num = convert.Int64DivInt64By8Bit(p.SurplusNum, p.OnPrice)
+				price = p.OnPrice
 
-				godump.Dump("match1")
-				if p.OnPrice <= s.price {
-					s.price = p.OnPrice
-				} else if other.OnPrice >= s.price {
-					s.price = other.OnPrice
-				} else if s.price > p.OnPrice && s.price < other.OnPrice {
-					s.price = s.price
-				}
+			} else {
 
-				//num := p.SurplusNum / s.price//买房愿意用花的比例兑换BTC的数量
-				num := convert.Int64DivInt64By8Bit(p.SurplusNum, s.price)
-				godump.Dump(num)
-				if num > other.SurplusNum {
-					s.MakeDeal(p, other, s.price, other.SurplusNum)
-					s.match(p)
-
-				} else if num == other.SurplusNum {
-					s.MakeDeal(p, other, s.price, num)
-
+				if p.OnPrice >= other.OnPrice {
+					if p.OnPrice <= s.price {
+						price = p.OnPrice
+					} else if other.OnPrice >= s.price {
+						price = other.OnPrice
+					} else if s.price > p.OnPrice && s.price < other.OnPrice {
+						price = s.price
+					}
 				} else {
-					s.MakeDeal(p, other, s.price, num)
-					s.joinSellQuene(other)
+					s.joinSellQuene(p)
+					return
 				}
-				return
+
+				num = convert.Int64DivInt64By8Bit(p.SurplusNum, price) //计算买家最大买入BTC数量
+			}
+
+			if num > other.SurplusNum {
+				err = s.MakeDeal(p, other, price, other.SurplusNum)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
+				s.match(p)
+
+			} else if num == other.SurplusNum {
+				err = s.MakeDeal(p, other, price, num)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
+			} else {
+				err = s.MakeDeal(p, other, price, num)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
+				s.joinSellQuene(other)
 			}
 		}
 
@@ -418,23 +560,44 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int, err error) {
 
 		if p.Type == proto.ENTRUST_TYPE_MARKET_PRICE { //市价交易撮合
 			s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
+			var num, price int64
+			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+				num = convert.Int64DivInt64By8Bit(other.SurplusNum, s.price) //计算买家最大买入BTC数量
+				price = s.price
+			}else {
+				num = convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice)
+				price = other.OnPrice
+			}
 
-			num := convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice) //买房愿意用花的USDT比例兑换BTC的数量
+			//num := convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice) //买房愿意用花的USDT比例兑换BTC的数量
 			if num > p.SurplusNum {                                             //存在限价则成交
-				s.MakeDeal(p, other, other.OnPrice, num)
+				err =s.MakeDeal(p, other, price, p.SurplusNum)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
 				s.match(p)
 
 			} else if num == p.SurplusNum {
-				s.MakeDeal(p, other, other.OnPrice, num)
+				err = s.MakeDeal(p, other, price, num)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
 			} else {
-				s.MakeDeal(p, other, other.OnPrice, num)
+				err = s.MakeDeal(p, other, price, num)
+				if err != nil {
+					Log.Errorln(err.Error())
+					return
+				}
+				s.SetPrice(price)
 				s.joinSellQuene(other)
 			}
 			return
 		} else if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE { //限价交易撮合
 			if p.OnPrice >= other.OnPrice {
-				godump.Dump("match2")
-
 				s.delSource(proto.ENTRUST_OPT_SELL, other.EntrustId)
 
 				if p.OnPrice <= s.price {
@@ -499,6 +662,12 @@ func (s *EntrustQuene) process() {
 		select {
 		case w := <-s.waitOrderDetail:
 			s.match(w)
+		case d := <-s.marketOrderDetail:
+			go func(data *EntrustData) {
+				time.Sleep(10 * time.Second)
+				s.waitOrderDetail <- d
+			}(d)
+
 		}
 	}
 }

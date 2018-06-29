@@ -19,6 +19,7 @@ import (
 )
 
 const (
+<<<<<<< HEAD
 	SMS_REGISTER         = 1 //注册业务
 	SMS_FORGET           = 2
 	SMS_MODIFY_PHONE     = 3
@@ -30,6 +31,15 @@ const (
 	SMS_AIL_PAY          = 9
 	SMS_PAYPAL_PAY       = 10
 	SMS_MAX              = 11
+=======
+	SMS_REGISTER        = 1 //注册业务
+	SMS_FORGET          = 2
+	SMS_CHANGE_PWD      = 3
+	SMS_RESET_GOOGLE = 4
+	SMS_RESET_TRADE_PWD = 5
+	SMS_MAX             = 6
+
+>>>>>>> f87b226c3d853dc10033e086b951504e5de684c6
 )
 
 //发送短信
@@ -87,6 +97,8 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 	case SMS_FORGET:
 		ret, err = SendSms(phone, region, ty)
 	case SMS_MODIFY_LOGIN_PWD:
+		ret, err = SendSms(phone, region, ty)
+	case SMS_RESET_GOOGLE:
 		ret, err = SendSms(phone, region, ty)
 	default:
 		return

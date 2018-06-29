@@ -29,6 +29,9 @@ service UserRPC {
     //删除谷歌验证码
     rpc DelGoogleSecretKey(DelGoogleSecretKeyRequest) returns (CommonErrResponse) {}
 
+    //重置谷歌验证码
+    rpc ResetGoogleSecretKey(ResetGoogleSecretKeyRequest) returns (CommonErrResponse) {}
+
     //获取个人基础信息
     rpc GetUserInfo(UserInfoRequest) returns (UserInfoResponse) {}
 
@@ -159,6 +162,13 @@ message DelGoogleSecretKeyRequest {
     uint64 uid       =1;
     uint32 code      =2;
 }
+
+message ResetGoogleSecretKeyRequest {
+    uint64 uid       =1;
+    string sms_code      =2;
+    uint32 auth_code     =3;
+}
+
 
 message UserInfoRequest{
     uint64 uid       =1;

@@ -26,13 +26,13 @@ func (s *RPCServer) GetGoogleSecretKey(ctx context.Context, req *proto.GoogleAut
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-
+/*
 	if u.CheckGoogleExist() { //检查是否已经有谷歌私钥，有的话不能再次申请
 		rsp.Err = ERRCODE_GOOGLE_CODE_EXIST
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-
+*/
 	code := random.Krand(16, random.KC_RAND_KIND_UPPER)
 	str_code := string(code)
 	r := model.RedisOp{}
@@ -128,6 +128,51 @@ func (s *RPCServer) DelGoogleSecretKey(ctx context.Context, req *proto.DelGoogle
 	}
 	rsp.Err = ret
 	rsp.Message = GetErrorMessage(rsp.Err)
+	return nil
+}
+
+func (s *RPCServer) ResetGoogleSecretKey(ctx context.Context, req *proto.ResetGoogleSecretKeyRequest, rsp *proto.CommonErrResponse) error {
+	u := model.User{}
+	ret, err := u.GetUser(req.Uid)
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
+
+	r := model.RedisOp{}
+	key, err := r.GetTmpGoogleSecertKey(req.Uid)
+	if err == redis.Nil {
+		rsp.Err = ERRCODE_SMS_CODE_NIL
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	} else if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	ret,err = model.AuthSms(u.Phone,model.SMS_RESET_GOOGLE,req.SmsCode)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
+		return nil
+	}
+
+	ret, err = u.AuthGoogleCode(key, req.AuthCode)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+	if ret==ERRCODE_SUCCESS {
+		ret = u.SetGoogleSecertKey(req.Uid, key)
+		rsp.Err=ret
+	}
 	return nil
 }
 
