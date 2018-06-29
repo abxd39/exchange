@@ -24,7 +24,6 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		Verify_num string `form:"verify_num" json:"verify_num" binding:"required"`
 		Bank_name  string `form:"bank_name" json:"bank_name" binding:"required"`
 		Bank_info  string `form:"bank_info" json:"bank_info" binding:"required"`
-		Phone      string `form:"phone" json:"phone" binding:"required"`
 		Verify     string `form:"verify" json:"verify" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
@@ -42,7 +41,6 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		VerifyNum: req.Verify_num,
 		BankName:  req.Bank_name,
 		BankInfo:  req.Bank_info,
-		Phone:     req.Phone,
 		Verify:    req.Verify,
 	})
 
@@ -67,7 +65,6 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 		Name         string `form:"name" json:"name" binding:"required"`
 		Alipay       string `form:"alipay" json:"alipay" binding:"required"`
 		Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
-		Phone        string `form:"phone" json:"phone" binding:"required"`
 		Verify       string `form:"verify" json:"verify" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
@@ -83,7 +80,6 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 		Name:        req.Name,
 		Alipay:      req.Alipay,
 		ReceiptCode: req.Receipt_code,
-		Phone:       req.Phone,
 		Verify:      req.Verify,
 	})
 	if err != nil {
@@ -104,7 +100,6 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		Id     uint64 `form:"uid" json:"uid" binding:"required"`
 		Token  string `form:"token" json:"token" binding:"required"`
 		Paypal string `form:"Paypal" json:"Paypal" binding:"required"`
-		Phone  string `form:"phone" json:"phone" binding:"required"`
 		Verify string `form:"verify" json:"verify" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
@@ -117,7 +112,6 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		Uid:    req.Id,
 		Token:  req.Token,
 		Paypal: req.Paypal,
-		Phone:  req.Phone,
 		Verify: req.Verify,
 	})
 	if err != nil {
@@ -140,7 +134,6 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 		Name         string `form:"name" json:"name" binding:"required"`
 		Wechat       string `form:"wechat" json:"wechat" binding:"required"`
 		Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
-		Phone        string `form:"phone" json:"phone" binding:"required"`
 		Verify       string `form:"verify" json:"verify" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
@@ -155,7 +148,6 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 		Name:        req.Name,
 		Wechat:      req.Wechat,
 		ReceiptCode: req.Receipt_code,
-		Phone:       req.Phone,
 		Verify:      req.Verify,
 	})
 	if err != nil {

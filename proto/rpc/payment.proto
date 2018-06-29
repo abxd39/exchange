@@ -16,8 +16,7 @@ message BankPayRequest{
     string  verify_num  =5;  
     string  bank_name   =6;
     string  bank_info   =7;
-    string  phone       =8;
-    string  verify      =9;
+    string  verify      =8;
 }
 
 
@@ -28,8 +27,7 @@ message WeChatPayRequest{
     string  name        =3;
     string  wechat      =4;
     string  receipt_code=5;
-    string  phone       =6;
-    string  verify      =7;
+    string  verify      =6;
 }
 
 message AlipayRequest{
@@ -38,14 +36,12 @@ message AlipayRequest{
     string  name        =3;
     string  alipay      =4;
     string  receipt_code=5;
-    string  phone       =6;
-    string  verify      =7;
+    string  verify      =6;
 }
 
 message PaypalRequest{
-    uint64   uid         =1;
-    string token        =2;
+    uint64  uid         =1;
+    string  token        =2;
     string  paypal      =3;
-    string  phone       =6;
-    string  verify      =7;
+    string  verify      =4;
 }

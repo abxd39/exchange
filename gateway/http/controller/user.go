@@ -355,7 +355,6 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 	}
 	rsp, err := rpc.InnerService.UserSevice.CallModifyUserLoginPwd(&proto.UserModifyLoginPwdRequest{
 		Uid:        req.Uid,
-		Phone:      req.Phone,
 		Token:      req.Token,
 		OldPwd:     req.OldPwd,
 		NewPwd:     req.NewPwd,
@@ -393,7 +392,6 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 	rsp, err := rpc.InnerService.UserSevice.CallModifyPhone1(&proto.UserModifyPhoneRequest{
 		Uid:    req.Uid,
 		Token:  req.Token,
-		Phone:  req.Phone,
 		Verify: req.Verify,
 	})
 
@@ -419,7 +417,6 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 		Phone   string `form:"phone" binding:"required"`
 		Verify  string `form:"verify" binding:"required"`
 	}{}
-
 
 	if err := c.ShouldBind(&req); err != nil {
 		Log.Errorf(err.Error())
@@ -451,7 +448,6 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 	req := struct {
 		Uid        uint64 `form:"uid" binding:"required"`
 		Token      string `form:"token" binding:"required"`
-		Phone      string `form:"phone" binding:"required"`
 		NewPwd     string `form:"new_pwd" binding:"required"`
 		ConfirmPwd string `form:"confirm_pwd" binding:"required"`
 		Verify     string `form:"verify" binding:"required"`
@@ -465,7 +461,6 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 	rsp, err := rpc.InnerService.UserSevice.CallModifyTradePwd(&proto.UserModifyTradePwdRequest{
 		Uid:        req.Uid,
 		Token:      req.Token,
-		Phone:      req.Phone,
 		NewPwd:     req.NewPwd,
 		ConfirmPwd: req.ConfirmPwd,
 		Verify:     req.Verify,

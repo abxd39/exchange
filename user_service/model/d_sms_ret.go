@@ -19,13 +19,17 @@ import (
 )
 
 const (
-	SMS_REGISTER        = 1 //注册业务
-	SMS_FORGET          = 2
-	SMS_CHANGE_PWD      = 3
-	SMS_RESET_GOOGLE = 4
-	SMS_RESET_TRADE_PWD = 5
-	SMS_MAX             = 6
-
+	SMS_REGISTER         = 1 //注册业务
+	SMS_FORGET           = 2
+	SMS_MODIFY_PHONE     = 3
+	SMS_SET_GOOGLE_CODE  = 4
+	SMS_RESET_TRADE_PWD  = 5
+	SMS_MODIFY_LOGIN_PWD = 6
+	SMS_BANK_PAY         = 7
+	SMS_WECHAT_PAY       = 8
+	SMS_AIL_PAY          = 9
+	SMS_PAYPAL_PAY       = 10
+	SMS_MAX              = 11
 )
 
 //发送短信
@@ -45,9 +49,6 @@ func SendSms(phone, country string, ty int32) (ret int32, err error) {
 
 //验证短信
 func AuthSms(phone string, ty int32, code string) (ret int32, err error) {
-	godump.Dump(phone)
-	godump.Dump(code)
-	godump.Dump(ty)
 	r := RedisOp{}
 	auth_code, err := r.GetSmsCode(phone, ty)
 	if err == redis.Nil {
@@ -85,9 +86,11 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 		ret, err = SendSms(phone, region, ty)
 	case SMS_FORGET:
 		ret, err = SendSms(phone, region, ty)
-	case SMS_CHANGE_PWD:
+	case SMS_MODIFY_PHONE:
 		ret, err = SendSms(phone, region, ty)
-	case SMS_RESET_GOOGLE:
+	case SMS_SET_GOOGLE_CODE:
+		ret, err = SendSms(phone, region, ty)
+	case SMS_MODIFY_LOGIN_PWD:
 		ret, err = SendSms(phone, region, ty)
 	default:
 		ret, err = SendSms(phone, region, ty)
