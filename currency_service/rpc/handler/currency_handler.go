@@ -324,3 +324,13 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 
 	return nil
 }
+
+
+
+func (s *RPCServer) GetCurrencyQuota(ctx context.Context, req *proto.GetCurrencyQuoteRequest, rsp *proto.OtherResponse) error {
+	return nil
+}
+
+func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
+	return nil
+}
