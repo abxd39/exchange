@@ -932,7 +932,8 @@ func (this *CurrencyGroup)  GetSellingPrice(c *gin.Context) {
 		return
 	}
 	if req.TokenId == 0 {
-		ret.SetErrCode(ERRCODE_PARAM)
+		//ret.SetErrCode(ERRCODE_PARAM)
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
@@ -969,7 +970,8 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context){
 		return
 	}
 	if req.Uid == 0 {
-		ret.SetErrCode(ERRCODE_PARAM)
+		//ret.SetErrCode(ERRCODE_PARAM)
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
@@ -983,8 +985,8 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context){
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	ret.SetDataValue(data)
-	//fmt.Println(data)
-	//ret.SetDataSection("balance", 5.01052013)
+	//ret.SetDataValue(data)
+	fmt.Println(data)
+	ret.SetDataSection("balance", 5.01052013)
 	return
 }
