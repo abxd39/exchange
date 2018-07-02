@@ -20,6 +20,7 @@ func (c *ContentManageGroup) Router(r *gin.Engine) {
 		cont.POST("/b", c.Banner)
 		cont.POST("/addlink", c.AddFriendlyLink)
 		cont.GET("/linklist", c.GetFriendlyLink)
+		cont.GET("/bannerlist", c.GetBannerList)
 	}
 }
 
@@ -89,5 +90,22 @@ func (cm *ContentManageGroup) GetFriendlyLink(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Code)
 	ret.SetDataSection("list", rsp.Friend)
+	return
+}
+
+func (cm *ContentManageGroup) GetBannerList(c *gin.Context) {
+	ret := Err.NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	rsp, err := rpc.InnerService.PublicService.CallGetBannerList(&proto.BannerRequest{})
+	if err != nil {
+		log.Log.Errorf(err.Error())
+		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code)
+	ret.SetDataSection("list", rsp.List)
 	return
 }

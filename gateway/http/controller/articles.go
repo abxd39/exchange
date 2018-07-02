@@ -69,7 +69,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 		log.Log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 	}
-	ret.SetErrCode(rsp.Err)
+	ret.SetErrCode(rsp.Code)
 	ret.SetDataSection("article", &arti)
 	return
 }
@@ -100,7 +100,7 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 		return
 	}
 	//fmt.Println("gatway return value ", rsp.Article)
-	ret.SetErrCode(rsp.Err)
+	ret.SetErrCode(rsp.Code)
 	ret.SetDataSection("list", rsp.Article)
 	return
 }

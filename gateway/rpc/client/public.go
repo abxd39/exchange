@@ -63,3 +63,7 @@ func (s *PublciRPCCli) CallAddFriendlyLink(req *proto.AddFriendlyLinkRequest) (r
 func (s *PublciRPCCli) CallGetFriendlyLink(req *proto.FriendlyLinkRequest) (rsp *proto.FriendlyLinkResponse, err error) {
 	return s.conn.GetFriendlyLink(context.TODO(), req)
 }
+
+func (s *PublciRPCCli) CallGetBannerList(req *proto.BannerRequest) (rsp *proto.BannerResponse, err error) {
+	return s.conn.GetBannerList(context.TODO(), req)
+}

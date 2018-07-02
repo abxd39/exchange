@@ -14,6 +14,8 @@ service PublicRPC {
 	 rpc  GetFriendlyLink (FriendlyLinkRequest) returns (FriendlyLinkResponse){};
 	 //add one item friendly link 
 	 rpc AddFriendlyLink (AddFriendlyLinkRequest) returns (AddFriendlyLinkResponse){};
+	 //Get banner list
+	 rpc  GetBannerList (BannerRequest) returns (BannerResponse){};
 
 }
 
@@ -33,9 +35,10 @@ message ArticleListResponse{
 		
 	} 
 	repeated Article  article =1;
-	int32 err               =2;
+	int32 code               =2;
 	string message          =3;
-	int32 total_page		=4; 
+	string data				=4;
+	int32 total_page		=5; 
 }
 
 message ArticleRequest{
@@ -43,7 +46,27 @@ message ArticleRequest{
 }
 
 message ArticleResponse{
-	int32 err               =1;
+	int32 code               =1;
     string message          =2;
 	string data				=3;
+}
+
+message BannerRequest{
+
+}
+
+message BannerResponse{
+	message List{
+		int32 order 		=1;      
+		string pictureName	=2;
+		string picturePath	=3;
+		string timeStart 	=4;
+		string timeEnd 		=5;
+		string linkPath 	=6;
+		int32 state 		=7;
+	}
+	repeated List list 		=1;
+	int32 code              =2;
+	string	 data			=3;
+	string message          =4;
 }
