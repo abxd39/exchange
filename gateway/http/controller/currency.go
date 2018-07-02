@@ -47,6 +47,11 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/wechatpay", this.WeChatPay)
 		Currency.POST("/paypal", this.Paypal)
 
+
+
+		// 追加
+		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
+		Currency.GET("/currency_balance", this.GetCurrencyBalance)     // 余额
 	}
 }
 
@@ -72,6 +77,7 @@ type CurrencyAds struct {
 	CreatedTime string  `json:"created_time"` // 创建时间
 	UpdatedTime string  `json:"updated_time"` // 修改时间
 }
+
 
 // 获取广告(买卖)
 func (this *CurrencyGroup) GetAds(c *gin.Context) {
@@ -903,4 +909,58 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 
 	ret.SetDataValue(data.Data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
+}
+
+
+
+// get 售价
+
+func (this *CurrencyGroup)  GetSellingPrice(c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		TokenId  uint64  `form:"token_id" json:"token_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	if req.TokenId == 0 {
+		ret.SetErrCode(ERRCODE_PARAM)
+		return
+	}
+
+	ret.SetDataSection("price", 48999.00)
+	return
+}
+
+
+// get this.GetCurrencyQuota)     // 余额
+func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context){
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid  uint64  `form:"uid" json:"uid" binding:"required"`
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	if req.Uid == 0 {
+		ret.SetErrCode(ERRCODE_PARAM)
+		return
+	}
+
+	ret.SetDataSection("balance", 5.01052013)
+	return
 }

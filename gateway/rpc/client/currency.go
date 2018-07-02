@@ -118,3 +118,8 @@ func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*p
 	rsp, err := s.conn.GetUserCurrency(context.TODO(), req)
 	return rsp, err
 }
+
+
+
+// get 售价
+//func (s *CurrencyRPCCli)
