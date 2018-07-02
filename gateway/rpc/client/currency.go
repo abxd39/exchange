@@ -122,4 +122,14 @@ func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*p
 
 
 // get 售价
-//func (s *CurrencyRPCCli)
+func (s *CurrencyRPCCli) CallGetSellingPrice(req *proto.SellingPriceRequest) (*proto.OtherResponse, error) {
+	rsp, err := s.conn.GetSellingPrice(context.TODO(), req)
+	return rsp, err
+}
+
+// get
+func (s *CurrencyRPCCli) CallGetCurrencyBalance(req *proto.GetCurrencyBalanceRequest) (*proto.OtherResponse, error) {
+	rsp, err := s.conn.GetCurrencyBalance(context.TODO(), req)
+	return rsp, err
+}
+
