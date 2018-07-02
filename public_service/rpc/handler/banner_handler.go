@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (s *RPCServer) GetBannerList(ctx context.Context, req *proto.BankPayRequest, rsp *proto.BannerResponse) error {
+func (s *RPCServer) GetBannerList(ctx context.Context, req *proto.BannerRequest, rsp *proto.BannerResponse) error {
 	b := model.Banner{}
 	err := b.GetBannerList(req, rsp)
 	if err != nil {

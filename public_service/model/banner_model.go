@@ -17,7 +17,7 @@ type Banner struct {
 	State       int    `xorm:"not null default 1 comment('上架状态 1 上架 0下架') TINYINT(4)"`
 }
 
-func (b *Banner) GetBannerList(req *proto.BankPayRequest, rsp *proto.BannerResponse) error {
+func (b *Banner) GetBannerList(req *proto.BannerRequest, rsp *proto.BannerResponse) error {
 	fmt.Println("xxx")
 	engine := dao.DB.GetMysqlConn()
 	ban := make([]*Banner, 0)

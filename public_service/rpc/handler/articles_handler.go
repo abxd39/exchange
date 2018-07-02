@@ -14,7 +14,7 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 	var total int
 	result := make([]model.Article_list, 0)
 
-	total, rsp.Err = new(model.Article_list).ArticleList(req, &result)
+	total, rsp.Code = new(model.Article_list).ArticleList(req, &result)
 	rsp.TotalPage = int32(total)
 	for _, value := range result {
 		ntc := proto.ArticleListResponse_Article{}
@@ -32,7 +32,7 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 func (s *RPCServer) Article(ctx context.Context, req *proto.ArticleRequest, rsp *proto.ArticleResponse) error {
 	result := &model.Article{}
 	//result := new(model.Article)
-	rsp.Err = new(model.Article).Article(req.Id, result)
+	rsp.Code = new(model.Article).Article(req.Id, result)
 	fmt.Println(result)
 	js, err := json.Marshal(result)
 	if err != nil {
