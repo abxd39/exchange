@@ -6,6 +6,9 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"time"
+	"digicon/proto/common"
+	"github.com/gin-gonic/gin/json"
+	"fmt"
 )
 
 type RPCServer struct{}
@@ -321,16 +324,51 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	rsp.Balance = data.Balance
 	rsp.Address = data.Address
 	rsp.Version = data.Version
-
 	return nil
 }
 
 
+func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
+	balance, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
+	type BalanceData struct {
+		Balance int64
+	}
+	if err != nil {
+		dt := BalanceData{Balance: 0}
+		data, _ := json.Marshal(dt)
+		rsp.Data = string(data)
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return nil
+	}else{
+		dt := BalanceData{Balance: balance.Balance}
+		data, _ := json.Marshal(dt)
+		rsp.Data = string(data)
+		rsp.Code = errdefine.ERRCODE_SUCCESS
+		return nil
+	}
 
-func (s *RPCServer) GetCurrencyQuota(ctx context.Context, req *proto.GetCurrencyQuoteRequest, rsp *proto.OtherResponse) error {
-	return nil
+
 }
 
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
+	//
+	sellingPriceMap := map[uint32]float64{2:48999.00, 3: 3003.34, 1: 7.08}     // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
+	key := req.TokenId
+	type SellingPrice struct {
+		Price float64
+	}
+	if v, ok := sellingPriceMap[key]; ok {
+		dt := SellingPrice{Price:v}
+		data, _ := json.Marshal(dt)
+		rsp.Data = string(data)
+		rsp.Code = errdefine.ERRCODE_SUCCESS
+	} else {
+		fmt.Println("Key Not Found")
+		dt := SellingPrice{Price:v}
+		data, _ := json.Marshal(dt)
+		rsp.Data = string(data)
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		//rsp.Message = "not found!
+	}
 	return nil
 }

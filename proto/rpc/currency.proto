@@ -56,7 +56,32 @@ service CurrencyRPC {
         //set paypal
         rpc Paypal (PaypalRequest) returns (PaysResponse){};
 
+
+
+        // 获取售价
+        rpc GetSellingPrice(SellingPriceRequest) returns (OtherResponse) {};
+        // 获取法币余额度
+        rpc GetCurrencyBalance(GetCurrencyBalanceRequest) returns (OtherResponse){};
 }
+
+////////////////////////
+
+message  SellingPriceRequest {
+    uint32  token_id = 1;    // 币种id
+}
+
+message  GetCurrencyBalanceRequest {
+    uint64  uid       = 1;    // 用户id
+    uint32  token_id  = 2;    // 币种id
+}
+
+message OtherResponse {
+    int32 code    = 1;
+    int32 message = 2;
+    string data   = 3;
+}
+
+//////////////////////////
 
 message AdminRequest {
 	string cmd      =   1;
@@ -107,6 +132,7 @@ message AdsStatusRequest {
     uint64 id           = 1;  // 广告ID
     uint32 status_id    = 2;  // 状态: 1下架 2上架 3正常(不删除) 4删除
 }
+
 
 //===
 
@@ -226,7 +252,7 @@ message UserCurrencyRequest {
 // 返回的状码
 message OrderResponse {
 	int32    code      =  1;
-	string    message   =  2;
+	string    message  =  2;
 	string   data      = 3;
 }
 

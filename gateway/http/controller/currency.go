@@ -922,7 +922,7 @@ func (this *CurrencyGroup)  GetSellingPrice(c *gin.Context) {
 	}()
 
 	req := struct {
-		TokenId  uint64  `form:"token_id" json:"token_id" binding:"required"`
+		TokenId  uint32  `form:"token_id" json:"token_id" binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&req)
@@ -932,10 +932,22 @@ func (this *CurrencyGroup)  GetSellingPrice(c *gin.Context) {
 		return
 	}
 	if req.TokenId == 0 {
-		ret.SetErrCode(ERRCODE_PARAM)
+		//ret.SetErrCode(ERRCODE_PARAM)
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
+	// rpc get selling price
+	data, err := rpc.InnerService.CurrencyService.CallGetSellingPrice(&proto.SellingPriceRequest{
+		TokenId: req.TokenId,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+	fmt.Println(data)
 	ret.SetDataSection("price", 48999.00)
 	return
 }
@@ -948,7 +960,8 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context){
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid  uint64  `form:"uid" json:"uid" binding:"required"`
+		Uid     uint64  `form:"uid" json:"uid" binding:"required"`
+		TokenId uint32  `form:"token_id"  json:"token_id" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -957,10 +970,23 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context){
 		return
 	}
 	if req.Uid == 0 {
-		ret.SetErrCode(ERRCODE_PARAM)
+		//ret.SetErrCode(ERRCODE_PARAM)
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
+	// 获取当前法币账户余额
+	data, err := rpc.InnerService.CurrencyService.CallGetCurrencyBalance(&proto.GetCurrencyBalanceRequest{
+		Uid:     req.Uid,
+		TokenId: req.TokenId,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	//ret.SetDataValue(data)
+	fmt.Println(data)
 	ret.SetDataSection("balance", 5.01052013)
 	return
 }
