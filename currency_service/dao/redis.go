@@ -15,10 +15,10 @@ type RedisCli struct {
 func NewRedisCli() *RedisCli {
 
 	addr := cf.Cfg.MustValue("redis", "addr")
-
+	pass := cf.Cfg.MustValue("redis", "pass")
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
-		Password: "", // no password set
+		Password: pass, // no password set
 		DB:       0,  // use default DB
 	})
 

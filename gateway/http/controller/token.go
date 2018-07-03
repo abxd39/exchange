@@ -29,7 +29,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		Uid uint64 `form:"uid" binding:"required"`
 		Symbol string `form:"symbol" binding:"required"`
 		Opt int32 `form:"opt" `
-		OnPrice string `form:"on_price" binding:"required"`
+		OnPrice string `form:"on_price" `
 		Type int32 `form:"type" binding:"required"`
 		Num string`form:"num" binding:"required"`
 	}

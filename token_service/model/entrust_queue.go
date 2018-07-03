@@ -427,6 +427,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	return
 }
 
+//匹配交易
 func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 	var other *EntrustData
 	if p.Opt == proto.ENTRUST_OPT_BUY {
@@ -747,7 +748,7 @@ func (s *EntrustQuene) Clock()  {
 
 }
 
-//限价委托入队列 opt 0 buy ,1 sell
+//委托入队列
 func (s *EntrustQuene) joinSellQuene(p *EntrustData) (ret int, err error) {
 	if p.Opt > proto.ENTRUST_OPT_EOMAX {
 		ret = ERRCODE_PARAM
