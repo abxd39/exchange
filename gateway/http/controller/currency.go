@@ -64,7 +64,8 @@ type CurrencyAds struct {
 	TokenName   string  `json:"token_name"`   // 货币名称
 	Price       float64 `json:"price"`        // 单价
 	Num         float64 `json:"num"`          // 数量
-	Premium     int32   `json:"premium"`      // 溢价
+	//Premium     int32   `json:"premium"`      // 溢价
+	Premium     float64 `json:"premium"`      // 溢价
 	AcceptPrice float64 `json:"accept_price"` // 可接受最低[高]单价
 	MinLimit    uint32  `json:"min_limit"`    // 最小限额
 	MaxLimit    uint32  `json:"max_limit"`    // 最大限额
@@ -126,7 +127,7 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 		TokenName:   data.TokenName,
 		Price:       convert.Int64ToFloat64By8Bit(int64(data.Price)),
 		Num:         convert.Int64ToFloat64By8Bit(int64(data.Num)),
-		Premium:     data.Premium,
+		Premium:     convert.Int64ToFloat64By8Bit(int64(data.Premium)),
 		AcceptPrice: convert.Int64ToFloat64By8Bit(int64(data.AcceptPrice)),
 		MinLimit:    data.MinLimit,
 		MaxLimit:    data.MaxLimit,
@@ -159,7 +160,8 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		TokenName    string  `form:"token_name" json:"token_name"`                // 货币名称
 		Price        float64 `form:"price" json:"price" binding:"required"`       // 单价
 		Num          float64 `form:"num" json:"num" binding:"required"`           // 数量
-		Premium      int32   `form:"premium" json:"premium"`                      // 溢价
+		//Premium      int32   `form:"premium" json:"premium"`                      // 溢价
+		Premium      float64   `form:"premium" json:"premium"`                      // 溢价
 		AcceptPrice  float64 `form:"accept_price" json:"accept_price"`            // 可接受最低[高]单价
 		MinLimit     uint32  `form:"min_limit" json:"min_limit"`                  // 最小限额
 		MaxLimit     uint32  `form:"max_limit" json:"max_limit"`                  // 最大限额
@@ -262,7 +264,7 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		TokenName:   tokenData.Name,
 		Price:       uint64(convert.Float64ToInt64By8Bit(req.Price)),
 		Num:         uint64(convert.Float64ToInt64By8Bit(req.Num)),
-		Premium:     req.Premium,
+		Premium:     convert.Float64ToInt64By8Bit(req.Premium),
 		AcceptPrice: uint64(convert.Float64ToInt64By8Bit(req.AcceptPrice)),
 		MinLimit:    req.MinLimit,
 		MaxLimit:    req.MaxLimit,
@@ -302,7 +304,8 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 		Id           uint64  `form:"id" json:"id" binding:"required"`       // 广告ID
 		Price        float64 `form:"price" json:"price" binding:"required"` // 单价
 		Num          float64 `form:"num" json:"num" binding:"required"`     // 数量
-		Premium      int32   `form:"premium" json:"premium"`                // 溢价
+		Premium      float64   `form:"premium" json:"premium"`                // 溢价
+		//Premium      int32   `form:"premium" json:"premium"`                // 溢价
 		AcceptPrice  float64 `form:"accept_price" json:"accept_price"`      // 可接受最低[高]单价
 		MinLimit     uint32  `form:"min_limit" json:"min_limit"`            // 最小限额
 		MaxLimit     uint32  `form:"max_limit" json:"max_limit"`            // 最大限额
@@ -377,7 +380,8 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 		Id:          req.Id,
 		Price:       uint64(convert.Float64ToInt64By8Bit(req.Price)),
 		Num:         uint64(convert.Float64ToInt64By8Bit(req.Num)),
-		Premium:     req.Premium,
+		//Premium:     req.Premium,
+		Premium:     convert.Float64ToInt64By8Bit(req.Premium),
 		AcceptPrice: uint64(convert.Float64ToInt64By8Bit(req.AcceptPrice)),
 		MinLimit:    req.MinLimit,
 		MaxLimit:    req.MaxLimit,
