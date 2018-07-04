@@ -324,7 +324,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	return nil
 }
 
-
+// 获取当前法币账户余额
 func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
 	balance, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
 	type BalanceData struct {
@@ -347,6 +347,8 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 
 }
 
+
+// 获取get售价
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
 	//
 	sellingPriceMap := map[uint32]float64{2:48999.00, 3: 3003.34, 1: 7.08}     // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
@@ -365,7 +367,32 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 		data, _ := json.Marshal(dt)
 		rsp.Data = string(data)
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		rsp.Message = "not found!"
 		//rsp.Message = "not found!
 	}
 	return nil
 }
+
+
+// get GetUserRating
+// 获取用戶评级
+func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingRequest, rsp *proto.OtherResponse) error {
+	uCurrencyCount := new(model.UserCurrencyCount)
+	data, err := uCurrencyCount.GetUserCount(req.Uid)
+	if err != nil {
+		rsp.Data = ""
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}
+	rData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println(err.Error())
+		rsp.Data = ""
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return nil
+	}
+	rsp.Data = string(rData)
+	rsp.Code = errdefine.ERRCODE_SUCCESS
+	return nil
+}
+

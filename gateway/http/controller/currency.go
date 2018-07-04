@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"fmt"
 	"digicon/gateway/utils"
+	"encoding/json"
 )
 
 type CurrencyGroup struct{}
@@ -52,6 +53,8 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		// 追加
 		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
 		Currency.GET("/currency_balance", this.GetCurrencyBalance)     // 余额
+		Currency.GET("/user_currency_rating", this.GetUserRating) //获取用戶评级
+
 	}
 }
 
@@ -496,7 +499,6 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		PageNum      int    `form:"page_num" json:"page_num"`                  // 指定每页的记录数
 		FiatCurrency string `form:"fiat_currency" json:"fiat_currency"`        // 指定 CNY | USD
 	}{}
-
 	err := c.ShouldBind(&req)
 	if err != nil {
 		Log.Errorf(err.Error())
@@ -527,6 +529,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		req.FiatCurrency = "cny"
 	}
 
+
 	// 调用 rpc 法币交易列表 - (广告(买卖))
 	data, err := rpc.InnerService.CurrencyService.CallAdsList(&proto.AdsListRequest{
 		TypeId:  req.TypeId,
@@ -534,14 +537,17 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		Page:    uint32(req.Page),
 		PageNum: uint32(req.PageNum),
 	})
+	fmt.Println("result ....")
 
 	if err != nil {
+		fmt.Println("rpc error:", err)
 		Log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	dataLen := len(data.Data)
-	fmt.Println(data)
+	fmt.Println("dataLen:", dataLen)
+
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{
@@ -581,6 +587,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		// 调用 rpc 用户头像和昵称
 		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameRequest{Uid: userList})
 		if err != nil {
+			fmt.Println("get user name error!", err.Error())
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 			return
@@ -601,7 +608,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 			}
 		}
 
-		//fmt.Println(userList)
+		fmt.Println(userList)
 	}
 
 	ret.SetDataValue(reaList)
@@ -659,7 +666,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(data)
+	fmt.Println("data:", data)
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{Page: data.Page, PageNum: data.PageNum, Total: data.Total}
@@ -994,3 +1001,66 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context){
 	ret.SetDataSection("balance", 5.01052013)
 	return
 }
+
+// get GetUserRating
+// 获取用戶评级
+
+func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid uint64 `form:"uid"   json:"uid" binding:"required"`     //
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	if req.Uid == 0 {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+
+	rsp, err := rpc.InnerService.CurrencyService.CallGetUserRating(&proto.GetUserRatingRequest{
+		Uid:req.Uid,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	type UserCurrencyCount struct {
+		Uid        uint64  `json:"uid"`
+
+
+		Cancel     uint32  `json:"cancel"`      // 取消
+		Good       float64 `json:"good"`        // 好评率
+
+		Orders        uint32  `json:"orders"`             // 订单数
+		CompleteRate  float64   `json:"complete_rate"`    //  完成率
+		MonthRate     int64   `json:"month_rate"`         // 30日成单
+		Success       int64   `json:"success"`            // 成功订单
+		Failure       int64   `json:"failure"`            // 失败
+		AverageTo    int64    `json:"average_to"`         // 120 分钟
+	}
+	//fmt.Println("data:", rsp.Data)
+	var uCurrencyCount UserCurrencyCount
+	err = json.Unmarshal([]byte(rsp.Data), &uCurrencyCount)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetDataSection("orders", uCurrencyCount.Orders)
+	ret.SetDataSection("appeal",uCurrencyCount.Success + uCurrencyCount.Failure)    // 申诉
+	ret.SetDataSection("success", uCurrencyCount.Success)
+	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
+	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
+	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
+	return
+}
+
