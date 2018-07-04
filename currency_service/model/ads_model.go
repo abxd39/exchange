@@ -4,6 +4,7 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
 	. "digicon/proto/common"
+	"fmt"
 )
 
 // 买卖(广告)表
@@ -16,7 +17,7 @@ type Ads struct {
 	Price       uint64 `xorm:"BIGINT(20)" json:"price"`         // 单价
 	Num         uint64 `xorm:"BIGINT(20)" json:"num"`           // 数量
 	//Premium     int32  `xorm:"INT(10)" json:"premium"`          // 溢价
-	Premium     int64  `xorm:"INT(10)" json:"premium"`          // 溢价
+	Premium     int64  `xorm:"BIGINT(64)" json:"premium"`          // 溢价
 	AcceptPrice uint64 `xorm:"BIGINT(20)" json:"accept_price"`  // 可接受最低[高]单价
 	MinLimit    uint32 `xorm:"INT(10)" json:"min_limit"`        // 最小限额
 	MaxLimit    uint32 `xorm:"INT(10)" json:"max_limit"`        // 最大限额
@@ -61,6 +62,7 @@ func (this *Ads) Add() int {
 
 	_, err = dao.DB.GetMysqlConn().Insert(this)
 	if err != nil {
+		fmt.Println("ad ads error!,", err.Error())
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
@@ -128,9 +130,10 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 }
 
 // 法币交易列表 - (广告(买卖))
-func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurrencyCount, int64) {
-
+//func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurrencyCount, int64) {
+func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
 	total, err := dao.DB.GetMysqlConn().Where("type_id=? AND token_id=?", TypeId, TokenId).Count(new(Ads))
+	fmt.Println("total:", total)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil, 0
@@ -144,10 +147,11 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurren
 		limit = int((Page - 1) * PageNum)
 	}
 
-	data := make([]AdsUserCurrencyCount, 0)
+	//data := make([]AdsUserCurrencyCount, int(PageNum))
+	data := []Ads{}
 	err = dao.DB.GetMysqlConn().
-		Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
-		Join("LEFT", "user_currency_count", "ads.uid=user_currency_count.uid").
+		//Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
+		//Join("LEFT", "user_currency_count", "ads.uid=user_currency_count.uid").
 		Where("ads.type_id=? AND ads.token_id=?", TypeId, TokenId).
 		Desc("updated_time").
 		Limit(int(PageNum), limit).
@@ -157,7 +161,7 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurren
 		Log.Errorln(err.Error())
 		return nil, 0
 	}
-
+	//fmt.Println(data)
 	return data, total
 }
 
@@ -178,7 +182,8 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 		limit = int((Page - 1) * PageNum)
 	}
 
-	data := make([]AdsUserCurrencyCount, 0)
+	data := make([]AdsUserCurrencyCount, int(PageNum))
+	//data := []AdsUserCurrencyCount{}
 	err = dao.DB.GetMysqlConn().
 		Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
 		Where("ads.uid=? AND ads.type_id=?", Uid, TypeId).

@@ -120,8 +120,8 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 	if data == nil || total <= 0 {
 		return nil
 	}
-
 	listLen := len(data)
+
 	listData := make([]*proto.AdsLists, listLen)
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.AdsLists{
@@ -134,12 +134,12 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 			Pays:        data[i].Pays,
 			CreatedTime: data[i].CreatedTime,
 			UpdatedTime: data[i].UpdatedTime,
-			UserVolume:  data[i].Success,
+			//UserVolume:  data[i].Success,
 			TypeId:      data[i].TypeId,
 			TokenId:     data[i].TokenId,
 			TokenName:   data[i].TokenName,
-			Balance:     data[i].Balance,
-			Freeze:      data[i].Freeze,
+			//Balance:     data[i].Balance,
+			//Freeze:      data[i].Freeze,
 		}
 		listData[i] = adsLists
 	}
@@ -148,7 +148,7 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 	rsp.PageNum = req.PageNum
 	rsp.Total = uint64(total)
 	rsp.Data = listData
-
+	//fmt.Println("listData:", listData)
 	return nil
 }
 
@@ -231,13 +231,11 @@ func (s *RPCServer) GetCurrencyPays(ctx context.Context, req *proto.CurrencyPays
 	if data == nil {
 		return nil
 	}
-
 	rsp.Id = data.Id
 	rsp.TypeId = data.TypeId
 	rsp.ZhPay = data.ZhPay
 	rsp.EnPay = data.EnPay
 	rsp.States = data.States
-
 	return nil
 }
 
@@ -259,7 +257,6 @@ func (s *RPCServer) CurrencyPaysList(ctx context.Context, req *proto.CurrencyPay
 		}
 		listData[i] = adsLists
 	}
-
 	rsp.Data = listData
 	return nil
 }
@@ -315,7 +312,6 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	if data == nil {
 		return nil
 	}
-
 	rsp.Id = data.Id
 	rsp.Uid = data.Uid
 	rsp.TokenId = data.TokenId
