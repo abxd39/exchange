@@ -15,7 +15,8 @@ type Ads struct {
 	TokenName   string `xorm:"VARBINARY(36)" json:"token_name"` // 货币名称
 	Price       uint64 `xorm:"BIGINT(20)" json:"price"`         // 单价
 	Num         uint64 `xorm:"BIGINT(20)" json:"num"`           // 数量
-	Premium     int32  `xorm:"INT(10)" json:"premium"`          // 溢价
+	//Premium     int32  `xorm:"INT(10)" json:"premium"`          // 溢价
+	Premium     int64  `xorm:"INT(10)" json:"premium"`          // 溢价
 	AcceptPrice uint64 `xorm:"BIGINT(20)" json:"accept_price"`  // 可接受最低[高]单价
 	MinLimit    uint32 `xorm:"INT(10)" json:"min_limit"`        // 最小限额
 	MaxLimit    uint32 `xorm:"INT(10)" json:"max_limit"`        // 最大限额
