@@ -49,14 +49,14 @@ func (this *Ads) Get(id uint64) *Ads {
 func (this *Ads) Add() int {
 
 	data := new(Ads)
-	isdata, err := dao.DB.GetMysqlConn().Where("uid=? AND token_id=? AND type_id=?", this.Uid, this.TokenId, this.TypeId).Get(data)
+	_, err := dao.DB.GetMysqlConn().Where("uid=? AND token_id=? AND type_id=?", this.Uid, this.TokenId, this.TypeId).Get(data)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
-	if isdata && data.Id > 0 {
-		return ERRCODE_ADS_EXISTS
-	}
+	//if isdata && data.Id > 0 {                  /// 去掉 去重
+	//	return ERRCODE_ADS_EXISTS
+	//}
 
 	_, err = dao.DB.GetMysqlConn().Insert(this)
 	if err != nil {
