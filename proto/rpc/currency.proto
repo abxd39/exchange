@@ -107,7 +107,8 @@ message AdsModel {
     string token_name   = 5;  // 货币名称
     uint64 price        = 6;  // 单价
     uint64 num          = 7;  // 数量
-    int32  premium      = 8;  // 溢价
+    //int32  premium      = 8;  // 溢价
+    int64  premium      = 8;  // 溢价
     uint64 accept_price = 9;  // 可接受最低[高]单价
     uint32 min_limit    = 10; // 最小限额
     uint32 max_limit    = 11; // 最大限额
