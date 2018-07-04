@@ -161,6 +161,7 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 
 	listLen := len(data)
 	listData := make([]*proto.AdsLists, listLen)
+	//listData := []*proto.AdsLists{}
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.AdsLists{
 			Id:          data[i].Id,
