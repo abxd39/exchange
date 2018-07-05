@@ -94,7 +94,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 	var param OrderListParam
 	if err := c.ShouldBindQuery(&param); err != nil {
 		Log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
@@ -116,7 +116,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		Id:        param.Id,
 	})
 	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 
@@ -167,14 +167,14 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 	err := c.ShouldBind(&param)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallCancelOrder(&proto.CancelOrderRequest{
 		Id:         param.Id,
 		CancelType: param.CancelType,
 	})
-	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
 // 删除订单
@@ -188,13 +188,13 @@ func (this CurrencyGroup) DeleteOrder(c *gin.Context) {
 	err := c.ShouldBind(&param)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallDeleteOrder(&proto.OrderRequest{
 		Id: param.Id,
 	})
-	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
 // 待放行
@@ -208,13 +208,13 @@ func (this CurrencyGroup) ReadyOrder(c *gin.Context) {
 	err := c.ShouldBind(&param)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallReadyOrder(&proto.OrderRequest{
 		Id: param.Id,
 	})
-	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
 // 确认放行
@@ -228,13 +228,13 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	err := c.ShouldBind(&param)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.OrderRequest{
 		Id: param.Id,
 	})
-	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
 // 添加订单
@@ -248,7 +248,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	err := c.ShouldBind(&param)
 	if err != nil {
 		Log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	backParam.Uid = param.Uid
@@ -268,7 +268,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 		Order: string(orderStr),
 		Uid:   param.Uid,
 	})
-	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	ret.SetDataSection("id", rsp.Data)
 
 }
