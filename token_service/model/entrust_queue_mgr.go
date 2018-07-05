@@ -2,7 +2,6 @@ package model
 
 import (
 	"digicon/common/genkey"
-	. "digicon/token_service/dao"
 	. "digicon/token_service/log"
 	"sync"
 )
@@ -58,15 +57,12 @@ func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene)) {
 
 //初始化配置
 func (s *EntrustQueneMgr) Init() bool {
-	d := make([]QuenesConfig, 0)
-	err := DB.GetMysqlConn().Find(&d)
-	if err != nil {
-		Log.Fatalln(err.Error())
-	}
+
+	d := new(QuenesConfig).GetAllQuenes()
 
 	for _, v := range d {
 		//quene_id := fmt.Sprintf("%d_%d", v.TokenId, v.TokenTradeId)
-		e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price)
+		e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name)
 		s.AddQuene(e)
 	}
 

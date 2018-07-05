@@ -2,12 +2,12 @@ package controller
 
 import (
 	"digicon/gateway/rpc"
+	. "digicon/gateway/log"
 	. "digicon/proto/common"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	proto "digicon/proto/rpc"
 	"digicon/common/convert"
-	. "digicon/gateway/log"
 )
 type TokenGroup struct{}
 
@@ -16,6 +16,10 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 	{
 		action.POST("/entrust_order", s.EntrustOrder)
 		//action.GET("/market/history/kline", s.HistoryKline)
+
+		action.GET("/self_symbols", s.SelfSymbols)
+
+		action.GET("/entrust_list", s.EntrustList)
 	}
 }
 
@@ -27,6 +31,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 
 	type EntrustOrderParam struct {
 		Uid uint64 `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
 		Symbol string `form:"symbol" binding:"required"`
 		Opt int32 `form:"opt" `
 		OnPrice string `form:"on_price" `
@@ -67,4 +72,80 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
+}
+
+
+
+func (s *TokenGroup) SelfSymbols(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type SelfSymbolsParam struct {
+		Uid uint64 `form:"uid" binding:"required"`
+		Token uint64 `form:"token" binding:"required"`
+		TokenId int32  `form:"token_id" binding:"required"`
+	}
+
+	var param SelfSymbolsParam
+
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallSymbols(&proto.SymbolsRequest{
+		Type:param.TokenId,
+
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection(RET_DATA,rsp.Data)
+}
+
+func (s *TokenGroup) EntrustList(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type EntrustListParam struct {
+		Uid uint64 `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
+		Limit int32  `form:"limit" `
+		Page int32  `form:"page" `
+	}
+
+	var param EntrustListParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if param.Limit==0 {
+		param.Limit=5
+	}
+	if param.Page==0 {
+		param.Page=1
+	}
+	rsp, err := rpc.InnerService.TokenService.CallEntrustList(&proto.EntrustHistoryRequest{
+		Uid:param.Uid,
+		Limit:param.Limit,
+		Page:param.Page,
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list",rsp.Data)
 }

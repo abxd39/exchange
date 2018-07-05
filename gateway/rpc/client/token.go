@@ -33,6 +33,36 @@ func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto
 	return
 }
 
+
+func (s *TokenRPCCli) CallSymbols(p *proto.SymbolsRequest) (rsp *proto.SymbolsResponse, err error) {
+	rsp, err = s.conn.Symbols(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
+func (s *TokenRPCCli) CallEntrustQuene(p *proto.EntrustQueneRequest) (rsp *proto.EntrustQueneResponse, err error) {
+	rsp, err = s.conn.EntrustQuene(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
+func (s *TokenRPCCli) CallEntrustList(p *proto.EntrustHistoryRequest) (rsp *proto.EntrustHistoryResponse, err error) {
+	rsp, err = s.conn.EntrustList(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID
 	Open   float64 `json:"open"`   // 开盘价

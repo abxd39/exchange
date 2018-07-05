@@ -10,3 +10,8 @@ message CommonErrResponse{
     int32 err       =1;
     string message  =2;
 }
+
+message CommonRequest{
+    int32  uid       =1;
+    string token       =2;
+}

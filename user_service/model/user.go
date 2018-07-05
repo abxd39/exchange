@@ -417,7 +417,6 @@ func (s *User) refreshToken() (token string, err error) {
 	uid_ := fmt.Sprintf("%d", s.Uid)
 	salt := random.Krand(6, random.KC_RAND_KIND_NUM)
 	b := encryption.Gensha256(uid_, time.Now().Unix(), string(salt))
-
 	//_,err:=DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("token").Update(s)
 	err = new(RedisOp).SetUserToken(string(b), s.Uid)
 	if err != nil {

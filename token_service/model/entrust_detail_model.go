@@ -8,6 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+import (
+	. "digicon/token_service/dao"
+)
+
 type EntrustData struct {
 	EntrustId  string `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
 	Uid        uint64 `xorm:"not null comment('用户id') INT(32)"`
@@ -22,6 +26,7 @@ type EntrustData struct {
 type EntrustDetail struct {
 	EntrustId   string `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
 	Uid         uint64 `xorm:"not null comment('用户id') INT(32)"`
+	Symbol      string `xorm:" VARCHAR(64)"`
 	TokenId     int    `xorm:"not null comment('货币id') INT(32)"`
 	AllNum      int64  `xorm:"not null comment('总数量') BIGINT(20)"`
 	SurplusNum  int64  `xorm:"not null comment('剩余数量') BIGINT(20)"`
@@ -30,8 +35,8 @@ type EntrustDetail struct {
 	Type        int    `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
 	OnPrice     int64  `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
 	Fee         int64  `xorm:"not null comment('手续费比例') BIGINT(20)"`
-	States      int    `xorm:"not null comment('状态0正常1撤单2成交') TINYINT(4)"`
-	CreatedTime int    `xorm:"not null comment('添加时间') created INT(10)"`
+	States      int    `xorm:"not null comment('0是挂单，1是部分成交,2成交， 3撤销') TINYINT(4)"`
+	CreatedTime int64    `xorm:"not null comment('添加时间') created BIGINT(20)"`
 }
 
 func (s *EntrustDetail) Insert(sess *xorm.Session) error {
@@ -49,6 +54,36 @@ func (s *EntrustDetail) Insert(sess *xorm.Session) error {
 			"fee":         s.Fee,
 		}).Errorf("%s", err.Error())
 		sess.Rollback()
+		return err
+	}
+	return nil
+}
+
+func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail {
+	m := make([]EntrustDetail, 0)
+	err := DB.GetMysqlConn().Where("uid=?", uid).Limit(limit, page).Find(&m)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil
+	}
+	return m
+}
+
+func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
+	m := make([]EntrustDetail, 0)
+	err := DB.GetMysqlConn().Where("uid=? and states=0 or states=1", uid).Limit(limit, page-1).Find(&m)
+	if err != nil {
+		Log.Fatalln(err.Error())
+		return nil
+	}
+	return m
+}
+
+func (s *EntrustDetail) UpdateStates(sess *xorm.Session,entrust_id string,states int,deal_num int64) error {
+
+	_,err := sess.Where("entrust_id=?",entrust_id).Cols("states","surplus_num").Decr("surplus_num",deal_num).Update(&EntrustDetail{States:states})
+	if err != nil {
+		Log.Errorln(err.Error())
 		return err
 	}
 	return nil

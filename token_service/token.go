@@ -19,7 +19,7 @@ func main() {
 	Log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
-
+	//go rpc.InitInnerService()
 	model.GetQueneMgr().Init()
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

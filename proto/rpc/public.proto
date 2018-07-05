@@ -17,6 +17,7 @@ service PublicRPC {
 	 //Get banner list
 	 rpc  GetBannerList (BannerRequest) returns (BannerResponse){};
 
+	rpc  GetTokensList (TokensRequest) returns (TokensResponse){};
 }
 
 
@@ -69,4 +70,19 @@ message BannerResponse{
 	int32 code              =2;
 	string	 data			=3;
 	string message          =4;
+}
+
+message TokensRequest{
+	repeated int32 tokens	=1;
+
+}
+
+
+message TokensData {
+	int32 token_id				=1;
+	string mark				=2;
+}
+
+message TokensResponse{
+	repeated TokensData tokens	=1;
 }
