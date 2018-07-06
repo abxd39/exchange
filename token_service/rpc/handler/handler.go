@@ -8,7 +8,7 @@ import (
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 	"log"
-	"github.com/liudng/godump"
+	"time"
 )
 
 type RPCServer struct {
@@ -36,33 +36,53 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 	}
 	rsp.Err = ret
 	rsp.Message = GetErrorMessage(rsp.Err)
-	/*
-		q.JoinSellQuene(&model.EntrustDetail{
-			EntrustId:  genkey.GetTimeUnionKey(q.GetUUID()),
-			Uid:        int(req.Uid),
-			AllNum:     req.Num,
-			SurplusNum: req.Num,
-			Opt:        int(req.Opt),
-			OnPrice:    req.OnPrice,
-			States:     0,
-		})
-	*/
 	return nil
 }
 
-func (s *RPCServer) Symbols(ctx context.Context, req *proto.SymbolsRequest, rsp *proto.SymbolsResponse) error {
-	t := new(model.QuenesConfig).GetQuenes(req.Type)
+func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolsResponse) error {
+	t := new(model.QuenesConfig).GetAllQuenes()
 
 	for _, v := range t {
-		//g := convert.Int64ToStringBy8Bit(v.Price)
-		rsp.Data = append(rsp.Data, &proto.SymbolBaseData{
-			Symbol:   v.Name,
-			Price:    convert.Int64ToStringBy8Bit(v.Price),
-			CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
-			Scope:    v.Scope,
-		})
+		if v.TokenId == 1 {
+
+			rsp.Usdt.TokenId = int32(v.TokenId)
+			rsp.Usdt.Data = append(rsp.Usdt.Data, &proto.SymbolBaseData{
+				Symbol:   v.Name,
+				Price:    convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:    v.Scope,
+			})
+		} else if v.TokenId == 2 {
+			//rsp.Btc.Data=make([]*proto.SymbolBaseData,0)
+
+			rsp.Btc.TokenId = int32(v.TokenId)
+			rsp.Btc.Data = append(rsp.Btc.Data, &proto.SymbolBaseData{
+				Symbol:   v.Name,
+				Price:    convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:    v.Scope,
+			})
+
+		} else if v.TokenId == 3 {
+			//rsp.Eth.Data=make([]*proto.SymbolBaseData,0)
+
+			rsp.Eth.TokenId = int32(v.TokenId)
+			rsp.Eth.Data = append(rsp.Eth.Data, &proto.SymbolBaseData{
+				Symbol:   v.Name,
+				Price:    convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:    v.Scope,
+			})
+		} else {
+			log.Fatalf("errf type %d", v.TokenId)
+		}
+
 	}
 
+	return nil
+}
+func (s *RPCServer) SelfSymbols(ctx context.Context, req *proto.SelfSymbolsRequest, rsp *proto.SelfSymbolsResponse) error {
+	//t := new(model.QuenesConfig).GetQuenes(req.Uid)
 	return nil
 }
 
@@ -84,6 +104,8 @@ func (s *RPCServer) HistoryKline(ctx context.Context, req *proto.HistoryKlineReq
 func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneRequest, rsp *proto.EntrustQueneResponse) error {
 	q, ok := model.GetQueneMgr().GetQueneByUKey(req.Symbol)
 	if !ok {
+		rsp.Err = ERR_TOKEN_QUENE_CONF
+		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
 	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, 5)
@@ -136,38 +158,68 @@ func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustQueneRequ
 func (s *RPCServer) EntrustHistory(ctx context.Context, req *proto.EntrustHistoryRequest, rsp *proto.EntrustHistoryResponse) error {
 
 	r := new(model.EntrustDetail).GetHistory(req.Uid, int(req.Limit), int(req.Page))
+	var display string
 	for _, v := range r {
-
-		rsp.Data=append(rsp.Data,&proto.EntrustHistoryBaseData{
-			EntrustId:v.EntrustId,
-			Symbol:v.Symbol,
-			Opt:proto.ENTRUST_OPT(v.Opt),
-			Type:proto.ENTRUST_TYPE(v.Type),
-			AllNum:v.AllNum,
-			OnPrice:v.OnPrice,
-			SurplusNum:v.SurplusNum,
-			CreateTime:v.CreatedTime,
-			States:int32(v.States),
+		if v.Type==int(proto.ENTRUST_TYPE_MARKET_PRICE) {
+			display="市价"
+		}else {
+			display=convert.Int64ToStringBy8Bit(v.Mount)
+		}
+		rsp.Data = append(rsp.Data, &proto.EntrustHistoryBaseData{
+			EntrustId:  v.EntrustId,
+			Symbol:     v.Symbol,
+			Opt:        proto.ENTRUST_OPT(v.Opt),
+			Type:       proto.ENTRUST_TYPE(v.Type),
+			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
+			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
+			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
+			Mount:      display,
+			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
+			States:     int32(v.States),
 		})
 	}
 	return nil
 }
 
-func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRequest, rsp *proto.EntrustHistoryResponse) error {
+func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRequest, rsp *proto.EntrustListResponse) error {
 	r := new(model.EntrustDetail).GetList(req.Uid, int(req.Limit), int(req.Page))
-	godump.Dump(len(r))
+	var display string
 	for _, v := range r {
+		if v.Type==int(proto.ENTRUST_TYPE_MARKET_PRICE) {
+			display="市价"
+		}else {
+			display=convert.Int64ToStringBy8Bit(v.Mount)
+		}
+		rsp.Data = append(rsp.Data, &proto.EntrustListBaseData{
+			EntrustId:  v.EntrustId,
+			Symbol:     v.Symbol,
+			Opt:        proto.ENTRUST_OPT(v.Opt),
+			Type:       proto.ENTRUST_TYPE(v.Type),
+			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
+			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
+			Mount:      display,
+			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
+			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
+			States:     int32(v.States),
+		})
+	}
+	return nil
+}
 
-		rsp.Data=append(rsp.Data,&proto.EntrustHistoryBaseData{
-			EntrustId:v.EntrustId,
-			Symbol:v.Symbol,
-			Opt:proto.ENTRUST_OPT(v.Opt),
-			Type:proto.ENTRUST_TYPE(v.Type),
-			AllNum:v.AllNum,
-			OnPrice:v.OnPrice,
-			SurplusNum:v.SurplusNum,
-			CreateTime:v.CreatedTime,
-			States:int32(v.States),
+func (s *RPCServer) Trade(ctx context.Context, req *proto.TradeRequest, rsp *proto.TradeRespone) error {
+	q,ok:=model.GetQueneMgr().GetQueneByUKey(req.Symbol)
+	if !ok {
+		rsp.Err = ERR_TOKEN_QUENE_CONF
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
+
+	l:=q.GetTradeList(5)
+	for _,v:=range l  {
+		rsp.Data=append(rsp.Data,&proto.TradeBaseData{
+			CreateTime:time.Unix(v.CreateTime, 0).Format("2006-01-02 15:04:05"),
+			Price:convert.Int64ToStringBy8Bit(v.TradePrice),
+			Num:convert.Int64ToStringBy8Bit(v.Num),
 		})
 	}
 	return nil

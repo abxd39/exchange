@@ -7,7 +7,6 @@ import (
 	"net/http"
 	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
-	"github.com/liudng/godump"
 )
 
 type MarketGroup struct{}
@@ -18,6 +17,8 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 		action.GET("/history/kline", s.HistoryKline)
 		action.GET("/symbols", s.Symbols)
 		action.GET("/entrust_quenes", s.EntrustQuene)
+
+		action.GET("/trade_list", s.TradeList)
 	}
 }
 
@@ -56,9 +57,9 @@ func (s *MarketGroup) Symbols(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-
+/*
 	type SymbolsParam struct {
-		TokenId int32  `form:"token_id" binding:"required"`
+		//TokenId int32  `form:"token_id" binding:"required"`
 	}
 
 	var param SymbolsParam
@@ -68,18 +69,17 @@ func (s *MarketGroup) Symbols(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-
-	rsp, err := rpc.InnerService.TokenService.CallSymbols(&proto.SymbolsRequest{
-		Type:param.TokenId,
-
-	})
+*/
+	rsp, err := rpc.InnerService.TokenService.CallSymbols(&proto.NullRequest{})
 
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list",rsp.Data)
+	ret.SetDataSection("btc",rsp.Btc)
+	ret.SetDataSection("usdt",rsp.Usdt)
+	ret.SetDataSection("eth",rsp.Eth)
 }
 
 func (s *MarketGroup) EntrustQuene(c *gin.Context) {
@@ -109,7 +109,34 @@ func (s *MarketGroup) EntrustQuene(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	godump.Dump(len(rsp.Sell))
 	ret.SetDataSection("sell",rsp.Sell)
 	ret.SetDataSection("buy",rsp.Buy)
+}
+
+func (s *MarketGroup) TradeList(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type TradeListParam struct {
+		Symbol string  `form:"symbol" binding:"required"`
+	}
+
+	var param TradeListParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallTrade(&proto.TradeRequest{
+		Symbol:param.Symbol,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list",rsp.Data)
 }

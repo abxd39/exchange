@@ -20,6 +20,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/self_symbols", s.SelfSymbols)
 
 		action.GET("/entrust_list", s.EntrustList)
+
+		action.GET("/entrust_history", s.EntrustHistory)
 	}
 }
 
@@ -96,9 +98,8 @@ func (s *TokenGroup) SelfSymbols(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.TokenService.CallSymbols(&proto.SymbolsRequest{
-		Type:param.TokenId,
-
+	rsp, err := rpc.InnerService.TokenService.CallSelfSymbols(&proto.SelfSymbolsRequest{
+		Uid:param.Uid,
 	})
 
 	if err != nil {
@@ -137,6 +138,48 @@ func (s *TokenGroup) EntrustList(c *gin.Context) {
 		param.Page=1
 	}
 	rsp, err := rpc.InnerService.TokenService.CallEntrustList(&proto.EntrustHistoryRequest{
+		Uid:param.Uid,
+		Limit:param.Limit,
+		Page:param.Page,
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list",rsp.Data)
+}
+
+func (s *TokenGroup) EntrustHistory(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type EntrustListParam struct {
+		Uid uint64 `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
+		Limit int32  `form:"limit" `
+		Page int32  `form:"page" `
+	}
+
+	var param EntrustListParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if param.Limit==0 {
+		param.Limit=5
+	}
+	if param.Page==0 {
+		param.Page=1
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallEntrustHistory(&proto.EntrustHistoryRequest{
 		Uid:param.Uid,
 		Limit:param.Limit,
 		Page:param.Page,

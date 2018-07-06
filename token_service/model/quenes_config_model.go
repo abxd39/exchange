@@ -15,14 +15,16 @@ type QuenesConfig struct {
 	Scope        string `xorm:"varchar(32)"`
 }
 
-func (s *QuenesConfig) GetQuenes(quene_type int32) []QuenesConfig {
-	t := make([]QuenesConfig, 0)
-	err := DB.GetMysqlConn().Where("token_id=? and switch=1", quene_type).Find(&t)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return nil
-	}
-	return t
+func (s *QuenesConfig) GetQuenes(uid uint64) []QuenesConfig {
+	/*
+		t := make([]QuenesConfig, 0)
+		err := DB.GetMysqlConn().Where("token_id=? and switch=1", quene_type).Find(&t)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return nil
+		}
+	*/
+	return nil
 }
 
 func (s *QuenesConfig) GetAllQuenes() []QuenesConfig {

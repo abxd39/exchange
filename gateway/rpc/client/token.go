@@ -34,8 +34,17 @@ func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto
 }
 
 
-func (s *TokenRPCCli) CallSymbols(p *proto.SymbolsRequest) (rsp *proto.SymbolsResponse, err error) {
+func (s *TokenRPCCli) CallSymbols(p *proto.NullRequest) (rsp *proto.SymbolsResponse, err error) {
 	rsp, err = s.conn.Symbols(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *TokenRPCCli) CallSelfSymbols(p *proto.SelfSymbolsRequest) (rsp *proto.SelfSymbolsResponse, err error) {
+	rsp, err = s.conn.SelfSymbols(context.TODO(), p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -54,7 +63,7 @@ func (s *TokenRPCCli) CallEntrustQuene(p *proto.EntrustQueneRequest) (rsp *proto
 }
 
 
-func (s *TokenRPCCli) CallEntrustList(p *proto.EntrustHistoryRequest) (rsp *proto.EntrustHistoryResponse, err error) {
+func (s *TokenRPCCli) CallEntrustList(p *proto.EntrustHistoryRequest) (rsp *proto.EntrustListResponse, err error) {
 	rsp, err = s.conn.EntrustList(context.TODO(), p)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -62,6 +71,27 @@ func (s *TokenRPCCli) CallEntrustList(p *proto.EntrustHistoryRequest) (rsp *prot
 	}
 	return
 }
+
+
+func (s *TokenRPCCli) CallEntrustHistory(p *proto.EntrustHistoryRequest) (rsp *proto.EntrustHistoryResponse, err error) {
+	rsp, err = s.conn.EntrustHistory(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *TokenRPCCli) CallTrade(p *proto.TradeRequest) (rsp *proto.TradeRespone, err error) {
+	rsp, err = s.conn.Trade(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
 
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID

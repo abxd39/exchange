@@ -12,19 +12,32 @@ service TokenRPC {
         //新增代币
         rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
 
-        rpc HistoryKline(HistoryKlineRequest) returns (HistoryKlineResponse) {};
 
-        //交易队列
-        rpc Symbols(SymbolsRequest) returns (SymbolsResponse) {};
-
-        //委托队列
-        rpc EntrustQuene(EntrustQueneRequest) returns (EntrustQueneResponse) {};
+        //自定义队列
+        rpc SelfSymbols(SelfSymbolsRequest) returns (SelfSymbolsResponse) {};
 
         //历史委托队列
         rpc EntrustHistory(EntrustHistoryRequest) returns (EntrustHistoryResponse) {};
 
         //当前委托队列
-        rpc EntrustList(EntrustHistoryRequest) returns (EntrustHistoryResponse) {};
+        rpc EntrustList(EntrustHistoryRequest) returns (EntrustListResponse) {};
+
+
+        //########market##########//
+
+        //交易队列
+        rpc Symbols(NullRequest) returns (SymbolsResponse) {};
+
+        rpc HistoryKline(HistoryKlineRequest) returns (HistoryKlineResponse) {};
+
+
+        //市场委托队列
+        rpc EntrustQuene(EntrustQueneRequest) returns (EntrustQueneResponse) {};
+
+        //实时交易
+        rpc Trade(TradeRequest) returns (TradeRespone) {};
+
+        //########market##########//
 }
 
 enum ENTRUST_OPT //操作方向类型
@@ -87,21 +100,36 @@ message HistoryKlineResponse{
     string message                  =2;
 }
 
-message SymbolsRequest{
-    int32 type                      =1;
+message SelfSymbolsRequest{
+    uint64 uid                      =1;
+}
+
+message SelfSymbolsResponse{
+    int32 err                       =1;
+    string message                  =2;
+    SymbolsBaseData data                      =3;
 }
 
 message SymbolBaseData{
     string symbol                       =1;
-    string  price                    =2;
+    string  price                       =2;
     string  cny_price                    =3;
     string  scope                        =4;
+}
+
+message SymbolsBaseData{
+    int32 token_id                      =1;
+    int32 mark                          =2;
+    repeated SymbolBaseData data        =3;
 }
 
 message SymbolsResponse{
     int32 err                       =1;
     string message                  =2;
-    repeated SymbolBaseData data     =3;
+    SymbolsBaseData        usdt     =3;
+    SymbolsBaseData        btc      =4;
+    SymbolsBaseData        eth      =5;
+    //repeated SymbolBaseData data     =3;
 }
 
 
@@ -133,15 +161,55 @@ message EntrustHistoryBaseData{
     string  symbol                        =2;
     ENTRUST_OPT opt                      =3;
     ENTRUST_TYPE   type                  =4;
-    int64 all_num                       =5;
-    int64 on_price                      =6;
-    int64 surplus_num                   =7;
+    string all_num                       =5;
+    string on_price                      =6;
+    string trade_num                   =7;
     int32 states                        =8;
-    int64 create_time                   =9;
+    string create_time                   =9;
+    string mount                        =10;
+    string price                          =11;
+}
+
+message EntrustListBaseData{
+    string entrust_id                    =1;
+    string  symbol                        =2;
+    ENTRUST_OPT opt                      =3;
+    ENTRUST_TYPE   type                  =4;
+    string all_num                       =5;
+    string on_price                      =6;
+    string trade_num                   =7;
+    int32 states                        =8;
+    string create_time                   =9;
+    string mount                        =10;
 }
 
 message EntrustHistoryResponse{
     int32 err                       =1;
     string message                  =2;
     repeated EntrustHistoryBaseData data=3;
+}
+
+
+message EntrustListResponse{
+    int32 err                       =1;
+    string message                  =2;
+    repeated EntrustListBaseData data=3;
+}
+
+
+message TradeBaseData{
+    string create_time              =1;
+    string price                    =2;
+    string num                      =3;
+}
+
+
+message TradeRequest {
+    string symbol               =1;
+}
+
+message TradeRespone{
+    int32 err                       =1;
+    string message                  =2;
+    repeated TradeBaseData    data  =3;
 }
