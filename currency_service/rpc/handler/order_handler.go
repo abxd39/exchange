@@ -79,19 +79,21 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	}
+	fmt.Println("req order:", req.Order)
+	fmt.Println("od num: ", od.Num)
+
 	ads := new(model.Ads)
 	var nowAds *model.Ads
 	nowAds = ads.Get(od.AdId)
 
 	od.AdType = nowAds.TypeId
 	od.Price = int64(nowAds.Price)
-	od.Num = int64(nowAds.Num)
 	od.TokenId = uint64(nowAds.TokenId)
 	od.SellId = nowAds.Uid
 	od.BuyId = uint64(nowAds.Uid)
 	od.PayId = nowAds.Pays
 
-	fmt.Println(od.SellId, od.BuyId)
+	//fmt.Println(od.SellId, od.BuyId)
 
 	var uids []uint64
 	uids = append(uids, od.SellId)
@@ -121,7 +123,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
 
-	fmt.Println("od:", od)
+	//fmt.Println("od:", od)
 
 	id, code := od.Add()
 	rsp.Code = code

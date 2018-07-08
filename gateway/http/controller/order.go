@@ -46,10 +46,7 @@ type OneOrder struct {
 	Price float64 `form:"price"      json:"price"   binding:"required"` // 货币类型
 }
 
-type AddOrder struct {
-	Uid int32 `form:"uid"   json:"uid"  binding:"required"` // 用户 id
-	OneOrder
-}
+
 
 type Order struct {
 	OrderRequest
@@ -69,11 +66,19 @@ type BackOrder struct {
 	OtherOrderType
 }
 
+
+//type AddOrder
+type AddOrder struct {
+	Uid      int32    `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
+	AdId     uint64   `form:"ad_id"      json:"ad_id"      binding:"required"`         // 广告id
+	Num      float64  `form:"num"         json:"num"        binding:"required"`         // 交易数量
+}
+
 type BackAddOrder struct {
-	Uid      int32   `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
-	AdId     uint64 `form:"ad_id"      json:"ad_id"      binding:"required"`         // 广告id
+	Uid      int32    `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
+	AdId     uint64   `form:"ad_id"      json:"ad_id"      binding:"required"`         // 广告id
+	Num      int64  `form:"num"         json:"num"        binding:"required"`         // 交易数量
 	//PayId    uint64 `form:"pay_id"     json:"pay_id"     binding:"required"`         // 支付类型
-	//Num   int64 `form:"num"        json:"num"     binding:"required"` // 交易数量
 	//Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
 	//OtherType
 }
@@ -245,7 +250,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	var param BackAddOrder
+	var param AddOrder
 	var backParam BackAddOrder
 	err := c.ShouldBind(&param)
 	if err != nil {
@@ -255,8 +260,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	}
 	backParam.Uid = param.Uid
 	backParam.AdId = param.AdId
-
-
+	backParam.Num = convert.Float64ToInt64By8Bit(param.Num)
 	orderStr, _ := json.Marshal(backParam)
 	//fmt.Println("params uid:", param.Uid)
 	rsp, err := rpc.InnerService.CurrencyService.CallAddOrder(&proto.AddOrderRequest{
