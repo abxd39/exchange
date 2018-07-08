@@ -91,6 +91,14 @@ func (s *TokenRPCCli) CallTrade(p *proto.TradeRequest) (rsp *proto.TradeRespone,
 	return
 }
 
+func (s *TokenRPCCli) CallTokenBalance(p *proto.TokenBalanceRequest) (rsp *proto.TokenBalanceResponse, err error) {
+	rsp, err = s.conn.TokenBalance(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
 
 
 type KLineData struct {

@@ -22,6 +22,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/entrust_list", s.EntrustList)
 
 		action.GET("/entrust_history", s.EntrustHistory)
+
+		action.GET("/balance", s.TokenBalance)
 	}
 }
 
@@ -86,7 +88,7 @@ func (s *TokenGroup) SelfSymbols(c *gin.Context) {
 
 	type SelfSymbolsParam struct {
 		Uid uint64 `form:"uid" binding:"required"`
-		Token uint64 `form:"token" binding:"required"`
+		Token string `form:"token" binding:"required"`
 		TokenId int32  `form:"token_id" binding:"required"`
 	}
 
@@ -191,4 +193,39 @@ func (s *TokenGroup) EntrustHistory(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("list",rsp.Data)
+}
+
+
+
+func (s *TokenGroup) TokenBalance(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type TokenBalanceParam struct {
+		Uid uint64 `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
+		TokenId int32  `form:"token_id" binding:"required"`
+	}
+
+	var param TokenBalanceParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallTokenBalance(&proto.TokenBalanceRequest{
+		Uid:param.Uid,
+		TokenId:param.TokenId,
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("balance",rsp.Balance)
 }

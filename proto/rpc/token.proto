@@ -22,7 +22,8 @@ service TokenRPC {
         //当前委托队列
         rpc EntrustList(EntrustHistoryRequest) returns (EntrustListResponse) {};
 
-
+        //代币余额
+        rpc TokenBalance(TokenBalanceRequest) returns (TokenBalanceResponse) {};
         //########market##########//
 
         //交易队列
@@ -111,10 +112,11 @@ message SelfSymbolsResponse{
 }
 
 message SymbolBaseData{
-    string symbol                       =1;
+    string  symbol                       =1;
     string  price                       =2;
     string  cny_price                    =3;
     string  scope                        =4;
+    int32  trade_token_id                      =5;
 }
 
 message SymbolsBaseData{
@@ -129,6 +131,7 @@ message SymbolsResponse{
     SymbolsBaseData        usdt     =3;
     SymbolsBaseData        btc      =4;
     SymbolsBaseData        eth      =5;
+    SymbolsBaseData        sdc      =6;
     //repeated SymbolBaseData data     =3;
 }
 
@@ -212,4 +215,23 @@ message TradeRespone{
     int32 err                       =1;
     string message                  =2;
     repeated TradeBaseData    data  =3;
+}
+
+
+message TokenBalanceRequest{
+    uint64 uid                      =1;
+    int32 token_id                  =2;
+}
+
+
+message TokenBaseData{
+    int32 token_id                    =1;
+    string balance                  =2;
+
+}
+
+message TokenBalanceResponse{
+    int32 err                       =1;
+    string message                  =2;
+    TokenBaseData balance                 =3;
 }

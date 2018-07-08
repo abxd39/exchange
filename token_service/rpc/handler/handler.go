@@ -41,37 +41,51 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 
 func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolsResponse) error {
 	t := new(model.QuenesConfig).GetAllQuenes()
-
+	rsp.Usdt=new(proto.SymbolsBaseData)
+	rsp.Usdt.Data=make([]*proto.SymbolBaseData,0)
+	rsp.Btc=new(proto.SymbolsBaseData)
+	rsp.Btc.Data=make([]*proto.SymbolBaseData,0)
+	rsp.Eth=new(proto.SymbolsBaseData)
+	rsp.Eth.Data=make([]*proto.SymbolBaseData,0)
+	rsp.Sdc=new(proto.SymbolsBaseData)
+	rsp.Sdc.Data=make([]*proto.SymbolBaseData,0)
 	for _, v := range t {
 		if v.TokenId == 1 {
-
 			rsp.Usdt.TokenId = int32(v.TokenId)
 			rsp.Usdt.Data = append(rsp.Usdt.Data, &proto.SymbolBaseData{
 				Symbol:   v.Name,
 				Price:    convert.Int64ToStringBy8Bit(v.Price),
 				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
 				Scope:    v.Scope,
+				TradeTokenId:int32(v.TokenTradeId),
 			})
 		} else if v.TokenId == 2 {
-			//rsp.Btc.Data=make([]*proto.SymbolBaseData,0)
-
 			rsp.Btc.TokenId = int32(v.TokenId)
 			rsp.Btc.Data = append(rsp.Btc.Data, &proto.SymbolBaseData{
 				Symbol:   v.Name,
 				Price:    convert.Int64ToStringBy8Bit(v.Price),
 				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
 				Scope:    v.Scope,
+				TradeTokenId:int32(v.TokenTradeId),
 			})
 
 		} else if v.TokenId == 3 {
-			//rsp.Eth.Data=make([]*proto.SymbolBaseData,0)
-
 			rsp.Eth.TokenId = int32(v.TokenId)
 			rsp.Eth.Data = append(rsp.Eth.Data, &proto.SymbolBaseData{
 				Symbol:   v.Name,
 				Price:    convert.Int64ToStringBy8Bit(v.Price),
 				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
 				Scope:    v.Scope,
+				TradeTokenId:int32(v.TokenTradeId),
+			})
+		}else if v.TokenId==4{
+			rsp.Sdc.TokenId = int32(v.TokenId)
+			rsp.Sdc.Data = append(rsp.Sdc.Data, &proto.SymbolBaseData{
+				Symbol:   v.Name,
+				Price:    convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:    v.Scope,
+				TradeTokenId:int32(v.TokenTradeId),
 			})
 		} else {
 			log.Fatalf("errf type %d", v.TokenId)
@@ -148,22 +162,15 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 	return nil
 }
 
-/*
-func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustQueneRequest, rsp *proto.EntrustQueneResponse) error {
-	a := make([][]interface{}, 0)
-	godump.Dump(a)
-	return nil
-}
-*/
 func (s *RPCServer) EntrustHistory(ctx context.Context, req *proto.EntrustHistoryRequest, rsp *proto.EntrustHistoryResponse) error {
 
 	r := new(model.EntrustDetail).GetHistory(req.Uid, int(req.Limit), int(req.Page))
 	var display string
 	for _, v := range r {
-		if v.Type==int(proto.ENTRUST_TYPE_MARKET_PRICE) {
-			display="市价"
-		}else {
-			display=convert.Int64ToStringBy8Bit(v.Mount)
+		if v.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
+			display = "市价"
+		} else {
+			display = convert.Int64ToStringBy8Bit(v.Mount)
 		}
 		rsp.Data = append(rsp.Data, &proto.EntrustHistoryBaseData{
 			EntrustId:  v.EntrustId,
@@ -185,10 +192,10 @@ func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRe
 	r := new(model.EntrustDetail).GetList(req.Uid, int(req.Limit), int(req.Page))
 	var display string
 	for _, v := range r {
-		if v.Type==int(proto.ENTRUST_TYPE_MARKET_PRICE) {
-			display="市价"
-		}else {
-			display=convert.Int64ToStringBy8Bit(v.Mount)
+		if v.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
+			display = "市价"
+		} else {
+			display = convert.Int64ToStringBy8Bit(v.Mount)
 		}
 		rsp.Data = append(rsp.Data, &proto.EntrustListBaseData{
 			EntrustId:  v.EntrustId,
@@ -207,20 +214,36 @@ func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRe
 }
 
 func (s *RPCServer) Trade(ctx context.Context, req *proto.TradeRequest, rsp *proto.TradeRespone) error {
-	q,ok:=model.GetQueneMgr().GetQueneByUKey(req.Symbol)
+	q, ok := model.GetQueneMgr().GetQueneByUKey(req.Symbol)
 	if !ok {
 		rsp.Err = ERR_TOKEN_QUENE_CONF
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
 
-	l:=q.GetTradeList(5)
-	for _,v:=range l  {
-		rsp.Data=append(rsp.Data,&proto.TradeBaseData{
-			CreateTime:time.Unix(v.CreateTime, 0).Format("2006-01-02 15:04:05"),
-			Price:convert.Int64ToStringBy8Bit(v.TradePrice),
-			Num:convert.Int64ToStringBy8Bit(v.Num),
+	l := q.GetTradeList(5)
+	for _, v := range l {
+		rsp.Data = append(rsp.Data, &proto.TradeBaseData{
+			CreateTime: time.Unix(v.CreateTime, 0).Format("2006-01-02 15:04:05"),
+			Price:      convert.Int64ToStringBy8Bit(v.TradePrice),
+			Num:        convert.Int64ToStringBy8Bit(v.Num),
 		})
 	}
+	return nil
+}
+
+func (s *RPCServer) TokenBalance(ctx context.Context, req *proto.TokenBalanceRequest, rsp *proto.TokenBalanceResponse) error {
+	d:=&model.UserToken{}
+	err := d.GetUserToken(req.Uid,int(req.TokenId))
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+	rsp.Balance=&proto.TokenBaseData{
+		TokenId:int32(d.TokenId),
+		Balance:convert.Int64ToStringBy8Bit(d.Balance),
+	}
+
 	return nil
 }

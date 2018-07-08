@@ -30,7 +30,7 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 
 	if !ok {
 		s.Uid = uid
-		s.TokenId = token_id
+		s.TokenId = int(token_id)
 
 		_, err = DB.GetMysqlConn().InsertOne(s)
 		if err != nil {
@@ -312,4 +312,14 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 //返还冻结资金
 func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string) (ret int32, err error) {
 	return
+}
+
+func (s *UserToken) GetAllToken(uid uint64) []*UserToken {
+	r:=make([]*UserToken,0)
+	err := DB.GetMysqlConn().Where("uid=?",uid).Find(&r)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil
+	}
+	return r
 }

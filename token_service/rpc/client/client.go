@@ -1,20 +1,16 @@
-package rpc
-
-import (
-	"digicon/token_service/rpc/client"
-)
+package client
 
 var InnerService *RPCClient
 
 type RPCClient struct {
-	UserSevice   *client.UserRPCCli
-	PublicSevice *client.PublciRPCCli
+	//UserSevice   *UserRPCCli
+	PublicSevice *PublciRPCCli
 }
 
 func NewRPCClient() (c *RPCClient) {
 	c = &RPCClient{
-		UserSevice:   client.NewUserRPCCli(),
-		PublicSevice: client.NewPublciRPCCli(),
+		//UserSevice:   NewUserRPCCli(),
+		PublicSevice: NewPublciRPCCli(),
 	}
 	return c
 }

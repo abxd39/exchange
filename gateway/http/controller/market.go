@@ -80,6 +80,7 @@ func (s *MarketGroup) Symbols(c *gin.Context) {
 	ret.SetDataSection("btc",rsp.Btc)
 	ret.SetDataSection("usdt",rsp.Usdt)
 	ret.SetDataSection("eth",rsp.Eth)
+	ret.SetDataSection("sdc",rsp.Sdc)
 }
 
 func (s *MarketGroup) EntrustQuene(c *gin.Context) {

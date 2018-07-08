@@ -71,10 +71,9 @@ type EntrustQuene struct {
 }
 
 type TradeInfo struct {
-	 CreateTime int64
-	 TradePrice int64
-	 Num int64
-
+	CreateTime int64
+	TradePrice int64
+	Num        int64
 }
 
 func GenSourceKey(en string) string {
@@ -91,7 +90,7 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string) *En
 		MarketBuyQueueId:  fmt.Sprintf("%s:3", quene_id),
 		MarketSellQueueId: fmt.Sprintf("%s:4", quene_id),
 		TokenId:           token_id,
-		TradeQuene:fmt.Sprintf("%s:trade",quene_id),
+		TradeQuene:        fmt.Sprintf("%s:trade", quene_id),
 		TokenTradeId:      token_trade_id,
 		UUID:              1,
 		//sourceData:   make(map[string]*EntrustData),
@@ -122,7 +121,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 		OnPrice:    p.OnPrice,
 		States:     0,
 		Type:       int(p.Type),
-		Mount: convert.Int64MulInt64By8Bit( p.Num,p.OnPrice),
+		Mount:      convert.Int64MulInt64By8Bit(p.Num, p.OnPrice),
 	}
 
 	m := &UserToken{}
@@ -327,7 +326,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	fee := num * 5 / 1000 //买家消耗手续费0.005个USDT
 
 	no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
-	trade_time:= time.Now().Unix()
+	trade_time := time.Now().Unix()
 	t := &Trade{
 		TradeNo:      no,
 		Uid:          buyer.Uid,
@@ -336,7 +335,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Price:        price,
 		Num:          num - fee, //记录消耗本来USDT数量
 		Fee:          fee,
-		DealTime:   trade_time ,
+		DealTime:     trade_time,
 		Opt:          int(proto.ENTRUST_OPT_BUY),
 	}
 
@@ -459,17 +458,17 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	b,err:=json.Marshal(&TradeInfo{
-		CreateTime:trade_time,
-		TradePrice:price,
-		Num:deal_num,
+	b, err := json.Marshal(&TradeInfo{
+		CreateTime: trade_time,
+		TradePrice: price,
+		Num:        deal_num,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
 
-	err=DB.GetRedisConn().RPush(s.TradeQuene,b).Err()
+	err = DB.GetRedisConn().LPush(s.TradeQuene, b).Err()
 	if err != nil {
 		Log.Fatalln(err.Error())
 		return
@@ -995,23 +994,23 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 }
 
 func (s *EntrustQuene) GetTradeList(count int64) []*TradeInfo {
-	r,err:=DB.GetRedisConn().LRange(s.TradeQuene,0,count).Result()
-	if err==redis.Nil {
+	r, err := DB.GetRedisConn().LRange(s.TradeQuene, 0, count).Result()
+	if err == redis.Nil {
 		return nil
-	}else if err!=nil {
+	} else if err != nil {
 		Log.Errorln(err)
 		return nil
 	}
-	g:=make([]*TradeInfo,0)
-	for _,v:=range r {
-		data:=&TradeInfo{}
+	g := make([]*TradeInfo, 0)
+	for _, v := range r {
+		data := &TradeInfo{}
 
-		err = json.Unmarshal([]byte(v),data)
-		if err!=nil {
+		err = json.Unmarshal([]byte(v), data)
+		if err != nil {
 			Log.Errorln(err)
 			return nil
 		}
-		g=append(g,data)
+		g = append(g, data)
 	}
 	return g
 }
