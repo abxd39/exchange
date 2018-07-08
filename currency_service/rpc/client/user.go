@@ -3,25 +3,32 @@ package client
 import (
 	"context"
 	cf "digicon/currency_service/conf"
-	. "digicon/currency_service/log"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	"fmt"
 )
 
 type UserRPCCli struct {
 	conn proto.Gateway2WallerService
+	userconn proto.UserRPCService
 }
 
-func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
-	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{})
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
-	return
+//func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
+//	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{})
+//	if err != nil {
+//		Log.Errorln(err.Error())
+//		return
+//	}
+//	return
+//}
+
+func (s *UserRPCCli) CallGetNickName(uids []uint64) (rsp *proto.UserGetNickNameResponse, err error){
+	fmt.Println("uids:", uids)
+	return s.userconn.GetNickName(context.TODO(), &proto.UserGetNickNameRequest{Uid:uids})
 }
+
 
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
@@ -33,9 +40,14 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_name")
+	user_client_name := cf.Cfg.MustValue("base", "service_client_user")
+
+	fmt.Println("service_name,", service_name, " user_client_name: ", user_client_name)
 	greeter := proto.NewGateway2WallerService(service_name, service.Client())
+	userGreeter := proto.NewUserRPCService(user_client_name, service.Client())
 	u = &UserRPCCli{
 		conn: greeter,
+		userconn:userGreeter,
 	}
 	return
 }

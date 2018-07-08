@@ -24,7 +24,7 @@ type OtherType struct {
 	AdId     uint64 `form:"ad_id"   json:"ad_id"   binding:"required"`       // 广告id
 	AdType   uint32 `form:"ad_type" json:"ad_type" binding:"required"`       // 广告类型：1出售 2购买
 	TokenId  uint64 `form:"token_id"   json:"token_id"   binding:"required"` // 货币类型
-	PayId    uint64 `form:"pay_id"     json:"pay_id"     binding:"required"` // 支付类型
+	PayId    string `form:"pay_id"     json:"pay_id"     binding:"required"` // 支付类型
 	SellId   uint64 `form:"sell_id"    json:"sell_id"    binding:"required"` // 卖家id
 	SellName string `form:"sell_name"  json:"sell_name"  binding:"required"` // 卖家昵称
 	BuyId    uint64 `form:"buy_id"     json:"buy_id"     binding:"required"` // 买家id
@@ -70,10 +70,12 @@ type BackOrder struct {
 }
 
 type BackAddOrder struct {
-	Uid   int32 `form:"uid"   json:"uid"  binding:"required"`         // 用户 id
-	Num   int64 `form:"num"        json:"num"     binding:"required"` // 交易数量
-	Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
-	OtherType
+	Uid      int32   `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
+	AdId     uint64 `form:"ad_id"      json:"ad_id"      binding:"required"`         // 广告id
+	//PayId    uint64 `form:"pay_id"     json:"pay_id"     binding:"required"`         // 支付类型
+	//Num   int64 `form:"num"        json:"num"     binding:"required"` // 交易数量
+	//Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
+	//OtherType
 }
 
 func (this *CurrencyGroup) OrdersList(c *gin.Context) {
@@ -243,7 +245,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	var param AddOrder
+	var param BackAddOrder
 	var backParam BackAddOrder
 	err := c.ShouldBind(&param)
 	if err != nil {
@@ -253,15 +255,8 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	}
 	backParam.Uid = param.Uid
 	backParam.AdId = param.AdId
-	backParam.AdType = param.AdType
-	backParam.Price = convert.Float64ToInt64By8Bit(param.Price)
-	backParam.Num = convert.Float64ToInt64By8Bit(param.Num)
-	backParam.TokenId = param.TokenId
-	backParam.PayId = param.PayId
-	backParam.SellId = param.SellId
-	backParam.SellName = param.SellName
-	backParam.BuyId = param.BuyId
-	backParam.BuyName = param.BuyName
+
+
 	orderStr, _ := json.Marshal(backParam)
 	//fmt.Println("params uid:", param.Uid)
 	rsp, err := rpc.InnerService.CurrencyService.CallAddOrder(&proto.AddOrderRequest{

@@ -19,7 +19,8 @@ type Order struct {
 	Price       int64  `xorm:"not null default 0 comment('价格') BIGINT(64)"   json:"price"`
 	Num         int64  `xorm:"not null default 0 comment('数量') BIGINT(64)"   json:"num"`
 	TokenId     uint64 `xorm:"not null default 0 comment('货币类型') INT(10)"       json:"token_id"`
-	PayId       uint64 `xorm:"not null default 0 comment('支付类型') INT(10)"       json:"pay_id"`
+	//PayId       uint64 `xorm:"not null default 0 comment('支付类型') INT(10)"       json:"pay_id"`
+	PayId       string `xorm:"not null default 0 comment('支付类型') VARCHAR(64)"       json:"pay_id"`
 	SellId      uint64 `xorm:"not null default 0 comment('卖家id') INT(10)"         json:"sell_id"`
 	SellName    string `xorm:"not null default '' comment('卖家昵称') VARCHAR(64)"  json:"sell_name"`
 	BuyId       uint64 `xorm:"not null default 0 comment('买家id') INT(10)"    json:"buy_id"`
@@ -145,6 +146,9 @@ func (this *Order) Ready(Id uint64, updateTimeStr string) (code int32, msg strin
 // 添加订单
 func (this *Order) Add() (id uint64, code int32) {
 	var err error
+	/////////////
+
+
 	engine := dao.DB.GetMysqlConn()
 
 	uCurrency := new(UserCurrency)

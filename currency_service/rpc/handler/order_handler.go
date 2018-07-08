@@ -8,8 +8,11 @@ import (
 	proto "digicon/proto/rpc"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
+	"digicon/proto/common"
+
+	"digicon/currency_service/rpc/client"
+	"strconv"
 )
 
 // 获取订单列表
@@ -73,12 +76,52 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	if err := json.Unmarshal([]byte(req.Order), &od); err != nil {
 		Log.Println(err.Error())
 		fmt.Println(err.Error())
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return nil
+	}
+	ads := new(model.Ads)
+	var nowAds *model.Ads
+	nowAds = ads.Get(od.AdId)
+
+	od.AdType = nowAds.TypeId
+	od.Price = int64(nowAds.Price)
+	od.Num = int64(nowAds.Num)
+	od.TokenId = uint64(nowAds.TokenId)
+	od.SellId = nowAds.Uid
+	od.BuyId = uint64(nowAds.Uid)
+	od.PayId = nowAds.Pays
+
+	fmt.Println(od.SellId, od.BuyId)
+
+	var uids []uint64
+	uids = append(uids, od.SellId)
+	uids = append(uids, od.BuyId)
+
+	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids)    // rpc 获取用户信息
+
+	if err != nil {
+		fmt.Println(err)
+		Log.Errorln(err.Error())
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return nil
+	}else {
+		nickUsers := nickNames.User
+		for i := 0; i < len(nickUsers); i ++ {
+			if nickUsers[i].Uid == od.SellId {
+				od.SellName = nickUsers[i].NickName
+			}
+			if nickUsers[i].Uid == od.BuyId {
+				od.BuyName = nickUsers[i].NickName
+			}
+		}
 	}
 
 	od.OrderId = encryption.CreateOrderId(uint64(req.Uid), int32(od.TokenId))
 	od.States = 1
 	od.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	od.UpdatedTime = time.Now().Format("2006-01-02 15:04:05")
+
+	fmt.Println("od:", od)
 
 	id, code := od.Add()
 	rsp.Code = code

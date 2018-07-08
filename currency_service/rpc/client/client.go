@@ -1,17 +1,18 @@
-package rpc
+package client
 
-import "digicon/currency_service/rpc/client"
+//import "digicon/currency_service/rpc/client"
 
 var InnerService *RPCClient
 
 type RPCClient struct {
-	UserSevice *client.UserRPCCli
+	UserSevice *UserRPCCli
 }
 
 func NewRPCClient() (c *RPCClient) {
 	c = &RPCClient{
-		UserSevice: client.NewUserRPCCli(),
+		UserSevice: NewUserRPCCli(),
 	}
+
 	return c
 }
 

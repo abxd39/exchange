@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"digicon/currency_service/rpc/client"
 )
 
 func main() {
@@ -18,6 +19,8 @@ func main() {
 	Log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
+
+	client.InitInnerService()
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
