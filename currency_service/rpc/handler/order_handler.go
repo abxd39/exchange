@@ -100,12 +100,19 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	uids = append(uids, od.BuyId)
 
 	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids)    // rpc 获取用户信息
+	for i := 0; i < 2; i ++{
+		if err != nil {
+			nickNames, err = client.InnerService.UserSevice.CallGetNickName(uids)    // rpc 获取用户信息
+		}
+	}
+
+	fmt.Println("nickNames:", nickNames)
 
 	if err != nil {
 		fmt.Println(err)
 		Log.Errorln(err.Error())
-		rsp.Code = errdefine.ERRCODE_UNKNOWN
-		return nil
+		//rsp.Code = errdefine.ERRCODE_UNKNOWN
+		//return nil
 	}else {
 		nickUsers := nickNames.User
 		for i := 0; i < len(nickUsers); i ++ {
