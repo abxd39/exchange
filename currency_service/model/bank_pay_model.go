@@ -62,3 +62,11 @@ func (*UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error)
 	//
 	return ERRCODE_SUCCESS, nil
 }
+
+
+
+func (p *UserCurrencyBankPay) GetByUid(uid uint64) ( err  error){
+	engine := dao.DB.GetMysqlConn()
+	_, err = engine.Where("uid =?", uid).Get(p)
+	return
+}

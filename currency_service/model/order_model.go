@@ -8,6 +8,7 @@ import (
 	. "digicon/proto/common"
 	"strconv"
 	"time"
+	"fmt"
 )
 
 // 订单表
@@ -163,6 +164,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	rateFloat, _ := strconv.ParseInt(rate, 10, 64)
 	freeze := this.Num * (1 + rateFloat)
 
+	fmt.Println(freeze, uCurrency.Balance)
 	if freeze > uCurrency.Balance {
 		Log.Errorln("卖家余额不足!")
 		code = ERRCODE_SELLER_LESS
@@ -417,3 +419,22 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	code = ERRCODE_SUCCESS
 	return
 }
+
+
+
+
+/*
+	获取订单付款信息
+ */
+
+ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
+ 	//var order Order
+	engine := dao.DB.GetMysqlConn()
+	//order := new(Order)
+	_, err = engine.Where("id = ?", Id).Get(this)
+	if err != nil {
+		Log.Errorln(err.Error())
+		code = ERRCODE_ORDER_NOTEXIST
+	}
+ 	return
+ }

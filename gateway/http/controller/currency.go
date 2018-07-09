@@ -42,6 +42,10 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
 		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
 
+
+		Currency.GET("/trade_detail", this.TradeDetail)    //获取订单付款信息
+
+
 		////payment///
 		Currency.POST("/bank_pay", this.BankPay)
 		Currency.POST("/alipay", this.Alipay)

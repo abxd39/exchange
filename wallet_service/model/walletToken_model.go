@@ -3,12 +3,12 @@ package models
 import (
 	. "digicon/wallet_service/utils"
 	"errors"
-	"time"
-	//. "github.com/ethereum/go-ethereum/cmd/wallet"
 	"fmt"
 	"math/big"
+	"time"
 )
 
+// 钱包
 type WalletToken struct {
 	Id          int       `xorm:"not null pk autoincr INT(11)"`
 	Uid         int       `xorm:"not null comment('用户id') unique(user2token) INT(11)"`
@@ -25,6 +25,29 @@ type WalletToken struct {
 	UpdatedTime time.Time `xorm:"not null default 'CURRENT_TIMESTAMP' comment('更新时间') TIMESTAMP"`
 	CreatedTime time.Time `xorm:"not null default 'CURRENT_TIMESTAMP' comment('创建时间') TIMESTAMP"`
 }
+
+//////////////// btc /////
+
+func (this *WalletToken) GetByUid(uid int) error {
+	_, err := Engine_wallet.Where("uid =?", uid).Get(this)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
+ 根据地址获取 钱包
+*/
+func (this *WalletToken) GetByAddress(address string) error {
+	_, err := Engine_wallet.Where("address =?", address).Get(this)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/// ////////////////
 
 func (this *WalletToken) Create() error {
 	this.UpdatedTime = time.Now()

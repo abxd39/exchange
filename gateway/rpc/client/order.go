@@ -60,3 +60,13 @@ func (s *CurrencyRPCCli) CallAddOrder(req *proto.AddOrderRequest) (rsp *proto.Or
 	}
 	return
 }
+
+
+func (s *CurrencyRPCCli) CallGetTradeDetail(req *proto.TradeDetailRequest) (rsp *proto.TradeDetailResponse, err error) {
+	rsp, err = s.conn.TradeDetail(context.TODO(), req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}

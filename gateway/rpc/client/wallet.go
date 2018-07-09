@@ -105,3 +105,23 @@ func (this *WalletRPCCli) CallAddressDelete(uid int32, id int32) (rsp *proto.Add
 	}
 	return
 }
+
+////////////////// btc  ///////////////////////////
+func (this *WalletRPCCli) CallBtcSigntx(req *proto.BtcSigntxRequest) (rsp *proto.BtcSigntxResponse, err error) {
+	rsp, err = this.conn.BtcSigntx(context.TODO(), req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+//
+func (this *WalletRPCCli) CallBtcTibi(req *proto.BtcTibiRequest) (rsp *proto.BtcResponse, err error) {
+	rsp, err = this.conn.BtcTibi(context.TODO(), req)
+	if err != nil {
+		Log.Error(err.Error())
+		return
+	}
+	return
+}

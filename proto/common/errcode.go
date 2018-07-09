@@ -56,6 +56,7 @@ const (
 	ERRCODE_USER_BALANCE = 422
 	ERRCODE_ORDER_ERROR  = 423
 	ERRCODE_TRADE_ERROR  = 424
+
 )
 
 func GetErrorMessage(code int32) string {
@@ -114,6 +115,8 @@ func init() {
 	message[ERRCODE_USER_BALANCE] = "查询用户余额失败"
 	message[ERRCODE_ORDER_ERROR] = "下单失败"
 	message[ERRCODE_TRADE_ERROR] = "交易失败，请重试!"
+	message[ERRCODE_ORDER_FREEZE] = "订单冻结"
+
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 	message[ERR_TOKEN_LESS] = "币的余额不够"

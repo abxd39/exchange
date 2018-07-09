@@ -46,7 +46,12 @@ service CurrencyRPC {
         rpc CancelOrder(CancelOrderRequest) returns(OrderResponse){};
         // 删除订单
         rpc DeleteOrder(OrderRequest) returns(OrderResponse){};
-        
+
+
+        // 确认支付接口
+        rpc TradeDetail(TradeDetailRequest) returns(TradeDetailResponse){};
+
+
         //Set bank pay
         rpc BankPay (BankPayRequest) returns (PaysResponse){};
         //Set WeChat pay
@@ -254,13 +259,22 @@ message UserCurrencyRequest {
 }
 
 ////////////////////////// Order ////////////////////////////
+//获取订单付款信息
+message TradeDetailRequest {
+    uint64  id  = 1;       // 获取订单付款信息
+}
 
+message TradeDetailResponse {
+    int32    code      =  1;
+    string   message   =  2;
+    string   data      =  3;
+}
 
 // 返回的状码
 message OrderResponse {
 	int32    code      =  1;
-	string    message  =  2;
-	string   data      = 3;
+	string   message   =  2;
+	string   data      =  3;
 }
 
 

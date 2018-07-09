@@ -271,3 +271,69 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	ret.SetDataSection("id", rsp.Data)
 
 }
+
+
+// TradeDetail
+
+func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	var param OrderRequest
+	err := c.ShouldBind(&param)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.CurrencyService.CallGetTradeDetail(&proto.TradeDetailRequest{
+		Id:param.Id,
+	})
+
+	type Data struct{
+		OrderId              string     `form:"order_id"               json:"order_id"`
+		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
+		Num                  int64      `form:"num"                    json:"num"`
+		Price                int64      `form:"price"                  json:"price"`
+		AliPayName           string     `form:"alipay_name"            json:"alipay_name"`
+		Alipay               string     `form:"alipay"                 json:"alipay"`
+		AliReceiptCode       string     `form:"ali_receipt_code"       json:"ali_receipt_code"`
+		BankpayName         string     `form:"bankpay_name"           json:"bankpay_name"`
+		CardNum              string     `form:"card_num"               json:"card_num"`
+		BankName             string     `form:"bank_name"              json:"bank_name"`
+		BankInfo             string     `form:"bank_info"              json:"bank_info"`
+		WechatName           string     `form:"wechat_name"            json:"wechat_name"`
+		Wechat               string     `form:"wechat"                 json:"wechat"`
+		WechatReceiptCode    string     `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
+		PaypalNum            string     `form:"paypal_num"             json:"paypal_num"`
+	}
+	var dt Data
+	if err = json.Unmarshal([]byte(rsp.Data), &dt); err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+	}else{
+
+		ret.SetDataSection("order_id", dt.OrderId)
+		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
+		ret.SetDataSection("num", convert.Int64ToFloat64By8Bit(dt.Num))
+		ret.SetDataSection("price", convert.Int64ToFloat64By8Bit(dt.Price))
+
+		ret.SetDataSection("alipay_name", dt.AliPayName)
+		ret.SetDataSection("alipay", dt.Alipay)
+		ret.SetDataSection("ali_receipt_code", dt.AliReceiptCode)
+
+		ret.SetDataSection("bankpay_name", dt.BankpayName)
+		ret.SetDataSection("card_num", dt.CardNum)
+		ret.SetDataSection("bank_info", dt.BankInfo)
+		ret.SetDataSection("bank_name", dt.BankName)
+
+		ret.SetDataSection("wechat_name", dt.WechatName)
+		ret.SetDataSection("wechat", dt.Wechat)
+		ret.SetDataSection("wechat_receipt_code", dt.WechatReceiptCode)
+
+		ret.SetDataSection("paypal_num", dt.PaypalNum)
+		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	}
+
+}
