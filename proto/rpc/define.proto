@@ -12,6 +12,13 @@ message CommonErrResponse{
 }
 
 message CommonRequest{
-    int32  uid       =1;
+    uint64  uid       =1;
     string token       =2;
+}
+
+message CommonPageRequest{
+    uint64  uid       =1;
+    string token       =2;
+    int32   page           =3;
+    int32  limit            =4;
 }

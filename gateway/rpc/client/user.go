@@ -55,11 +55,12 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 	return
 }
 
-func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32) (rsp *proto.LoginResponse, err error) {
+func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32,ip string) (rsp *proto.LoginResponse, err error) {
 	rsp, err = s.conn.Login(context.TODO(), &proto.LoginRequest{
 		Ukey: ukey,
 		Pwd:  pwd,
 		Type: ty,
+		Ip:ip,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -280,6 +281,17 @@ func (s *UserRPCCli) CallGetUserInvite(uid uint64) (rsp *proto.UserInviteRespons
 		Invites:    out.Invites,
 	}
 
+	return
+}
+
+func (s *UserRPCCli) CallGetIpRecord(uid uint64) (rsp *proto.IpRecordResponse, err error) {
+	rsp, err = s.conn.GetIpRecord(context.TODO(), &proto.CommonPageRequest{
+		Uid:  uid,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
 	return
 }
 

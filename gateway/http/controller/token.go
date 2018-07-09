@@ -8,6 +8,7 @@ import (
 	"net/http"
 	proto "digicon/proto/rpc"
 	"digicon/common/convert"
+	"github.com/liudng/godump"
 )
 type TokenGroup struct{}
 
@@ -37,8 +38,8 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		Uid uint64 `form:"uid" binding:"required"`
 		Token string `form:"token" binding:"required"`
 		Symbol string `form:"symbol" binding:"required"`
-		Opt int32 `form:"opt" `
-		OnPrice string `form:"on_price" `
+		Opt int32 `form:"opt"  binding:"required"`
+		OnPrice string `form:"on_price"  binding:"required"`
 		Type int32 `form:"type" binding:"required"`
 		Num string`form:"num" binding:"required"`
 	}
@@ -61,7 +62,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM,err.Error())
 		return
 	}
-
+godump.Dump(param)
 	rsp, err := rpc.InnerService.TokenService.CallEntrustOrder(&proto.EntrustOrderRequest{
 		Symbol:param.Symbol,
 		Opt:proto.ENTRUST_OPT(param.Opt),
@@ -70,7 +71,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		Uid:param.Uid,
 		Type: proto.ENTRUST_TYPE(param.Type),
 	})
-
+godump.Dump("fin")
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
