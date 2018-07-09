@@ -29,6 +29,10 @@ func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int3
 		result = ERRCODE_UNKNOWN
 		err = errors.New("get phone number failed")
 	}
+	//旧密码的判断
+	if b := strings.Compare(req.OldPwd, ph.Pwd); b != 0 {
+		return ERRCODE_OLDPWD, nil
+	}
 	fmt.Println("lllllllllllllllllllllllllllllllllll")
 	fmt.Println(ph.Phone)
 	//验证短信
@@ -112,7 +116,13 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (result int3
 		result = ERRCODE_UNKNOWN
 		err = errors.New("get phone number failed")
 	}
-
+	//
+	if eq := strings.Compare(req.ConfirmPwd, req.NewPwd); eq != 0 {
+		return ERRCODE_PWD_COMFIRM, nil
+	}
+	if eq := strings.Compare(req.NewPwd, ph.PayPwd); eq != 0 {
+		return ERRCODE_OLDPWD, nil
+	}
 	result, err = AuthSms(ph.Phone, SMS_RESET_TRADE_PWD, req.Verify)
 	if err != nil {
 		return
