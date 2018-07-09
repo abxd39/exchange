@@ -40,6 +40,8 @@ service UserRPC {
 
     //获取邀请信息
     rpc GetUserInvite(UserInfoRequest) returns (UserInviteResponse) {}
+    //获取ip记录
+    rpc GetIpRecord(CommonPageRequest) returns (IpRecordResponse) {}
 
     //modify user password
     rpc  ModifyUserLoginPwd (UserModifyLoginPwdRequest) returns (UserModifyLoginPwdResponse) {};
@@ -85,6 +87,7 @@ message LoginRequest {
     string ukey =1;
     string pwd=3;
     int32  type       =4;
+    string ip=5;
 }
 
 message LoginUserBaseData{
@@ -227,6 +230,17 @@ message UserInviteResponse{
     UserInviteData      data    =3;
     string src                  =4;
 }
+
+message IpRecordBaseData{
+    string ip                   =3;
+    string created_time         =4;
+}
+message IpRecordResponse{
+    int32 err                    =1;
+    string message              =2;
+    repeated IpRecordBaseData data=3;
+}
+
 
 message UserModifyLoginPwdRequest{
     uint64 uid           =1;

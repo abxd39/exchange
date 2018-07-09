@@ -20,6 +20,7 @@ func (s *ActionGroup) Router(r *gin.Engine) {
 		action.GET("/get_user_info", s.GetUserBaseInfo)
 		action.GET("/get_user_real", s.GetUserRealName)
 		action.GET("/get_user_invite", s.GetUserInvite)
+		action.GET("/get_ip_record", s.GetIpRecord)
 	}
 }
 
@@ -197,4 +198,38 @@ func (s *ActionGroup) GetUserInvite(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("data", d)
+}
+
+func (s *ActionGroup) GetIpRecord(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type GetUserBaseInfoParam struct {
+		Uid uint64 `form:"uid" binding:"required"`
+		Limit int32  `form:"limit" `
+		Page int32  `form:"page" `
+	}
+	var param GetUserBaseInfoParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if param.Limit==0 {
+		param.Limit=5
+	}
+	if param.Page==0 {
+		param.Page=1
+	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list", rsp.Data)
 }
