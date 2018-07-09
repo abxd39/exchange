@@ -6,7 +6,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/pborman/uuid"
 	"math/big"
 	//"strconv"
 	//"encoding/hex"
@@ -26,9 +25,9 @@ func New_keystore(auth string) (address string, store string, privatekey string,
 		//fmt.Println("Can't load private key: %v", err)
 		return "", "", "", err
 	}
-	id := uuid.NewRandom()
+	//id := uuid.NewRandom()
 	key := &keystore.Key{
-		Id:         id,
+		//Id:         id,
 		Address:    crypto.PubkeyToAddress(privateKey.PublicKey),
 		PrivateKey: privateKey,
 	}

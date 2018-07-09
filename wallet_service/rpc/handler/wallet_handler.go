@@ -32,6 +32,9 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	switch tokenModel.Signature {
 	case "eip155", "eth":
 		addr, err = Neweth(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
+	case "btc":
+		//fmt.Println(tokenModel.Chainid)
+		addr, err = NewBTC(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
 	default:
 		err = errors.New("unknow type")
 	}

@@ -11,7 +11,48 @@ service Gateway2Waller {
 	rpc AddressDelete(AddressDeleteRequest) returns (AddressDeleteResponse){}
 	rpc GetValue(GetValueRequest) returns (GetValueResponse){}
     rpc SendRawTx(SendRawTxRequest) returns (SendRawTxResponse){}
+
+
+    //  btc 相关
+    rpc BtcSigntx(BtcSigntxRequest) returns (BtcSigntxResponse) {}
+    rpc BtcTibi (BtcTibiRequest) returns (BtcResponse) {}
+
 }
+
+
+
+/////////////////////// btc ////////////////////////////
+
+message BtcSigntxRequest {
+    int32    uid     = 1;     // 用户id
+    int32    tokenid = 2;     // 币中id
+    string   address = 3;     // 要发给的地址
+    string   amount  = 4;     // 要发给的金额
+}
+
+message BtcTibiRequest {
+    int32    uid     = 1;
+    int32    tokenid = 2;
+    string   to      = 3;
+    string   amount  = 4;
+    //int32    gasprice= 5;
+}
+
+message BtcResponse {
+    int32    code     = 1;
+    string   message  = 2;
+    string     data   = 3;
+}
+
+
+message BtcSigntxResponse {
+    int32    code      =  1;
+    string   message   =  2;
+    string   data      = 3;
+}
+
+//////////////////////  btc end /////////////////////////
+
 
 message HelloRequest2 {
 	string name = 1;

@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// 链上，充值，提币
 type TokenChainInout struct {
 	Id          int       `xorm:"INT(11)"`
 	Txhash      string    `xorm:"comment('交易hash') VARCHAR(255)"`
@@ -42,4 +43,33 @@ func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, ch
 func (this *TokenChainInout) TxhashExist(hash string, chainid int) (bool, error) {
 	return utils.Engine_wallet.Where("txhash=? and chainid=?", hash, chainid).Get(this)
 
+}
+
+// ==================================   BTC 添加  =============================================
+
+func (this *TokenChainInout) InsertRecord(txhash, from, to, value, contract string, insertType int, chainid int, uid int, tokenid int, tokenname string) (int, error) {
+	this.Id = 0
+	this.Txhash = txhash
+	this.From = from
+	this.To = to
+	this.Value = value
+	this.Contract = contract
+	this.Chainid = chainid
+	this.Type = insertType
+
+	this.Tokenid = tokenid
+	this.TokenName = tokenname
+	this.Uid = uid
+	affected, err := utils.Engine_wallet.InsertOne(this)
+	return int(affected), err
+}
+
+func (this *TokenChainInout) InsertThis() (int, error) {
+	affected, err := utils.Engine_wallet.InsertOne(this)
+	return int(affected), err
+}
+
+func (this *TokenChainInout) TxIDExist(txhash string) (bool, error) {
+	tk := &TokenChainInout{Txhash: txhash}
+	return utils.Engine_wallet.Exist(tk) //如果仅仅判断某条记录是否存在，则使用Exist方法，Exist的执行效率要比Get更高。
 }

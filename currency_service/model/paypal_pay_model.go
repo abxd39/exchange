@@ -43,3 +43,10 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 	}
 	return ERRCODE_SUCCESS, nil
 }
+
+
+func (pal *UserCurrencyPaypalPay) GetByUid(uid uint64) ( err  error){
+	engine := dao.DB.GetMysqlConn()
+	_, err = engine.Where("uid =?", uid).Get(pal)
+	return
+}

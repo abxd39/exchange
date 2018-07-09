@@ -46,3 +46,11 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 	}
 	return ERRCODE_SUCCESS, nil
 }
+
+
+
+func (w *UserCurrencyWechatPay) GetByUid(uid uint64) ( err  error){
+	engine := dao.DB.GetMysqlConn()
+	_, err = engine.Where("uid =?", uid).Get(w)
+	return
+}

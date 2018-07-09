@@ -1,8 +1,11 @@
 package controller
 
 import (
+	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
+	proto "digicon/proto/rpc"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -14,16 +17,99 @@ type WalletGroup struct {
 func (this *WalletGroup) Router(router *gin.Engine) {
 
 	r := router.Group("wallet")
-	r.GET("create", this.Create)
-	r.GET("signtx", this.Signtx)
-	r.GET("sendrawtx", this.SendRawTx)
-	r.GET("tibi", this.Tibi)
-	r.GET("getvalue", this.GetValue)
+	r.GET("create", this.Create)       // 创建钱包
+	r.GET("signtx", this.Signtx)       // 签名
+	r.GET("sendrawtx", this.SendRawTx) // 广播
+	r.GET("tibi", this.Tibi)           //
+	r.GET("getvalue", this.GetValue)   // 查询链上余额
 	r.GET("address/save", this.AddressSave)
 	r.GET("address/list", this.AddressList)
 	r.GET("address/delete", this.AddressDelete)
 
+	//btc signtx
+	r.POST("signtx_btc", this.BtcSigntx) // btc 签名
+	r.POST("biti_btc", this.BtcTiBi)     // btc
 }
+
+///////////////////////// start btc ///////////////////////////
+
+func (this *WalletGroup) BtcSigntx(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type Param struct {
+		Uid     int32  `form:"uid"          json:"uid"        binding:"required"` // 用户 id
+		TokenId int32  `form:"token_id"     json:"token_id"   binding:"required"` // 币种ID
+		Address string `form:"address"      json:"address"    binding:"required"` // 要发送给的地址
+		Amount  string `form:"amount"       json:"amount"     binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		fmt.Println(err.Error())
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.WalletSevice.CallBtcSigntx(&proto.BtcSigntxRequest{
+		Uid:     param.Uid,
+		Tokenid: param.TokenId,
+		Address: param.Address,
+		Amount:  param.Amount,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	} else {
+		fmt.Println(rsp.Data)
+		//ret.SetDataValue(""rsp.Data)
+		ret.SetDataSection("txhash", rsp.Data)
+		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	}
+
+}
+
+func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type Param struct {
+		Uid     int32  `form:"uid"      json:"uid"       binding:"required"`
+		TokenId int32  `form:"token_id" json:"token_id"  binding:"required"`
+		To      string `form:"to"       json:"to"        binding:"required"`
+		Amount  string `form:"amount"   json:"amount"    binding:"required"`
+		//Gasprice int32  `form:"gasprice" binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		fmt.Println(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.WalletSevice.CallBtcTibi(&proto.BtcTibiRequest{
+		Uid:     param.Uid,
+		Tokenid: param.TokenId,
+		To:      param.To,
+		Amount:  param.Amount,
+	})
+	if err != nil {
+		ctx.String(http.StatusOK, err.Error())
+		return
+	}
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
+	ret.SetDataSection("txhash", rsp.Data)
+	//ret.SetDataValue(rsp.Data)
+	//ctx.JSON(http.StatusOK, rsp)
+	return
+}
+
+///////////////////////// end btc ///////////////////////////
 
 func (this *WalletGroup) Index(ctx *gin.Context) {
 

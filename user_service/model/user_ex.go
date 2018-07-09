@@ -5,6 +5,7 @@ import (
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
 	. "digicon/user_service/log"
+	"fmt"
 )
 
 type UserEx struct {
@@ -38,7 +39,7 @@ func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 func (ex *UserEx) GetNickName(req *proto.UserGetNickNameRequest, rsp *proto.UserGetNickNameResponse) (ret int32, err error) {
 	//
 	engine := DB.GetMysqlConn()
-
+	fmt.Println("uid:", req.Uid)
 	uex := make([]UserEx, 0)
 	err = engine.In("uid", req.Uid).Find(&uex)
 	if err != nil {

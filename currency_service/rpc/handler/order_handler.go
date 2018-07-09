@@ -13,6 +13,7 @@ import (
 
 	"digicon/currency_service/rpc/client"
 	"strconv"
+	"digicon/common/convert"
 )
 
 // 获取订单列表
@@ -135,5 +136,67 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	id, code := od.Add()
 	rsp.Code = code
 	rsp.Data = strconv.FormatUint(id, 10)
+	return nil
+}
+
+
+// get Trade detail
+
+func (s *RPCServer) TradeDetail (ctx context.Context, req *proto.TradeDetailRequest, rsp *proto.TradeDetailResponse) error {
+	order := new(model.Order)
+	aliPay := new(model.UserCurrencyAlipayPay)
+	bankPay := new(model.UserCurrencyBankPay)
+	paypalPay := new(model.UserCurrencyPaypalPay)
+	wechatPay := new(model.UserCurrencyWechatPay)
+
+	order.GetOrder(req.Id)
+	sellid := order.SellId
+	aliPay.GetByUid(sellid)
+	bankPay.GetByUid(sellid)
+	paypalPay.GetByUid(sellid)
+	wechatPay.GetByUid(sellid)
+
+
+	type Data struct{
+		OrderId              string     `form:"order_id"               json:"order_id"`
+		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
+		Num                  int64      `form:"num"                    json:"num"`
+		Price                int64      `form:"price"                  json:"price"`
+		AliPayName           string     `form:"alipay_name"            json:"alipay_name"`
+		Alipay               string     `form:"alipay"                 json:"alipay"`
+		AliReceiptCode       string     `form:"ali_receipt_code"       json:"ali_receipt_code"`
+		BankpayName         string     `form:"bankpay_name"           json:"bankpay_name"`
+		CardNum              string     `form:"card_num"               json:"card_num"`
+		BankName             string     `form:"bank_name"              json:"bank_name"`
+		BankInfo             string     `form:"bank_info"              json:"bank_info"`
+		WechatName           string     `form:"wechat_name"            json:"wechat_name"`
+		Wechat               string     `form:"wechat"                 json:"wechat"`
+		WechatReceiptCode    string     `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
+		PaypalNum            string     `form:"paypal_num"             json:"paypal_num"`
+	}
+	var dt Data
+	dt.OrderId      = order.OrderId
+	dt.Price        = order.Price
+	dt.Num          = order.Num
+	dt.PayPrice     = convert.Int64MulInt64By8Bit(dt.Price, dt.Num)
+	dt.AliPayName   = aliPay.Name
+	dt.Alipay       = aliPay.Alipay
+	dt.AliReceiptCode = aliPay.ReceiptCode
+	dt.BankpayName  = bankPay.Name
+	dt.BankInfo     = bankPay.BankInfo
+	dt.CardNum      = bankPay.CardNum
+	dt.WechatName   = wechatPay.Name
+	dt.Wechat       = wechatPay.Wechat
+	dt.WechatReceiptCode  = wechatPay.ReceiptCode
+	dt.PaypalNum    = paypalPay.Paypal
+
+	resultdt, err := json.Marshal(dt)
+	if err != nil {
+		rsp.Data = ""
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+	}else {
+		rsp.Data = string(resultdt)
+		rsp.Code = errdefine.ERRCODE_SUCCESS
+	}
 	return nil
 }

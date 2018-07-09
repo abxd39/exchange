@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// 平台币账户的交易
+// on neibu
 type TokenInout struct {
 	Id          int       `xorm:"not null pk INT(11)"`
 	Txhash      string    `xorm:"not null comment('交易hash') VARCHAR(200)"`
@@ -39,4 +41,22 @@ func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid
 	this.Uid = uid
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	return int(affected), err
+}
+
+/// BTC insert
+func (this *TokenInout) BtcInsert(txhash, from, to, tokenName string, amount int64, chainId, tokenId, states, uid int) (int, error) {
+	this.Txhash = txhash
+	this.From = from
+	this.To = to
+	this.Amount = amount
+	this.Value = ""
+	this.Chainid = chainId
+	this.Contract = ""
+	this.Tokenid = tokenId
+	this.States = states
+	this.TokenName = tokenName
+	this.Uid = uid
+	affected, err := utils.Engine_wallet.InsertOne(this)
+	return int(affected), err
+
 }

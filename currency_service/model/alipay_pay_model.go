@@ -46,3 +46,12 @@ func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, er
 	}
 	return ERRCODE_SUCCESS, nil
 }
+
+
+
+
+func (ali *UserCurrencyAlipayPay) GetByUid(uid uint64) ( err  error){
+	engine := dao.DB.GetMysqlConn()
+	_, err = engine.Where("uid =?", uid).Get(ali)
+	return
+}

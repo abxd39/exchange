@@ -4,11 +4,15 @@ import (
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
+	"fmt"
 )
 
 var Engine_wallet *xorm.Engine
 var Engine_token *xorm.Engine
 var Engine_common *xorm.Engine
+
+var EngineUserCurrency *xorm.Engine
+
 var Redis *redis.Conn
 
 func init() {
@@ -46,6 +50,22 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+
+	// ------------- user currency ----------------
+	dsource = Cfg.MustValue("mysql", "currency_conn")
+	EngineUserCurrency, err = xorm.NewEngine("mysql", dsource)
+	if err != nil {
+		fmt.Println("connect db currency error!")
+		panic(err)
+	}
+	err = EngineUserCurrency.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+
+	////
 
 	//redis初始化
 	Redis = nil
