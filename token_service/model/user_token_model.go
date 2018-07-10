@@ -70,7 +70,7 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64) (err error) {
 		Log.Errorln(err.Error())
 		return
 	}
-	s.Version += 1
+	//s.Version += 1
 	return
 }
 
@@ -289,7 +289,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-	s.Version += 1
+	//s.Version += 1
 
 	f := Frozen{
 		Uid:     s.Uid,

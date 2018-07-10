@@ -140,6 +140,7 @@ message EntrustBaseData{
     string price                        =1;
     string surplus_num                  =2;
     string on_price                     =3;
+    string cny_price                        =4;
 }
 
 message EntrustQueneRequest {

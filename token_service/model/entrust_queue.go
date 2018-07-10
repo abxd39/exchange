@@ -300,6 +300,11 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	if buyer.Opt != proto.ENTRUST_OPT_BUY {
 		Log.Fatalln("wrong type")
 	}
+/*
+	if buyer.Uid == seller.Uid { //还没处理
+		return errors.New("err same uid")
+	}
+	*/
 	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {
@@ -378,12 +383,19 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	err = session.Begin()
 	var ret int32
 	//USDT left num
+
 	ret, err = buy_token_account.NotifyDelFronzen(session, num, t.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
-	if err != nil || ret != ERRCODE_SUCCESS {
+	if err != nil  {
 		session.Rollback()
 		Log.Errorln(err.Error())
 		return
 	}
+	if ret!= ERRCODE_SUCCESS{
+		session.Rollback()
+		return
+	}
+
+
 
 	err = buy_trade_token_account.AddMoney(session, t.Num)
 	if err != nil {
@@ -391,6 +403,8 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Log.Errorln(err.Error())
 		return
 	}
+
+
 
 	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
 		Uid:     buyer.Uid,

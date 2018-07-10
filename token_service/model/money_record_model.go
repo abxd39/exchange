@@ -18,7 +18,7 @@ type MoneyRecord struct {
 	TokenId     int    `xorm:"comment('代币ID') INT(11)"`
 	Ukey        string `xorm:"comment('联合key') unique(hash_index) VARCHAR(128)"`
 	Type        int    `xorm:"comment('流水类型1区块2委托') INT(11)"`
-	Opt         int    `xorm:"comment('操作方向1加2减') TINYINT(4)"`
+	Opt         int    `xorm:"comment('操作方向1加2减') unique(hash_index) TINYINT(4)"`
 	Num         int64  `xorm:"comment('数量') BIGINT(20)"`
 	CreatedTime int64  `xorm:"comment('操作时间')  created BIGINT(20)"`
 }
