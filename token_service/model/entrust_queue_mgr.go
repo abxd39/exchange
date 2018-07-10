@@ -65,6 +65,37 @@ func (s *EntrustQueneMgr) Init() bool {
 		e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name)
 		s.AddQuene(e)
 	}
+	Test()
 
 	return true
+}
+
+
+func Test()  {
+	/*
+	b, err := json.Marshal(&TradeInfo{
+		CreateTime: 1531130889,
+		TradePrice: 1,
+		Num:        2,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+return
+	b,err := DB.GetRedisConn().Get(GenSourceKey("1531136959_3")).Bytes()
+	if err != nil {
+		Log.Fatalln(err.Error())
+		return
+	}
+
+	g := &EntrustData{}
+	err = json.Unmarshal(b, g)
+	if err != nil {
+		Log.Errorln(err)
+		return
+	}
+	godump.Dump(g)
+*/
 }

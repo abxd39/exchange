@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"digicon/token_service/rpc/client"
 )
 
 func main() {
@@ -20,7 +19,7 @@ func main() {
 	Log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
-	client.InitInnerService()
+	//client.InitInnerService()
 	model.GetQueneMgr().Init()
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

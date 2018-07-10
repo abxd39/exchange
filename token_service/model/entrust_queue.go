@@ -882,7 +882,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				}
 				s.SetPrice(price)
 
-				s.match(p)
+				s.match(other)
 
 			} else if num == p.SurplusNum {
 				err = s.MakeDeal(other, p, price, num)
@@ -913,7 +913,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetPrice(price)
-				s.joinSellQuene(other)
+				s.match(p)
+				//s.joinSellQuene(other)
 			}
 			return
 
