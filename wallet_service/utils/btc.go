@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/btcsuite/btcd/rpcclient"
 	"io/ioutil"
 	"net/http"
 )
@@ -15,21 +14,21 @@ type BtcClient struct {
 }
 
 // btc 客户端链接
-func (p *BtcClient) NewClient(host, user, pass string) (btcclient *rpcclient.Client, err error) {
-	connCfg := &rpcclient.ConnConfig{
-		Host:         host,
-		User:         user,
-		Pass:         pass,
-		HTTPPostMode: true,
-		DisableTLS:   true,
-	}
-
-	btcclient, err = rpcclient.New(connCfg, nil)
-	if err != nil {
-		Log.Errorln(err.Error())
-	}
-	return
-}
+//func (p *BtcClient) NewClient(host, user, pass string) (btcclient *rpcclient.Client, err error) {
+//	connCfg := &rpcclient.ConnConfig{
+//		Host:         host,
+//		User:         user,
+//		Pass:         pass,
+//		HTTPPostMode: true,
+//		DisableTLS:   true,
+//	}
+//
+//	btcclient, err = rpcclient.New(connCfg, nil)
+//	if err != nil {
+//		Log.Errorln(err.Error())
+//	}
+//	return
+//}
 
 /*
  curl  --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendtoaddress", "params": ["1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd", 0.1, "donation", "seans outpost"] }' -H 'content-type: text/plain;' http://user:pass@127.0.0.1:8332/
@@ -93,42 +92,49 @@ func BtcWalletPhrase(url string, pass string, keepTime int64) error {
 }
 
 /*
-  curl  --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "listunspent", "params": [6, 9999999, [] , true, { "minimumAmount": 0.005 } ] }' -H 'content-type: text/plain;' http://user:pass@127.0.0.1:8332/
-*/
-func BtcListunspent(url string, start int, end int) (string, error) {
+	btc get new address
+	curl  --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getnewaddress", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+ */
+func BtcGetNewAddress(url string, account string) (address string, err error){
 	data := make(map[string]interface{})
 	data["jsonrpc"] = "1.0"
 	data["id"] = 1
-	data["method"] = "listunspent"
-
-	if start == 0 {
-		start = 0
-	}
-	if end == 0 {
-		end = 5
-	}
-	param := []int{}
-	param = append(param, start)
-	param = append(param, end)
-	data["params"] = param
-	rsp, err := BtcRpcPost(url, data)
+	data["method"] = "getnewaddress"
+	params := []string{}
+	data["params"] = params
+	result, err := BtcRpcPost(url, data)
 	if err != nil {
-		fmt.Println(err.Error())
+		Log.Errorln(err.Error())
 		return "", err
 	}
-	ret := make(map[string]interface{})
-	err = json.Unmarshal(rsp, &ret)
-	result, ok := ret["result"]
-	if !ok {
-		fmt.Println("result:", result)
-		return "", err
-	}
-	//fmt.Println("result:", result)
-	return "", nil
+	address = string(result)
+	return address, nil
 }
 
 /*
+	btc dump privkey
+	curl --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "dumpprivkey", "params": ["myaddress"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+*/
+func BtcDumpPrivKey(url string, myaddress string) (privateKey string, err error) {
+	data := make(map[string]interface{})
+	data["jsonrpc"] = "1.0"
+	data["id"] = 1
+	data["method"] = "dumpprivkey"
+	params := []string{}
+	params = append(params, myaddress)
+	data["params"] = params
+	result, err := BtcRpcPost(url , data)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return "", err
+	}
+	privateKey = string(result)
+	return privateKey, nil
+}
 
+
+/*
+	btc rpc
  */
 func BtcRpcPost(url string, send map[string]interface{}) ([]byte, error) {
 	bytesData, err := json.Marshal(send)

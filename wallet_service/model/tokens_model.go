@@ -3,6 +3,7 @@ package models
 import (
 	. "digicon/wallet_service/utils"
 	"errors"
+	"strings"
 )
 
 type Tokens struct {
@@ -49,4 +50,16 @@ func (this *Tokens) GetDecimal(id int) (int, error) {
 		return 0, errors.New("connot find this token")
 	}
 	return this.Decimal, nil
+}
+
+
+/*
+	根据名称获取
+ */
+func (this *Tokens) GetByName(name string)  (bool, error ){
+	exists, err := Engine_common.Where("mark = ?", strings.ToUpper(name)).Get(this)
+	if err != nil {
+		return exists, err
+	}
+	return  exists, nil
 }

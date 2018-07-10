@@ -14,8 +14,8 @@ func main() {
 	flag.Parse()
 
 	go rpc.RPCServerInit()
-	//new(client.Watch).Start("https://rinkeby.infura.io/mew")  // need ...
-	go new(client.BTCWatch).Start("http://bitcoin:bitcoin@localhost:18332/")
+	new(client.Watch).Start("https://rinkeby.infura.io/mew")  // need ...
+	go new(client.BTCWatch).Start()
 	//return
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

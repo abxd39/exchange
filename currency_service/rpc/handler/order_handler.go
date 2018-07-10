@@ -158,6 +158,9 @@ func (s *RPCServer) TradeDetail (ctx context.Context, req *proto.TradeDetailRequ
 
 
 	type Data struct{
+		SellId               uint64     `form:"sell_id"                json:"sell_id"`
+		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
+
 		OrderId              string     `form:"order_id"               json:"order_id"`
 		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
 		Num                  int64      `form:"num"                    json:"num"`
@@ -165,30 +168,35 @@ func (s *RPCServer) TradeDetail (ctx context.Context, req *proto.TradeDetailRequ
 		AliPayName           string     `form:"alipay_name"            json:"alipay_name"`
 		Alipay               string     `form:"alipay"                 json:"alipay"`
 		AliReceiptCode       string     `form:"ali_receipt_code"       json:"ali_receipt_code"`
-		BankpayName         string     `form:"bankpay_name"           json:"bankpay_name"`
+
+		BankpayName         string     `form:"bankpay_name"            json:"bankpay_name"`
 		CardNum              string     `form:"card_num"               json:"card_num"`
 		BankName             string     `form:"bank_name"              json:"bank_name"`
 		BankInfo             string     `form:"bank_info"              json:"bank_info"`
+
 		WechatName           string     `form:"wechat_name"            json:"wechat_name"`
 		Wechat               string     `form:"wechat"                 json:"wechat"`
 		WechatReceiptCode    string     `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
 		PaypalNum            string     `form:"paypal_num"             json:"paypal_num"`
 	}
 	var dt Data
-	dt.OrderId      = order.OrderId
-	dt.Price        = order.Price
-	dt.Num          = order.Num
-	dt.PayPrice     = convert.Int64MulInt64By8Bit(dt.Price, dt.Num)
-	dt.AliPayName   = aliPay.Name
-	dt.Alipay       = aliPay.Alipay
-	dt.AliReceiptCode = aliPay.ReceiptCode
-	dt.BankpayName  = bankPay.Name
-	dt.BankInfo     = bankPay.BankInfo
-	dt.CardNum      = bankPay.CardNum
-	dt.WechatName   = wechatPay.Name
-	dt.Wechat       = wechatPay.Wechat
+	dt.SellId             = order.SellId
+	dt.BuyId              = order.BuyId
+
+	dt.OrderId            = order.OrderId
+	dt.Price              = order.Price
+	dt.Num                = order.Num
+	dt.PayPrice           = convert.Int64MulInt64By8Bit(dt.Price, dt.Num)
+	dt.AliPayName         = aliPay.Name
+	dt.Alipay             = aliPay.Alipay
+	dt.AliReceiptCode     = aliPay.ReceiptCode
+	dt.BankpayName        = bankPay.Name
+	dt.BankInfo           = bankPay.BankInfo
+	dt.CardNum            = bankPay.CardNum
+	dt.WechatName         = wechatPay.Name
+	dt.Wechat             = wechatPay.Wechat
 	dt.WechatReceiptCode  = wechatPay.ReceiptCode
-	dt.PaypalNum    = paypalPay.Paypal
+	dt.PaypalNum          = paypalPay.Paypal
 
 	resultdt, err := json.Marshal(dt)
 	if err != nil {

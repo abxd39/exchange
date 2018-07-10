@@ -292,6 +292,9 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 	})
 
 	type Data struct{
+		SellId               uint64     `form:"sell_id"                json:"sell_id"`
+		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
+
 		OrderId              string     `form:"order_id"               json:"order_id"`
 		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
 		Num                  int64      `form:"num"                    json:"num"`
@@ -314,6 +317,8 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	}else{
 
+		ret.SetDataSection("sell_id", dt.SellId)
+		ret.SetDataSection("buy_id", dt.BuyId)
 		ret.SetDataSection("order_id", dt.OrderId)
 		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
 		ret.SetDataSection("num", convert.Int64ToFloat64By8Bit(dt.Num))
