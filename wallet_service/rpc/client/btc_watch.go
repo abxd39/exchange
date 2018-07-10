@@ -110,12 +110,25 @@ type BTCWatch struct {
 /*
 
  */
-func (this *BTCWatch) Start(url string) {
+func (this *BTCWatch) Start() {
+	//url := "http://bitcoin:bitcoin@localhost:28332/"
+
+
 	fmt.Println("btc start ....")
-	this.Url = url
+
 	this.TxModel = new(models.TokenChainInout)
 	this.TokenInoutMode = new(models.TokenInout)
 	this.TokenModel = new(models.Tokens)
+
+	exists, err := this.TokenModel.GetByName("BTC")
+	if err != nil {
+		fmt.Println("err:", err)
+	}
+	if !exists{
+		fmt.Println("token not exists btc ...")
+	}
+	//fmt.Println(this.TokenModel)
+	this.Url = this.TokenModel.Node
 
 	this.Work()
 }

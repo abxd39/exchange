@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	//"github.com/micro/go-micro/errors"
 )
 
 // 创建btc 钱包
@@ -19,17 +18,11 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 		Chainid:  chainId,
 	}
 
-	url := "http://localhost:18332"
-	user := "bitcoin"
-	pass := "bitcoin"
-	btcClient, err := new(BtcClient).NewClient(url, user, pass)
-	if err != nil {
-		return
-	}
+	tkModel := new(Tokens)
+	tkModel.GetByName("btc")
+	url := tkModel.Node
 
-
-
-	err = btcClient.WalletPassphrase(password, 1*60*60)
+	err = BtcWalletPhrase(url, password, 1*60*60)
 	if err != nil {
 		msg := "钱包解锁失败!"
 		Log.Errorln(msg)
@@ -37,37 +30,34 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 		return
 	}
 
-	//btcClient.ListUnspent()
-	//btcClient.GetTransaction()
-	//btcClient.DecodeRawTransaction()
-	address, err := btcClient.GetNewAddress(string(userId))
+	address, err := BtcGetNewAddress(url, string(userId))
 	if err != nil {
 		msg := "生成地址错误!"
 		Log.Errorln(msg)
 		fmt.Println(msg)
 		return
 	}
-	privateKey, err := btcClient.DumpPrivKey(address)
+
+	privateKey, err := BtcDumpPrivKey(url, address)
 	if err != nil {
 		msg := "获取地址私钥错误"
-		Log.Errorln("获取地址", address.String(), "私钥错误!")
+		Log.Errorln("获取地址", address, "私钥错误!")
 		fmt.Println(msg)
 		return
 	}
 
-	walletTokenModel.Address = address.String()
-	walletTokenModel.Privatekey = privateKey.String()
+	walletTokenModel.Address = address
+	walletTokenModel.Privatekey = privateKey
 
 	type mbtcWallet struct {
 		Address    string
 		Privatekey string
 	}
+
 	btcWallet := new(mbtcWallet)
-	btcWallet.Address = address.String()
-	btcWallet.Privatekey = privateKey.String()
-
+	btcWallet.Address = address
+	btcWallet.Privatekey = privateKey
 	strBtcWallet, _ := json.Marshal(btcWallet)
-
 	walletTokenModel.Keystore = string(strBtcWallet)
 
 	if err != nil {
@@ -92,6 +82,8 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (s
 	token := Tokens{}
 	token.GetByid(int(tokenId))
 	url := token.Node
+
+
 
 	//fmt.Println("----------------------------")
 	err := BtcWalletPhrase(url, password, 1*60*60)

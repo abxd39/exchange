@@ -15,3 +15,10 @@ func USDTSendToAddressFunc(url string, address, mount string) (string, error) {
 }
 
 
+
+/*
+
+*/
+func USD()(string, error){
+	return "", nil
+}
