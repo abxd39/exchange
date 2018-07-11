@@ -110,9 +110,10 @@ func (s *UserRPCCli) CallSendSms(phone, region string, ty int32) (rsp *proto.Com
 	return
 }
 
-func (s *UserRPCCli) CallSendEmail(email string) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallSendEmail(email string,ty int32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.SendEmail(context.TODO(), &proto.EmailRequest{
 		Email: email,
+		Type:ty,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -288,6 +289,15 @@ func (s *UserRPCCli) CallGetIpRecord(uid uint64) (rsp *proto.IpRecordResponse, e
 	rsp, err = s.conn.GetIpRecord(context.TODO(), &proto.CommonPageRequest{
 		Uid:  uid,
 	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *UserRPCCli) CallTokensList() (rsp *proto.TokenListResponse, err error) {
+	rsp, err = s.conn.TokenList(context.TODO(), &proto.NullRequest{})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

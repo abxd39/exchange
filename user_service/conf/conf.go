@@ -11,6 +11,9 @@ var (
 	SmsAccount string //短信平台账号
 	SmsPwd     string //短信平台密码
 	SmsWebUrl  string //短信平台网址
+
+	EmailAppKey    string
+	EmailSecretKey string
 )
 
 func NewConfig(path string) *goconfig.ConfigFile {
@@ -32,4 +35,7 @@ func Init() {
 	SmsPwd = Cfg.MustValue("sms", "pwd", "i1PYZXVaWt2de6")
 	//SmsWebUrl = Cfg.MustValue("sms", "sms_url", "http://smssh1.253.com/msg/send/json")
 	SmsWebUrl = Cfg.MustValue("sms", "sms_url", "https://intapi.253.com")
+
+	EmailAppKey = Cfg.MustValue("email", "app_key", "LTAIcJgRedhxruPq")
+	EmailSecretKey = Cfg.MustValue("email", "secret_key", "d7p6tWRfy0B2QaRXk7q4mb5seLROtb")
 }

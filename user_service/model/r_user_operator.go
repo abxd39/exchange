@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
-	"github.com/liudng/godump"
 )
 
 type RedisOp struct {
@@ -29,6 +28,11 @@ func GetPhoneTagByLogic(phone string, ty int32) string {
 	return getUserTagSms(phone, ty)
 }
 
+//获取email中逻辑标签信息
+func GetEmailTagByLogic(email string, ty int32) string {
+	return fmt.Sprintf("email:%s:code:%d", email, ty)
+}
+
 //获取用户标签
 func GetUserTagByLogic(uid uint64, tag string) string {
 	return fmt.Sprintf("user:%d:info:%s", uid, tag)
@@ -48,8 +52,25 @@ func (s *RedisOp) SetSmsCode(phone string, code string, ty int32) (err error) {
 	return
 }
 
+func (s *RedisOp) GetEmailCode(email string, ty int32) (code string, err error) {
+	code, err = DB.GetRedisConn().Get(GetEmailTagByLogic(email, ty)).Result()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *RedisOp) SetEmailCode(email string, code string, ty int32) (err error) {
+	err = DB.GetRedisConn().Set(GetEmailTagByLogic(email, ty), code, 600*time.Second).Err()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func (s *RedisOp) GetSmsCode(phone string, ty int32) (code string, err error) {
-	godump.Dump(GetPhoneTagByLogic(phone, ty))
 	code, err = DB.GetRedisConn().Get(GetPhoneTagByLogic(phone, ty)).Result()
 	if err != nil {
 		Log.Errorln(err.Error())

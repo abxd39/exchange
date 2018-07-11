@@ -18,12 +18,13 @@ func main() {
 	Log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
+
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 	)
-//	model.SendSms("18664328365", "86",1)
+	//	model.SendSms("18664328365", "86",1)
 
 	sig := <-quitChan
 	Log.Infof("server close by sig %s", sig.String())

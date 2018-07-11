@@ -33,6 +33,7 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/set_new_phone", s.ModifyPhone2)
 		user.POST("/modify_trade_pwd", s.ResetTradePwd)
 
+
 	}
 }
 
@@ -319,6 +320,7 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 
 	type EamilParam struct {
 		Email string `form:"email" binding:"required"`
+		Type   int32  `form:"type" binding:"required"`
 	}
 
 	var param EamilParam
@@ -332,6 +334,14 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_SMS_PHONE_FORMAT)
 		return
 	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallSendEmail(param.Email, param.Type)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
 func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
@@ -502,3 +512,4 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err)
 }
+

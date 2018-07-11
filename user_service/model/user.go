@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/liudng/godump"
 )
 
 type User struct {
@@ -70,8 +69,6 @@ func (s *User) GetUserByPhone(phone string) (ret int32, err error) {
 
 //序列化用户基础数据
 func (s *User) SerialJsonData() (data string, err error) {
-	godump.Dump("ggggggggggggggg")
-	godump.Dump(s.Country)
 	var (
 		google_switch bool
 		pay_switch    bool
@@ -96,7 +93,6 @@ func (s *User) SerialJsonData() (data string, err error) {
 		return
 	}
 
-
 	r := &proto.UserAllData{
 		Base: &proto.UserBaseData{
 			Uid:            s.Uid,
@@ -109,7 +105,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 			NeedPwd:        s.NeedPwd,
 			NeedPwdTime:    int32(s.NeedPwdTime),
 			LoginPwdLevel:  pwd_level,
-			Country:		s.Country,
+			Country:        s.Country,
 		},
 
 		Real: &proto.UserRealData{

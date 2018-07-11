@@ -102,3 +102,4 @@ func Neweth(userid int, tokenid int, password string, chainid int) (addr string,
 	err = walletTokenModel.Create()
 	return walletTokenModel.Address, err
 }
+

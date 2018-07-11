@@ -1,10 +1,8 @@
 package model
 
 import (
-	"digicon/common/random"
-	//"github.com/sirupsen/logrus"
-	//. "digicon/user_service/dao"
 	"bytes"
+	"digicon/common/random"
 	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
 	"encoding/json"

@@ -42,7 +42,7 @@ service UserRPC {
     rpc GetUserInvite(UserInfoRequest) returns (UserInviteResponse) {}
     //获取ip记录
     rpc GetIpRecord(CommonPageRequest) returns (IpRecordResponse) {}
-
+    rpc TokenList (NullRequest) returns (TokenListResponse) {}
     //modify user password
     rpc  ModifyUserLoginPwd (UserModifyLoginPwdRequest) returns (UserModifyLoginPwdResponse) {};
     //modify user phone number
@@ -130,12 +130,13 @@ message SecurityResponse{
 
 message SmsRequest {
     string phone            =1;
-    int32 type              =2;//1表示注册
+    int32 type              =2;
     string region           =3;
 }
 
 message EmailRequest{
     string email            =1;
+    int32 type              =2;
 }
 
 message ModifyPwdRequest {
@@ -326,4 +327,15 @@ message UserSetNickNameResponse{
     int32 err       =1;
     string msg      =2;
     string data     =3;
+}
+
+message TokenMarkBaseData{
+    int32 token_id=1;
+    string mark=2;
+}
+
+message TokenListResponse{
+    int32 err       =1;
+    string message  =2;
+    repeated TokenMarkBaseData data=3;
 }

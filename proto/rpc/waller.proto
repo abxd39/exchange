@@ -1,6 +1,8 @@
 syntax = "proto3";
 package g2u;
 
+import "rpc/define.proto";
+
 service Gateway2Waller {
 	rpc Hello(HelloRequest2) returns (HelloResponse2) {}
 	rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse){}
@@ -16,6 +18,7 @@ service Gateway2Waller {
     //  btc 相关
     rpc BtcSigntx(BtcSigntxRequest) returns (BtcSigntxResponse) {}
     rpc BtcTibi (BtcTibiRequest) returns (BtcResponse) {}
+
 
 }
 
@@ -176,3 +179,7 @@ message GetValueResponse{
     string msg=2;
     GetValuePos data=3;
 }
+
+
+
+
