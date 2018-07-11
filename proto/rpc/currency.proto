@@ -53,14 +53,26 @@ service CurrencyRPC {
 
 
         //Set bank pay
-        rpc BankPay (BankPayRequest) returns (PaysResponse){};
+        rpc BankPay       (BankPayRequest) returns (PaysResponse){};
+        rpc GetBankPay    (PayRequest) returns (PaysResponse) {};
+        rpc UpdateBankPay (BankPayRequest) returns (PaysResponse) {};
+
+
         //Set WeChat pay
         rpc WeChatPay (WeChatPayRequest) returns (PaysResponse){};
+        rpc GetWeChatPay (PayRequest) returns (PaysResponse) {};
+        rpc UpdateWeChatPay (WeChatPayRequest) returns (PaysResponse) {};
+
+
         //Set Alipay
         rpc Alipay (AlipayRequest) returns (PaysResponse){};
+        rpc GetAliPay (PayRequest) returns (PaysResponse) {};
+        rpc UpdateAliPay (AlipayRequest) returns (PaysResponse) {};
+
         //set paypal
         rpc Paypal (PaypalRequest) returns (PaysResponse){};
-
+        rpc GetPaypal (PayRequest) returns (PaysResponse) {};
+        rpc UpdatePaypal (PaypalRequest) returns (PaysResponse) {};
 
 
         // 获取售价

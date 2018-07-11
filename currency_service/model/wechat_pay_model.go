@@ -4,7 +4,6 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	"errors"
 	"time"
 )
 
@@ -14,7 +13,7 @@ type UserCurrencyWechatPay struct {
 	Wechat      string `xorm:"not null default '' comment('微信号码') VARCHAR(20)"`
 	ReceiptCode string `xorm:"not null default '' comment('收款二维码图片路径') VARCHAR(100)"`
 	CreateTime  string `xorm:"not null comment('创建时间') DATETIME"`
-	UpdataTime  string `xorm:"not null comment('修改时间') DATETIME"`
+	UpdateTime  string `xorm:"not null comment('修改时间') DATETIME"`
 }
 
 func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32, error) {
@@ -29,8 +28,15 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 		return ERRCODE_UNKNOWN, err
 	}
 	current := time.Now().Format("2006-01-02 15:04:05")
+
+	//fmt.Println(" wechat ............")
 	if has {
-		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
+		w.UpdateTime = current
+		_, err := engine.Where("uid=?", req.Uid).Update(w)
+		if err != nil {
+			//fmt.Println("wechat err:", err.Error())
+			return ERRCODE_UNKNOWN, err
+		}
 	} else {
 		_, err := engine.InsertOne(&UserCurrencyWechatPay{
 			Uid:         req.Uid,
@@ -38,7 +44,7 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 			Wechat:      req.Wechat,
 			ReceiptCode: req.ReceiptCode,
 			CreateTime:  current,
-			UpdataTime:  current,
+			UpdateTime:  current,
 		})
 		if err != nil {
 			return ERRCODE_UNKNOWN, err

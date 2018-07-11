@@ -20,7 +20,7 @@ type UserCurrencyBankPay struct {
 	UpdataTime string `xorm:"not null comment('修改时间') DATETIME"`
 }
 
-func (*UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error) {
+func (p *UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error) {
 	//比较两次输入的银行卡号是否匹配
 	if b := strings.Compare(req.CardNum, req.VerifyNum); b != 0 {
 		return ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH, errors.New("bankcard number with verify bankcard number mismatching")
@@ -40,12 +40,17 @@ func (*UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error)
 		return ERRCODE_UNKNOWN, err
 	}
 	current := time.Now().Format("2006-01-02 15:04:05")
-	fmt.Printf("SetBankPay%#v\n", req)
+	//fmt.Printf("\n\n SetBankPay    %#v \n\n", req)
 	if has {
-		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
+		p.UpdataTime = current
+		_, err := engine.Where("uid =?", req.Uid).Update(p)
+		if err != nil {
+			fmt.Println("update error:", err.Error())
+			return ERRCODE_UNKNOWN, err
+		}
+		//return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
 	} else {
 		//插入新的纪录
-
 		_, err := engine.InsertOne(&UserCurrencyBankPay{
 			Uid:        req.Uid,
 			Name:       req.Name,
@@ -56,6 +61,7 @@ func (*UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, error)
 			UpdataTime: current,
 		})
 		if err != nil {
+			fmt.Println(err.Error())
 			return ERRCODE_UNKNOWN, err
 		}
 	}

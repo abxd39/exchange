@@ -4,8 +4,8 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	"errors"
 	"time"
+
 )
 
 type UserCurrencyAlipayPay struct {
@@ -18,6 +18,7 @@ type UserCurrencyAlipayPay struct {
 }
 
 func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, error) {
+//func (ali *UserCurrencyAlipayPay) SetAlipay(req) (int32, error) {
 	//验证token
 	//是否需要验证支付宝是否属于该账户
 	//查询数据库是否存在
@@ -30,16 +31,18 @@ func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, er
 	}
 	current := time.Now().Format("2006-01-02 15:04:05")
 	if has {
-		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
+		ali.UpdataTime = current
+		//fmt.Println("ali: ", ali)
+		_, err := engine.Where("uid=?", req.Uid).Update(ali)
+		if err != nil {
+			//fmt.Println("err: ", err.Error())
+			return ERRCODE_UNKNOWN, err 
+		}
 	} else {
-		_, err := engine.InsertOne(&UserCurrencyAlipayPay{
-			Uid:         req.Uid,
-			Name:        req.Name,
-			Alipay:      req.Alipay,
-			ReceiptCode: req.ReceiptCode,
-			CreateTime:  current,
-			UpdataTime:  current,
-		})
+		ali.CreateTime = current
+		ali.UpdataTime = current
+		//fmt.Println("ali:", ali)
+		_, err := engine.InsertOne(ali)
 		if err != nil {
 			return ERRCODE_UNKNOWN, err
 		}
@@ -55,3 +58,4 @@ func (ali *UserCurrencyAlipayPay) GetByUid(uid uint64) ( err  error){
 	_, err = engine.Where("uid =?", uid).Get(ali)
 	return
 }
+
