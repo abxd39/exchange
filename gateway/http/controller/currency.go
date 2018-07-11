@@ -67,7 +67,8 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		// 追加
 		Currency.GET("/selling_price", this.GetSellingPrice)           // 售价
 		Currency.GET("/currency_balance", this.GetCurrencyBalance)     // 余额
-		Currency.GET("/user_currency_rating", this.GetUserRating)      //获取用戶评级
+		Currency.GET("/user_currency_rating", this.GetUserRating)      // 获取用戶评级
+		Currency.GET("/trade_history", this.GetTradeHistory)           // 获取历史交易
 
 	}
 }
@@ -1051,7 +1052,6 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	type UserCurrencyCount struct {
 		Uid        uint64  `json:"uid"`
 
-
 		Cancel     uint32  `json:"cancel"`      // 取消
 		Good       float64 `json:"good"`        // 好评率
 
@@ -1079,3 +1079,16 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	return
 }
 
+
+
+/*
+  func: GetTradeHistory
+ */
+ func(this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
+ 	ret := NewPublciError()
+ 	defer func() {
+ 		c.JSON(http.StatusOK, ret.GetResult())
+ 	}()
+
+	return
+ }

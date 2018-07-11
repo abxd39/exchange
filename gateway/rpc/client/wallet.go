@@ -89,8 +89,8 @@ func (this *WalletRPCCli) CallAddressSave(uid int32, tokenid int32, address stri
 	}
 	return
 }
-func (this *WalletRPCCli) CallAddressList(uid int32, tokenid int32) (rsp *proto.AddressListResponse, err error) {
-	rsp, err = this.conn.AddressList(context.TODO(), &proto.AddressListRequest{Uid: int32(uid), Tokenid: int32(tokenid)})
+func (this *WalletRPCCli) CallAddressList(uid int32) (rsp *proto.AddressListResponse, err error) {
+	rsp, err = this.conn.AddressList(context.TODO(), &proto.AddressListRequest{Uid: int32(uid)})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

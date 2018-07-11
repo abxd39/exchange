@@ -29,12 +29,10 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 	}
 	current := time.Now().Format("2006-01-02 15:04:05")
 
-	//fmt.Println(" wechat ............")
 	if has {
 		w.UpdateTime = current
 		_, err := engine.Where("uid=?", req.Uid).Update(w)
 		if err != nil {
-			//fmt.Println("wechat err:", err.Error())
 			return ERRCODE_UNKNOWN, err
 		}
 	} else {
@@ -60,3 +58,4 @@ func (w *UserCurrencyWechatPay) GetByUid(uid uint64) ( err  error){
 	_, err = engine.Where("uid =?", uid).Get(w)
 	return
 }
+

@@ -144,7 +144,7 @@ message AddrlistPos{
 }
 message AddressListRequest{
     int32 uid=1;
-    int32 tokenid=2;
+    // int32 tokenid=2;
 }
 
 message AddressListResponse{
