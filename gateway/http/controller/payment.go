@@ -20,7 +20,7 @@ type BankPay struct {
 	Verify_num string `form:"verify_num" json:"verify_num"  binding:"required"`
 	Bank_name  string `form:"bank_name"  json:"bank_name"   binding:"required"`
 	Bank_info  string `form:"bank_info"  json:"bank_info"   binding:"required"`
-	//Verify     string `form:"verify"     json:"verify"      binding:"required"`
+	Verify     string `form:"verify"     json:"verify"      binding:"required"`
 }
 
 
@@ -30,7 +30,7 @@ type AliPay struct {
 	Name         string `form:"name"         json:"name"    binding:"required"`
 	Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
 	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
-	//Verify       string `form:"verify"       json:"verify"  binding:"required"`
+	Verify       string `form:"verify"       json:"verify"  binding:"required"`
 }
 
 
@@ -38,7 +38,7 @@ type PaypalPay struct {
 	Uid     uint64 `form:"uid"       json:"uid"     binding:"required"`
 	//Token  string `form:"token"     json:"token"   binding:"required"`
 	Paypal string `form:"paypal"    json:"paypal"  binding:"required"`
-	//Verify string `form:"verify"    json:"verify"  binding:"required"`
+	Verify string `form:"verify"    json:"verify"  binding:"required"`
 }
 
 
@@ -48,7 +48,7 @@ type WeChatPay struct {
 	Name         string `form:"name"         json:"name"    binding:"required"`
 	Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
 	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
-	//Verify       string `form:"verify"       json:"verify"  binding:"required"`
+	Verify       string `form:"verify"       json:"verify"  binding:"required"`
 }
 
 
@@ -75,7 +75,7 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		VerifyNum: req.Verify_num,
 		BankName:  req.Bank_name,
 		BankInfo:  req.Bank_info,
-		//Verify:    req.Verify,
+		Verify:    req.Verify,
 	})
 
 	if err != nil {
@@ -139,7 +139,7 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 		VerifyNum: req.Verify_num,
 		BankName:  req.Bank_name,
 		BankInfo:  req.Bank_info,
-		//Verify:    req.Verify,
+		Verify:    req.Verify,
 	})
 	if err != nil {
 		log.Log.Errorln(err.Error())
@@ -237,7 +237,7 @@ func (this *CurrencyGroup) UpdateAliPay (c *gin.Context){
 		Name:        req.Name,
 		Alipay:      req.Alipay,
 		ReceiptCode: req.Receipt_code,
-		//Verify:      req.Verify,
+		Verify:      req.Verify,
 	})
 	if err != nil {
 		log.Log.Errorln(err.Error())
@@ -272,7 +272,7 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		Uid:    req.Uid,
 		//Token:  req.Token,
 		Paypal: req.Paypal,
-		//Verify: req.Verify,
+		Verify: req.Verify,
 	})
 	if err != nil {
 		log.Log.Errorf(err.Error())
