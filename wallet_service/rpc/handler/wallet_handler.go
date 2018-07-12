@@ -44,16 +44,15 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 		rsp.Msg = err.Error()
 		rsp.Data.Type = tokenModel.Signature
 		rsp.Data.Addr = ""
-
 		return nil
 	}
 	rsp.Code = "0"
 	rsp.Msg = addr
 	rsp.Data.Type = tokenModel.Signature
 	rsp.Data.Addr = addr
-
 	return nil
 }
+
 
 func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest, rsp *proto.SigntxResponse) error {
 	log.Print("Received Say.Signtx request")
@@ -127,6 +126,7 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 	}
 	return nil
 }
+
 func (this *WalletHandler) Tibi(ctx context.Context, req *proto.TibiRequest, rsp *proto.TibiResponse) error {
 	rsp.Code = "0"
 	rsp.Msg = "生成成功"
@@ -205,6 +205,7 @@ func (this *WalletHandler) AddressList(ctx context.Context, req *proto.AddressLi
 	//fmt.Println(rets)
 	return nil
 }
+
 
 //提币地址删除
 func (this *WalletHandler) AddressDelete(ctx context.Context, req *proto.AddressDeleteRequest, rsp *proto.AddressDeleteResponse) error {

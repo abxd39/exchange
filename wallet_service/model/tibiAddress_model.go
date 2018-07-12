@@ -20,8 +20,8 @@ func (this *TibiAddress) Save(uid int, tokenid int, address string, mark string)
 	this.Mark = mark
 	affected, err := utils.Engine_wallet.Insert(this)
 	return int(affected), err
-
 }
+
 
 func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 	this.Id = uid
@@ -31,8 +31,8 @@ func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 
 	if err != nil {
 		return nil, err
-
 	}
+
 	for i := 0; i < len(rets); i++ {
 		temp := &proto.AddrlistPos{
 			Id:      int32(rets[i].Id),
@@ -43,6 +43,7 @@ func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 		}
 		lists = append(lists, temp)
 	}
+
 	return lists, err
 
 }

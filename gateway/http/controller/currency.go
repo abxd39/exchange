@@ -418,10 +418,9 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 		ret.SetErrCode(int32(code))
 		return
 	}
-
 	ret.SetErrCode(ERRCODE_SUCCESS)
-
 }
+
 
 // 修改广告(买卖)状态
 func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
@@ -855,10 +854,10 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 
 	// 请求的数据结构
 	req := struct {
-		Token   string `form:"token" json:"token" binding:"required"`       // token验证
-		OrderId string `form:"order_id" json:"order_id" binding:"required"` // 订单ID
-		Uid     uint64 `form:"uid" json:"uid" binding:"required"`           // 用户ID
-		Content string `form:"content" json:"content" binding:"required"`
+		Token   string `form:"token"     json:"token"         binding:"required"`       // token验证
+		OrderId string `form:"order_id"  json:"order_id"      binding:"required"` // 订单ID
+		Uid     uint64 `form:"uid"       json:"uid"           binding:"required"`           // 用户ID
+		Content string `form:"content"   json:"content"       binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&req)
