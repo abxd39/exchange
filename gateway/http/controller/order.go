@@ -345,3 +345,16 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 	}
 
 }
+
+
+/*
+  func: GetTradeHistory
+ */
+func(this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	return
+}

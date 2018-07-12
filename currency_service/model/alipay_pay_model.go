@@ -6,6 +6,8 @@ import (
 	proto "digicon/proto/rpc"
 	"time"
 
+	"digicon/currency_service/rpc/client"
+	"digicon/currency_service/log"
 )
 
 type UserCurrencyAlipayPay struct {
@@ -19,7 +21,25 @@ type UserCurrencyAlipayPay struct {
 
 func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, error) {
 //func (ali *UserCurrencyAlipayPay) SetAlipay(req) (int32, error) {
-	//验证token
+
+	//////////////////  1.  验证  验证码 /////////////////////////
+	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
+		Uid:      req.Uid,
+		Code:     req.Verify,
+		AuthType: 9 ,  // 设置支付宝支付 9
+	})
+	if err != nil {
+		log.Log.Errorln(err.Error())
+		return ERRCODE_SMS_CODE_DIFF, err
+	}
+	if  rsp.Code != ERRCODE_SUCCESS {
+		log.Log.Errorln(err.Error())
+		return ERRCODE_SMS_CODE_DIFF, err
+	}
+
+
+
+
 	//是否需要验证支付宝是否属于该账户
 	//查询数据库是否存在
 	engine := dao.DB.GetMysqlConn()

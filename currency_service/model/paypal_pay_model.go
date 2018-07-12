@@ -5,6 +5,10 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"time"
+
+	"digicon/currency_service/rpc/client"
+	"digicon/currency_service/log"
+	"fmt"
 )
 
 type UserCurrencyPaypalPay struct {
@@ -15,7 +19,23 @@ type UserCurrencyPaypalPay struct {
 }
 
 func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, error) {
-	//验证token
+
+	/////////////////  1.  验证  验证码 /////////////////////////
+	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
+		Uid:       req.Uid,
+		Code:      req.Verify,
+		AuthType:  10,  // 设置银行卡支付 10
+	})
+	fmt.Println("=========================", rsp)
+	if err != nil {
+		log.Log.Errorln(err.Error())
+		return ERRCODE_SMS_CODE_DIFF, err
+	}
+	if  rsp.Code != ERRCODE_SUCCESS {
+		log.Log.Errorln(err.Error())
+		return ERRCODE_SMS_CODE_DIFF, err
+	}
+
 	//调用实名接口
 
 	//检查数据库是否存在该条记录

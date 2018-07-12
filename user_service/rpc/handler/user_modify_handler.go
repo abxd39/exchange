@@ -63,3 +63,18 @@ func (*RPCServer) SetNickName(ctx context.Context, req *proto.UserSetNickNameReq
 	}
 	return nil
 }
+
+
+/*
+	短信验证rpc
+ */
+func (*RPCServer) AuthVerify(ctx context.Context, req *proto.AuthVerifyRequest, rsp *proto.AuthVerifyResponse) ( err error) {
+	u := model.User{}
+	_ , err = u.GetUser(req.Uid)
+	rsp.Code, err = model.AuthSms(u.Phone, req.AuthType ,req.Code)
+	if err != nil {
+		log.Log.Errorln(err.Error())
+		return err
+	}
+	return nil
+}

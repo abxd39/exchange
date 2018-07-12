@@ -55,8 +55,25 @@ service UserRPC {
     rpc GetNickName (UserGetNickNameRequest)returns (UserGetNickNameResponse){};
     // set user nick name and head sculpture
     rpc SetNickName(UserSetNickNameRequest)returns (UserSetNickNameResponse){};
+
+
+
+    // 短信验证rpc
+    rpc AuthVerify (AuthVerifyRequest) returns (AuthVerifyResponse) {};
+
 }
 
+message AuthVerifyRequest  {
+    int32   auth_type = 1;    //  验证类型   1 注册 2 忘记密码 3 修改手机号码 4重置谷歌验证码 5 重置资金密码 6 修改登录密码 7 设置银行卡支付 8 设置微信支付 9 设置支付宝支付 10 设置PayPal支付
+    uint64  uid       = 2;    //
+    string  code      = 3;    //  短信验证码
+}
+
+message AuthVerifyResponse {
+    int32   code    = 1;
+    string  data    = 2;
+    string  message = 3;
+}
 
 message HelloRequest {
 	string name = 1;

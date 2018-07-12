@@ -109,10 +109,9 @@ func (*RPCServer) UpdateBankPay(ctx context.Context, req *proto.BankPayRequest, 
 }
 
 
+
+
 ////////////////////  paypal /////////////////////////
-
-
-
 func (*RPCServer) Paypal(ctx context.Context, req *proto.PaypalRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyPaypalPay{}
 	p.Paypal = req.Paypal
