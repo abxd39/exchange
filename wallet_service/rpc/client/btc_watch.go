@@ -96,6 +96,7 @@ type TxRawResult struct {
 	Blocktime     int64  `json:"blocktime,omitempty"`
 }
 
+
 /*
 	查询btc 是否有转账
 */

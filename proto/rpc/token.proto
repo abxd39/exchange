@@ -37,7 +37,8 @@ service TokenRPC {
 
         //实时交易
         rpc Trade(TradeRequest) returns (TradeRespone) {};
-
+        //行情列表
+        rpc Quotation(QuotationRequest) returns (QuotationRespone) {};
         //########market##########//
 }
 
@@ -235,4 +236,12 @@ message TokenBalanceResponse{
     int32 err                       =1;
     string message                  =2;
     TokenBaseData balance                 =3;
+}
+
+message QuotationRequest{
+
+}
+
+message QuotationResponse{
+
 }

@@ -193,7 +193,8 @@ func (this *WalletHandler) AddressList(ctx context.Context, req *proto.AddressLi
 	rsp.Msg = "列表成功"
 	//rsp.Data = []AddrlistPos
 	TibiAddressModel := new(TibiAddress)
-	rets, err := TibiAddressModel.List(int(req.Uid), int(req.Tokenid))
+	//rets, err := TibiAddressModel.List(int(req.Uid), int(req.Tokenid))
+	rets, err := TibiAddressModel.List(int(req.Uid))
 	if err != nil {
 		return err
 	}

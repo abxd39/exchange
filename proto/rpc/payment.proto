@@ -8,40 +8,50 @@ message PaysResponse{
     string  data        =3;
 }
 
+
+message PayRequest {
+    uint64    uid        = 1;
+}
+
+
+
+
 message BankPayRequest{
     uint64   uid         =1;
-    string  token       =2;
-    string  name        =3;
-    string  card_num    =4;
-    string  verify_num  =5;  
-    string  bank_name   =6;
-    string  bank_info   =7;
-    string  verify      =8;
+    string  name        =2;
+    string  card_num    =3;
+    string  verify_num  =4;
+    string  bank_name   =5;
+    string  bank_info   =6;
+    string  verify      =7;
+
+   // string  token       =2;
 }
 
 
 
 message WeChatPayRequest{
     uint64   uid         =1;
-    string token        =2;
-    string  name        =3;
-    string  wechat      =4;
-    string  receipt_code=5;
-    string  verify      =6;
+    string  name         =2;
+    string  wechat       =3;
+    string  receipt_code =4;
+    string  verify       =5;
+    // string  token        =2;
 }
 
 message AlipayRequest{
     uint64   uid         =1;
-    string token        =2;
-    string  name        =3;
-    string  alipay      =4;
-    string  receipt_code=5;
-    string  verify      =6;
+    string  name         =2;
+    string  alipay       =3;
+    string  receipt_code =4;
+    string  verify       =5;
+    //    string token        =2;
 }
 
 message PaypalRequest{
     uint64  uid         =1;
-    string  token        =2;
-    string  paypal      =3;
-    string  verify      =4;
+    string  paypal      =2;
+    string  verify      =3;
+
+    //    string  token        =2;
 }

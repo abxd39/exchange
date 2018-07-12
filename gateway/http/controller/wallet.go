@@ -258,10 +258,10 @@ func (this *WalletGroup) AddressSave(ctx *gin.Context) {
 func (this *WalletGroup) AddressList(ctx *gin.Context) {
 	ret := NewPublciError()
 	type Param struct {
-		Uid      int32  `form:"uid" binding:"required"`
-		Token_id int32  `form:"token_id" binding:"required"`
-		Address  string `form:"address" binding:"required"`
-		Mark     string `form:"mark" binding:"required"`
+		Uid      int32  `form:"uid"      binding:"required"`
+		//Token_id int32  `form:"token_id" binding:"required"`
+		//Address  string `form:"address"  binding:"required"`
+		//Mark     string `form:"mark"     binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -270,7 +270,8 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.WalletSevice.CallAddressList(param.Uid, param.Token_id)
+	//rsp, err := rpc.InnerService.WalletSevice.CallAddressList(param.Uid, param.Token_id)
+	rsp, err := rpc.InnerService.WalletSevice.CallAddressList(param.Uid)
 	if err != nil {
 		ctx.String(http.StatusOK, err.Error())
 		return

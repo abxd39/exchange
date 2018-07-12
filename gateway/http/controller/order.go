@@ -62,7 +62,7 @@ type BackOrder struct {
 	OtherType
 	Num   int64 `form:"num"        json:"num"     binding:"required"`  // 交易数量
 	Price int64 `form:"price"      json:"price"   binding:"required"`  // 货币类型
-	Fee   int64 `form:"fee"        json:"fee"      binding:"required"` // 手续费用
+	Fee   int64 `form:"fee"        json:"fee"     binding:"required"` // 手续费用
 	OtherOrderType
 }
 
@@ -70,14 +70,14 @@ type BackOrder struct {
 //type AddOrder
 type AddOrder struct {
 	Uid      int32    `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
-	AdId     uint64   `form:"ad_id"      json:"ad_id"      binding:"required"`         // 广告id
-	Num      float64  `form:"num"         json:"num"        binding:"required"`         // 交易数量
+	AdId     uint64   `form:"ad_id"     json:"ad_id"      binding:"required"`         // 广告id
+	Num      float64  `form:"num"       json:"num"        binding:"required"`         // 交易数量
 }
 
 type BackAddOrder struct {
 	Uid      int32    `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
-	AdId     uint64   `form:"ad_id"      json:"ad_id"      binding:"required"`         // 广告id
-	Num      int64  `form:"num"         json:"num"        binding:"required"`         // 交易数量
+	AdId     uint64   `form:"ad_id"     json:"ad_id"      binding:"required"`         // 广告id
+	Num      int64    `form:"num"       json:"num"        binding:"required"`         // 交易数量
 	//PayId    uint64 `form:"pay_id"     json:"pay_id"     binding:"required"`         // 支付类型
 	//Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
 	//OtherType
@@ -294,6 +294,7 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 	type Data struct{
 		SellId               uint64     `form:"sell_id"                json:"sell_id"`
 		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
+		States               uint32     `form:"states"                 json:"states"`
 
 		OrderId              string     `form:"order_id"               json:"order_id"`
 		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
@@ -319,6 +320,8 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 
 		ret.SetDataSection("sell_id", dt.SellId)
 		ret.SetDataSection("buy_id", dt.BuyId)
+		ret.SetDataSection("status", dt.States)
+
 		ret.SetDataSection("order_id", dt.OrderId)
 		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
 		ret.SetDataSection("num", convert.Int64ToFloat64By8Bit(dt.Num))

@@ -4,7 +4,6 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	"errors"
 	"time"
 )
 
@@ -29,7 +28,12 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 	}
 	current := time.Now().Format("2006-01-02 15:04:05")
 	if has {
-		return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
+		pal.UpdateTime = current
+		_, err := engine.Update(pal)
+		if err != nil {
+			return ERRCODE_UNKNOWN, err
+		}
+		//return ERRCODE_ACCOUNT_EXIST, errors.New("account already exist!!")
 	} else {
 		_, err := engine.InsertOne(&UserCurrencyPaypalPay{
 			Uid:        req.Uid,

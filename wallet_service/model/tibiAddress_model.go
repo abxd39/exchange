@@ -24,15 +24,15 @@ func (this *TibiAddress) Save(uid int, tokenid int, address string, mark string)
 
 }
 
-func (this *TibiAddress) List(uid int, tokenid int) (lists []*proto.AddrlistPos, err error) {
+func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 	this.Id = uid
-	this.TokenId = tokenid
-
+	//this.TokenId = tokenid
 	//rets,err:=utils.Engine_wallet.Query("select * from tibi_address where uid=? and token_id=?",uid,tokenid)
 	rets := make([]TibiAddress, 0)
 	//lists:= make([]proto.AddrlistPos, 0)
 
-	err = utils.Engine_wallet.Where("uid=? and token_id=?", uid, tokenid).Find(&rets)
+	//err = utils.Engine_wallet.Where("uid=? and token_id=?", uid, tokenid).Find(&rets)
+	err = utils.Engine_wallet.Where("uid=?", uid).Find(&rets)
 	fmt.Println(rets)
 	if err != nil {
 		return nil, err
