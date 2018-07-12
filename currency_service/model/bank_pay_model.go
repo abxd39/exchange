@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"digicon/currency_service/rpc/client"
+	"digicon/currency_service/log"
 )
 
 type UserCurrencyBankPay struct {
@@ -25,11 +27,26 @@ func (p *UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, erro
 	if b := strings.Compare(req.CardNum, req.VerifyNum); b != 0 {
 		return ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH, errors.New("bankcard number with verify bankcard number mismatching")
 	}
-	//验证token
+	/////////////////  1.  验证  验证码 /////////////////////////
+	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
+		Uid:       req.Uid,
+		Code:      req.Verify,
+		AuthType:  7,  // 设置银行卡支付 7
+	})
+	if err != nil {
+		log.Log.Errorln(err.Error())
+		return ERRCODE_SMS_CODE_DIFF, err
+	}
+	if  rsp.Code != ERRCODE_SUCCESS {
+		log.Log.Errorln(err.Error())
+		return ERRCODE_SMS_CODE_DIFF, err
+	}
+
 
 	//实名
 	//银行卡实名 电话与银行卡实名
 	//调用接口
+
 
 	engine := dao.DB.GetMysqlConn()
 	//检查数据库是否已经存在uid

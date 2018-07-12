@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 )
 
 func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {
@@ -36,6 +37,7 @@ func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int3
 	fmt.Println("lllllllllllllllllllllllllllllllllll")
 	fmt.Println(ph.Phone)
 	//验证短信
+	//model.AuthSms()
 	result, err = AuthSms(ph.Phone, SMS_MODIFY_LOGIN_PWD, req.Verify)
 	if err != nil {
 		return

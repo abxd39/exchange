@@ -12,42 +12,53 @@ import (
 	"encoding/json"
 )
 
-type BankPay struct {
-	Uid         uint64 `form:"uid"        json:"uid"         binding:"required"`
-	//Token      string `form:"token"      json:"token"       binding:"required"`
+
+
+type RspBankPay struct {
+	Uid        uint64 `form:"uid"        json:"uid"         binding:"required"`
 	Name       string `form:"name"       json:"name"        binding:"required"`
 	Card_num   string `form:"card_num"   json:"card_num"    binding:"required"`
 	Verify_num string `form:"verify_num" json:"verify_num"  binding:"required"`
 	Bank_name  string `form:"bank_name"  json:"bank_name"   binding:"required"`
 	Bank_info  string `form:"bank_info"  json:"bank_info"   binding:"required"`
+}
+type BankPay struct {
+	RspBankPay
 	Verify     string `form:"verify"     json:"verify"      binding:"required"`
 }
 
 
-type AliPay struct {
+type  RspAliPay struct {
 	Uid           uint64 `form:"uid"          json:"uid"     binding:"required"`
-	//Token        string `form:"token"        json:"token"   binding:"required"`
 	Name         string `form:"name"         json:"name"    binding:"required"`
 	Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
-	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
+	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`	
+}
+
+type AliPay struct {
+	RspAliPay
 	Verify       string `form:"verify"       json:"verify"  binding:"required"`
 }
 
+type RspPaypalPay struct {
+	Uid     uint64 `form:"uid"       json:"uid"     binding:"required"`
+	Paypal string `form:"paypal"    json:"paypal"  binding:"required"`
+}
 
 type PaypalPay struct {
-	Uid     uint64 `form:"uid"       json:"uid"     binding:"required"`
-	//Token  string `form:"token"     json:"token"   binding:"required"`
-	Paypal string `form:"paypal"    json:"paypal"  binding:"required"`
+	RspPaypalPay
 	Verify string `form:"verify"    json:"verify"  binding:"required"`
 }
 
-
-type WeChatPay struct {
-	Uid           uint64 `form:"uid"          json:"uid"     binding:"required"`
-	//Token        string `form:"token"        json:"token"   binding:"required"`
+type RspWeChatPay struct {
+	Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
 	Name         string `form:"name"         json:"name"    binding:"required"`
 	Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
-	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
+	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`	
+}
+
+type WeChatPay struct {
+	RspWeChatPay 
 	Verify       string `form:"verify"       json:"verify"  binding:"required"`
 }
 
@@ -110,7 +121,7 @@ func (this *CurrencyGroup) GetBankPay (c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	var bankpay BankPay
+	var bankpay RspBankPay
 	err = json.Unmarshal([]byte(rsp.Data), &bankpay)
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	ret.SetDataSection("bank_pay", bankpay)
@@ -204,7 +215,7 @@ func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallGetAliPay(&proto.PayRequest{
 		Uid:req.Uid,
 	})
-	var alipay AliPay
+	var alipay RspAliPay
 	err = json.Unmarshal([]byte(rsp.Data), &alipay)
 	if err != nil {
 		log.Log.Errorln(err.Error())
@@ -233,7 +244,7 @@ func (this *CurrencyGroup) UpdateAliPay (c *gin.Context){
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallUpdateAliPay(&proto.AlipayRequest{
 		Uid:         req.Uid,
-		//Token:       req.Token,
+		//Token:      req.Token,
 		Name:        req.Name,
 		Alipay:      req.Alipay,
 		ReceiptCode: req.Receipt_code,
@@ -301,7 +312,7 @@ func (this *CurrencyGroup) GetPaypal(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallGetPaypal(&proto.PayRequest{
 		Uid:req.Uid,
 	})
-	var paypay PaypalPay
+	var paypay RspPaypalPay
 	err = json.Unmarshal([]byte(rsp.Data), &paypay)
 	if err != nil {
 		log.Log.Errorln(err.Error())
@@ -394,7 +405,7 @@ func (this *CurrencyGroup) GetWeChatPay (c *gin.Context){
 	rsp, err := rpc.InnerService.CurrencyService.CallGetWeChatPay(&proto.PayRequest{
 		Uid:req.Uid,
 	})
-	var wechatPay WeChatPay
+	var wechatPay RspWeChatPay
 	err = json.Unmarshal([]byte(rsp.Data), &wechatPay)
 	if err != nil {
 		log.Log.Errorln(err.Error())

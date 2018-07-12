@@ -20,7 +20,7 @@ message BankPayRequest{
     uint64   uid         =1;
     string  name        =2;
     string  card_num    =3;
-    string  verify_num  =4;
+    string  verify_num  =4;   // card varify
     string  bank_name   =5;
     string  bank_info   =6;
     string  verify      =7;
