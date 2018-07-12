@@ -173,8 +173,10 @@ func (this *WalletHandler) GetValue(ctx context.Context, req *proto.GetValueRequ
 	return nil
 }
 
+
 //添加提币地址
 func (this *WalletHandler) AddressSave(ctx context.Context, req *proto.AddressSaveRequest, rsp *proto.AddressSaveResponse) error {
+	fmt.Println(req.Address)
 	rsp.Code = "0"
 	rsp.Msg = "添加1成功"
 	rsp.Data = new(proto.NilPos)
@@ -182,6 +184,7 @@ func (this *WalletHandler) AddressSave(ctx context.Context, req *proto.AddressSa
 	_, err := TibiAddressModel.Save(int(req.Uid), int(req.Tokenid), req.Address, req.Mark)
 	if err != nil {
 		rsp.Code = "1"
+		fmt.Println("add address save error!", err.Error())
 		rsp.Msg = err.Error()
 	}
 	return nil
@@ -199,7 +202,7 @@ func (this *WalletHandler) AddressList(ctx context.Context, req *proto.AddressLi
 		return err
 	}
 	rsp.Data = rets
-	fmt.Println(rets)
+	//fmt.Println(rets)
 	return nil
 }
 

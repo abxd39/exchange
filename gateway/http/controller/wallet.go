@@ -115,18 +115,32 @@ func (this *WalletGroup) Index(ctx *gin.Context) {
 
 }
 func (this *WalletGroup) Create(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
 	userid, _ := strconv.Atoi(ctx.Query("uid"))
 	tokenid, _ := strconv.Atoi(ctx.Query("token_id"))
 
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(userid, tokenid)
 	if err != nil {
-		ctx.String(http.StatusOK, err.Error())
+		//ctx.String(http.StatusOK, err.Error())
+		fmt.Println(rsp.Code, rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-
-	ctx.JSON(http.StatusOK, rsp)
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
 }
+
+
 func (this *WalletGroup) Signtx(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
 	userid, err1 := strconv.Atoi(ctx.Query("uid"))
 	tokenid, err2 := strconv.Atoi(ctx.Query("token_id"))
 	//to := "0x8e430b7fc9c41736911e1699dbcb6d4753cbe3b6"
@@ -134,55 +148,72 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 	gasprice, err3 := strconv.ParseInt(ctx.Query("gasprice"), 10, 64)
 	amount := ctx.Query("amount")
 	if err1 != nil || err2 != nil || err3 != nil {
-		ctx.String(http.StatusOK, "参数错误")
+		// ctx.String(http.StatusOK, "参数错误")
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallSigntx(userid, tokenid, to, gasprice, amount)
 	if err != nil {
-		ctx.String(http.StatusOK, "err rsp")
+		fmt.Println(rsp.Code, rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		//ctx.String(http.StatusOK, "err rsp")
 		return
 	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 
-	ctx.JSON(http.StatusOK, rsp)
 }
+
+
 func (this *WalletGroup) Update(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
 	rsp, err := rpc.InnerService.WalletSevice.Callhello("eth")
 	if err != nil {
-		ctx.String(http.StatusOK, "err 0000 rsp")
+		fmt.Println(rsp)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+			//ctx.String(http.StatusOK, "err 0000 rsp")
 		return
 	}
-	ctx.JSON(http.StatusOK, rsp)
+	//ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 }
 
 func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
 	type Param struct {
 		TokenId int32  `form:"token_id" binding:"required"`
 		Signtx  string `form:"signtx" binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		ctx.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-
 	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx)
 	if err != nil {
-		ctx.String(http.StatusOK, err.Error())
+		fmt.Println(rsp.Code)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ctx.JSON(http.StatusOK, rsp)
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
 
 //申请提币
 func (this *WalletGroup) Tibi(ctx *gin.Context) {
 	ret := NewPublciError()
-	//defer func() {
-	//	ctx.JSON(http.StatusOK, ret.GetResult())
-	//}()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
 	type Param struct {
 		Uid      int32  `form:"uid" binding:"required"`
 		Token_id int32  `form:"token_id" binding:"required"`
@@ -192,45 +223,53 @@ func (this *WalletGroup) Tibi(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		ctx.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	rsp, err := rpc.InnerService.WalletSevice.CallTibi(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount)
 	if err != nil {
-		ctx.String(http.StatusOK, err.Error())
+		fmt.Println(rsp.Code, rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ctx.JSON(http.StatusOK, rsp)
+	//ctx.JSON(http.StatusOK, rsp)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
 
 //查询钱包链上额度
 func (this *WalletGroup) GetValue(ctx *gin.Context) {
 	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
 	type Param struct {
 		Uid      int32 `form:"uid" binding:"required"`
 		Token_id int32 `form:"token_id" binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		ctx.JSON(http.StatusOK, ret)
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallGetValue(param.Uid, param.Token_id)
 	if err != nil {
-		ctx.String(http.StatusOK, err.Error())
+		fmt.Println(rsp.Code)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ctx.JSON(http.StatusOK, rsp)
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
 
+
 func (this *WalletGroup) AddressSave(ctx *gin.Context) {
 	ret := NewPublciError()
-
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
 	type Param struct {
 		Uid      int32  `form:"uid" binding:"required"`
 		Token_id int32  `form:"token_id" binding:"required"`
@@ -239,49 +278,52 @@ func (this *WalletGroup) AddressSave(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
-
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		ctx.JSON(http.StatusOK, ret.GetResult())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressSave(param.Uid, param.Token_id, param.Address, param.Mark)
 	if err != nil {
-
-		ctx.String(http.StatusOK, err.Error())
+		fmt.Println(rsp.Code)
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-
-	ctx.JSON(http.StatusOK, rsp)
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
 func (this *WalletGroup) AddressList(ctx *gin.Context) {
 	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
 	type Param struct {
 		Uid      int32  `form:"uid"      binding:"required"`
-		//Token_id int32  `form:"token_id" binding:"required"`
-		//Address  string `form:"address"  binding:"required"`
-		//Mark     string `form:"mark"     binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		ctx.JSON(http.StatusOK, ret.GetResult())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
-	//rsp, err := rpc.InnerService.WalletSevice.CallAddressList(param.Uid, param.Token_id)
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressList(param.Uid)
 	if err != nil {
-		ctx.String(http.StatusOK, err.Error())
+		fmt.Println(rsp.Code, rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-
-	ctx.JSON(http.StatusOK, rsp)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection("msg", rsp.Msg)
 	return
 }
+
+
 func (this *WalletGroup) AddressDelete(ctx *gin.Context) {
 	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
 	type Param struct {
 		Uid int32 `form:"uid" binding:"required"`
 		Id  int32 `form:"id" binding:"required"`
@@ -289,15 +331,15 @@ func (this *WalletGroup) AddressDelete(ctx *gin.Context) {
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		ctx.JSON(http.StatusOK, ret.GetResult())
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressDelete(param.Uid, param.Id)
 	if err != nil {
-		ctx.String(http.StatusOK, err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
 		return
 	}
-	ctx.JSON(http.StatusOK, rsp)
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
