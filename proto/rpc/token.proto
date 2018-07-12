@@ -38,7 +38,7 @@ service TokenRPC {
         //实时交易
         rpc Trade(TradeRequest) returns (TradeRespone) {};
         //行情列表
-        rpc Quotation(QuotationRequest) returns (QuotationRespone) {};
+        rpc Quotation(QuotationRequest) returns (QuotationResponse) {};
         //########market##########//
 }
 
