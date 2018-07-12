@@ -15,9 +15,8 @@ type QuenesConfig struct {
 	Scope        string `xorm:"comment('振幅') DECIMAL(6,2)"`
 	Low          int64  `xorm:"comment('最低价') BIGINT(20)"`
 	High         int64  `xorm:"comment('最高价') BIGINT(20)"`
-	Vol          int64  `xorm:"comment('成交量') BIGINT(20)"`
+	Amount       int64  `xorm:"comment('成交量') BIGINT(20)"`
 }
-
 
 func (s *QuenesConfig) GetQuenes(uid uint64) []QuenesConfig {
 	/*
@@ -34,6 +33,16 @@ func (s *QuenesConfig) GetQuenes(uid uint64) []QuenesConfig {
 func (s *QuenesConfig) GetAllQuenes() []QuenesConfig {
 	t := make([]QuenesConfig, 0)
 	err := DB.GetMysqlConn().Where("switch=1").Find(&t)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil
+	}
+	return t
+}
+
+func (s *QuenesConfig) GetQuenesByType(token_id int32) []QuenesConfig {
+	t := make([]QuenesConfig, 0)
+	err := DB.GetMysqlConn().Where("switch=1 and token_id=?", token_id).Find(&t)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil

@@ -100,6 +100,14 @@ func (s *TokenRPCCli) CallTokenBalance(p *proto.TokenBalanceRequest) (rsp *proto
 	return
 }
 
+func (s *TokenRPCCli) CallQuotation(p *proto.QuotationRequest) (rsp *proto.QuotationResponse, err error) {
+	rsp, err = s.conn.Quotation(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
 
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID

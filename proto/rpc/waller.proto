@@ -1,7 +1,7 @@
 syntax = "proto3";
 package g2u;
 
-import "rpc/define.proto";
+
 
 service Gateway2Waller {
 	rpc Hello(HelloRequest2) returns (HelloResponse2) {}

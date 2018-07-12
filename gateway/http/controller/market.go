@@ -19,6 +19,8 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 		action.GET("/entrust_quenes", s.EntrustQuene)
 
 		action.GET("/trade_list", s.TradeList)
+
+		action.GET("/quotation",s.Quotation)
 	}
 }
 
@@ -139,5 +141,34 @@ func (s *MarketGroup) TradeList(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list",rsp.Data)
+}
+
+func (s *MarketGroup) Quotation(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type QuotationParam struct {
+		TokenId int32  `form:"token_id" binding:"required"`
+	}
+
+	var param QuotationParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallQuotation(&proto.QuotationRequest{
+		TokenId:param.TokenId,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(ERRCODE_SUCCESS)
 	ret.SetDataSection("list",rsp.Data)
 }

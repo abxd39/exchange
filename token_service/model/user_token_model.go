@@ -315,8 +315,8 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 }
 
 func (s *UserToken) GetAllToken(uid uint64) []*UserToken {
-	r:=make([]*UserToken,0)
-	err := DB.GetMysqlConn().Where("uid=?",uid).Find(&r)
+	r := make([]*UserToken, 0)
+	err := DB.GetMysqlConn().Where("uid=?", uid).Find(&r)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil

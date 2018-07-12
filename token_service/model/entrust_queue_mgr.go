@@ -70,32 +70,31 @@ func (s *EntrustQueneMgr) Init() bool {
 	return true
 }
 
-
-func Test()  {
+func Test() {
 	/*
-	b, err := json.Marshal(&TradeInfo{
-		CreateTime: 1531130889,
-		TradePrice: 1,
-		Num:        2,
-	})
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
+			b, err := json.Marshal(&TradeInfo{
+				CreateTime: 1531130889,
+				TradePrice: 1,
+				Num:        2,
+			})
+			if err != nil {
+				Log.Errorln(err.Error())
+				return
+			}
 
-return
-	b,err := DB.GetRedisConn().Get(GenSourceKey("1531136959_3")).Bytes()
-	if err != nil {
-		Log.Fatalln(err.Error())
 		return
-	}
+			b,err := DB.GetRedisConn().Get(GenSourceKey("1531136959_3")).Bytes()
+			if err != nil {
+				Log.Fatalln(err.Error())
+				return
+			}
 
-	g := &EntrustData{}
-	err = json.Unmarshal(b, g)
-	if err != nil {
-		Log.Errorln(err)
-		return
-	}
-	godump.Dump(g)
-*/
+			g := &EntrustData{}
+			err = json.Unmarshal(b, g)
+			if err != nil {
+				Log.Errorln(err)
+				return
+			}
+			godump.Dump(g)
+	*/
 }

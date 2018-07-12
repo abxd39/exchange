@@ -41,51 +41,51 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 
 func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolsResponse) error {
 	t := new(model.QuenesConfig).GetAllQuenes()
-	rsp.Usdt=new(proto.SymbolsBaseData)
-	rsp.Usdt.Data=make([]*proto.SymbolBaseData,0)
-	rsp.Btc=new(proto.SymbolsBaseData)
-	rsp.Btc.Data=make([]*proto.SymbolBaseData,0)
-	rsp.Eth=new(proto.SymbolsBaseData)
-	rsp.Eth.Data=make([]*proto.SymbolBaseData,0)
-	rsp.Sdc=new(proto.SymbolsBaseData)
-	rsp.Sdc.Data=make([]*proto.SymbolBaseData,0)
+	rsp.Usdt = new(proto.SymbolsBaseData)
+	rsp.Usdt.Data = make([]*proto.SymbolBaseData, 0)
+	rsp.Btc = new(proto.SymbolsBaseData)
+	rsp.Btc.Data = make([]*proto.SymbolBaseData, 0)
+	rsp.Eth = new(proto.SymbolsBaseData)
+	rsp.Eth.Data = make([]*proto.SymbolBaseData, 0)
+	rsp.Sdc = new(proto.SymbolsBaseData)
+	rsp.Sdc.Data = make([]*proto.SymbolBaseData, 0)
 	for _, v := range t {
 		if v.TokenId == 1 {
 			rsp.Usdt.TokenId = int32(v.TokenId)
 			rsp.Usdt.Data = append(rsp.Usdt.Data, &proto.SymbolBaseData{
-				Symbol:   v.Name,
-				Price:    convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
-				Scope:    v.Scope,
-				TradeTokenId:int32(v.TokenTradeId),
+				Symbol:       v.Name,
+				Price:        convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice:     convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:        v.Scope,
+				TradeTokenId: int32(v.TokenTradeId),
 			})
 		} else if v.TokenId == 2 {
 			rsp.Btc.TokenId = int32(v.TokenId)
 			rsp.Btc.Data = append(rsp.Btc.Data, &proto.SymbolBaseData{
-				Symbol:   v.Name,
-				Price:    convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
-				Scope:    v.Scope,
-				TradeTokenId:int32(v.TokenTradeId),
+				Symbol:       v.Name,
+				Price:        convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice:     convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:        v.Scope,
+				TradeTokenId: int32(v.TokenTradeId),
 			})
 
 		} else if v.TokenId == 3 {
 			rsp.Eth.TokenId = int32(v.TokenId)
 			rsp.Eth.Data = append(rsp.Eth.Data, &proto.SymbolBaseData{
-				Symbol:   v.Name,
-				Price:    convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
-				Scope:    v.Scope,
-				TradeTokenId:int32(v.TokenTradeId),
+				Symbol:       v.Name,
+				Price:        convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice:     convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:        v.Scope,
+				TradeTokenId: int32(v.TokenTradeId),
 			})
-		}else if v.TokenId==4{
+		} else if v.TokenId == 4 {
 			rsp.Sdc.TokenId = int32(v.TokenId)
 			rsp.Sdc.Data = append(rsp.Sdc.Data, &proto.SymbolBaseData{
-				Symbol:   v.Name,
-				Price:    convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice: convert.Int64ToStringBy8Bit(7 * v.Price),
-				Scope:    v.Scope,
-				TradeTokenId:int32(v.TokenTradeId),
+				Symbol:       v.Name,
+				Price:        convert.Int64ToStringBy8Bit(v.Price),
+				CnyPrice:     convert.Int64ToStringBy8Bit(7 * v.Price),
+				Scope:        v.Scope,
+				TradeTokenId: int32(v.TokenTradeId),
 			})
 		} else {
 			log.Fatalf("errf type %d", v.TokenId)
@@ -132,13 +132,13 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 	} else {
 		for _, v := range others {
 			g := &proto.EntrustBaseData{
-				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
+				OnPrice: convert.Int64ToStringBy8Bit(v.OnPrice),
 				//SurplusNum: convert.Int64ToStringBy8Bit(v.SurplusNum),
-				SurplusNum:   convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum,v.OnPrice)),
-				CnyPrice:convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(7,v.OnPrice)),
+				SurplusNum: convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum, v.OnPrice)),
+				CnyPrice:   convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(7, v.OnPrice)),
 			}
 			//g.Price = convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(v.OnPrice, v.SurplusNum))
-			g.Price =convert.Int64ToStringBy8Bit (v.SurplusNum)
+			g.Price = convert.Int64ToStringBy8Bit(v.SurplusNum)
 			rsp.Buy = append(rsp.Buy, g)
 		}
 	}
@@ -155,7 +155,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 			g := &proto.EntrustBaseData{
 				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 				SurplusNum: convert.Int64ToStringBy8Bit(v.SurplusNum),
-				CnyPrice:convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(7,v.OnPrice)),
+				CnyPrice:   convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(7, v.OnPrice)),
 			}
 			g.Price = convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(v.OnPrice, v.SurplusNum))
 			rsp.Sell = append(rsp.Sell, g)
@@ -237,17 +237,33 @@ func (s *RPCServer) Trade(ctx context.Context, req *proto.TradeRequest, rsp *pro
 }
 
 func (s *RPCServer) TokenBalance(ctx context.Context, req *proto.TokenBalanceRequest, rsp *proto.TokenBalanceResponse) error {
-	d:=&model.UserToken{}
-	err := d.GetUserToken(req.Uid,int(req.TokenId))
+	d := &model.UserToken{}
+	err := d.GetUserToken(req.Uid, int(req.TokenId))
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
 		rsp.Message = err.Error()
 		return nil
 	}
-	rsp.Balance=&proto.TokenBaseData{
-		TokenId:int32(d.TokenId),
-		Balance:convert.Int64ToStringBy8Bit(d.Balance),
+	rsp.Balance = &proto.TokenBaseData{
+		TokenId: int32(d.TokenId),
+		Balance: convert.Int64ToStringBy8Bit(d.Balance),
 	}
 
+	return nil
+}
+
+func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
+	d := &model.QuenesConfig{}
+	g := d.GetQuenesByType(req.TokenId)
+	for _, v := range g {
+		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
+			Symbol: v.Name,
+			Price:  convert.Int64ToStringBy8Bit(v.Price),
+			Scope:  v.Scope,
+			Low:    convert.Int64ToStringBy8Bit(v.Low),
+			High:   convert.Int64ToStringBy8Bit(v.High),
+			Amount: convert.Int64ToStringBy8Bit(v.Amount),
+		})
+	}
 	return nil
 }

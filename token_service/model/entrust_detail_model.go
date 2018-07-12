@@ -72,8 +72,8 @@ func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail 
 
 func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	m := make([]EntrustDetail, 0)
-	i:=[]int{0,1}
-	err := DB.GetMysqlConn().Where("uid=?", uid).In("states",i).Limit(limit, page-1).Find(&m)
+	i := []int{0, 1}
+	err := DB.GetMysqlConn().Where("uid=?", uid).In("states", i).Limit(limit, page-1).Find(&m)
 	if err != nil {
 		Log.Fatalln(err.Error())
 		return nil
