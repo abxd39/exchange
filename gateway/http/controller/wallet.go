@@ -17,14 +17,14 @@ type WalletGroup struct {
 func (this *WalletGroup) Router(router *gin.Engine) {
 
 	r := router.Group("wallet")
-	r.GET("create", this.Create)       // 创建钱包
-	r.GET("signtx", this.Signtx)       // 签名
-	r.GET("sendrawtx", this.SendRawTx) // 广播
-	r.GET("tibi", this.Tibi)           //
+	r.POST("create", this.Create)       // 创建钱包
+	r.POST("signtx", this.Signtx)       // 签名
+	r.POST("sendrawtx", this.SendRawTx) // 广播
+	r.POST("tibi", this.Tibi)           //
 	r.GET("getvalue", this.GetValue)   // 查询链上余额
-	r.GET("address/save", this.AddressSave)
+	r.POST("address/save", this.AddressSave)
 	r.GET("address/list", this.AddressList)
-	r.GET("address/delete", this.AddressDelete)
+	r.POST("address/delete", this.AddressDelete)
 
 	//btc signtx
 	r.POST("signtx_btc", this.BtcSigntx) // btc 签名
