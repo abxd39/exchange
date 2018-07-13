@@ -37,6 +37,13 @@ type User struct {
 	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
 }
 
+
+const (
+	AUTH_EMAIL  = 2//00000010
+	AUTH_PHONE  = 1//00000001
+	AUTH_GOOGLE = 8//00001000
+)
+
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
@@ -545,13 +552,9 @@ func (s *User) DelGoogleCode(input uint32) (ret int32, err error) {
 	return
 }
 
-const (
-	AUTH_EMAIL  = 2//00000010
-	AUTH_PHONE  = 1//00000001
-	AUTH_GOOGLE = 8//00001000
-	//00001011 00000110
-)
 
+
+//获取验证类型
 func (s *User) GetAuthMethod() int32 {
 	if s.authSecurityCode(AUTH_GOOGLE) {
 		return AUTH_GOOGLE
@@ -563,6 +566,7 @@ func (s *User) GetAuthMethod() int32 {
 	return 0
 }
 
+
 func (s *User) authSecurityCode(code int) bool {
 	g := s.SecurityAuth & code
 	if g > 0 {
@@ -571,6 +575,7 @@ func (s *User) authSecurityCode(code int) bool {
 	return false
 }
 
+//自动判断验证方式
 func (s *User) AuthCodeByAl(ukey, code string,ty int32)(ret int32, err error) {
 	m := s.GetAuthMethod()
 	switch m {
@@ -593,6 +598,7 @@ func (s *User) AuthCodeByAl(ukey, code string,ty int32)(ret int32, err error) {
 	return ERRCODE_UNKNOWN,errors.New("err auth methon")
 }
 
+//验证通过修改权限
 func (s *User) SecurityChmod(code int) (err error) {
 	s.SecurityAuth=s.SecurityAuth^code
 	_,err = DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("security_auth").Update(s)
