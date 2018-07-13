@@ -80,12 +80,16 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	}
-	fmt.Println("req order:", req.Order)
-	fmt.Println("od num: ", od.Num)
+	//fmt.Println("req order:", req.Order)
+	//fmt.Println("od num: ", od.Num)
 
 	ads := new(model.Ads)
 	var nowAds *model.Ads
 	nowAds = ads.Get(od.AdId)
+	if nowAds == nil {
+		rsp.Code = errdefine.ERRCODE_ADS_NOTEXIST
+		return nil
+	}
 
 	od.AdType = nowAds.TypeId
 	od.Price = int64(nowAds.Price)

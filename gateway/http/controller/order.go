@@ -51,7 +51,8 @@ type OneOrder struct {
 type Order struct {
 	OrderRequest
 	OneOrder
-	Fee float64 `form:"fee"          json:"fee"  ` // 手续费用
+	TotalPrice   float64  `form:"total_price"  json:"total_price"   `   //
+	Fee          float64  `form:"fee"          json:"fee"  ` // 手续费用
 	OtherOrderType
 }
 
@@ -153,6 +154,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		o.CancelType = bod.CancelType
 		o.CreatedTime = bod.CreatedTime
 		o.UpdatedTime = bod.UpdatedTime
+		o.TotalPrice  = convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(bod.Num, bod.Price))
 		orders = append(orders, o)
 	}
 
