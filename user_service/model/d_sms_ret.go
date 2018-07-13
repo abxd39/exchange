@@ -45,8 +45,6 @@ func SendSms(phone, country string, ty int32) (ret int32, err error) {
 	return
 }
 
-
-
 //验证短信
 func AuthSms(phone string, ty int32, code string) (ret int32, err error) {
 	r := RedisOp{}

@@ -61,8 +61,6 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 		rsp.Err = u.Register(req, "phone")
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
-
-		return nil
 	} else if req.Type == 2 {
 		ret, err := model.AuthEmail(req.Ukey, model.SMS_REGISTER, req.Code)
 		if err != nil {
@@ -116,6 +114,43 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 
 //忘记密码
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
+	var ret int32
+	var err error
+
+	u := &model.User{}
+	if req.Type == 1 { //电话找回
+		ret, err = u.GetUserByPhone(req.Ukey)
+	}else if  req.Type == 2 {
+		ret, err = u.GetUserByEmail(req.Ukey)
+	}else  {
+		ret =ERRCODE_PARAM
+		return nil
+	}
+
+	if err != nil {
+		rsp.Err = ret
+		rsp.Message = err.Error()
+		return err
+	}
+	
+	
+	ret,err = u.AuthCodeByAl(req.Ukey,req.Code,req.Type)
+	if err != nil {
+		rsp.Err = ret
+		rsp.Message = err.Error()
+		return err
+	}
+
+	err = u.ModifyPwd(req.Pwd)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+	rsp.Err = ERRCODE_SUCCESS
+	return nil
+
+	/*
 	if req.Type == 1 { //电话找回
 		ret, err := model.AuthSms(req.Ukey, req.Type, req.Code)
 		if err != nil {
@@ -151,52 +186,11 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		rsp.Err = ERRCODE_SUCCESS
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
-		/*
-			r := model.RedisOp{}
-			code, err := r.GetSmsCode(req.Ukey, tools.SMS_FORGET)
-			if err == redis.Nil {
-				rsp.Err = ERRCODE_SMS_CODE_NIL
-				rsp.Message = GetErrorMessage(rsp.Err)
-				return nil
-			} else if err != nil {
-				rsp.Err = ERRCODE_UNKNOWN
-				rsp.Message = err.Error()
-				return nil
-			}
-			if code == req.Code {
-				u := model.User{}
-				ret, err := u.GetUserByPhone(req.Ukey)
-				if err != nil {
-					rsp.Err = ret
-					rsp.Message = err.Error()
-					return err
-				}
-				if ret != ERRCODE_SUCCESS {
-					rsp.Err = ret
-					rsp.Message = GetErrorMessage(rsp.Err)
-					return nil
-				}
-				err = u.ModifyPwd(req.Pwd)
-				if err != nil {
-					rsp.Err = ERRCODE_UNKNOWN
-					rsp.Message = err.Error()
-					return nil
-				}
-				rsp.Err = ERRCODE_SUCCESS
-				rsp.Message = GetErrorMessage(rsp.Err)
-				return nil
-
-			} else {
-				rsp.Err = ERRCODE_SMS_CODE_DIFF
-				rsp.Message = GetErrorMessage(rsp.Err)
-				return nil
-			}
-		*/
 
 	} else if req.Type == 2 { //邮箱找回
 
 	}
-
+*/
 	rsp.Err = ERRCODE_PARAM
 	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
@@ -288,12 +282,42 @@ func (s *RPCServer) GetIpRecord(ctx context.Context, req *proto.CommonPageReques
 }
 
 func (this *RPCServer) TokenList(ctx context.Context, req *proto.NullRequest, rsp *proto.TokenListResponse) error {
-	g:=new(model.Tokens).GetTokens()
-	for _,v:=range g{
-		rsp.Data=append(rsp.Data,&proto.TokenMarkBaseData{
-			TokenId:int32(v.Id),
-			Mark:v.Mark,
+	g := new(model.Tokens).GetTokens()
+	for _, v := range g {
+		rsp.Data = append(rsp.Data, &proto.TokenMarkBaseData{
+			TokenId: int32(v.Id),
+			Mark:    v.Mark,
 		})
 	}
+	return nil
+}
+
+func (this *RPCServer) CheckSecurity(ctx context.Context, req *proto.CheckSecurityRequest, rsp *proto.CheckSecurityResponse) error {
+	u := &model.User{}
+	var ret int32
+	var err error
+	if req.Type == 3 {
+		ret, err = u.GetUser(req.Uid)
+
+	} else if req.Type == 2 {
+		ret, err = u.GetUserByEmail(req.Ukey)
+
+	} else if req.Type == 1 {
+		ret, err = u.GetUserByPhone(req.Ukey)
+	} else {
+		rsp.Err = ERRCODE_PARAM
+		return nil
+	}
+	if err != nil {
+		rsp.Err = ret
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
+		return nil
+	}
+	rsp.Auth = u.GetAuthMethod()
 	return nil
 }

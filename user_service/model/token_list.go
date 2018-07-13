@@ -29,11 +29,10 @@ type Tokens struct {
 	Decimal   int    `xorm:"not null default 1 comment('精度 1个eos最小精度的10的18次方') INT(11)"`
 }
 
-
-func (this *Tokens) GetTokens()  []Tokens{
-	g:=make([]Tokens,0)
-	err:=DB.GetMysqlConn().Find(&g)
-	if err!=nil {
+func (this *Tokens) GetTokens() []Tokens {
+	g := make([]Tokens, 0)
+	err := DB.GetMysqlConn().Find(&g)
+	if err != nil {
 		Log.Errorln(err.Error())
 		return nil
 	}

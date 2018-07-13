@@ -32,7 +32,7 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/modify_phone", s.ModifyPhone1)
 		user.POST("/set_new_phone", s.ModifyPhone2)
 		user.POST("/modify_trade_pwd", s.ResetTradePwd)
-
+		user.GET("/get_auth_method", s.GetCheckAuthMethod)
 
 	}
 }
@@ -511,5 +511,35 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err)
+}
+
+
+
+func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Ukey         string `form:"ukey" binding:"required"`
+		Type         int32 `form:"type" binding:"required"`
+	}{}
+	if err := c.ShouldBindQuery(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallCheckAuthSecurity(&proto.CheckSecurityRequest{
+		Ukey:          req.Ukey,
+		Type:req.Type,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err)
+	ret.SetDataSection("auth",rsp.Auth)
 }
 

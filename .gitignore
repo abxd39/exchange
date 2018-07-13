@@ -25,3 +25,10 @@
 ./currency_service/logfile/
 ./token_service/logfile/
 ./public_service/logfile/
+
+./usr_service/user_service
+./gateway/gateway
+./wallet_service/wallet_service
+./currency_service/currency_service
+./token_service/token_service
+./public_service/user/public_service

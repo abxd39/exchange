@@ -4,12 +4,12 @@ import (
 	"digicon/common/random"
 	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
+	. "digicon/user_service/log"
+	"errors"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dm"
 	"github.com/go-redis/redis"
-	"errors"
-	. "digicon/user_service/log"
 )
 
 func SendEmail(email string, ty int32) (err error) {
@@ -87,14 +87,14 @@ func ProcessEmailLogic(ty int32, email string) (ret int32, err error) {
 		}
 
 		err = SendEmail(email, ty)
-		if err!=nil {
+		if err != nil {
 			return
 		}
 
 		return
 	default:
 		err = SendEmail(email, ty)
-		if err!=nil {
+		if err != nil {
 			return
 		}
 		return

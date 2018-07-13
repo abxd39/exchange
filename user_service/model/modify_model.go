@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
 )
 
 func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (result int32, err error) {

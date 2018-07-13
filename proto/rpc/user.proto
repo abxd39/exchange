@@ -34,6 +34,8 @@ service UserRPC {
 
     //获取个人基础信息
     rpc GetUserInfo(UserInfoRequest) returns (UserInfoResponse) {}
+    //获取账户安全验证方式
+    rpc CheckSecurity(CheckSecurityRequest) returns (CheckSecurityResponse) {}
 
     //获取实名信息
     rpc GetUserRealName(UserInfoRequest) returns (UserRealNameResponse) {}
@@ -355,4 +357,16 @@ message TokenListResponse{
     int32 err       =1;
     string message  =2;
     repeated TokenMarkBaseData data=3;
+}
+
+message CheckSecurityRequest{
+    string ukey     =1;
+    int32  type     =2;//1手机2邮箱3用户ID
+    uint64 uid       =3;
+}
+
+message CheckSecurityResponse{
+    int32 err       =1;
+    string message  =2;
+    int32 auth      =3;
 }

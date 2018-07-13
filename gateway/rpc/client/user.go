@@ -305,6 +305,16 @@ func (s *UserRPCCli) CallTokensList() (rsp *proto.TokenListResponse, err error) 
 	return
 }
 
+
+func (s *UserRPCCli) CallCheckAuthSecurity(p *proto.CheckSecurityRequest) (rsp *proto.CheckSecurityResponse, err error) {
+	rsp, err = s.conn.CheckSecurity(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

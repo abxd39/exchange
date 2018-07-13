@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/pkg/errors"
 )
 
 type User struct {
@@ -32,6 +33,8 @@ type User struct {
 	PayPwd           string `xorm:"comment('支付密码') VARCHAR(255)"`
 	NeedPwd          bool   `xorm:"comment('免密设置1开启0关闭') TINYINT(1)"`
 	NeedPwdTime      int    `xorm:"comment('免密周期') INT(11)"`
+	Status           int    `xorm:"default 0 comment('用户状态，1正常，2冻结') INT(11)"`
+	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
 }
 
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
@@ -53,6 +56,23 @@ func (s *User) GetUser(uid uint64) (ret int32, err error) {
 //根据手机查询用户
 func (s *User) GetUserByPhone(phone string) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+
+//根据邮箱查询用户
+func (s *User) GetUserByEmail(email string) (ret int32, err error) {
+	ok, err := DB.GetMysqlConn().Where("email=?", email).Get(s)
 	if err != nil {
 		Log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
@@ -183,22 +203,47 @@ func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err 
 
 //通用注册
 func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
-	if ret, err := s.CheckUserExist(req.Ukey, filed); err != nil || ret != ERRCODE_SUCCESS {
-		return ret
-	}
-
-	e := &User{
-		Pwd:     req.Pwd,
-		Phone:   req.Ukey,
-		Account: req.Ukey,
-		Country: req.Country,
-	}
-	_, err := DB.GetMysqlConn().Cols("pwd", filed, "account", "country").Insert(e)
+	ret, err := s.CheckUserExist(req.Ukey, filed)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
-	sql := fmt.Sprintf("%s=?", filed)
+
+	if ret != ERRCODE_SUCCESS {
+		return ret
+	}
+
+	/*
+		e := &User{
+			Pwd:     req.Pwd,
+			Phone:   req.Ukey,
+			Account: req.Ukey,
+			Country: req.Country,
+		}
+		_, err = DB.GetMysqlConn().Cols("pwd", filed, "account", "country").Insert(e)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return ERRCODE_UNKNOWN
+		}
+	*/
+	var chmod int
+	if filed == "phone" {
+		chmod = AUTH_PHONE
+	} else if filed == "email" {
+		chmod = AUTH_EMAIL
+	} else {
+		Log.Fatalf("register error filed %s", filed)
+	}
+
+	sql := fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
+	_, err = DB.GetMysqlConn().Exec(sql)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+
+	e := &User{}
+	sql = fmt.Sprintf("%s=?", filed)
 	_, err = DB.GetMysqlConn().Where(sql, req.Ukey).Get(e)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -336,7 +381,7 @@ func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 //检查用户注册过没
 func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 	sql := fmt.Sprintf("%s=?", col)
-	ok, err := DB.GetMysqlConn().Where(sql, param).Get(&User{})
+	ok, err := DB.GetMysqlConn().Where(sql, param).Exist(&User{})
 	if err != nil {
 		Log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
@@ -474,6 +519,7 @@ func (s *User) AuthGoogleCode(key string, input uint32) (ret int32, err error) {
 	}
 
 	if input == uint32(r) {
+		err = s.SecurityChmod(AUTH_GOOGLE)
 		ret = ERRCODE_SUCCESS
 		return
 	}
@@ -497,4 +543,62 @@ func (s *User) DelGoogleCode(input uint32) (ret int32, err error) {
 		}
 	}
 	return
+}
+
+const (
+	AUTH_EMAIL  = 2//00000010
+	AUTH_PHONE  = 1//00000001
+	AUTH_GOOGLE = 8//00001000
+	//00001011 00000110
+)
+
+func (s *User) GetAuthMethod() int32 {
+	if s.authSecurityCode(AUTH_GOOGLE) {
+		return AUTH_GOOGLE
+	} else if s.authSecurityCode(AUTH_PHONE) {
+		return AUTH_PHONE
+	} else if s.authSecurityCode(AUTH_EMAIL) {
+		return AUTH_EMAIL
+	}
+	return 0
+}
+
+func (s *User) authSecurityCode(code int) bool {
+	g := s.SecurityAuth & code
+	if g > 0 {
+		return true
+	}
+	return false
+}
+
+func (s *User) AuthCodeByAl(ukey, code string,ty int32)(ret int32, err error) {
+	m := s.GetAuthMethod()
+	switch m {
+	case AUTH_EMAIL:
+		return AuthEmail(ukey,ty,code)
+	case AUTH_PHONE:
+		return AuthSms(ukey,ty,code)
+	case AUTH_GOOGLE:
+		var code_ int
+		code_,err = strconv.Atoi(code)
+		if err!=nil {
+			Log.Errorln(err.Error())
+			return
+		}
+		return s.AuthGoogleCode(s.GoogleVerifyId,uint32(code_))
+	default:
+		break
+	}
+
+	return ERRCODE_UNKNOWN,errors.New("err auth methon")
+}
+
+func (s *User) SecurityChmod(code int) (err error) {
+	s.SecurityAuth=s.SecurityAuth^code
+	_,err = DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("security_auth").Update(s)
+	if err!=nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return nil
 }
