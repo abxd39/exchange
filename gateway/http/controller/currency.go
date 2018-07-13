@@ -622,14 +622,12 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 				}
 			}
 		}
-
-		fmt.Println(userList)
+		//fmt.Println(userList)
 	}
-
 	ret.SetDataValue(reaList)
 	ret.SetErrCode(ERRCODE_SUCCESS)
-
 }
+
 
 // 个人法币交易列表 - (广告(买卖))
 func (this *CurrencyGroup) AdsUserList(c *gin.Context) {

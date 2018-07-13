@@ -95,7 +95,6 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-		//ctx.String(http.StatusOK, err.Error())
 		return
 	}
 
@@ -105,8 +104,6 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	}
 	ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
 	ret.SetDataSection("txhash", rsp.Data)
-	//ret.SetDataValue(rsp.Data)
-	//ctx.JSON(http.StatusOK, rsp)
 	return
 }
 
@@ -125,9 +122,7 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(userid, tokenid)
 	if err != nil {
-		//ctx.String(http.StatusOK, err.Error())
-		fmt.Println(rsp.Code, rsp.Msg)
-		ret.SetDataSection("msg", rsp.Msg)
+		//ret.SetDataSection("msg", rsp.Msg)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -157,10 +152,9 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.CallSigntx(userid, tokenid, to, gasprice, amount)
 	if err != nil {
-		fmt.Println(rsp.Code, rsp.Msg)
-		ret.SetDataSection("msg", rsp.Msg)
+		//fmt.Println(rsp.Code, rsp.Msg)
+		//ret.SetDataSection("msg", rsp.Msg)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-		//ctx.String(http.StatusOK, "err rsp")
 		return
 	}
 	ret.SetDataSection("data", rsp.Data)
@@ -177,12 +171,12 @@ func (this *WalletGroup) Update(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.Callhello("eth")
 	if err != nil {
-		fmt.Println(rsp)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 			//ctx.String(http.StatusOK, "err 0000 rsp")
 		return
 	}
-	//ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection("data", rsp)
+	//fmt.Println("")
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 }
 
@@ -203,7 +197,6 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx)
 	if err != nil {
 		fmt.Println(rsp.Code)
-		ret.SetDataSection("msg", rsp.Msg)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -234,7 +227,6 @@ func (this *WalletGroup) Tibi(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.CallTibi(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount)
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
-		ret.SetDataSection("msg", rsp.Msg)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -262,7 +254,6 @@ func (this *WalletGroup) GetValue(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.CallGetValue(param.Uid, param.Token_id)
 	if err != nil {
-		fmt.Println(rsp.Code)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -292,7 +283,6 @@ func (this *WalletGroup) AddressSave(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressSave(param.Uid, param.Token_id, param.Address, param.Mark)
 	if err != nil {
-		fmt.Println(rsp.Code)
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -316,14 +306,17 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressList(param.Uid)
+
 	if err != nil {
-		fmt.Println(rsp.Code, rsp.Msg)
+		fmt.Println("ERRCODE_UNKNOWN:", ERRCODE_UNKNOWN)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
+	}else{
+		fmt.Println("SUCCESS:", ERRCODE_SUCCESS)
+		ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+		ret.SetDataSection("data", rsp.Data)
 	}
-	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
-	ret.SetDataSection("data", rsp.Data)
-	ret.SetDataSection("msg", rsp.Msg)
+
 	return
 }
 
@@ -345,7 +338,7 @@ func (this *WalletGroup) AddressDelete(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressDelete(param.Uid, param.Id)
 	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 	ret.SetDataSection("data", rsp.Data)
