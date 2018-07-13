@@ -31,7 +31,8 @@ type Order struct {
 	PayStatus   uint32 `xorm:"not null default 0 comment('支付状态: 1待支付 2待放行(已支付) 3确认支付(已完成)') TINYINT(1)"  json:"pay_status"`
 	CancelType  uint32 `xorm:"not null default 0 comment('取消类型: 1卖方 2 买方') TINYINT(1)"   json:"cancel_type"`
 	CreatedTime string `xorm:"not null comment('创建时间') DATETIME"  json:"created_time"`
-	UpdatedTime string `xorm:"comment('修改时间') DATETIME"    json:"updated_time"`
+	UpdatedTime string `xorm:"comment('修改时间') DATETIME"     json:"updated_time"`
+	ExpiryTime  string `xorm:"comment('过期时间') DATETIME"     json:"expiry_time" `
 }
 
 //列出订单
@@ -144,12 +145,11 @@ func (this *Order) Ready(Id uint64, updateTimeStr string) (code int32, msg strin
 	return
 }
 
+
 // 添加订单
 func (this *Order) Add() (id uint64, code int32) {
 	var err error
 	/////////////
-
-
 	engine := dao.DB.GetMysqlConn()
 
 	uCurrency := new(UserCurrency)
@@ -171,7 +171,9 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 
-	nowTime := time.Now().Format("2006-01-02 15:04:05")
+	nTime := time.Now()
+	nowTime := nTime.Format("2006-01-02 15:04:05")
+
 	session := engine.NewSession()
 
 	/// 1. 卖家冻结
@@ -200,7 +202,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	/// 2. 记录卖家冻结
 	var buffer bytes.Buffer
 	buffer.WriteString("insert into user_currency_history ")
-	buffer.WriteString("(uid, order_id, token_id, num, fee, operator, address, states, created_time ,updated_time)")
+	buffer.WriteString("(uid, order_id, token_id, num, fee, operator, address, states, created_time ,updated_time )")
 	buffer.WriteString("values (?, ?, ?, ?, ?,  ?, ?, ?, ? , ?)")
 	insertSql := buffer.String()
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
@@ -233,8 +235,10 @@ func (this *Order) Add() (id uint64, code int32) {
 	}
 	id = this.Id
 	code = ERRCODE_SUCCESS
+	go CheckOrderExiryTime(id, this.ExpiryTime)
 	return
 }
+
 
 // 确认放行(支付完成)
 // set state = 3
@@ -416,11 +420,16 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 		return
 	}
 	err = session.Commit()
+	if err != nil {
+		Log.Errorln(err.Error())
+		session.Rollback()
+		code = ERRCODE_UNKNOWN
+		return
+	}
+
 	code = ERRCODE_SUCCESS
 	return
 }
-
-
 
 
 /*
@@ -438,3 +447,41 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	}
  	return
  }
+
+
+
+///////////////////// func ////////////////
+/*
+
+*/
+func CheckOrderExiryTime(id uint64, exiryTime string) {
+	for {
+		now := time.Now().Format("2006-01-02 15:04:05")
+		if getHourDiffer(now, exiryTime) <= 0{
+			engine := dao.DB.GetMysqlConn()
+			_, err := engine.Where("id=?", id).Update("status=?",4)
+			if err != nil {
+				Log.Errorln("order id exiry time out update status = 4 error! id:", id, err.Error())
+			}
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	return
+}
+
+
+//获取相差时间
+func getHourDiffer(start_time, end_time string) int64 {
+	var hour int64
+	t1, err := time.ParseInLocation("2006-01-02 15:04:05", start_time, time.Local)
+	t2, err := time.ParseInLocation("2006-01-02 15:04:05", end_time, time.Local)
+	if err == nil && t1.Before(t2) {
+		diff := t2.Unix() - t1.Unix() //
+		hour = diff / 3600
+		return hour
+	} else {
+		return hour
+	}
+}
+

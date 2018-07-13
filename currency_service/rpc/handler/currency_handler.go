@@ -9,6 +9,7 @@ import (
 	"digicon/proto/common"
 	"github.com/gin-gonic/gin/json"
 	"fmt"
+	"digicon/common/convert"
 )
 
 type RPCServer struct{}
@@ -327,19 +328,12 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 // 获取当前法币账户余额
 func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
 	balance, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
-	type BalanceData struct {
-		Balance int64
-	}
 	if err != nil {
-		dt := BalanceData{Balance: 0}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
+		rsp.Data = string("0.00")
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	}else{
-		dt := BalanceData{Balance: balance.Balance}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
+		rsp.Data = convert.Int64ToStringBy8Bit(balance.Balance)
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		return nil
 	}
