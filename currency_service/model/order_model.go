@@ -455,11 +455,20 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 
 */
 func CheckOrderExiryTime(id uint64, exiryTime string) {
+	od := new(Order)
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
 		if getHourDiffer(now, exiryTime) <= 0{
 			engine := dao.DB.GetMysqlConn()
-			_, err := engine.Where("id=?", id).Update("status=?",4)
+			_, err := engine.Where("id=?", id).Get(od)
+			if err != nil {
+				Log.Errorln("get order states error!")
+			}else{
+				if od.States == 0 || od.States == 2 || od.States == 3 {
+					break
+				}
+			}
+			_, err = engine.Where("id=?", id).Update("status=?",4)
 			if err != nil {
 				Log.Errorln("order id exiry time out update status = 4 error! id:", id, err.Error())
 			}

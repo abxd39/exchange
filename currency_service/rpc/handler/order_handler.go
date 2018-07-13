@@ -164,6 +164,8 @@ func (s *RPCServer) TradeDetail (ctx context.Context, req *proto.TradeDetailRequ
 		SellId               uint64     `form:"sell_id"                json:"sell_id"`
 		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
 		States               uint32     `form:"states"                 json:"states"`
+		ExpiryTime           string     `xorm:"expiry_time"            json:"expiry_time" `
+
 
 		OrderId              string     `form:"order_id"               json:"order_id"`
 		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
@@ -187,6 +189,8 @@ func (s *RPCServer) TradeDetail (ctx context.Context, req *proto.TradeDetailRequ
 	dt.SellId             = order.SellId
 	dt.BuyId              = order.BuyId
 	dt.States             = order.States
+	dt.ExpiryTime         = order.ExpiryTime
+
 
 	dt.OrderId            = order.OrderId
 	dt.Price              = order.Price

@@ -295,6 +295,7 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 		SellId               uint64     `form:"sell_id"                json:"sell_id"`
 		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
 		States               uint32     `form:"states"                 json:"states"`
+		ExpiryTime           string     `xorm:"expiry_time"            json:"expiry_time" `
 
 		OrderId              string     `form:"order_id"               json:"order_id"`
 		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
@@ -321,6 +322,7 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 		ret.SetDataSection("sell_id", dt.SellId)
 		ret.SetDataSection("buy_id", dt.BuyId)
 		ret.SetDataSection("status", dt.States)
+		ret.SetDataSection("expiry_time", dt.ExpiryTime)
 
 		ret.SetDataSection("order_id", dt.OrderId)
 		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
