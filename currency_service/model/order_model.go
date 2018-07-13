@@ -464,7 +464,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 			if err != nil {
 				Log.Errorln("get order states error!")
 			}else{
-				if od.States == 0 || od.States == 2 || od.States == 3 {
+				if od.States == 0 || od.States == 2 || od.States == 3 || od.States == 4 {           // 0删除 2待放行(已支付) 3确认支付(已完成) 4取消
 					break
 				}
 			}
