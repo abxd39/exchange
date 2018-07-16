@@ -1,9 +1,9 @@
 package rpc
 
 import (
-	proto "digicon/proto/rpc"
 	cf "digicon/admin_service/conf"
 	"digicon/admin_service/rpc/handler"
+	proto "digicon/proto/rpc"
 	"fmt"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"

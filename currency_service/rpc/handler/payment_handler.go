@@ -6,19 +6,18 @@ import (
 	proto "digicon/proto/rpc"
 	"fmt"
 
-	"golang.org/x/net/context"
 	"digicon/proto/common"
 	"github.com/gin-gonic/gin/json"
+	"golang.org/x/net/context"
 )
 
 /////////////   ali pay  //////////////////
 
-
 func (*RPCServer) Alipay(ctx context.Context, req *proto.AlipayRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyAlipayPay{
-		Name: req.Name,
-		Alipay: req.Alipay,
-		ReceiptCode:req.ReceiptCode,
+		Name:        req.Name,
+		Alipay:      req.Alipay,
+		ReceiptCode: req.ReceiptCode,
 	}
 	rsp.Code, err = p.SetAlipay(req)
 	fmt.Println(rsp.Code)
@@ -28,28 +27,26 @@ func (*RPCServer) Alipay(ctx context.Context, req *proto.AlipayRequest, rsp *pro
 	return nil
 }
 
-
-func (*RPCServer) GetAliPay (ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse)(err error){
+func (*RPCServer) GetAliPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error) {
 	amd := new(model.UserCurrencyAlipayPay)
 	err = amd.GetByUid(req.Uid)
 	data, err := json.Marshal(amd)
 	if err != nil {
 		log.Log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
-	}else{
+	} else {
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		rsp.Data = string(data)
 	}
 	return
 }
 
-
-func (*RPCServer) UpdateAliPay(ctx context.Context, req *proto.AlipayRequest, rsp *proto.PaysResponse)(err error){
+func (*RPCServer) UpdateAliPay(ctx context.Context, req *proto.AlipayRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyAlipayPay{
-		Uid:req.Uid,
-		Name: req.Name,
-		Alipay: req.Alipay,
-		ReceiptCode:req.ReceiptCode,
+		Uid:         req.Uid,
+		Name:        req.Name,
+		Alipay:      req.Alipay,
+		ReceiptCode: req.ReceiptCode,
 	}
 	rsp.Code, err = p.SetAlipay(req)
 	fmt.Println(rsp.Code)
@@ -59,11 +56,7 @@ func (*RPCServer) UpdateAliPay(ctx context.Context, req *proto.AlipayRequest, rs
 	return nil
 }
 
-
-
-
 ////////////////  bank  pay //////////////////
-
 
 func (*RPCServer) BankPay(ctx context.Context, req *proto.BankPayRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyBankPay{
@@ -79,37 +72,31 @@ func (*RPCServer) BankPay(ctx context.Context, req *proto.BankPayRequest, rsp *p
 	return nil
 }
 
-
-
-
-func (*RPCServer)GetBankPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error){
+func (*RPCServer) GetBankPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error) {
 	p := new(model.UserCurrencyBankPay)
 	err = p.GetByUid(req.Uid)
 	data, err := json.Marshal(p)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
-	}else{
+	} else {
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		rsp.Data = string(data)
 	}
 	return nil
 }
 
-func (*RPCServer) UpdateBankPay(ctx context.Context, req *proto.BankPayRequest, rsp *proto.PaysResponse) (err error){
+func (*RPCServer) UpdateBankPay(ctx context.Context, req *proto.BankPayRequest, rsp *proto.PaysResponse) (err error) {
 	p := new(model.UserCurrencyBankPay)
 	p.BankName = req.BankName
-	p.CardNum  = req.CardNum
+	p.CardNum = req.CardNum
 	p.BankInfo = req.BankInfo
-	p.Name     = req.Name
+	p.Name = req.Name
 	rsp.Code, err = p.SetBankPay(req)
 	if err != nil {
 		log.Log.Errorf(err.Error())
 	}
 	return nil
 }
-
-
-
 
 ////////////////////  paypal /////////////////////////
 func (*RPCServer) Paypal(ctx context.Context, req *proto.PaypalRequest, rsp *proto.PaysResponse) (err error) {
@@ -122,20 +109,20 @@ func (*RPCServer) Paypal(ctx context.Context, req *proto.PaypalRequest, rsp *pro
 	return nil
 }
 
-func (*RPCServer) GetPaypal(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) ( err error) {
+func (*RPCServer) GetPaypal(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error) {
 	paypal := new(model.UserCurrencyPaypalPay)
-	err =  paypal.GetByUid(req.Uid)
+	err = paypal.GetByUid(req.Uid)
 	data, err := json.Marshal(paypal)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
-	}else{
+	} else {
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		rsp.Data = string(data)
 	}
 	return nil
 }
 
-func (* RPCServer) UpdatePaypal(ctx context.Context, req *proto.PaypalRequest, rsp *proto.PaysResponse) ( err error) {
+func (*RPCServer) UpdatePaypal(ctx context.Context, req *proto.PaypalRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyPaypalPay{}
 	p.Paypal = req.Paypal
 	rsp.Code, err = p.SetPaypal(req)
@@ -145,16 +132,13 @@ func (* RPCServer) UpdatePaypal(ctx context.Context, req *proto.PaypalRequest, r
 	return nil
 }
 
-
-
 ///////////////  wechat pay ////////////////
-
 
 func (*RPCServer) WeChatPay(ctx context.Context, req *proto.WeChatPayRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyWechatPay{
-		Name: req.Name,
-		Wechat: req.Wechat,
-		ReceiptCode:req.ReceiptCode,
+		Name:        req.Name,
+		Wechat:      req.Wechat,
+		ReceiptCode: req.ReceiptCode,
 	}
 	fmt.Println(req)
 	rsp.Code, err = p.SetWechatPay(req)
@@ -166,13 +150,13 @@ func (*RPCServer) WeChatPay(ctx context.Context, req *proto.WeChatPayRequest, rs
 	return nil
 }
 
-func (*RPCServer) GetWeChatPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) ( err error) {
+func (*RPCServer) GetWeChatPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error) {
 	wcp := new(model.UserCurrencyWechatPay)
 	err = wcp.GetByUid(req.Uid)
-	data ,err := json.Marshal(wcp)
+	data, err := json.Marshal(wcp)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
-	}else{
+	} else {
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		rsp.Data = string(data)
 	}
@@ -180,11 +164,11 @@ func (*RPCServer) GetWeChatPay(ctx context.Context, req *proto.PayRequest, rsp *
 	return nil
 }
 
-func (*RPCServer) UpdateWeChatPay(ctx context.Context, req *proto.WeChatPayRequest, rsp *proto.PaysResponse)(err error) {
+func (*RPCServer) UpdateWeChatPay(ctx context.Context, req *proto.WeChatPayRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyWechatPay{
-		Name: req.Name,
-		Wechat: req.Wechat,
-		ReceiptCode:req.ReceiptCode,
+		Name:        req.Name,
+		Wechat:      req.Wechat,
+		ReceiptCode: req.ReceiptCode,
 	}
 	rsp.Code, err = p.SetWechatPay(req)
 	if err != nil {

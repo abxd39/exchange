@@ -1,8 +1,8 @@
 package model
 
 import (
-	. "digicon/currency_service/log"
 	"digicon/currency_service/dao"
+	. "digicon/currency_service/log"
 )
 
 // 用户虚拟货币资产表
@@ -41,11 +41,9 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 	return data
 }
 
-
-func (this *UserCurrency) GetBalance(uid uint64, token_id uint32) (data UserCurrency, err error){
+func (this *UserCurrency) GetBalance(uid uint64, token_id uint32) (data UserCurrency, err error) {
 	//data := new(UserCurrency)
 	_, err = dao.DB.GetMysqlConn().Where("uid=? AND token_id=?", uid, token_id).Get(data)
 	return
 
 }
-

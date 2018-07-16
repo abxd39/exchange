@@ -8,11 +8,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 )
-
-
 
 type RspBankPay struct {
 	Uid        uint64 `form:"uid"        json:"uid"         binding:"required"`
@@ -24,24 +22,23 @@ type RspBankPay struct {
 }
 type BankPay struct {
 	RspBankPay
-	Verify     string `form:"verify"     json:"verify"      binding:"required"`
+	Verify string `form:"verify"     json:"verify"      binding:"required"`
 }
 
-
-type  RspAliPay struct {
-	Uid           uint64 `form:"uid"          json:"uid"     binding:"required"`
+type RspAliPay struct {
+	Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
 	Name         string `form:"name"         json:"name"    binding:"required"`
 	Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
-	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`	
+	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
 }
 
 type AliPay struct {
 	RspAliPay
-	Verify       string `form:"verify"       json:"verify"  binding:"required"`
+	Verify string `form:"verify"       json:"verify"  binding:"required"`
 }
 
 type RspPaypalPay struct {
-	Uid     uint64 `form:"uid"       json:"uid"     binding:"required"`
+	Uid    uint64 `form:"uid"       json:"uid"     binding:"required"`
 	Paypal string `form:"paypal"    json:"paypal"  binding:"required"`
 }
 
@@ -54,15 +51,13 @@ type RspWeChatPay struct {
 	Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
 	Name         string `form:"name"         json:"name"    binding:"required"`
 	Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
-	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`	
+	Receipt_code string `form:"receipt_code" json:"receipt_code" binding:"required"`
 }
 
 type WeChatPay struct {
-	RspWeChatPay 
-	Verify       string `form:"verify"       json:"verify"  binding:"required"`
+	RspWeChatPay
+	Verify string `form:"verify"       json:"verify"  binding:"required"`
 }
-
-
 
 func (*CurrencyGroup) BankPay(c *gin.Context) {
 	ret := NewPublciError()
@@ -79,7 +74,7 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 	}
 	fmt.Printf("%#v\n", req)
 	rsp, err := rpc.InnerService.CurrencyService.CallBankPay(&proto.BankPayRequest{
-		Uid:       req.Uid,
+		Uid: req.Uid,
 		//Token:     req.Token,
 		Name:      req.Name,
 		CardNum:   req.Card_num,
@@ -99,13 +94,13 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 
 }
 
-func (this *CurrencyGroup) GetBankPay (c *gin.Context) {
+func (this *CurrencyGroup) GetBankPay(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid      uint64 `form:"uid" json:"uid" binding:"required"`
+		Uid uint64 `form:"uid" json:"uid" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -114,7 +109,7 @@ func (this *CurrencyGroup) GetBankPay (c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetBankPay(&proto.PayRequest{
-		Uid:req.Uid,
+		Uid: req.Uid,
 	})
 	if err != nil {
 		log.Log.Errorln(err.Error())
@@ -128,10 +123,9 @@ func (this *CurrencyGroup) GetBankPay (c *gin.Context) {
 	return
 }
 
-
 func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
@@ -143,7 +137,7 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallUpdateBankPay(&proto.BankPayRequest{
-		Uid:       req.Uid,
+		Uid: req.Uid,
 		//Token:     req.Token,
 		Name:      req.Name,
 		CardNum:   req.Card_num,
@@ -156,17 +150,14 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 		log.Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
-	}else{
+	} else {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 		//ret.SetDataSection("")
 	}
 	return
 }
 
-
 ////////////   bank end ///////////////
-
-
 
 func (py *CurrencyGroup) Alipay(c *gin.Context) {
 	ret := NewPublciError()
@@ -197,14 +188,13 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 	return
 }
 
-
 func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid      uint64 `form:"uid" json:"uid" binding:"required"`
+		Uid uint64 `form:"uid" json:"uid" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -213,7 +203,7 @@ func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetAliPay(&proto.PayRequest{
-		Uid:req.Uid,
+		Uid: req.Uid,
 	})
 	var alipay RspAliPay
 	err = json.Unmarshal([]byte(rsp.Data), &alipay)
@@ -221,7 +211,7 @@ func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 		log.Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
-	}else{
+	} else {
 		ret.SetDataSection("ali_pay", alipay)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 
@@ -230,7 +220,7 @@ func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 	return
 }
 
-func (this *CurrencyGroup) UpdateAliPay (c *gin.Context){
+func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -243,7 +233,7 @@ func (this *CurrencyGroup) UpdateAliPay (c *gin.Context){
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallUpdateAliPay(&proto.AlipayRequest{
-		Uid:         req.Uid,
+		Uid: req.Uid,
 		//Token:      req.Token,
 		Name:        req.Name,
 		Alipay:      req.Alipay,
@@ -254,17 +244,14 @@ func (this *CurrencyGroup) UpdateAliPay (c *gin.Context){
 		log.Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
-	}else{
+	} else {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
 
 	return
 }
 
-
 ///////////////////// ali pay  end /////////////////////
-
-
 
 func (py *CurrencyGroup) Paypal(c *gin.Context) {
 	ret := NewPublciError()
@@ -280,7 +267,7 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallPaypal(&proto.PaypalRequest{
-		Uid:    req.Uid,
+		Uid: req.Uid,
 		//Token:  req.Token,
 		Paypal: req.Paypal,
 		Verify: req.Verify,
@@ -294,14 +281,13 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 	return
 }
 
-
 func (this *CurrencyGroup) GetPaypal(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid      uint64 `form:"uid" json:"uid" binding:"required"`
+		Uid uint64 `form:"uid" json:"uid" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -310,14 +296,14 @@ func (this *CurrencyGroup) GetPaypal(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetPaypal(&proto.PayRequest{
-		Uid:req.Uid,
+		Uid: req.Uid,
 	})
 	var paypay RspPaypalPay
 	err = json.Unmarshal([]byte(rsp.Data), &paypay)
 	if err != nil {
 		log.Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-	}else{
+	} else {
 		ret.SetDataSection("paypal_pay", paypay)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
@@ -337,7 +323,7 @@ func (this *CurrencyGroup) UpdatePaypal(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallUpdatePaypal(&proto.PaypalRequest{
-		Uid:    req.Uid,
+		Uid: req.Uid,
 		//Token:  req.Token,
 		Paypal: req.Paypal,
 		//Verify: req.Verify,
@@ -345,19 +331,14 @@ func (this *CurrencyGroup) UpdatePaypal(c *gin.Context) {
 	if err != nil {
 		log.Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-	}else{
+	} else {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 
 	}
 	return
 }
 
-
-
-
-
 //////////////////////// paypal end ////////////////////////////////////
-
 
 func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 	ret := NewPublciError()
@@ -387,14 +368,13 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 	return
 }
 
-
-func (this *CurrencyGroup) GetWeChatPay (c *gin.Context){
+func (this *CurrencyGroup) GetWeChatPay(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid      uint64 `form:"uid" json:"uid" binding:"required"`
+		Uid uint64 `form:"uid" json:"uid" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -403,7 +383,7 @@ func (this *CurrencyGroup) GetWeChatPay (c *gin.Context){
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetWeChatPay(&proto.PayRequest{
-		Uid:req.Uid,
+		Uid: req.Uid,
 	})
 	var wechatPay RspWeChatPay
 	err = json.Unmarshal([]byte(rsp.Data), &wechatPay)
@@ -411,16 +391,14 @@ func (this *CurrencyGroup) GetWeChatPay (c *gin.Context){
 		log.Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
-	}else{
+	} else {
 		ret.SetDataSection("wechat_pay", wechatPay)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
 	return
 }
 
-
-
-func (this *CurrencyGroup) UpdateWeChatPay (c *gin.Context) {
+func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -442,7 +420,7 @@ func (this *CurrencyGroup) UpdateWeChatPay (c *gin.Context) {
 		log.Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
-	}else{
+	} else {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
 

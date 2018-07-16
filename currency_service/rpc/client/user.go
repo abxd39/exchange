@@ -4,14 +4,14 @@ import (
 	"context"
 	cf "digicon/currency_service/conf"
 	proto "digicon/proto/rpc"
+	"fmt"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
-	"fmt"
 )
 
 type UserRPCCli struct {
-	conn proto.Gateway2WallerService
+	conn     proto.Gateway2WallerService
 	userconn proto.UserRPCService
 }
 
@@ -24,11 +24,10 @@ type UserRPCCli struct {
 //	return
 //}
 
-func (s *UserRPCCli) CallGetNickName(uids []uint64) (rsp *proto.UserGetNickNameResponse, err error){
+func (s *UserRPCCli) CallGetNickName(uids []uint64) (rsp *proto.UserGetNickNameResponse, err error) {
 	fmt.Println("uids:", uids)
-	return s.userconn.GetNickName(context.TODO(), &proto.UserGetNickNameRequest{Uid:uids})
+	return s.userconn.GetNickName(context.TODO(), &proto.UserGetNickNameRequest{Uid: uids})
 }
-
 
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
@@ -46,8 +45,8 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	greeter := proto.NewGateway2WallerService(service_name, service.Client())
 	userGreeter := proto.NewUserRPCService(user_client_name, service.Client())
 	u = &UserRPCCli{
-		conn: greeter,
-		userconn:userGreeter,
+		conn:     greeter,
+		userconn: userGreeter,
 	}
 	return
 }

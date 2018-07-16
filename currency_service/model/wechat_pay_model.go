@@ -2,11 +2,11 @@ package model
 
 import (
 	"digicon/currency_service/dao"
+	"digicon/currency_service/log"
+	"digicon/currency_service/rpc/client"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"time"
-	"digicon/currency_service/rpc/client"
-	"digicon/currency_service/log"
 )
 
 type UserCurrencyWechatPay struct {
@@ -22,20 +22,18 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 
 	/////////////////  1.  验证  验证码 /////////////////////////
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
-		Uid:       req.Uid,
-		Code:      req.Verify,
-		AuthType:  10,  // 设置银行卡支付 10
+		Uid:      req.Uid,
+		Code:     req.Verify,
+		AuthType: 10, // 设置银行卡支付 10
 	})
 	if err != nil {
 		log.Log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
-	if  rsp.Code != ERRCODE_SUCCESS {
+	if rsp.Code != ERRCODE_SUCCESS {
 		log.Log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
-
-
 
 	//是否需要验证微信是否属于该账户
 	//查询数据库是否存在
@@ -70,11 +68,8 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 	return ERRCODE_SUCCESS, nil
 }
 
-
-
-func (w *UserCurrencyWechatPay) GetByUid(uid uint64) ( err  error){
+func (w *UserCurrencyWechatPay) GetByUid(uid uint64) (err error) {
 	engine := dao.DB.GetMysqlConn()
 	_, err = engine.Where("uid =?", uid).Get(w)
 	return
 }
-

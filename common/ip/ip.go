@@ -1,8 +1,8 @@
 package ip
 
 import (
-	"net/http"
 	"net"
+	"net/http"
 )
 
 const (

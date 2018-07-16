@@ -37,11 +37,10 @@ type User struct {
 	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
 }
 
-
 const (
-	AUTH_EMAIL  = 2//00000010
-	AUTH_PHONE  = 1//00000001
-	AUTH_GOOGLE = 8//00001000
+	AUTH_EMAIL  = 2 //00000010
+	AUTH_PHONE  = 1 //00000001
+	AUTH_GOOGLE = 8 //00001000
 )
 
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
@@ -552,8 +551,6 @@ func (s *User) DelGoogleCode(input uint32) (ret int32, err error) {
 	return
 }
 
-
-
 //获取验证类型
 func (s *User) GetAuthMethod() int32 {
 	if s.authSecurityCode(AUTH_GOOGLE) {
@@ -566,7 +563,6 @@ func (s *User) GetAuthMethod() int32 {
 	return 0
 }
 
-
 func (s *User) authSecurityCode(code int) bool {
 	g := s.SecurityAuth & code
 	if g > 0 {
@@ -576,33 +572,33 @@ func (s *User) authSecurityCode(code int) bool {
 }
 
 //自动判断验证方式
-func (s *User) AuthCodeByAl(ukey, code string,ty int32)(ret int32, err error) {
+func (s *User) AuthCodeByAl(ukey, code string, ty int32) (ret int32, err error) {
 	m := s.GetAuthMethod()
 	switch m {
 	case AUTH_EMAIL:
-		return AuthEmail(ukey,ty,code)
+		return AuthEmail(ukey, ty, code)
 	case AUTH_PHONE:
-		return AuthSms(ukey,ty,code)
+		return AuthSms(ukey, ty, code)
 	case AUTH_GOOGLE:
 		var code_ int
-		code_,err = strconv.Atoi(code)
-		if err!=nil {
+		code_, err = strconv.Atoi(code)
+		if err != nil {
 			Log.Errorln(err.Error())
 			return
 		}
-		return s.AuthGoogleCode(s.GoogleVerifyId,uint32(code_))
+		return s.AuthGoogleCode(s.GoogleVerifyId, uint32(code_))
 	default:
 		break
 	}
 
-	return ERRCODE_UNKNOWN,errors.New("err auth methon")
+	return ERRCODE_UNKNOWN, errors.New("err auth methon")
 }
 
 //验证通过修改权限
 func (s *User) SecurityChmod(code int) (err error) {
-	s.SecurityAuth=s.SecurityAuth^code
-	_,err = DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("security_auth").Update(s)
-	if err!=nil {
+	s.SecurityAuth = s.SecurityAuth ^ code
+	_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("security_auth").Update(s)
+	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}

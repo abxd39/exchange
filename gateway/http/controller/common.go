@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 type CommonGroup struct{}
+
 func (s *CommonGroup) Router(r *gin.Engine) {
 	user := r.Group("/common")
 	{
@@ -24,7 +24,6 @@ func (s *CommonGroup) GetToknesList(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-
 	rsp, err := rpc.InnerService.UserSevice.CallTokensList()
 	if err != nil {
 		Log.Errorf(err.Error())
@@ -32,5 +31,5 @@ func (s *CommonGroup) GetToknesList(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err)
-	ret.SetDataSection("list",rsp.Data)
+	ret.SetDataSection("list", rsp.Data)
 }

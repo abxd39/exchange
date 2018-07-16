@@ -52,14 +52,13 @@ func (this *Tokens) GetDecimal(id int) (int, error) {
 	return this.Decimal, nil
 }
 
-
 /*
 	根据名称获取
- */
-func (this *Tokens) GetByName(name string)  (bool, error ){
+*/
+func (this *Tokens) GetByName(name string) (bool, error) {
 	exists, err := Engine_common.Where("mark = ?", strings.ToUpper(name)).Get(this)
 	if err != nil {
 		return exists, err
 	}
-	return  exists, nil
+	return exists, nil
 }

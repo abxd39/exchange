@@ -6,20 +6,20 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
 	. "digicon/proto/common"
+	"fmt"
 	"strconv"
 	"time"
-	"fmt"
 )
 
 // 订单表
 type Order struct {
-	Id          uint64 `xorm:"not null pk autoincr comment('ID')  INT(10)"  json:"id"`
-	OrderId     string `xorm:"not null pk comment('订单ID') INT(10)"   json:"order_id"` // hash( type_id, 6( user_id, + 时间秒）
-	AdId        uint64 `xorm:"not null default 0 comment('广告ID') index INT(10)"  json:"ad_id"`
-	AdType      uint32 `xorm:"not null default 0 comment('广告类型:1出售 2购买') TINYINT(1)"  json:"ad_type"`
-	Price       int64  `xorm:"not null default 0 comment('价格') BIGINT(64)"   json:"price"`
-	Num         int64  `xorm:"not null default 0 comment('数量') BIGINT(64)"   json:"num"`
-	TokenId     uint64 `xorm:"not null default 0 comment('货币类型') INT(10)"       json:"token_id"`
+	Id      uint64 `xorm:"not null pk autoincr comment('ID')  INT(10)"  json:"id"`
+	OrderId string `xorm:"not null pk comment('订单ID') INT(10)"   json:"order_id"` // hash( type_id, 6( user_id, + 时间秒）
+	AdId    uint64 `xorm:"not null default 0 comment('广告ID') index INT(10)"  json:"ad_id"`
+	AdType  uint32 `xorm:"not null default 0 comment('广告类型:1出售 2购买') TINYINT(1)"  json:"ad_type"`
+	Price   int64  `xorm:"not null default 0 comment('价格') BIGINT(64)"   json:"price"`
+	Num     int64  `xorm:"not null default 0 comment('数量') BIGINT(64)"   json:"num"`
+	TokenId uint64 `xorm:"not null default 0 comment('货币类型') INT(10)"       json:"token_id"`
 	//PayId       uint64 `xorm:"not null default 0 comment('支付类型') INT(10)"       json:"pay_id"`
 	PayId       string `xorm:"not null default 0 comment('支付类型') VARCHAR(64)"       json:"pay_id"`
 	SellId      uint64 `xorm:"not null default 0 comment('卖家id') INT(10)"         json:"sell_id"`
@@ -148,7 +148,6 @@ func (this *Order) Ready(Id uint64, updateTimeStr string) (code int32, msg strin
 func (this *Order) Add() (id uint64, code int32) {
 	var err error
 	/////////////
-
 
 	engine := dao.DB.GetMysqlConn()
 
@@ -420,15 +419,12 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	return
 }
 
-
-
-
 /*
 	获取订单付款信息
- */
+*/
 
- func (this *Order) GetOrder(Id uint64) (code int32, err error) {
- 	//var order Order
+func (this *Order) GetOrder(Id uint64) (code int32, err error) {
+	//var order Order
 	engine := dao.DB.GetMysqlConn()
 	//order := new(Order)
 	_, err = engine.Where("id = ?", Id).Get(this)
@@ -436,5 +432,5 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 		Log.Errorln(err.Error())
 		code = ERRCODE_ORDER_NOTEXIST
 	}
- 	return
- }
+	return
+}

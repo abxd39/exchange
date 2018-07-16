@@ -4,9 +4,9 @@ import (
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
-	"net/http"
 	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type MarketGroup struct{}
@@ -20,7 +20,7 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 
 		action.GET("/trade_list", s.TradeList)
 
-		action.GET("/quotation",s.Quotation)
+		action.GET("/quotation", s.Quotation)
 	}
 }
 
@@ -53,25 +53,24 @@ func (s *MarketGroup) HistoryKline(c *gin.Context) {
 	ret.SetDataSection("list", rsp)
 }
 
-
 func (s *MarketGroup) Symbols(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-/*
-	type SymbolsParam struct {
-		//TokenId int32  `form:"token_id" binding:"required"`
-	}
+	/*
+		type SymbolsParam struct {
+			//TokenId int32  `form:"token_id" binding:"required"`
+		}
 
-	var param SymbolsParam
+		var param SymbolsParam
 
-	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		return
-	}
-*/
+		if err := c.ShouldBindQuery(&param); err != nil {
+			Log.Errorf(err.Error())
+			ret.SetErrCode(ERRCODE_PARAM, err.Error())
+			return
+		}
+	*/
 	rsp, err := rpc.InnerService.TokenService.CallSymbols(&proto.NullRequest{})
 
 	if err != nil {
@@ -79,10 +78,10 @@ func (s *MarketGroup) Symbols(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("btc",rsp.Btc)
-	ret.SetDataSection("usdt",rsp.Usdt)
-	ret.SetDataSection("eth",rsp.Eth)
-	ret.SetDataSection("sdc",rsp.Sdc)
+	ret.SetDataSection("btc", rsp.Btc)
+	ret.SetDataSection("usdt", rsp.Usdt)
+	ret.SetDataSection("eth", rsp.Eth)
+	ret.SetDataSection("sdc", rsp.Sdc)
 }
 
 func (s *MarketGroup) EntrustQuene(c *gin.Context) {
@@ -91,7 +90,7 @@ func (s *MarketGroup) EntrustQuene(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type EntrustQueneParam struct {
-		Symbol string  `form:"symbol" binding:"required"`
+		Symbol string `form:"symbol" binding:"required"`
 	}
 
 	var param EntrustQueneParam
@@ -103,8 +102,7 @@ func (s *MarketGroup) EntrustQuene(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallEntrustQuene(&proto.EntrustQueneRequest{
-		Symbol:param.Symbol,
-
+		Symbol: param.Symbol,
 	})
 
 	if err != nil {
@@ -112,8 +110,8 @@ func (s *MarketGroup) EntrustQuene(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("sell",rsp.Sell)
-	ret.SetDataSection("buy",rsp.Buy)
+	ret.SetDataSection("sell", rsp.Sell)
+	ret.SetDataSection("buy", rsp.Buy)
 }
 
 func (s *MarketGroup) TradeList(c *gin.Context) {
@@ -122,7 +120,7 @@ func (s *MarketGroup) TradeList(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type TradeListParam struct {
-		Symbol string  `form:"symbol" binding:"required"`
+		Symbol string `form:"symbol" binding:"required"`
 	}
 
 	var param TradeListParam
@@ -134,14 +132,14 @@ func (s *MarketGroup) TradeList(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallTrade(&proto.TradeRequest{
-		Symbol:param.Symbol,
+		Symbol: param.Symbol,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list",rsp.Data)
+	ret.SetDataSection("list", rsp.Data)
 }
 
 func (s *MarketGroup) Quotation(c *gin.Context) {
@@ -151,7 +149,7 @@ func (s *MarketGroup) Quotation(c *gin.Context) {
 	}()
 
 	type QuotationParam struct {
-		TokenId int32  `form:"token_id" binding:"required"`
+		TokenId int32 `form:"token_id" binding:"required"`
 	}
 
 	var param QuotationParam
@@ -163,12 +161,12 @@ func (s *MarketGroup) Quotation(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallQuotation(&proto.QuotationRequest{
-		TokenId:param.TokenId,
+		TokenId: param.TokenId,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	ret.SetErrCode(ERRCODE_SUCCESS)
-	ret.SetDataSection("list",rsp.Data)
+	ret.SetDataSection("list", rsp.Data)
 }

@@ -41,7 +41,6 @@ func (s *WalletHandler) CreateBTCWallet(ctx context.Context, req *proto.CreateWa
 	return nil
 }
 
-
 func (s *WalletHandler) BtcSigntx(ctx context.Context, req *proto.BtcSigntxRequest, rsp *proto.BtcSigntxResponse) error {
 	//fmt.Println("btc signtx request ...")
 	//fmt.Println(req.Uid)

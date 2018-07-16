@@ -94,8 +94,8 @@ func BtcWalletPhrase(url string, pass string, keepTime int64) error {
 /*
 	btc get new address
 	curl  --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getnewaddress", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
- */
-func BtcGetNewAddress(url string, account string) (address string, err error){
+*/
+func BtcGetNewAddress(url string, account string) (address string, err error) {
 	data := make(map[string]interface{})
 	data["jsonrpc"] = "1.0"
 	data["id"] = 1
@@ -123,7 +123,7 @@ func BtcDumpPrivKey(url string, myaddress string) (privateKey string, err error)
 	params := []string{}
 	params = append(params, myaddress)
 	data["params"] = params
-	result, err := BtcRpcPost(url , data)
+	result, err := BtcRpcPost(url, data)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return "", err
@@ -132,10 +132,9 @@ func BtcDumpPrivKey(url string, myaddress string) (privateKey string, err error)
 	return privateKey, nil
 }
 
-
 /*
 	btc rpc
- */
+*/
 func BtcRpcPost(url string, send map[string]interface{}) ([]byte, error) {
 	bytesData, err := json.Marshal(send)
 	if err != nil {

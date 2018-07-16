@@ -119,8 +119,6 @@ func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*p
 	return rsp, err
 }
 
-
-
 // get 售价
 func (s *CurrencyRPCCli) CallGetSellingPrice(req *proto.SellingPriceRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.GetSellingPrice(context.TODO(), req)
@@ -138,4 +136,3 @@ func (s *CurrencyRPCCli) CallGetUserRating(req *proto.GetUserRatingRequest) (*pr
 	rsp, err := s.conn.GetUserRating(context.TODO(), req)
 	return rsp, err
 }
-

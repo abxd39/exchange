@@ -57,44 +57,17 @@ func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene)) {
 
 //初始化配置
 func (s *EntrustQueneMgr) Init() bool {
-
-	d := new(QuenesConfig).GetAllQuenes()
+	InitConfigTokenCny()
+	d := new(ConfigQuenes).GetAllQuenes()
 
 	for _, v := range d {
-		//quene_id := fmt.Sprintf("%d_%d", v.TokenId, v.TokenTradeId)
-		e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name)
+		cny := GetTokenCnyPrice(v.TokenId)
+		if v.Price == 0 {
+			panic("err last price")
+		}
+		e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny)
 		s.AddQuene(e)
 	}
-	Test()
 
 	return true
-}
-
-func Test() {
-	/*
-			b, err := json.Marshal(&TradeInfo{
-				CreateTime: 1531130889,
-				TradePrice: 1,
-				Num:        2,
-			})
-			if err != nil {
-				Log.Errorln(err.Error())
-				return
-			}
-
-		return
-			b,err := DB.GetRedisConn().Get(GenSourceKey("1531136959_3")).Bytes()
-			if err != nil {
-				Log.Fatalln(err.Error())
-				return
-			}
-
-			g := &EntrustData{}
-			err = json.Unmarshal(b, g)
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-			godump.Dump(g)
-	*/
 }

@@ -55,12 +55,12 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 	return
 }
 
-func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32,ip string) (rsp *proto.LoginResponse, err error) {
+func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32, ip string) (rsp *proto.LoginResponse, err error) {
 	rsp, err = s.conn.Login(context.TODO(), &proto.LoginRequest{
 		Ukey: ukey,
 		Pwd:  pwd,
 		Type: ty,
-		Ip:ip,
+		Ip:   ip,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -110,10 +110,10 @@ func (s *UserRPCCli) CallSendSms(phone, region string, ty int32) (rsp *proto.Com
 	return
 }
 
-func (s *UserRPCCli) CallSendEmail(email string,ty int32) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallSendEmail(email string, ty int32) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.SendEmail(context.TODO(), &proto.EmailRequest{
 		Email: email,
-		Type:ty,
+		Type:  ty,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -168,11 +168,11 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 	}
 	return
 }
-func (s *UserRPCCli) CallResetGoogleSecretKey(uid uint64, auth uint32,sms string) (rsp *proto.CommonErrResponse, err error) {
+func (s *UserRPCCli) CallResetGoogleSecretKey(uid uint64, auth uint32, sms string) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.ResetGoogleSecretKey(context.TODO(), &proto.ResetGoogleSecretKeyRequest{
-		Uid:  uid,
-		SmsCode: sms,
-		AuthCode:auth,
+		Uid:      uid,
+		SmsCode:  sms,
+		AuthCode: auth,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -180,6 +180,7 @@ func (s *UserRPCCli) CallResetGoogleSecretKey(uid uint64, auth uint32,sms string
 	}
 	return
 }
+
 type UserBaseData struct {
 	Uid            uint64 `json:"uid"`
 	Account        string `json:"account"`
@@ -287,7 +288,7 @@ func (s *UserRPCCli) CallGetUserInvite(uid uint64) (rsp *proto.UserInviteRespons
 
 func (s *UserRPCCli) CallGetIpRecord(uid uint64) (rsp *proto.IpRecordResponse, err error) {
 	rsp, err = s.conn.GetIpRecord(context.TODO(), &proto.CommonPageRequest{
-		Uid:  uid,
+		Uid: uid,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -304,7 +305,6 @@ func (s *UserRPCCli) CallTokensList() (rsp *proto.TokenListResponse, err error) 
 	}
 	return
 }
-
 
 func (s *UserRPCCli) CallCheckAuthSecurity(p *proto.CheckSecurityRequest) (rsp *proto.CheckSecurityResponse, err error) {
 	rsp, err = s.conn.CheckSecurity(context.TODO(), p)

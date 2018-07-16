@@ -96,7 +96,6 @@ type TxRawResult struct {
 	Blocktime     int64  `json:"blocktime,omitempty"`
 }
 
-
 /*
 	查询btc 是否有转账
 */
@@ -114,7 +113,6 @@ type BTCWatch struct {
 func (this *BTCWatch) Start() {
 	//url := "http://bitcoin:bitcoin@localhost:28332/"
 
-
 	fmt.Println("btc start ....")
 
 	this.TxModel = new(models.TokenChainInout)
@@ -125,7 +123,7 @@ func (this *BTCWatch) Start() {
 	if err != nil {
 		fmt.Println("err:", err)
 	}
-	if !exists{
+	if !exists {
 		fmt.Println("token not exists btc ...")
 	}
 	//fmt.Println(this.TokenModel)

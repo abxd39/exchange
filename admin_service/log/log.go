@@ -24,4 +24,3 @@ func InitLog() {
 		Log.Out = os.Stdout
 	}
 }
-

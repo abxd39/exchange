@@ -1,10 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	"fmt"
 )
 
 var Engine_wallet *xorm.Engine
@@ -51,7 +51,6 @@ func init() {
 		panic(err)
 	}
 
-
 	// ------------- user currency ----------------
 	dsource = Cfg.MustValue("mysql", "currency_conn")
 	EngineUserCurrency, err = xorm.NewEngine("mysql", dsource)
@@ -63,7 +62,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 
 	////
 

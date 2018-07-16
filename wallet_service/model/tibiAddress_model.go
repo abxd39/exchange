@@ -23,7 +23,6 @@ func (this *TibiAddress) Save(uid int, tokenid int, address string, mark string)
 	return int(affected), err
 }
 
-
 func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 	this.Id = uid
 	rets := make([]TibiAddress, 0)
@@ -34,14 +33,14 @@ func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 		return nil, err
 	}
 	retsLen := len(rets)
-	tokenIdsList  := make([]int, 0, retsLen)
+	tokenIdsList := make([]int, 0, retsLen)
 	for i := 0; i < len(rets); i++ {
 		temp := &proto.AddrlistPos{
-			Id:      int32(rets[i].Id),
-			Uid:     int32(rets[i].Uid),
-			TokenId: int32(rets[i].TokenId),
-			Address: rets[i].Address,
-			Mark:    rets[i].Mark,
+			Id:        int32(rets[i].Id),
+			Uid:       int32(rets[i].Uid),
+			TokenId:   int32(rets[i].TokenId),
+			Address:   rets[i].Address,
+			Mark:      rets[i].Mark,
 			TokenName: "",
 		}
 		tokenIdsList = append(tokenIdsList, rets[i].TokenId)
@@ -52,9 +51,9 @@ func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 	err = utils.Engine_common.In("id", tokenIdsList).Find(&tks)
 	if err != nil {
 		fmt.Println(err.Error())
-	}else{
-		for i := 0; i < retsLen; i ++ {
-			for _, ti := range tks{
+	} else {
+		for i := 0; i < retsLen; i++ {
+			for _, ti := range tks {
 				if lists[i].TokenId == int32(ti.Id) {
 					lists[i].TokenName = ti.Name
 					break

@@ -2,13 +2,13 @@ package handler
 
 import (
 	"digicon/currency_service/model"
+	"digicon/proto/common"
 	proto "digicon/proto/rpc"
+	"fmt"
+	"github.com/gin-gonic/gin/json"
 	"golang.org/x/net/context"
 	"log"
 	"time"
-	"digicon/proto/common"
-	"github.com/gin-gonic/gin/json"
-	"fmt"
 )
 
 type RPCServer struct{}
@@ -135,9 +135,9 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 			CreatedTime: data[i].CreatedTime,
 			UpdatedTime: data[i].UpdatedTime,
 			//UserVolume:  data[i].Success,
-			TypeId:      data[i].TypeId,
-			TokenId:     data[i].TokenId,
-			TokenName:   data[i].TokenName,
+			TypeId:    data[i].TypeId,
+			TokenId:   data[i].TokenId,
+			TokenName: data[i].TokenName,
 			//Balance:     data[i].Balance,
 			//Freeze:      data[i].Freeze,
 		}
@@ -336,7 +336,7 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 		rsp.Data = string(data)
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
-	}else{
+	} else {
 		dt := BalanceData{Balance: balance.Balance}
 		data, _ := json.Marshal(dt)
 		rsp.Data = string(data)
@@ -344,26 +344,24 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 		return nil
 	}
 
-
 }
-
 
 // 获取get售价
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
 	//
-	sellingPriceMap := map[uint32]float64{2:48999.00, 3: 3003.34, 1: 7.08}     // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
+	sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
 	key := req.TokenId
 	type SellingPrice struct {
 		Price float64
 	}
 	if v, ok := sellingPriceMap[key]; ok {
-		dt := SellingPrice{Price:v}
+		dt := SellingPrice{Price: v}
 		data, _ := json.Marshal(dt)
 		rsp.Data = string(data)
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 	} else {
 		fmt.Println("Key Not Found")
-		dt := SellingPrice{Price:v}
+		dt := SellingPrice{Price: v}
 		data, _ := json.Marshal(dt)
 		rsp.Data = string(data)
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
@@ -372,7 +370,6 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 	}
 	return nil
 }
-
 
 // get GetUserRating
 // 获取用戶评级
@@ -395,4 +392,3 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rsp.Code = errdefine.ERRCODE_SUCCESS
 	return nil
 }
-

@@ -5,11 +5,11 @@ import (
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
 	"digicon/currency_service/rpc"
+	"digicon/currency_service/rpc/client"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
-	"digicon/currency_service/rpc/client"
 )
 
 func main() {

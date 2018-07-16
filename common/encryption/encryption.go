@@ -14,7 +14,7 @@ func Gensha256(phone string, nowtime int64, salt string) string {
 	h := sha256.New()
 	h.Write([]byte(s))
 	bs := h.Sum(nil)
-	return fmt.Sprintf("%x",bs)
+	return fmt.Sprintf("%x", bs)
 }
 
 func GenBase64(input string) []byte {

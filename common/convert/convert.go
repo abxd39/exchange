@@ -19,10 +19,11 @@ func Int64ToFloat64By8Bit(b int64) (x float64) {
 	return
 }
 
-func Int64ToStringBy8Bit(b int64)  string {
-	a := decimal.New(b,0)
-	r:=a.Div(decimal.New(100000000,0))
-	return  r.String()
+
+func Int64ToStringBy8Bit(b int64) string {
+	a := decimal.New(b, 0)
+	r := a.Div(decimal.New(100000000, 0))
+	return r.String()
 }
 
 //0.00001001
@@ -40,17 +41,30 @@ func Float64ToInt64By8Bit(s float64) int64 {
 	return l
 }
 
-func Int64MulInt64By8Bit(a int64,b int64)int64  {
-	dd:=decimal.New(a,0)
-	dp:=decimal.New(b,0)
-
-	num:= dd.Mul(dp).Div(decimal.New(100000000,0)).IntPart()
-	return num
+//请确保返回值不会越界否则调用下面的返回string类型
+func Int64MulInt64By8Bit(a int64, b int64) int64 {
+	dd := decimal.New(a, 0)
+	dp := decimal.New(b, 0)
+	m:=dd.Mul(dp)
+	d:=decimal.New(100000000, 0)
+	n:=m.Div(d)
+	return  n.IntPart()
 }
 
-func Int64DivInt64By8Bit(a int64,b int64) int64  {
-	dd:=decimal.New(a,0)
-	dp:=decimal.New(b,0)
+func Int64MulInt64By8BitString(a int64, b int64) string {
+	dd := decimal.New(a, 0)
+	dp := decimal.New(b, 0)
+	m:=dd.Mul(dp)
+	d:=decimal.New(100000000, 0)
+	n:=m.Div(d)
+
+	r := n.Div(decimal.New(100000000, 0))
+	return  r.String()
+}
+
+func Int64DivInt64By8Bit(a int64, b int64) int64 {
+	dd := decimal.New(a, 0)
+	dp := decimal.New(b, 0)
 
 	num := dd.Div(dp).Round(8).Coefficient().Int64()
 	return num

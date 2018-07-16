@@ -46,8 +46,6 @@ type OneOrder struct {
 	Price float64 `form:"price"      json:"price"   binding:"required"` // 货币类型
 }
 
-
-
 type Order struct {
 	OrderRequest
 	OneOrder
@@ -60,24 +58,23 @@ type Order struct {
 type BackOrder struct {
 	OrderRequest
 	OtherType
-	Num   int64 `form:"num"        json:"num"     binding:"required"`  // 交易数量
-	Price int64 `form:"price"      json:"price"   binding:"required"`  // 货币类型
+	Num   int64 `form:"num"        json:"num"     binding:"required"` // 交易数量
+	Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
 	Fee   int64 `form:"fee"        json:"fee"     binding:"required"` // 手续费用
 	OtherOrderType
 }
 
-
 //type AddOrder
 type AddOrder struct {
-	Uid      int32    `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
-	AdId     uint64   `form:"ad_id"     json:"ad_id"      binding:"required"`         // 广告id
-	Num      float64  `form:"num"       json:"num"        binding:"required"`         // 交易数量
+	Uid  int32   `form:"uid"       json:"uid"        binding:"required"` // 用户 id
+	AdId uint64  `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
+	Num  float64 `form:"num"       json:"num"        binding:"required"` // 交易数量
 }
 
 type BackAddOrder struct {
-	Uid      int32    `form:"uid"       json:"uid"        binding:"required"`         // 用户 id
-	AdId     uint64   `form:"ad_id"     json:"ad_id"      binding:"required"`         // 广告id
-	Num      int64    `form:"num"       json:"num"        binding:"required"`         // 交易数量
+	Uid  int32  `form:"uid"       json:"uid"        binding:"required"` // 用户 id
+	AdId uint64 `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
+	Num  int64  `form:"num"       json:"num"        binding:"required"` // 交易数量
 	//PayId    uint64 `form:"pay_id"     json:"pay_id"     binding:"required"`         // 支付类型
 	//Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
 	//OtherType
@@ -272,12 +269,11 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 
 }
 
-
 // TradeDetail
 
-func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
+func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	var param OrderRequest
@@ -288,35 +284,35 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetTradeDetail(&proto.TradeDetailRequest{
-		Id:param.Id,
+		Id: param.Id,
 	})
 
-	type Data struct{
-		SellId               uint64     `form:"sell_id"                json:"sell_id"`
-		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
-		States               uint32     `form:"states"                 json:"states"`
+	type Data struct {
+		SellId uint64 `form:"sell_id"                json:"sell_id"`
+		BuyId  uint64 `form:"buy_id"                 json:"buy_id"`
+		States uint32 `form:"states"                 json:"states"`
 
-		OrderId              string     `form:"order_id"               json:"order_id"`
-		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
-		Num                  int64      `form:"num"                    json:"num"`
-		Price                int64      `form:"price"                  json:"price"`
-		AliPayName           string     `form:"alipay_name"            json:"alipay_name"`
-		Alipay               string     `form:"alipay"                 json:"alipay"`
-		AliReceiptCode       string     `form:"ali_receipt_code"       json:"ali_receipt_code"`
-		BankpayName         string     `form:"bankpay_name"           json:"bankpay_name"`
-		CardNum              string     `form:"card_num"               json:"card_num"`
-		BankName             string     `form:"bank_name"              json:"bank_name"`
-		BankInfo             string     `form:"bank_info"              json:"bank_info"`
-		WechatName           string     `form:"wechat_name"            json:"wechat_name"`
-		Wechat               string     `form:"wechat"                 json:"wechat"`
-		WechatReceiptCode    string     `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
-		PaypalNum            string     `form:"paypal_num"             json:"paypal_num"`
+		OrderId           string `form:"order_id"               json:"order_id"`
+		PayPrice          int64  `form:"pay_price"              json:"pay_price"`
+		Num               int64  `form:"num"                    json:"num"`
+		Price             int64  `form:"price"                  json:"price"`
+		AliPayName        string `form:"alipay_name"            json:"alipay_name"`
+		Alipay            string `form:"alipay"                 json:"alipay"`
+		AliReceiptCode    string `form:"ali_receipt_code"       json:"ali_receipt_code"`
+		BankpayName       string `form:"bankpay_name"           json:"bankpay_name"`
+		CardNum           string `form:"card_num"               json:"card_num"`
+		BankName          string `form:"bank_name"              json:"bank_name"`
+		BankInfo          string `form:"bank_info"              json:"bank_info"`
+		WechatName        string `form:"wechat_name"            json:"wechat_name"`
+		Wechat            string `form:"wechat"                 json:"wechat"`
+		WechatReceiptCode string `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
+		PaypalNum         string `form:"paypal_num"             json:"paypal_num"`
 	}
 	var dt Data
 	if err = json.Unmarshal([]byte(rsp.Data), &dt); err != nil {
 		Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-	}else{
+	} else {
 
 		ret.SetDataSection("sell_id", dt.SellId)
 		ret.SetDataSection("buy_id", dt.BuyId)
@@ -346,11 +342,10 @@ func (this *CurrencyGroup)TradeDetail(c *gin.Context) {
 
 }
 
-
 /*
   func: GetTradeHistory
- */
-func(this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
+*/
+func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())

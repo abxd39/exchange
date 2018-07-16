@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
-	"fmt"
 	"digicon/gateway/utils"
 	"encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
 )
 
 type CurrencyGroup struct{}
@@ -42,46 +42,43 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
 		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
 
-
-		Currency.GET("/trade_detail", this.TradeDetail)    //获取订单付款信息
-
+		Currency.GET("/trade_detail", this.TradeDetail) //获取订单付款信息
 
 		////payment///
-		Currency.POST("/bank_pay", this.BankPay)           // 添加 bank_pay
-		Currency.GET("/bank_pay", this.GetBankPay)         // 获取 bank_pay
-		Currency.PUT("/bank_pay", this.UpdateBankPay)      // 更新 bank_pay
+		Currency.POST("/bank_pay", this.BankPay)      // 添加 bank_pay
+		Currency.GET("/bank_pay", this.GetBankPay)    // 获取 bank_pay
+		Currency.PUT("/bank_pay", this.UpdateBankPay) // 更新 bank_pay
 
-		Currency.POST("/alipay", this.Alipay)              // 添加 ali_pay
-		Currency.GET("/alipay", this.GetAliPay)            // 获取 ali_pay
-		Currency.PUT("/alipay", this.UpdateAliPay)         // 更新 ali_pay
+		Currency.POST("/alipay", this.Alipay)      // 添加 ali_pay
+		Currency.GET("/alipay", this.GetAliPay)    // 获取 ali_pay
+		Currency.PUT("/alipay", this.UpdateAliPay) // 更新 ali_pay
 
-		Currency.POST("/wechatpay", this.WeChatPay)        // 添加 wechat_pay
-		Currency.GET("/wechatpay", this.GetWeChatPay)      // 获取 wechat_pay
-		Currency.PUT("/wechatpay", this.UpdateWeChatPay)   // 更新 wechat_pay
+		Currency.POST("/wechatpay", this.WeChatPay)      // 添加 wechat_pay
+		Currency.GET("/wechatpay", this.GetWeChatPay)    // 获取 wechat_pay
+		Currency.PUT("/wechatpay", this.UpdateWeChatPay) // 更新 wechat_pay
 
-		Currency.POST("/paypal", this.Paypal)              // 添加 paypal
-		Currency.GET("/paypal", this.GetPaypal)            // 获取 paypal
-		Currency.PUT("/paypal", this.UpdatePaypal)         // 更新 paypal
-
+		Currency.POST("/paypal", this.Paypal)      // 添加 paypal
+		Currency.GET("/paypal", this.GetPaypal)    // 获取 paypal
+		Currency.PUT("/paypal", this.UpdatePaypal) // 更新 paypal
 
 		// 追加
-		Currency.GET("/selling_price", this.GetSellingPrice)           // 售价
-		Currency.GET("/currency_balance", this.GetCurrencyBalance)     // 余额
-		Currency.GET("/user_currency_rating", this.GetUserRating)      // 获取用戶评级
-		Currency.GET("/trade_history", this.GetTradeHistory)           // 获取历史交易
+		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
+		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
+		Currency.GET("/user_currency_rating", this.GetUserRating)  // 获取用戶评级
+		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
 
 	}
 }
 
 // 买卖(广告)
 type CurrencyAds struct {
-	Id          uint64  `json:"id"`
-	Uid         uint64  `json:"uid"`          // 用户ID
-	TypeId      uint32  `json:"type_id"`      // 类型:1出售 2购买
-	TokenId     uint32  `json:"token_id"`     // 货币类型
-	TokenName   string  `json:"token_name"`   // 货币名称
-	Price       float64 `json:"price"`        // 单价
-	Num         float64 `json:"num"`          // 数量
+	Id        uint64  `json:"id"`
+	Uid       uint64  `json:"uid"`        // 用户ID
+	TypeId    uint32  `json:"type_id"`    // 类型:1出售 2购买
+	TokenId   uint32  `json:"token_id"`   // 货币类型
+	TokenName string  `json:"token_name"` // 货币名称
+	Price     float64 `json:"price"`      // 单价
+	Num       float64 `json:"num"`        // 数量
 	//Premium     int32   `json:"premium"`      // 溢价
 	Premium     float64 `json:"premium"`      // 溢价
 	AcceptPrice float64 `json:"accept_price"` // 可接受最低[高]单价
@@ -96,7 +93,6 @@ type CurrencyAds struct {
 	CreatedTime string  `json:"created_time"` // 创建时间
 	UpdatedTime string  `json:"updated_time"` // 修改时间
 }
-
 
 // 获取广告(买卖)
 func (this *CurrencyGroup) GetAds(c *gin.Context) {
@@ -171,24 +167,24 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 
 	// 请求的数据结构
 	req := struct {
-		Token        string  `form:"token" json:"token" binding:"required"`       // token验证
-		Uid          uint64  `form:"uid" json:"uid" binding:"required"`           // 用户ID
-		TypeId       uint32  `form:"type_id" json:"type_id" binding:"required"`   // 类型:1出售 2购买
-		TokenId      uint32  `form:"token_id" json:"token_id" binding:"required"` // 货币类型
-		TokenName    string  `form:"token_name" json:"token_name"`                // 货币名称
-		Price        float64 `form:"price" json:"price" binding:"required"`       // 单价
-		Num          float64 `form:"num" json:"num" binding:"required"`           // 数量
+		Token     string  `form:"token" json:"token" binding:"required"`       // token验证
+		Uid       uint64  `form:"uid" json:"uid" binding:"required"`           // 用户ID
+		TypeId    uint32  `form:"type_id" json:"type_id" binding:"required"`   // 类型:1出售 2购买
+		TokenId   uint32  `form:"token_id" json:"token_id" binding:"required"` // 货币类型
+		TokenName string  `form:"token_name" json:"token_name"`                // 货币名称
+		Price     float64 `form:"price" json:"price" binding:"required"`       // 单价
+		Num       float64 `form:"num" json:"num" binding:"required"`           // 数量
 		//Premium      int32   `form:"premium" json:"premium"`                      // 溢价
-		Premium      float64   `form:"premium" json:"premium"`                      // 溢价
-		AcceptPrice  float64 `form:"accept_price" json:"accept_price"`            // 可接受最低[高]单价
-		MinLimit     uint32  `form:"min_limit" json:"min_limit"`                  // 最小限额
-		MaxLimit     uint32  `form:"max_limit" json:"max_limit"`                  // 最大限额
-		IsTwolevel   uint32  `form:"is_twolevel" json:"is_twolevel"`              // 是否要通过二级认证:0不通过 1通过
-		Pays         string  `form:"pays" json:"pays" binding:"required"`         // 支付方式:以 , 分隔: 1,2,3
-		Remarks      string  `form:"remarks" json:"remarks"`                      // 交易备注
-		Reply        string  `form:"reply" json:"reply"`                          // 自动回复问候语
-		IsUsd        uint32  `form:"is_usd" json:"is_usd"`                        // 是否美元:0否 1是 (无用)
-		FiatCurrency string  `form:"fiat_currency" json:"fiat_currency"`          // 指定 CNY | USD
+		Premium      float64 `form:"premium" json:"premium"`              // 溢价
+		AcceptPrice  float64 `form:"accept_price" json:"accept_price"`    // 可接受最低[高]单价
+		MinLimit     uint32  `form:"min_limit" json:"min_limit"`          // 最小限额
+		MaxLimit     uint32  `form:"max_limit" json:"max_limit"`          // 最大限额
+		IsTwolevel   uint32  `form:"is_twolevel" json:"is_twolevel"`      // 是否要通过二级认证:0不通过 1通过
+		Pays         string  `form:"pays" json:"pays" binding:"required"` // 支付方式:以 , 分隔: 1,2,3
+		Remarks      string  `form:"remarks" json:"remarks"`              // 交易备注
+		Reply        string  `form:"reply" json:"reply"`                  // 自动回复问候语
+		IsUsd        uint32  `form:"is_usd" json:"is_usd"`                // 是否美元:0否 1是 (无用)
+		FiatCurrency string  `form:"fiat_currency" json:"fiat_currency"`  // 指定 CNY | USD
 	}{}
 
 	err := c.ShouldBind(&req)
@@ -317,21 +313,21 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	// 请求的数据结构
 	req := struct {
-		Token        string  `form:"token" json:"token" binding:"required"` // token验证
-		Uid          uint64  `form:"uid" json:"uid" binding:"required"`     // 用户ID
-		Id           uint64  `form:"id" json:"id" binding:"required"`       // 广告ID
-		Price        float64 `form:"price" json:"price" binding:"required"` // 单价
-		Num          float64 `form:"num" json:"num" binding:"required"`     // 数量
-		Premium      float64   `form:"premium" json:"premium"`                // 溢价
+		Token   string  `form:"token" json:"token" binding:"required"` // token验证
+		Uid     uint64  `form:"uid" json:"uid" binding:"required"`     // 用户ID
+		Id      uint64  `form:"id" json:"id" binding:"required"`       // 广告ID
+		Price   float64 `form:"price" json:"price" binding:"required"` // 单价
+		Num     float64 `form:"num" json:"num" binding:"required"`     // 数量
+		Premium float64 `form:"premium" json:"premium"`                // 溢价
 		//Premium      int32   `form:"premium" json:"premium"`                // 溢价
-		AcceptPrice  float64 `form:"accept_price" json:"accept_price"`      // 可接受最低[高]单价
-		MinLimit     uint32  `form:"min_limit" json:"min_limit"`            // 最小限额
-		MaxLimit     uint32  `form:"max_limit" json:"max_limit"`            // 最大限额
-		IsTwolevel   uint32  `form:"is_twolevel" json:"is_twolevel"`        // 是否要通过二级认证:0不通过 1通过
-		Pays         string  `form:"pays" json:"pays" binding:"required"`   // 支付方式:以 , 分隔: 1,2,3
-		Remarks      string  `form:"remarks" json:"remarks"`                // 交易备注
-		Reply        string  `form:"reply" json:"reply"`                    // 自动回复问候语
-		FiatCurrency string  `form:"fiat_currency" json:"fiat_currency"`    // 指定 CNY | USD
+		AcceptPrice  float64 `form:"accept_price" json:"accept_price"`    // 可接受最低[高]单价
+		MinLimit     uint32  `form:"min_limit" json:"min_limit"`          // 最小限额
+		MaxLimit     uint32  `form:"max_limit" json:"max_limit"`          // 最大限额
+		IsTwolevel   uint32  `form:"is_twolevel" json:"is_twolevel"`      // 是否要通过二级认证:0不通过 1通过
+		Pays         string  `form:"pays" json:"pays" binding:"required"` // 支付方式:以 , 分隔: 1,2,3
+		Remarks      string  `form:"remarks" json:"remarks"`              // 交易备注
+		Reply        string  `form:"reply" json:"reply"`                  // 自动回复问候语
+		FiatCurrency string  `form:"fiat_currency" json:"fiat_currency"`  // 指定 CNY | USD
 	}{}
 
 	err := c.ShouldBind(&req)
@@ -395,9 +391,9 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	// 调用 rpc 修改广告(买卖)
 	code, err := rpc.InnerService.CurrencyService.CallUpdatedAds(&proto.AdsModel{
-		Id:          req.Id,
-		Price:       uint64(convert.Float64ToInt64By8Bit(req.Price)),
-		Num:         uint64(convert.Float64ToInt64By8Bit(req.Num)),
+		Id:    req.Id,
+		Price: uint64(convert.Float64ToInt64By8Bit(req.Price)),
+		Num:   uint64(convert.Float64ToInt64By8Bit(req.Num)),
 		//Premium:     req.Premium,
 		Premium:     convert.Float64ToInt64By8Bit(req.Premium),
 		AcceptPrice: uint64(convert.Float64ToInt64By8Bit(req.AcceptPrice)),
@@ -420,7 +416,6 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	}
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }
-
 
 // 修改广告(买卖)状态
 func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
@@ -543,7 +538,6 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		req.FiatCurrency = "cny"
 	}
 
-
 	// 调用 rpc 法币交易列表 - (广告(买卖))
 	data, err := rpc.InnerService.CurrencyService.CallAdsList(&proto.AdsListRequest{
 		TypeId:  req.TypeId,
@@ -562,7 +556,6 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 	dataLen := len(data.Data)
 	fmt.Println("dataLen:", dataLen)
 
-
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{
 		Page:    data.Page,
@@ -578,11 +571,11 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		for i := 0; i < dataLen; i++ {
 
 			adsLists := AdsListsData{
-				Id:          data.Data[i].Id,
-				Uid:         data.Data[i].Uid,
-				Price:       utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
-				Num:         utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
-				MinLimit:    data.Data[i].MinLimit,
+				Id:       data.Data[i].Id,
+				Uid:      data.Data[i].Uid,
+				Price:    utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
+				Num:      utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
+				MinLimit: data.Data[i].MinLimit,
 				//MaxLimit:    uint32(utils.PriceFiatMaxLimit(int64(data.Data[i].MaxLimit), data.Data[i].Balance, int32(data.Data[i].TypeId), req.FiatCurrency)),
 				MaxLimit:    data.Data[i].MaxLimit,
 				Pays:        data.Data[i].Pays,
@@ -627,7 +620,6 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 	ret.SetDataValue(reaList)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }
-
 
 // 个人法币交易列表 - (广告(买卖))
 func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
@@ -852,9 +844,9 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 
 	// 请求的数据结构
 	req := struct {
-		Token   string `form:"token"     json:"token"         binding:"required"`       // token验证
+		Token   string `form:"token"     json:"token"         binding:"required"` // token验证
 		OrderId string `form:"order_id"  json:"order_id"      binding:"required"` // 订单ID
-		Uid     uint64 `form:"uid"       json:"uid"           binding:"required"`           // 用户ID
+		Uid     uint64 `form:"uid"       json:"uid"           binding:"required"` // 用户ID
 		Content string `form:"content"   json:"content"       binding:"required"`
 	}{}
 
@@ -935,18 +927,16 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }
 
-
-
 // get 售价
 
-func (this *CurrencyGroup)  GetSellingPrice(c *gin.Context) {
+func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
 	req := struct {
-		TokenId  uint32  `form:"token_id" json:"token_id" binding:"required"`
+		TokenId uint32 `form:"token_id" json:"token_id" binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&req)
@@ -976,16 +966,15 @@ func (this *CurrencyGroup)  GetSellingPrice(c *gin.Context) {
 	return
 }
 
-
 // get this.GetCurrencyQuota)     // 余额
-func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context){
+func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid     uint64  `form:"uid" json:"uid" binding:"required"`
-		TokenId uint32  `form:"token_id"  json:"token_id" binding:"required"`
+		Uid     uint64 `form:"uid" json:"uid" binding:"required"`
+		TokenId uint32 `form:"token_id"  json:"token_id" binding:"required"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -1024,7 +1013,7 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid uint64 `form:"uid"   json:"uid" binding:"required"`     //
+		Uid uint64 `form:"uid"   json:"uid" binding:"required"` //
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -1037,9 +1026,8 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		return
 	}
 
-
 	rsp, err := rpc.InnerService.CurrencyService.CallGetUserRating(&proto.GetUserRatingRequest{
-		Uid:req.Uid,
+		Uid: req.Uid,
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
@@ -1047,17 +1035,17 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		return
 	}
 	type UserCurrencyCount struct {
-		Uid        uint64  `json:"uid"`
+		Uid uint64 `json:"uid"`
 
-		Cancel     uint32  `json:"cancel"`      // 取消
-		Good       float64 `json:"good"`        // 好评率
+		Cancel uint32  `json:"cancel"` // 取消
+		Good   float64 `json:"good"`   // 好评率
 
-		Orders        uint32  `json:"orders"`             // 订单数
-		CompleteRate  float64   `json:"complete_rate"`    //  完成率
-		MonthRate     int64   `json:"month_rate"`         // 30日成单
-		Success       int64   `json:"success"`            // 成功订单
-		Failure       int64   `json:"failure"`            // 失败
-		AverageTo    int64    `json:"average_to"`         // 120 分钟
+		Orders       uint32  `json:"orders"`        // 订单数
+		CompleteRate float64 `json:"complete_rate"` //  完成率
+		MonthRate    int64   `json:"month_rate"`    // 30日成单
+		Success      int64   `json:"success"`       // 成功订单
+		Failure      int64   `json:"failure"`       // 失败
+		AverageTo    int64   `json:"average_to"`    // 120 分钟
 	}
 	//fmt.Println("data:", rsp.Data)
 	var uCurrencyCount UserCurrencyCount
@@ -1068,13 +1056,10 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Code, rsp.Message)
 	ret.SetDataSection("orders", uCurrencyCount.Orders)
-	ret.SetDataSection("appeal",uCurrencyCount.Success + uCurrencyCount.Failure)    // 申诉
+	ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
 	ret.SetDataSection("success", uCurrencyCount.Success)
 	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
 	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
 	return
 }
-
-
-

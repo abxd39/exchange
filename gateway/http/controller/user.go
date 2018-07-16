@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"digicon/common/ip"
+	"github.com/gin-gonic/gin"
 )
 
 type UserGroup struct{}
@@ -195,7 +195,7 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Ukey, param.Pwd, param.Type,ip.RemoteIp(c.Request))
+	rsp, err := rpc.InnerService.UserSevice.CallLogin(param.Ukey, param.Pwd, param.Type, ip.RemoteIp(c.Request))
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
@@ -320,7 +320,7 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 
 	type EamilParam struct {
 		Email string `form:"email" binding:"required"`
-		Type   int32  `form:"type" binding:"required"`
+		Type  int32  `form:"type" binding:"required"`
 	}
 
 	var param EamilParam
@@ -513,8 +513,6 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 	ret.SetErrCode(rsp.Err)
 }
 
-
-
 func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -522,8 +520,8 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 	}()
 
 	req := struct {
-		Ukey         string `form:"ukey" binding:"required"`
-		Type         int32 `form:"type" binding:"required"`
+		Ukey string `form:"ukey" binding:"required"`
+		Type int32  `form:"type" binding:"required"`
 	}{}
 	if err := c.ShouldBindQuery(&req); err != nil {
 		Log.Errorf(err.Error())
@@ -531,8 +529,8 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.UserSevice.CallCheckAuthSecurity(&proto.CheckSecurityRequest{
-		Ukey:          req.Ukey,
-		Type:req.Type,
+		Ukey: req.Ukey,
+		Type: req.Type,
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
@@ -540,6 +538,5 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err)
-	ret.SetDataSection("auth",rsp.Auth)
+	ret.SetDataSection("auth", rsp.Auth)
 }
-

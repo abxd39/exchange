@@ -69,6 +69,9 @@ type EntrustQuene struct {
 
 	amout int64
 
+	//主币兑人民币价格
+	cny int64
+
 	one_min     clock.Clock
 	five_min    clock.Clock
 	fivteen_min clock.Clock
@@ -87,7 +90,7 @@ func GenSourceKey(en string) string {
 	return fmt.Sprintf("source:%s", en)
 }
 
-func NewEntrustQueue(token_id, token_trade_id int, price int64, name string) *EntrustQuene {
+func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny int64) *EntrustQuene {
 	quene_id := name
 
 	m := &EntrustQuene{
@@ -107,6 +110,7 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string) *En
 		//updateOrderDetail: make(chan *EntrustData, 1000),
 		marketOrderDetail: make(chan *EntrustData, 1000),
 		price:             price,
+		cny:               cny,
 	}
 	go m.process()
 	return m
@@ -333,7 +337,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	num := convert.Int64MulInt64By8Bit(deal_num, price)
+	num := convert.Int64MulInt64By8Bit(deal_num, price) //买家消耗USDT数量
 	fmt.Printf("price =%d,deal_num=%d ,num =%d \n", price, deal_num, num)
 
 	fee := num * 5 / 1000 //买家消耗手续费0.005个USDT
@@ -369,15 +373,19 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		t.States = TRADE_STATES_PART
 		o.States = TRADE_STATES_ALL
 		buyer.SurplusNum -= num
-	} else if seller.SurplusNum == deal_num {
+		seller.SurplusNum -= deal_num
+	} else if seller.SurplusNum == deal_num && buyer.SurplusNum == num {
 		t.States = TRADE_STATES_ALL
 		o.States = TRADE_STATES_ALL
 	} else {
 		t.States = TRADE_STATES_ALL
 		o.States = TRADE_STATES_PART
 		seller.SurplusNum -= deal_num
+		buyer.SurplusNum -= num
 	}
 
+	if seller.SurplusNum < deal_num { //卖方部分成交
+	}
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
@@ -673,6 +681,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			var num, price int64 //BTC数量，成交价格
 
 			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+				s.delSource(other.Opt, other.Type, other.EntrustId)
 				num = convert.Int64DivInt64By8Bit(p.SurplusNum, p.OnPrice)
 				price = p.OnPrice
 			} else {
@@ -684,6 +693,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					} else if s.price > p.OnPrice && s.price < other.OnPrice {
 						price = s.price
 					}
+					s.delSource(other.Opt, other.Type, other.EntrustId)
 				} else {
 					s.joinSellQuene(p)
 					return
@@ -691,7 +701,6 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 
 				num = convert.Int64DivInt64By8Bit(p.SurplusNum, price) //计算买家最大买入BTC数量
 			}
-			s.delSource(other.Opt, other.Type, other.EntrustId)
 
 			if num > other.SurplusNum {
 				err = s.MakeDeal(p, other, price, other.SurplusNum)
@@ -771,7 +780,6 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 
 				if ret != ERRCODE_SUCCESS {
 					s.joinSellQuene(p)
-					//s.marketOrderDetail <- p
 					return
 				}
 
@@ -856,25 +864,39 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			var num, price int64 //BTC数量，成交价格
 
 			if other.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+				s.delSource(other.Opt, other.Type, other.EntrustId)
 				num = convert.Int64DivInt64By8Bit(other.SurplusNum, p.OnPrice)
 				price = p.OnPrice
 			} else {
-				if p.OnPrice >= other.OnPrice {
+				if other.OnPrice >= p.OnPrice {
 					if p.OnPrice <= s.price {
 						price = p.OnPrice
-					} else if other.OnPrice >= s.price {
-						price = other.OnPrice
-					} else if s.price > p.OnPrice && s.price < other.OnPrice {
+					} else if p.OnPrice >= s.price {
+						price = p.OnPrice
+					} else if s.price < p.OnPrice && s.price > other.OnPrice {
 						price = s.price
 					}
+					s.delSource(other.Opt, other.Type, other.EntrustId)
 				} else {
+					s.joinSellQuene(p)
+					return
+				}
+
+				Log.WithFields(logrus.Fields{
+					"price": price,
+					"uid":   p.Uid,
+					"num":   p.SurplusNum,
+					"oid":   other.Uid,
+					"onum":  other.SurplusNum,
+				}).Info("print data")
+				if price == 0 {
+					s.joinSellQuene(p)
+					s.joinSellQuene(other)
 					return
 				}
 
 				num = convert.Int64DivInt64By8Bit(other.SurplusNum, price) //买房愿意用花的USDT比例兑换BTC的数量
 			}
-
-			s.delSource(other.Opt, other.Type, other.EntrustId)
 
 			if num > p.SurplusNum {
 				err = s.MakeDeal(other, p, price, p.SurplusNum)
@@ -890,7 +912,6 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetPrice(price)
-
 				s.match(other)
 
 			} else if num == p.SurplusNum {
@@ -923,7 +944,6 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				}
 				s.SetPrice(price)
 				s.match(p)
-				//s.joinSellQuene(other)
 			}
 			return
 
@@ -1198,4 +1218,8 @@ func (s *EntrustQuene) GetTradeList(count int64) []*TradeInfo {
 		g = append(g, data)
 	}
 	return g
+}
+
+func (s *EntrustQuene) GetCnyPrice(price int64) string {
+	return convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(s.cny, price))
 }

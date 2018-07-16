@@ -83,8 +83,6 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (s
 	token.GetByid(int(tokenId))
 	url := token.Node
 
-
-
 	//fmt.Println("----------------------------")
 	err := BtcWalletPhrase(url, password, 1*60*60)
 

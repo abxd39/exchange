@@ -5,7 +5,7 @@ import (
 	. "digicon/token_service/log"
 )
 
-type QuenesConfig struct {
+type ConfigQuenes struct {
 	Id           int64  `xorm:"pk autoincr BIGINT(20)"`
 	TokenId      int    `xorm:"comment('交易币') unique(union_quene_id) INT(11)"`
 	TokenTradeId int    `xorm:"comment('实际交易币') unique(union_quene_id) INT(11)"`
@@ -18,20 +18,12 @@ type QuenesConfig struct {
 	Amount       int64  `xorm:"comment('成交量') BIGINT(20)"`
 }
 
-func (s *QuenesConfig) GetQuenes(uid uint64) []QuenesConfig {
-	/*
-		t := make([]QuenesConfig, 0)
-		err := DB.GetMysqlConn().Where("token_id=? and switch=1", quene_type).Find(&t)
-		if err != nil {
-			Log.Errorln(err.Error())
-			return nil
-		}
-	*/
+func (s *ConfigQuenes) GetQuenes(uid uint64) []ConfigQuenes {
 	return nil
 }
 
-func (s *QuenesConfig) GetAllQuenes() []QuenesConfig {
-	t := make([]QuenesConfig, 0)
+func (s *ConfigQuenes) GetAllQuenes() []ConfigQuenes {
+	t := make([]ConfigQuenes, 0)
 	err := DB.GetMysqlConn().Where("switch=1").Find(&t)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -40,8 +32,8 @@ func (s *QuenesConfig) GetAllQuenes() []QuenesConfig {
 	return t
 }
 
-func (s *QuenesConfig) GetQuenesByType(token_id int32) []QuenesConfig {
-	t := make([]QuenesConfig, 0)
+func (s *ConfigQuenes) GetQuenesByType(token_id int32) []ConfigQuenes {
+	t := make([]ConfigQuenes, 0)
 	err := DB.GetMysqlConn().Where("switch=1 and token_id=?", token_id).Find(&t)
 	if err != nil {
 		Log.Errorln(err.Error())

@@ -21,7 +21,7 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.POST("signtx", this.Signtx)       // 签名
 	r.POST("sendrawtx", this.SendRawTx) // 广播
 	r.POST("tibi", this.Tibi)           //
-	r.GET("getvalue", this.GetValue)   // 查询链上余额
+	r.GET("getvalue", this.GetValue)    // 查询链上余额
 	r.POST("address/save", this.AddressSave)
 	r.GET("address/list", this.AddressList)
 	r.POST("address/delete", this.AddressDelete)
@@ -131,7 +131,6 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 	return
 }
 
-
 func (this *WalletGroup) Signtx(ctx *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -162,7 +161,6 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 
 }
 
-
 func (this *WalletGroup) Update(ctx *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -172,7 +170,7 @@ func (this *WalletGroup) Update(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.Callhello("eth")
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-			//ctx.String(http.StatusOK, "err 0000 rsp")
+		//ctx.String(http.StatusOK, "err 0000 rsp")
 		return
 	}
 	ret.SetDataSection("data", rsp)
@@ -263,7 +261,6 @@ func (this *WalletGroup) GetValue(ctx *gin.Context) {
 	return
 }
 
-
 func (this *WalletGroup) AddressSave(ctx *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -297,7 +294,7 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type Param struct {
-		Uid      int32  `form:"uid"      binding:"required"`
+		Uid int32 `form:"uid"      binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -311,7 +308,7 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 		fmt.Println("ERRCODE_UNKNOWN:", ERRCODE_UNKNOWN)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
-	}else{
+	} else {
 		fmt.Println("SUCCESS:", ERRCODE_SUCCESS)
 		ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 		ret.SetDataSection("data", rsp.Data)
@@ -319,7 +316,6 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 
 	return
 }
-
 
 func (this *WalletGroup) AddressDelete(ctx *gin.Context) {
 	ret := NewPublciError()

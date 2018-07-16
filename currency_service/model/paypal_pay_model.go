@@ -6,8 +6,8 @@ import (
 	proto "digicon/proto/rpc"
 	"time"
 
-	"digicon/currency_service/rpc/client"
 	"digicon/currency_service/log"
+	"digicon/currency_service/rpc/client"
 	"fmt"
 )
 
@@ -22,16 +22,16 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 
 	/////////////////  1.  验证  验证码 /////////////////////////
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
-		Uid:       req.Uid,
-		Code:      req.Verify,
-		AuthType:  10,  // 设置银行卡支付 10
+		Uid:      req.Uid,
+		Code:     req.Verify,
+		AuthType: 10, // 设置银行卡支付 10
 	})
 	fmt.Println("=========================", rsp)
 	if err != nil {
 		log.Log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
-	if  rsp.Code != ERRCODE_SUCCESS {
+	if rsp.Code != ERRCODE_SUCCESS {
 		log.Log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
@@ -68,8 +68,7 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 	return ERRCODE_SUCCESS, nil
 }
 
-
-func (pal *UserCurrencyPaypalPay) GetByUid(uid uint64) ( err  error){
+func (pal *UserCurrencyPaypalPay) GetByUid(uid uint64) (err error) {
 	engine := dao.DB.GetMysqlConn()
 	_, err = engine.Where("uid =?", uid).Get(pal)
 	return

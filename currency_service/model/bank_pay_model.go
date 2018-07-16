@@ -2,14 +2,14 @@ package model
 
 import (
 	"digicon/currency_service/dao"
+	"digicon/currency_service/log"
+	"digicon/currency_service/rpc/client"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
-	"digicon/currency_service/rpc/client"
-	"digicon/currency_service/log"
 )
 
 type UserCurrencyBankPay struct {
@@ -29,24 +29,22 @@ func (p *UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, erro
 	}
 	/////////////////  1.  验证  验证码 /////////////////////////
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
-		Uid:       req.Uid,
-		Code:      req.Verify,
-		AuthType:  7,  // 设置银行卡支付 7
+		Uid:      req.Uid,
+		Code:     req.Verify,
+		AuthType: 7, // 设置银行卡支付 7
 	})
 	if err != nil {
 		log.Log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
-	if  rsp.Code != ERRCODE_SUCCESS {
+	if rsp.Code != ERRCODE_SUCCESS {
 		log.Log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 
-
 	//实名
 	//银行卡实名 电话与银行卡实名
 	//调用接口
-
 
 	engine := dao.DB.GetMysqlConn()
 	//检查数据库是否已经存在uid
@@ -86,9 +84,7 @@ func (p *UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, erro
 	return ERRCODE_SUCCESS, nil
 }
 
-
-
-func (p *UserCurrencyBankPay) GetByUid(uid uint64) ( err  error){
+func (p *UserCurrencyBankPay) GetByUid(uid uint64) (err error) {
 	engine := dao.DB.GetMysqlConn()
 	_, err = engine.Where("uid =?", uid).Get(p)
 	return

@@ -5,8 +5,6 @@ const (
 	ETCD      int = 1
 )
 
-
 const (
 	REGISTER int = 1
-
 )

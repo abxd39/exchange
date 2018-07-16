@@ -120,10 +120,10 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 	u := &model.User{}
 	if req.Type == 1 { //电话找回
 		ret, err = u.GetUserByPhone(req.Ukey)
-	}else if  req.Type == 2 {
+	} else if req.Type == 2 {
 		ret, err = u.GetUserByEmail(req.Ukey)
-	}else  {
-		ret =ERRCODE_PARAM
+	} else {
+		ret = ERRCODE_PARAM
 		return nil
 	}
 
@@ -132,9 +132,8 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		rsp.Message = err.Error()
 		return err
 	}
-	
-	
-	ret,err = u.AuthCodeByAl(req.Ukey,req.Code,req.Type)
+
+	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, req.Type)
 	if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
@@ -151,46 +150,46 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 	return nil
 
 	/*
-	if req.Type == 1 { //电话找回
-		ret, err := model.AuthSms(req.Ukey, req.Type, req.Code)
-		if err != nil {
-			rsp.Err = ERRCODE_UNKNOWN
-			rsp.Message = err.Error()
-			return nil
-		}
+		if req.Type == 1 { //电话找回
+			ret, err := model.AuthSms(req.Ukey, req.Type, req.Code)
+			if err != nil {
+				rsp.Err = ERRCODE_UNKNOWN
+				rsp.Message = err.Error()
+				return nil
+			}
 
-		if ret != ERRCODE_SUCCESS {
-			rsp.Err = ret
-			rsp.Message = GetErrorMessage(ret)
-		}
+			if ret != ERRCODE_SUCCESS {
+				rsp.Err = ret
+				rsp.Message = GetErrorMessage(ret)
+			}
 
-		u := model.User{}
-		ret, err = u.GetUserByPhone(req.Ukey)
-		if err != nil {
-			rsp.Err = ret
-			rsp.Message = err.Error()
-			return err
-		}
+			u := model.User{}
+			ret, err = u.GetUserByPhone(req.Ukey)
+			if err != nil {
+				rsp.Err = ret
+				rsp.Message = err.Error()
+				return err
+			}
 
-		if ret != ERRCODE_SUCCESS {
-			rsp.Err = ret
+			if ret != ERRCODE_SUCCESS {
+				rsp.Err = ret
+				rsp.Message = GetErrorMessage(rsp.Err)
+				return nil
+			}
+			err = u.ModifyPwd(req.Pwd)
+			if err != nil {
+				rsp.Err = ERRCODE_UNKNOWN
+				rsp.Message = err.Error()
+				return nil
+			}
+			rsp.Err = ERRCODE_SUCCESS
 			rsp.Message = GetErrorMessage(rsp.Err)
 			return nil
-		}
-		err = u.ModifyPwd(req.Pwd)
-		if err != nil {
-			rsp.Err = ERRCODE_UNKNOWN
-			rsp.Message = err.Error()
-			return nil
-		}
-		rsp.Err = ERRCODE_SUCCESS
-		rsp.Message = GetErrorMessage(rsp.Err)
-		return nil
 
-	} else if req.Type == 2 { //邮箱找回
+		} else if req.Type == 2 { //邮箱找回
 
-	}
-*/
+		}
+	*/
 	rsp.Err = ERRCODE_PARAM
 	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil

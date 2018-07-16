@@ -1,14 +1,15 @@
 package controller
 
 import (
-	"digicon/gateway/rpc"
+	"digicon/common/convert"
 	. "digicon/gateway/log"
+	"digicon/gateway/rpc"
 	. "digicon/proto/common"
+	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	proto "digicon/proto/rpc"
-	"digicon/common/convert"
 )
+
 type TokenGroup struct{}
 
 func (s *TokenGroup) Router(r *gin.Engine) {
@@ -34,13 +35,13 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 	}()
 
 	type EntrustOrderParam struct {
-		Uid uint64 `form:"uid" binding:"required"`
-		Token string `form:"token" binding:"required"`
-		Symbol string `form:"symbol" binding:"required"`
-		Opt int32 `form:"opt"  binding:"required"`
+		Uid     uint64 `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Symbol  string `form:"symbol" binding:"required"`
+		Opt     int32  `form:"opt"  binding:"required"`
 		OnPrice string `form:"on_price"  binding:"required"`
-		Type int32 `form:"type" binding:"required"`
-		Num string`form:"num" binding:"required"`
+		Type    int32  `form:"type" binding:"required"`
+		Num     string `form:"num" binding:"required"`
 	}
 	var param EntrustOrderParam
 
@@ -50,25 +51,25 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		return
 	}
 
-	o,err:=convert.StringToInt64By8Bit(param.OnPrice)
-	if err!=nil {
-		ret.SetErrCode(ERRCODE_PARAM,err.Error())
+	o, err := convert.StringToInt64By8Bit(param.OnPrice)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
-	n,err:=convert.StringToInt64By8Bit(param.Num)
-	if err!=nil {
-		ret.SetErrCode(ERRCODE_PARAM,err.Error())
+	n, err := convert.StringToInt64By8Bit(param.Num)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallEntrustOrder(&proto.EntrustOrderRequest{
-		Symbol:param.Symbol,
-		Opt:proto.ENTRUST_OPT(param.Opt),
-		OnPrice:o,
-		Num:n,
-		Uid:param.Uid,
-		Type: proto.ENTRUST_TYPE(param.Type),
+		Symbol:  param.Symbol,
+		Opt:     proto.ENTRUST_OPT(param.Opt),
+		OnPrice: o,
+		Num:     n,
+		Uid:     param.Uid,
+		Type:    proto.ENTRUST_TYPE(param.Type),
 	})
 
 	if err != nil {
@@ -78,8 +79,6 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-
-
 func (s *TokenGroup) SelfSymbols(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -87,8 +86,8 @@ func (s *TokenGroup) SelfSymbols(c *gin.Context) {
 	}()
 
 	type SelfSymbolsParam struct {
-		Uid uint64 `form:"uid" binding:"required"`
-		Token string `form:"token" binding:"required"`
+		Uid     uint64 `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
 		TokenId int32  `form:"token_id" binding:"required"`
 	}
 
@@ -101,7 +100,7 @@ func (s *TokenGroup) SelfSymbols(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallSelfSymbols(&proto.SelfSymbolsRequest{
-		Uid:param.Uid,
+		Uid: param.Uid,
 	})
 
 	if err != nil {
@@ -109,7 +108,7 @@ func (s *TokenGroup) SelfSymbols(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection(RET_DATA,rsp.Data)
+	ret.SetDataSection(RET_DATA, rsp.Data)
 }
 
 func (s *TokenGroup) EntrustList(c *gin.Context) {
@@ -119,10 +118,10 @@ func (s *TokenGroup) EntrustList(c *gin.Context) {
 	}()
 
 	type EntrustListParam struct {
-		Uid uint64 `form:"uid" binding:"required"`
+		Uid   uint64 `form:"uid" binding:"required"`
 		Token string `form:"token" binding:"required"`
 		Limit int32  `form:"limit" `
-		Page int32  `form:"page" `
+		Page  int32  `form:"page" `
 	}
 
 	var param EntrustListParam
@@ -133,16 +132,16 @@ func (s *TokenGroup) EntrustList(c *gin.Context) {
 		return
 	}
 
-	if param.Limit==0 {
-		param.Limit=5
+	if param.Limit == 0 {
+		param.Limit = 5
 	}
-	if param.Page==0 {
-		param.Page=1
+	if param.Page == 0 {
+		param.Page = 1
 	}
 	rsp, err := rpc.InnerService.TokenService.CallEntrustList(&proto.EntrustHistoryRequest{
-		Uid:param.Uid,
-		Limit:param.Limit,
-		Page:param.Page,
+		Uid:   param.Uid,
+		Limit: param.Limit,
+		Page:  param.Page,
 	})
 
 	if err != nil {
@@ -150,7 +149,7 @@ func (s *TokenGroup) EntrustList(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list",rsp.Data)
+	ret.SetDataSection("list", rsp.Data)
 }
 
 func (s *TokenGroup) EntrustHistory(c *gin.Context) {
@@ -160,10 +159,10 @@ func (s *TokenGroup) EntrustHistory(c *gin.Context) {
 	}()
 
 	type EntrustListParam struct {
-		Uid uint64 `form:"uid" binding:"required"`
+		Uid   uint64 `form:"uid" binding:"required"`
 		Token string `form:"token" binding:"required"`
 		Limit int32  `form:"limit" `
-		Page int32  `form:"page" `
+		Page  int32  `form:"page" `
 	}
 
 	var param EntrustListParam
@@ -174,17 +173,17 @@ func (s *TokenGroup) EntrustHistory(c *gin.Context) {
 		return
 	}
 
-	if param.Limit==0 {
-		param.Limit=5
+	if param.Limit == 0 {
+		param.Limit = 5
 	}
-	if param.Page==0 {
-		param.Page=1
+	if param.Page == 0 {
+		param.Page = 1
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallEntrustHistory(&proto.EntrustHistoryRequest{
-		Uid:param.Uid,
-		Limit:param.Limit,
-		Page:param.Page,
+		Uid:   param.Uid,
+		Limit: param.Limit,
+		Page:  param.Page,
 	})
 
 	if err != nil {
@@ -192,10 +191,8 @@ func (s *TokenGroup) EntrustHistory(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list",rsp.Data)
+	ret.SetDataSection("list", rsp.Data)
 }
-
-
 
 func (s *TokenGroup) TokenBalance(c *gin.Context) {
 	ret := NewPublciError()
@@ -204,8 +201,8 @@ func (s *TokenGroup) TokenBalance(c *gin.Context) {
 	}()
 
 	type TokenBalanceParam struct {
-		Uid uint64 `form:"uid" binding:"required"`
-		Token string `form:"token" binding:"required"`
+		Uid     uint64 `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
 		TokenId int32  `form:"token_id" binding:"required"`
 	}
 
@@ -218,8 +215,8 @@ func (s *TokenGroup) TokenBalance(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallTokenBalance(&proto.TokenBalanceRequest{
-		Uid:param.Uid,
-		TokenId:param.TokenId,
+		Uid:     param.Uid,
+		TokenId: param.TokenId,
 	})
 
 	if err != nil {
@@ -227,5 +224,5 @@ func (s *TokenGroup) TokenBalance(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("balance",rsp.Balance)
+	ret.SetDataSection("balance", rsp.Balance)
 }

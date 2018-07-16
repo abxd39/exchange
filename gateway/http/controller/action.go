@@ -109,10 +109,9 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 	type GoogleDelCodeParam struct {
 		Uid  uint64 `form:"uid" binding:"required"`
 		Auth uint32 `form:"auth" binding:"required"`
-		Sms string `form:"sms" binding:"required"`
+		Sms  string `form:"sms" binding:"required"`
 	}
 	var param GoogleDelCodeParam
-
 
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())
@@ -120,7 +119,7 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallResetGoogleSecretKey(param.Uid, param.Auth,param.Sms)
+	rsp, err := rpc.InnerService.UserSevice.CallResetGoogleSecretKey(param.Uid, param.Auth, param.Sms)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
@@ -206,9 +205,9 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type GetUserBaseInfoParam struct {
-		Uid uint64 `form:"uid" binding:"required"`
+		Uid   uint64 `form:"uid" binding:"required"`
 		Limit int32  `form:"limit" `
-		Page int32  `form:"page" `
+		Page  int32  `form:"page" `
 	}
 	var param GetUserBaseInfoParam
 
@@ -218,11 +217,11 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 		return
 	}
 
-	if param.Limit==0 {
-		param.Limit=5
+	if param.Limit == 0 {
+		param.Limit = 5
 	}
-	if param.Page==0 {
-		param.Page=1
+	if param.Page == 0 {
+		param.Page = 1
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid)

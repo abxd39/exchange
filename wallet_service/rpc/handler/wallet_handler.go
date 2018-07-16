@@ -53,7 +53,6 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	return nil
 }
 
-
 func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest, rsp *proto.SigntxResponse) error {
 	log.Print("Received Say.Signtx request")
 	rsp.Data = new(proto.SigntxPos)
@@ -173,7 +172,6 @@ func (this *WalletHandler) GetValue(ctx context.Context, req *proto.GetValueRequ
 	return nil
 }
 
-
 //添加提币地址
 func (this *WalletHandler) AddressSave(ctx context.Context, req *proto.AddressSaveRequest, rsp *proto.AddressSaveResponse) error {
 	fmt.Println(req.Address)
@@ -205,7 +203,6 @@ func (this *WalletHandler) AddressList(ctx context.Context, req *proto.AddressLi
 	//fmt.Println(rets)
 	return nil
 }
-
 
 //提币地址删除
 func (this *WalletHandler) AddressDelete(ctx context.Context, req *proto.AddressDeleteRequest, rsp *proto.AddressDeleteResponse) error {
