@@ -38,8 +38,10 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		// bind user email
 		user.POST("/bind_email", s.BindUserEmail)
 		user.POST("/bind_phone", s.BindUserPhone)
-		user.POST("/unbind_email", s.UnBindUserEmail)
-		user.POST("/unbind_phone", s.UnBindUserPhone)
+
+		//
+		//user.POST("/unbind_email", s.UnBindUserEmail)
+		//user.POST("/unbind_phone", s.UnBindUserPhone)
 	}
 }
 
@@ -638,10 +640,19 @@ func( s *UserGroup) UnBindUserEmail ( c *gin.Context) {
 	defer func(){
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-
+	req := struct {
+		//Uid :=
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
+
+
 
 /*
 func: UnBindUserPhone
@@ -651,6 +662,14 @@ func(s *UserGroup) UnBindUserPhone(c *gin.Context){
 	defer func(){
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+	req := struct {
+		//
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
 
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
