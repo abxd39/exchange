@@ -997,7 +997,7 @@ func (s *EntrustQuene) process() {
 
 //定时器
 func (s *EntrustQuene) Clock() {
-	type MinPrice struct {
+	type PriceData struct {
 		Open   int64
 		Close  int64
 		Low    int64
@@ -1008,9 +1008,11 @@ func (s *EntrustQuene) Clock() {
 	}
 
 	c := clock.NewClock()
-	c.AddJobWithInterval(60*time.Second, func() {
+	job := func() {
+		//m:=&PriceData{}
 
-	})
+	}
+	c.AddJobWithInterval(60*time.Second, job)
 
 }
 

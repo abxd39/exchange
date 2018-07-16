@@ -605,6 +605,16 @@ func (s *User) SecurityChmod(code int) (err error) {
 	return nil
 }
 
+//删除认证权限
+func (s *User) DelSecurityChmod(code int) (err error) {
+	s.SecurityAuth = s.SecurityAuth &^ code
+	_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("security_auth").Update(s)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return nil
+}
 
 
 
