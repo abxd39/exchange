@@ -49,9 +49,22 @@ func (this *Ads) Get(id uint64) *Ads {
 }
 
 func (this *Ads) Add() int {
+	engine := dao.DB.GetMysqlConn()
+
+	////////  先判断是否有余额  /////////
+	uCurrency := new(UserCurrency)
+	_, err :=engine.Where("uid = ? AND token_id =?", this.Uid, this.TokenId).Get(uCurrency)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return ERRCODE_UNKNOWN
+	}
+	if uCurrency.Balance < int64(this.Num) {
+		Log.Errorln("add ads error, user currency balance lower this num!")
+		return ERR_TOKEN_LESS
+	}
 
 	data := new(Ads)
-	_, err := dao.DB.GetMysqlConn().Where("uid=? AND token_id=? AND type_id=?", this.Uid, this.TokenId, this.TypeId).Get(data)
+	_, err = engine.Where("uid=? AND token_id=? AND type_id=?", this.Uid, this.TokenId, this.TypeId).Get(data)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -60,7 +73,7 @@ func (this *Ads) Add() int {
 	//	return ERRCODE_ADS_EXISTS
 	//}
 
-	_, err = dao.DB.GetMysqlConn().Insert(this)
+	_, err = engine.Insert(this)
 	if err != nil {
 		fmt.Println("ad ads error!,", err.Error())
 		Log.Errorln(err.Error())

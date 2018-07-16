@@ -604,3 +604,12 @@ func (s *User) SecurityChmod(code int) (err error) {
 	}
 	return nil
 }
+
+
+
+
+/*
+	func:
+*/
+//func (s *User) BindUserEmail()
+

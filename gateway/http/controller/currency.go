@@ -962,7 +962,8 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	}
 
 	fmt.Println(data)
-	ret.SetDataSection("price", 48999.00)
+	ret.SetDataSection("price", 48999.0340)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
 
@@ -983,7 +984,6 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 		return
 	}
 	if req.Uid == 0 {
-		//ret.SetErrCode(ERRCODE_PARAM)
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -998,11 +998,12 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	//ret.SetDataValue(data)
-	fmt.Println(data)
-	ret.SetDataSection("balance", 5.01052013)
+	ret.SetDataSection("balance", data.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	//ret.SetDataSection("msg", GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
+
 
 // get GetUserRating
 // 获取用戶评级
