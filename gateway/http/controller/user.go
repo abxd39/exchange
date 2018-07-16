@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"digicon/common/ip"
 	"github.com/gin-gonic/gin"
+	"digicon/common/ip"
 )
 
 type UserGroup struct{}
@@ -34,6 +34,12 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/modify_trade_pwd", s.ResetTradePwd)
 		user.GET("/get_auth_method", s.GetCheckAuthMethod)
 
+
+		// bind user email
+		user.POST("/bind_email", s.BindUserEmail)
+		user.POST("/bind_phone", s.BindUserPhone)
+		user.POST("/unbind_email", s.UnBindUserEmail)
+		user.POST("/unbind_phone", s.UnBindUserPhone)
 	}
 }
 
@@ -539,4 +545,113 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err)
 	ret.SetDataSection("auth", rsp.Auth)
+}
+
+
+/*
+	// bind user email
+ */
+func (s *UserGroup) BindUserEmail (c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid         uint64     `form:"uid"          json:"uid"          binding:"required"`
+		Email       string     `form:"email"        json:"email"        binding:"required"`
+		EmailCode   string     `form:"email_code"   json:"email_code"   binding:"required"`
+		VerifyCode  string     `form:"verify_code"  json:"verify_code"  binding:"required"`
+		VerifyType  uint64     `form:"verify_type"  json:"verify_type"  binding:"required"`    // 验证类型 (1: 短信验证, 2 谷歌验证, )
+	}{}
+
+	if err := c.ShouldBind(&req); err != nil {
+		fmt.Println("bind error:", err.Error())
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	fmt.Println("req:", req)
+	rsp, err := rpc.InnerService.UserSevice.CallBindEmail(&proto.BindEmailRequest{
+		Uid:        req.Uid,
+		Email:      req.Email,
+		EmailCode:  req.EmailCode,
+		VerifyCode: req.VerifyCode,
+		VerifyType: req.VerifyType,
+	})
+	fmt.Println("err: ", err.Error())
+	fmt.Println(rsp)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
+
+}
+
+/*
+	func: bind user phone
+*/
+func (s *UserGroup) BindUserPhone(c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid         uint64     `form:"uid"          json:"uid"          binding:"required"`
+		Phone       string     `form:"phone"        json:"phone"        binding:"required"`
+		PhoneCode   string     `form:"phone_code"   json:"phone_code"   binding:"required"`
+		VerifyCode  string     `form:"verify_code"  json:"verify_code"  binding:"required"`
+		VerifyType  uint64     `form:"verify_type"  json:"verify_type"  binding:"required"`     // 验证类型 ( 1邮箱验证, 2谷歌验证 )
+
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallBindPhone(&proto.BindPhoneRequest{
+		Uid:        req.Uid,
+		Phone:      req.Phone,
+		PhoneCode:  req.PhoneCode,
+		VerifyCode: req.VerifyCode,
+		VerifyType: req.VerifyType,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetDataSection("data", rsp.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
+
+}
+
+/*
+func: UnBindUserEmail
+*/
+func( s *UserGroup) UnBindUserEmail ( c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
+}
+
+/*
+func: UnBindUserPhone
+*/
+func(s *UserGroup) UnBindUserPhone(c *gin.Context){
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
 }

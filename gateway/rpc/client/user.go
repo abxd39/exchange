@@ -356,3 +356,14 @@ func (s *UserRPCCli) CallSetNickName(req *proto.UserSetNickNameRequest) (*proto.
 func (s *UserRPCCli) CallGetNickName(req *proto.UserGetNickNameRequest) (*proto.UserGetNickNameResponse, error) {
 	return s.conn.GetNickName(context.TODO(), req)
 }
+
+
+
+func (s *UserRPCCli) CallBindEmail (req *proto.BindEmailRequest) (*proto.BindPhoneEmailResponse, error) {
+	return s.conn.BindEmail(context.TODO(), req)
+}
+
+func (s *UserRPCCli) CallBindPhone (req *proto.BindPhoneRequest) (*proto.BindPhoneEmailResponse, error) {
+	return s.conn.BindPhone(context.TODO(), req)
+}
+
