@@ -154,6 +154,8 @@ func (this *Order) Add() (id uint64, code int32) {
 	engine := dao.DB.GetMysqlConn()
 
 	uCurrency := new(UserCurrency)
+
+	fmt.Println(this.SellId, this.TokenId)
 	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 	if err != nil {
 		Log.Errorln("查询用户余额失败!", err.Error())
@@ -165,7 +167,8 @@ func (this *Order) Add() (id uint64, code int32) {
 	rateFloat, _ := strconv.ParseInt(rate, 10, 64)
 	freeze := this.Num * (1 + rateFloat)
 
-	fmt.Println(freeze, uCurrency.Balance)
+	//fmt.Println(uCurrency)
+	fmt.Println(this.BuyName, freeze, uCurrency.Balance)
 	if freeze > uCurrency.Balance {
 		Log.Errorln("卖家余额不足!")
 		code = ERRCODE_SELLER_LESS
@@ -456,10 +459,15 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 
 */
 func CheckOrderExiryTime(id uint64, exiryTime string) {
+	fmt.Println("go run check order Exiry time ...............................")
 	od := new(Order)
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
-		fmt.Println(now)
+		fmt.Println(now, exiryTime)
+		fmt.Println(getHourDiffer(now, exiryTime))
+
+
+
 		if getHourDiffer(now, exiryTime) <= 0{
 			engine := dao.DB.GetMysqlConn()
 			_, err := engine.Where("id=?", id).Get(od)
@@ -467,6 +475,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 				Log.Errorln("get order states error!")
 			}else{
 				if od.States == 0 || od.States == 2 || od.States == 3 || od.States == 4 {           // 0删除 2待放行(已支付) 3确认支付(已完成) 4取消
+					fmt.Println("break: od stats", od.States)
 					break
 				}
 			}
@@ -476,23 +485,24 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 			}
 			break
 		}
-		time.Sleep(time.Second)
+		time.Sleep( 5 * time.Second)
 	}
+	fmt.Println(id, " break .................")
 	return
 }
 
 
 //获取相差时间
 func getHourDiffer(start_time, end_time string) int64 {
-	var hour int64
+	var minute int64
 	t1, err := time.ParseInLocation("2006-01-02 15:04:05", start_time, time.Local)
 	t2, err := time.ParseInLocation("2006-01-02 15:04:05", end_time, time.Local)
 	if err == nil && t1.Before(t2) {
 		diff := t2.Unix() - t1.Unix() //
-		hour = diff / 3600
-		return hour
+		minute = diff /  60 //3600
+		return minute
 	} else {
-		return hour
+		return minute
 	}
 }
 

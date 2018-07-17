@@ -129,6 +129,10 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 	if err = json.Unmarshal([]byte(rsp.Orders), &backOrders); err != nil {
 		Log.Errorln(err.Error())
 	}
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 	var orders []Order
 	for i := 0; i < len(backOrders); i++ {
 		var o Order
@@ -180,6 +184,10 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 		Id:         param.Id,
 		CancelType: param.CancelType,
 	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
@@ -200,6 +208,10 @@ func (this CurrencyGroup) DeleteOrder(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallDeleteOrder(&proto.OrderRequest{
 		Id: param.Id,
 	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
@@ -220,7 +232,12 @@ func (this CurrencyGroup) ReadyOrder(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallReadyOrder(&proto.OrderRequest{
 		Id: param.Id,
 	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	return
 }
 
 // 确认放行
@@ -240,6 +257,10 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.OrderRequest{
 		Id: param.Id,
 	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
@@ -266,9 +287,13 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 		Order: string(orderStr),
 		Uid:   param.Uid,
 	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	ret.SetDataSection("id", rsp.Data)
-
+	return
 }
 
 // TradeDetail

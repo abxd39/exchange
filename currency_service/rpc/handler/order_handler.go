@@ -133,7 +133,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.States = 1
 
 	now := time.Now()
-	mm, _ := time.ParseDuration("1.5m")        // 过期时间15分钟
+	mm, _ := time.ParseDuration("15m")        // 过期时间15分钟
 	od.CreatedTime = now.Format("2006-01-02 15:04:05")
 	od.UpdatedTime = now.Format("2006-01-02 15:04:05")
 	od.ExpiryTime  = now.Add(mm).Format("2006-01-02 15:04:05")
