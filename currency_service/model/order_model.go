@@ -466,8 +466,6 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 		fmt.Println(now, exiryTime)
 		fmt.Println(getHourDiffer(now, exiryTime))
 
-
-
 		if getHourDiffer(now, exiryTime) <= 0{
 			engine := dao.DB.GetMysqlConn()
 			_, err := engine.Where("id=?", id).Get(od)
@@ -479,13 +477,13 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 					break
 				}
 			}
-			_, err = engine.Where("id=?", id).Update("states=?",4)
+			_, err = engine.Where("id = ?", id).Update(&Order{States:4})
 			if err != nil {
 				Log.Errorln("order id exiry time out update status = 4 error! id:", id, err.Error())
 			}
 			break
 		}
-		time.Sleep( 60 * time.Second)
+		time.Sleep( 2 * 60 * time.Second)
 	}
 	fmt.Println(id, " break .................")
 	return

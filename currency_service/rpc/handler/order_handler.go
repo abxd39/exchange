@@ -139,7 +139,6 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.ExpiryTime  = now.Add(mm).Format("2006-01-02 15:04:05")
 
 	//fmt.Println("od:", od)
-
 	id, code := od.Add()
 	rsp.Code = code
 	rsp.Data = strconv.FormatUint(id, 10)
