@@ -53,7 +53,7 @@ func (this *Ads) Add() int {
 
 	////////  先判断是否有余额  /////////
 	uCurrency := new(UserCurrency)
-	_, err :=engine.Where("uid = ? AND token_id =?", this.Uid, this.TokenId).Get(uCurrency)
+	_, err := engine.Where("uid = ? AND token_id =?", this.Uid, this.TokenId).Get(uCurrency)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
