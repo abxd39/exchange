@@ -490,8 +490,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
 		fmt.Println(now, exiryTime)
-		fmt.Println(getHourDiffer(now, exiryTime))
-
+		fmt.Println("id: ", id, " order Exitry time(min): ", getHourDiffer(now, exiryTime))
 		if getHourDiffer(now, exiryTime) <= 0 {
 			engine := dao.DB.GetMysqlConn()
 			_, err := engine.Where("id=?", id).Get(od)

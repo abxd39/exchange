@@ -261,6 +261,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
+
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 }
 
