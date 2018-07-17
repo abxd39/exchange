@@ -479,13 +479,13 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 					break
 				}
 			}
-			_, err = engine.Where("id=?", id).Update("status=?",4)
+			_, err = engine.Where("id=?", id).Update("states=?",4)
 			if err != nil {
 				Log.Errorln("order id exiry time out update status = 4 error! id:", id, err.Error())
 			}
 			break
 		}
-		time.Sleep( 5 * time.Second)
+		time.Sleep( 60 * time.Second)
 	}
 	fmt.Println(id, " break .................")
 	return
