@@ -8,6 +8,8 @@ import "rpc/currency.proto";
 service PriceRPC {
     rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
     rpc CurrentPrice(CurrentPriceRequest) returns (CurrentPriceResponse) {};
+
+    rpc LastPrice(LastPriceRequest) returns (LastPriceResponse) {};
 }
 
 message PriceCache {
@@ -49,4 +51,12 @@ message CurrentPriceRequest{
 
 message CurrentPriceResponse{
     PriceBaseData data =1;
+}
+
+message LastPriceRequest{
+    string symbol       =1;
+}
+
+message LastPriceResponse{
+    PriceCache data     =1;
 }

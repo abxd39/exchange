@@ -136,7 +136,6 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		return nil
 	} else {
 		for _, v := range others {
-
 			g := &proto.EntrustBaseData{
 				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 				SurplusNum: convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum, v.OnPrice)),
@@ -162,7 +161,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 				CnyPrice:   q.GetCnyPrice(v.OnPrice),
 			}
 
-			g.Price=convert.Int64MulInt64By8BitString(v.OnPrice,v.SurplusNum)
+			g.Price = convert.Int64MulInt64By8BitString(v.OnPrice, v.SurplusNum)
 			rsp.Sell = append(rsp.Sell, g)
 		}
 	}

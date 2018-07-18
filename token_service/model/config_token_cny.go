@@ -27,3 +27,5 @@ func GetTokenCnyPrice(token_id int) int64 {
 	}
 	return 0
 }
+
+

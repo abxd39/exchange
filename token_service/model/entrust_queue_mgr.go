@@ -4,6 +4,7 @@ import (
 	"digicon/common/genkey"
 	. "digicon/token_service/log"
 	"sync"
+	//"digicon/token_service/rpc"
 )
 
 var ins *EntrustQueneMgr
@@ -14,6 +15,7 @@ func GetQueneMgr() *EntrustQueneMgr {
 	once.Do(func() {
 		ins = &EntrustQueneMgr{
 			dataMgr: make(map[string]*EntrustQuene),
+			readyQuene:make(chan ConfigQuenes,1000),
 		}
 	})
 	return ins
@@ -22,6 +24,7 @@ func GetQueneMgr() *EntrustQueneMgr {
 //币币交易管理器
 type EntrustQueneMgr struct {
 	dataMgr map[string]*EntrustQuene
+	readyQuene chan ConfigQuenes
 }
 
 //获取一个币币交易
@@ -58,16 +61,27 @@ func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene)) {
 //初始化配置
 func (s *EntrustQueneMgr) Init() bool {
 	InitConfigTokenCny()
-	d := new(ConfigQuenes).GetAllQuenes()
 
+
+
+	/*
 	for _, v := range d {
 		cny := GetTokenCnyPrice(v.TokenId)
 		if v.Price == 0 {
 			panic("err last price")
 		}
-		e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny)
-		s.AddQuene(e)
-	}
 
+		rpc.
+		p,ok := GetPrice(v.Name)
+		if ok {
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny)
+			s.AddQuene(e)
+		}else{
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny)
+			s.AddQuene(e)
+		}
+
+	}
+*/
 	return true
 }

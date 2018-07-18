@@ -22,7 +22,7 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 
 		action.GET("/quotation", s.Quotation)
 
-		action.GET("/price", s.Quotation)
+		action.GET("/price", s.CurrentPrice)
 	}
 }
 
@@ -174,7 +174,7 @@ func (s *MarketGroup) Quotation(c *gin.Context) {
 }
 
 
-func (s *MarketGroup) SymbolPrice(c *gin.Context) {
+func (s *MarketGroup) CurrentPrice(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())

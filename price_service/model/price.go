@@ -18,6 +18,18 @@ type Price struct {
 	Count       int64  `xorm:"BIGINT(20)"`
 }
 
+/*
+type Price struct {
+	Id     int64 `xorm:"BIGINT(20)"`
+	Open   int64 `xorm:"comment('开盘价') BIGINT(20)"`
+	Close  int64 `xorm:"comment('收盘价') BIGINT(20)"`
+	Low    int64 `xorm:"comment('最低价') BIGINT(20)"`
+	High   int64 `xorm:"comment('最高价') BIGINT(20)"`
+	Amount int64 `xorm:"comment('成交量') BIGINT(20)"`
+	Vol    int64 `xorm:"comment('成交额') BIGINT(20)"`
+	Count  int64 `xorm:"BIGINT(20)"`
+}
+*/
 func InsertPrice(p *Price) {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
@@ -29,7 +41,7 @@ func InsertPrice(p *Price) {
 
 func GetHigh(begin, end int64) (high int64) {
 	hp := &Price{}
-	ok, err := DB.GetMysqlConn().Where("created_time>? and end_time<?", begin, end).Decr("price").Limit(1, 0).Get(hp)
+	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<?", begin, end).Decr("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return 0
@@ -42,7 +54,7 @@ func GetHigh(begin, end int64) (high int64) {
 
 func GetLow(begin, end int64) (low int64) {
 	hp := &Price{}
-	ok, err := DB.GetMysqlConn().Where("created_time>? and end_time<?", begin, end).Asc("price").Limit(1, 0).Get(hp)
+	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<?", begin, end).Asc("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return 0
@@ -53,28 +65,41 @@ func GetLow(begin, end int64) (low int64) {
 	return 0
 }
 
-func Calculate(price, amount ,cny_price int64, symbol string) *proto.PriceBaseData {
+//计算当前价格数据
+func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseData {
 	t := time.Now()
 	l := t.Add(-86400 * time.Second)
-	h := GetHigh(l.Unix(), t.Unix())
 
-	j := GetLow(l.Unix(), t.Unix())
+	begin:=l.Unix()
+	end:=t.Unix()
+	h := GetHigh(begin, end)
+
+	j := GetLow(begin,end)
 
 	p := &Price{}
-	_, err := DB.GetMysqlConn().Where("symbol=? amd created_time>=? created_time<? ", symbol, t.Unix()).Asc("created_time").Limit(1, 0).Get(p)
+	_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin,end).Asc("created_time").Limit(1, 0).Get(p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil
 	}
 
 	return &proto.PriceBaseData{
-		Symbol: symbol,
-		High:   convert.Int64ToStringBy8Bit(h),
-		Low:    convert.Int64ToStringBy8Bit(j),
-		Scope:  convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
-		Amount: convert.Int64ToStringBy8Bit(amount - p.Amount),
-		Price:  convert.Int64ToStringBy8Bit(price),
-		CnyPrice:convert.Int64MulInt64By8BitString(cny_price,price),
+		Symbol:   symbol,
+		High:     convert.Int64ToStringBy8Bit(h),
+		Low:      convert.Int64ToStringBy8Bit(j),
+		Scope:    convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
+		Amount:   convert.Int64ToStringBy8Bit(amount - p.Amount),
+		Price:    convert.Int64ToStringBy8Bit(price),
+		CnyPrice: convert.Int64MulInt64By8BitString(cny_price, price),
 	}
 
+}
+
+func GetPrice(symbol string)  (*Price, bool){
+	m := &Price{}
+	ok, err := DB.GetMysqlConn().Where("symbol=?", symbol).Desc("created_time").Limit(1, 0).Get(m)
+	if err != nil {
+		Log.Fatalln("err data price")
+	}
+	return m,ok
 }

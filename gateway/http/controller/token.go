@@ -52,7 +52,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 	}
 	var o int64
 	var err error
-	if param.Opt==int32(proto.ENTRUST_TYPE_LIMIT_PRICE){
+	if param.Type==int32(proto.ENTRUST_TYPE_LIMIT_PRICE){
 		o, err = convert.StringToInt64By8Bit(param.OnPrice)
 		if err != nil {
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())

@@ -4,13 +4,15 @@ var InnerService *RPCClient
 
 type RPCClient struct {
 	//UserSevice   *UserRPCCli
-	PublicSevice *PublciRPCCli
+	//PublicSevice *PublciRPCCli
+	PriceService *PriceRPCCli
 }
 
 func NewRPCClient() (c *RPCClient) {
 	c = &RPCClient{
 		//UserSevice:   NewUserRPCCli(),
-		PublicSevice: NewPublciRPCCli(),
+		//PublicSevice: NewPublciRPCCli(),
+		PriceService: NewPriceRPCCli(),
 	}
 	return c
 }
@@ -43,4 +45,6 @@ func InitInnerService() {
 
 		model.GetQueneMgr().Init(d,t)
 	*/
+
+
 }

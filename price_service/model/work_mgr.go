@@ -24,9 +24,10 @@ type WorkQueneMgr struct {
 }
 
 func (s *WorkQueneMgr) Init() {
+	InitConfigTokenCny()
 	d := new(ConfigQuenes).GetAllQuenes()
 	for _, v := range d {
-		g := NewPriceWorkQuene(v.Name,int32(v.TokenId))
+		g := NewPriceWorkQuene(v.Name, int32(v.TokenId))
 		s.AddQuene(g)
 	}
 
@@ -34,11 +35,11 @@ func (s *WorkQueneMgr) Init() {
 
 //添加一个币币交易
 func (s *WorkQueneMgr) AddQuene(e *PriceWorkQuene) bool {
-	_, ok := s.dataMgr[e.PriceChannel]
+	_, ok := s.dataMgr[e.Symbol]
 	if ok {
-		Log.Fatalf("insert same quene id is %s", e.PriceChannel)
+		Log.Fatalf("insert same quene id is %s", e.Symbol)
 	}
-	s.dataMgr[e.PriceChannel] = e
+	s.dataMgr[e.Symbol] = e
 	return ok
 }
 

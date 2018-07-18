@@ -41,3 +41,4 @@ func (s *ConfigQuenes) GetQuenesByType(token_id int32) []ConfigQuenes {
 	}
 	return t
 }
+

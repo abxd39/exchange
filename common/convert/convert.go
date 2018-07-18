@@ -13,6 +13,13 @@ func ByteToInt32(b []byte) (x uint32) {
 	return
 }
 
+func ByteToInt64(b []byte) (x int64) {
+	b_buf := bytes.NewBuffer(b)
+	b_buf = bytes.NewBuffer([]byte{})
+	binary.Write(b_buf, binary.BigEndian, x)
+	return
+}
+
 func Int64ToFloat64By8Bit(b int64) (x float64) {
 	a := decimal.New(b, -8)
 	x, _ = a.Float64()

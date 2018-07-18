@@ -26,16 +26,15 @@ const (
 )
 
 type PriceWorkQuene struct {
-	TokenId		int32
+	TokenId      int32
 	Symbol       string
 	PriceChannel string
 
-
-	entry    *proto.PriceCache
-	data         []*PriceInfo
+	entry *proto.PriceCache
+	data  []*PriceInfo
 }
 
-func NewPriceWorkQuene(name string,token_id int32) *PriceWorkQuene {
+func NewPriceWorkQuene(name string, token_id int32) *PriceWorkQuene {
 	var period_key = [MaxPrice]string{
 		"1min",
 		"5min",
@@ -45,6 +44,7 @@ func NewPriceWorkQuene(name string,token_id int32) *PriceWorkQuene {
 		Symbol:       name,
 		PriceChannel: genkey.GetPulishKey(name),
 		data:         make([]*PriceInfo, 0),
+		TokenId:      token_id,
 	}
 
 	for i := 0; i < MaxPrice; i++ {
@@ -72,9 +72,8 @@ func (s *PriceWorkQuene) updatePrice(k *proto.PriceCache) {
 		Symbol:      k.Symbol,
 	})
 
-	s.entry=k
+	s.entry = k
 }
-
 
 func (s *PriceWorkQuene) Publish() {
 	pb := DB.GetRedisConn().Subscribe(s.PriceChannel)

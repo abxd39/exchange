@@ -6,10 +6,12 @@ import (
 	. "digicon/token_service/log"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
+	"digicon/token_service/rpc/client"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
+	"digicon/token_service/exchange"
 )
 
 func main() {
@@ -19,9 +21,11 @@ func main() {
 	Log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
-	//client.InitInnerService()
+	client.InitInnerService()
 	model.GetQueneMgr().Init()
 	//model.GetKLine("BTC/USDT","1min",10)
+
+	go exchange.InitExchange()
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
