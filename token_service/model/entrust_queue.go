@@ -16,6 +16,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"sync/atomic"
 	"time"
+	"github.com/liudng/godump"
+	"github.com/golang/protobuf/jsonpb"
 )
 
 const (
@@ -26,7 +28,8 @@ const (
 type EntrustQuene struct {
 	//币币队列ID  格式主要货币_交易货币
 	TokenQueueId string
-
+	//价格推送到键值
+	PriceChannel string
 	//队列主要货币ID eg:USDT
 	TokenId int
 	//队列交易货币ID eg:BTC
@@ -66,9 +69,12 @@ type EntrustQuene struct {
 	//sellMarketOrderDetail chan *EntrustData
 	//上一次成交价格
 	price int64
-
-	amout int64
-
+	//成交量
+	amount int64
+	//成交额
+	vol int64
+	//成交笔数
+	count int64
 	//主币兑人民币价格
 	cny int64
 
@@ -95,6 +101,7 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny
 
 	m := &EntrustQuene{
 		TokenQueueId:      quene_id,
+		PriceChannel:	   genkey.GetPulishKey(quene_id),
 		BuyQueueId:        fmt.Sprintf("%s:1", quene_id),
 		SellQueueId:       fmt.Sprintf("%s:2", quene_id),
 		MarketBuyQueueId:  fmt.Sprintf("%s:3", quene_id),
@@ -113,6 +120,7 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny
 		cny:               cny,
 	}
 	go m.process()
+	//go m.Clock()
 	return m
 }
 
@@ -206,8 +214,11 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	}
 	return
 }
-func (s *EntrustQuene) SetPrice(price int64) {
+func (s *EntrustQuene) SetTradeInfo(price int64,deal_num int64) {
 	s.price = price
+	s.count+=1
+	s.vol+=convert.Int64MulInt64By8Bit(price,deal_num)
+	s.amount+=deal_num
 }
 
 //委托请求检查
@@ -304,11 +315,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	if buyer.Opt != proto.ENTRUST_OPT_BUY {
 		Log.Fatalln("wrong type")
 	}
-	/*
-		if buyer.Uid == seller.Uid { //还没处理
-			return errors.New("err same uid")
-		}
-	*/
+
 	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {
@@ -465,14 +472,14 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	err = new(EntrustDetail).UpdateStates(session, buyer.EntrustId, t.States, num)
+	err = new(EntrustDetail).UpdateStates(session, buyer.EntrustId, t.States, buyer.SurplusNum)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
 		return
 	}
 
-	err = new(EntrustDetail).UpdateStates(session, seller.EntrustId, o.States, deal_num)
+	err = new(EntrustDetail).UpdateStates(session, seller.EntrustId, o.States, seller.SurplusNum)
 	if err != nil {
 		session.Rollback()
 		Log.Errorln(err.Error())
@@ -499,67 +506,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Log.Fatalln(err.Error())
 		return
 	}
-	/*
-		if t.States!=TRADE_STATES_ALL {
-			//更新买家redis中代币剩余数量
-			var buy []byte
-			buy, err = DB.GetRedisConn().Get(GenSourceKey(buyer.EntrustId)).Bytes()
-			if err != nil {
-				return
-			}
-			g := &EntrustData{}
-			err = json.Unmarshal(buy, g)
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-
-			g.SurplusNum=buyer.SurplusNum
-
-			b,err = json.Marshal(g)
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-
-			err = DB.GetRedisConn().Set(GenSourceKey(buyer.EntrustId),b,0).Err()
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-		}
-
-		if o.States!=TRADE_STATES_ALL {
-			//更新卖家redis中代币剩余数量
-			var sell []byte
-			sell, err = DB.GetRedisConn().Get(GenSourceKey(seller.EntrustId)).Bytes()
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-
-			h := &EntrustData{}
-			err = json.Unmarshal(sell, h)
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-
-			h.SurplusNum=seller.SurplusNum
-
-			b,err = json.Marshal(h)
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-
-			err = DB.GetRedisConn().Set(GenSourceKey(seller.EntrustId),b,0).Err()
-			if err != nil {
-				Log.Errorln(err)
-				return
-			}
-		}
-	*/
 	return
 }
 
@@ -643,7 +589,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,other.SurplusNum)
 				s.match(p)
 
 			} else if num == other.SurplusNum {
@@ -672,7 +618,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,num)
 				s.match(other)
 			}
 			return
@@ -715,7 +661,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,other.SurplusNum)
 				s.match(p)
 
 			} else if num == other.SurplusNum {
@@ -731,7 +677,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,num)
 			} else {
 				err = s.MakeDeal(p, other, price, num)
 				if err != nil {
@@ -745,7 +691,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,num)
 				s.joinSellQuene(other)
 			}
 			return
@@ -826,7 +772,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,p.SurplusNum)
 				s.match(other)
 
 			} else if num == p.SurplusNum {
@@ -842,7 +788,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,num)
 			} else {
 				err = s.MakeDeal(other, p, price, num)
 				if err != nil {
@@ -856,7 +802,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,num)
 				s.match(p)
 			}
 			return
@@ -911,7 +857,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,p.SurplusNum)
 				s.match(other)
 
 			} else if num == p.SurplusNum {
@@ -927,7 +873,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,num)
 
 			} else {
 				err = s.MakeDeal(other, p, price, num)
@@ -942,7 +888,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					}).Errorln(err.Error())
 					return
 				}
-				s.SetPrice(price)
+				s.SetTradeInfo(price,num)
 				s.match(p)
 			}
 			return
@@ -997,24 +943,38 @@ func (s *EntrustQuene) process() {
 
 //定时器
 func (s *EntrustQuene) Clock() {
-	type PriceData struct {
-		Open   int64
-		Close  int64
-		Low    int64
-		High   int64
-		Amount int64
-		Vol    int64
-		Count  int64
-	}
-
+	godump.Dump(s.PriceChannel)
 	c := clock.NewClock()
 	job := func() {
-		//m:=&PriceData{}
+		m:=&proto.PriceCache{
+			Id:time.Now().Unix(),
+			Symbol:s.TokenQueueId,
+			Price:s.price,
+			CreatedTime:time.Now().Unix(),
+			Amount:s.amount,
+			Count:s.count,
+			Vol:s.vol,
+		}
+
+		t := jsonpb.Marshaler{EmitDefaults: true}
+		data, err := t.MarshalToString(m)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return
+		}
+
+		err =DB.GetRedisConn().Publish(s.PriceChannel,data).Err()
+
+		if err != nil {
+			Log.Errorln(err.Error())
+			return
+		}
 
 	}
-	c.AddJobWithInterval(60*time.Second, job)
 
+	c.AddJobRepeat(1*time.Second,0,job)
 }
+
 
 //委托入队列
 func (s *EntrustQuene) joinSellQuene(p *EntrustData) (ret int, err error) {

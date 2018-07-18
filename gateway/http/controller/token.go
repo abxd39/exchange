@@ -39,7 +39,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		Token   string `form:"token" binding:"required"`
 		Symbol  string `form:"symbol" binding:"required"`
 		Opt     int32  `form:"opt"  binding:"required"`
-		OnPrice string `form:"on_price"  binding:"required"`
+		OnPrice string `form:"on_price"  `
 		Type    int32  `form:"type" binding:"required"`
 		Num     string `form:"num" binding:"required"`
 	}
@@ -50,11 +50,22 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-
-	o, err := convert.StringToInt64By8Bit(param.OnPrice)
-	if err != nil {
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		return
+	var o int64
+	var err error
+	if param.Opt==int32(proto.ENTRUST_TYPE_LIMIT_PRICE){
+		o, err = convert.StringToInt64By8Bit(param.OnPrice)
+		if err != nil {
+			ret.SetErrCode(ERRCODE_PARAM, err.Error())
+			return
+		}
+		if o==0 {
+			ret.SetErrCode(ERRCODE_PARAM)
+			return
+		}
+	}else {
+		if  param.OnPrice=="" {
+			o=0
+		}
 	}
 
 	n, err := convert.StringToInt64By8Bit(param.Num)

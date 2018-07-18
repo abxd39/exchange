@@ -12,6 +12,7 @@ type RPCClient struct {
 	PublicService   *client.PublciRPCCli
 	WalletSevice    *client.WalletRPCCli
 	KineService     *client.KlineRPCCli
+	PriceService    *client.PriceRPCCli
 }
 
 func NewRPCClient() (c *RPCClient) {
@@ -24,6 +25,7 @@ func NewRPCClient() (c *RPCClient) {
 		PublicService:   client.NewPublciRPCCli(),
 		WalletSevice:    client.NewWalletRPCCli(),
 		KineService:     client.NewKlineRPCCli(),
+		PriceService:	 client.NewPriceRPCCli(),
 	}
 	return c
 }

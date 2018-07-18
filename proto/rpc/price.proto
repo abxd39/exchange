@@ -1,0 +1,52 @@
+syntax = "proto3";
+package g2u;
+
+
+import "rpc/currency.proto";
+
+
+service PriceRPC {
+    rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
+    rpc CurrentPrice(CurrentPriceRequest) returns (CurrentPriceResponse) {};
+}
+
+message PriceCache {
+    int64 id           =   1;
+    string symbol      =   2;
+    int64 price        =3;
+    int64   created_time =4;
+    int64 amount         =5;
+    int64 vol              =6;
+    int64 count         =7;
+}
+
+
+message PeriodPrice{
+    int64 id            =5;
+    double amount       =1;
+    double close        =2;
+    int64 count        =3;
+    double high         =4;
+    double low          =6;
+    double open         =7;
+    double vol          =8;
+}
+
+
+message PriceBaseData{
+    string amount       =1;
+    string cny_price    =2;
+    string price        =3;
+    string high         =4;
+    string low          =5;
+    string symbol       =6;
+    string scope        =7;
+}
+
+message CurrentPriceRequest{
+    string symbol       =1;
+}
+
+message CurrentPriceResponse{
+    PriceBaseData data =1;
+}

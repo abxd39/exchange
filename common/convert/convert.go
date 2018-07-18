@@ -69,3 +69,11 @@ func Int64DivInt64By8Bit(a int64, b int64) int64 {
 	num := dd.Div(dp).Round(8).Coefficient().Int64()
 	return num
 }
+
+func Int64DivInt64By8BitString(a int64, b int64) string {
+	dd := decimal.New(a, 0)
+	dp := decimal.New(b, 0)
+
+	num := dd.Div(dp).Round(8).Coefficient().String()
+	return num
+}

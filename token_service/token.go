@@ -21,6 +21,7 @@ func main() {
 	go rpc.RPCServerInit()
 	//client.InitInnerService()
 	model.GetQueneMgr().Init()
+	//model.GetKLine("BTC/USDT","1min",10)
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
