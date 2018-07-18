@@ -14,6 +14,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	//"github.com/gorilla/websocket"
+
+	//"time"
 )
 
 type CurrencyGroup struct{}
@@ -35,37 +38,37 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/chats_list", this.GetChatsList)              // 获取订单聊天列表
 
 		//// order ////
-		Currency.GET("/orders", this.OrdersList)           // 获取订单列表
-		Currency.POST("/add_order", this.AddOrder)         // 添加订单
-		Currency.POST("/ready_order", this.ReadyOrder)     // 待放行
-		Currency.POST("/confirm_order", this.ConfirmOrder) // 确认放行
-		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
-		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
+		Currency.GET("/orders", this.OrdersList)                    // 获取订单列表
+		Currency.POST("/add_order", this.AddOrder)                  // 添加订单
+		Currency.POST("/ready_order", this.ReadyOrder)              // 待放行
+		Currency.POST("/confirm_order", this.ConfirmOrder)          // 确认放行
+		Currency.POST("/cancel_order", this.CancelOrder)            // 取消订单
+		Currency.POST("/delete_order", this.CancelOrder)            // 删除订单
 
-		Currency.GET("/trade_detail", this.TradeDetail) //获取订单付款信息
+		Currency.GET("/trade_detail", this.TradeDetail)             //获取订单付款信息
 
 		////payment///
-		Currency.POST("/bank_pay", this.BankPay)      // 添加 bank_pay
-		Currency.GET("/bank_pay", this.GetBankPay)    // 获取 bank_pay
-		Currency.PUT("/bank_pay", this.UpdateBankPay) // 更新 bank_pay
+		Currency.POST("/bank_pay", this.BankPay)                    // 添加 bank_pay
+		Currency.GET("/bank_pay", this.GetBankPay)                  // 获取 bank_pay
+		Currency.PUT("/bank_pay", this.UpdateBankPay)               // 更新 bank_pay
 
-		Currency.POST("/alipay", this.Alipay)      // 添加 ali_pay
-		Currency.GET("/alipay", this.GetAliPay)    // 获取 ali_pay
-		Currency.PUT("/alipay", this.UpdateAliPay) // 更新 ali_pay
+		Currency.POST("/alipay", this.Alipay)                       // 添加 ali_pay
+		Currency.GET("/alipay", this.GetAliPay)                     // 获取 ali_pay
+		Currency.PUT("/alipay", this.UpdateAliPay)                  // 更新 ali_pay
 
-		Currency.POST("/wechatpay", this.WeChatPay)      // 添加 wechat_pay
-		Currency.GET("/wechatpay", this.GetWeChatPay)    // 获取 wechat_pay
-		Currency.PUT("/wechatpay", this.UpdateWeChatPay) // 更新 wechat_pay
+		Currency.POST("/wechatpay", this.WeChatPay)                 // 添加 wechat_pay
+		Currency.GET("/wechatpay", this.GetWeChatPay)               // 获取 wechat_pay
+		Currency.PUT("/wechatpay", this.UpdateWeChatPay)            // 更新 wechat_pay
 
-		Currency.POST("/paypal", this.Paypal)      // 添加 paypal
-		Currency.GET("/paypal", this.GetPaypal)    // 获取 paypal
-		Currency.PUT("/paypal", this.UpdatePaypal) // 更新 paypal
+		Currency.POST("/paypal", this.Paypal)                       // 添加 paypal
+		Currency.GET("/paypal", this.GetPaypal)                     // 获取 paypal
+		Currency.PUT("/paypal", this.UpdatePaypal)                  // 更新 paypal
 
 		// 追加
-		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
-		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
-		Currency.GET("/user_currency_rating", this.GetUserRating)  // 获取用戶评级
-		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
+		Currency.GET("/selling_price", this.GetSellingPrice)        // 售价
+		Currency.GET("/currency_balance", this.GetCurrencyBalance)  // 余额
+		Currency.GET("/user_currency_rating", this.GetUserRating)   // 获取用戶评级
+		Currency.GET("/trade_history", this.GetTradeHistory)        // 获取历史交易
 
 	}
 }
@@ -489,6 +492,10 @@ type AdsListsData struct {
 	TypeId      uint32  `json:"type_id"`      // 类型:1出售 2购买
 	TokenId     uint32  `json:"token_id"`     // 货币类型
 	TokenName   string  `json:"token_name"`   // 货币名称
+
+	Premium     float64  `json:"premium"`      // 溢价
+	States      uint32   `json:"states"`       // 状态:0下架 1上架
+
 }
 
 // 法币交易列表 - (广告(买卖))
@@ -587,6 +594,9 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 				TypeId:     data.Data[i].TypeId,
 				TokenId:    data.Data[i].TokenId,
 				TokenName:  data.Data[i].TokenName,
+
+				Premium:    convert.Int64ToFloat64By8Bit(data.Data[i].Premium),
+				States:     data.Data[i].States,
 			}
 			userList = append(userList, data.Data[i].Uid)
 			reaList.List[i] = adsLists
@@ -1064,3 +1074,5 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
 	return
 }
+
+

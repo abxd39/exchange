@@ -179,6 +179,8 @@ message AdsLists {
      string token_name   = 15; // 货币名称
      int64  balance      = 16; // 资产余额
      int64  freeze       = 17; // 资产冻结
+     int64  premium      = 18; // 溢价
+     uint32 states       = 19; // 状态:0下架 1上架
 }
 
 message AdsListRequest {
