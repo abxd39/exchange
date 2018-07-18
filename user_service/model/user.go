@@ -571,8 +571,8 @@ func (s *User) authSecurityCode(code int) bool {
 	return false
 }
 
-//自动判断验证方式
-func (s *User) AuthCodeByAl(ukey, code string, ty int32) (ret int32, err error) {
+//自动判断验证方式 dian
+func (s *User) AuthCodeByAl(ukey, code string,ty int32)(ret int32, err error) {
 	m := s.GetAuthMethod()
 	switch m {
 	case AUTH_EMAIL:
@@ -617,9 +617,31 @@ func (s *User) DelSecurityChmod(code int) (err error) {
 }
 
 
+/*
+	func: bind user email
+*/
+func (s *User) BindUserEmail(email string, uid uint64) (err error){
+	engine := DB.GetMysqlConn()
+	s.Email = email
+	_, err = engine.Where("uid=? ", uid).Update(s)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
 
 /*
-	func:
-*/
-//func (s *User) BindUserEmail()
+	func: bind user phone
+ */
+func (s *User) BindUserPhone(phone string, uid uint64) (err error){
+	engine := DB.GetMysqlConn()
+	s.Phone = phone
+	_, err = engine.Where("uid=? ", uid).Update(s)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
 

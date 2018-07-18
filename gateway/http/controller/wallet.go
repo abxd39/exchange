@@ -16,20 +16,22 @@ type WalletGroup struct {
 
 func (this *WalletGroup) Router(router *gin.Engine) {
 
-	r := router.Group("wallet")
-	r.POST("create", this.Create)       // 创建钱包
-	r.POST("signtx", this.Signtx)       // 签名
-	r.POST("sendrawtx", this.SendRawTx) // 广播
-	r.POST("tibi", this.Tibi)           //
-	r.GET("getvalue", this.GetValue)    // 查询链上余额
-	r.POST("address/save", this.AddressSave)
-	r.GET("address/list", this.AddressList)
-	r.POST("address/delete", this.AddressDelete)
+	r := router.Group("/wallet")
+	r.POST("/create", this.Create)       // 创建钱包
+	r.POST("/signtx", this.Signtx)       // 签名
+	r.POST("/sendrawtx", this.SendRawTx) // 广播
+	r.POST("/tibi", this.Tibi)           //
+	r.GET("/getvalue", this.GetValue)   // 查询链上余额
+	r.POST("/address/save", this.AddressSave)
+	r.GET("/address/list", this.AddressList)
+	r.POST("/address/delete", this.AddressDelete)
 
 	//btc signtx
-	r.POST("signtx_btc", this.BtcSigntx) // btc 签名
-	r.POST("biti_btc", this.BtcTiBi)     // btc
+	r.POST("/signtx_btc", this.BtcSigntx) // btc 签名
+	r.POST("/biti_btc", this.BtcTiBi)     // btc
 }
+
+
 
 ///////////////////////// start btc ///////////////////////////
 

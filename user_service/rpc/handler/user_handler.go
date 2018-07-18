@@ -320,3 +320,90 @@ func (this *RPCServer) CheckSecurity(ctx context.Context, req *proto.CheckSecuri
 	rsp.Auth = u.GetAuthMethod()
 	return nil
 }
+
+
+
+/*
+	// bind user email
+*/
+func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailRequest, rsp *proto.BindPhoneEmailResponse) error{
+	u := new(model.User)
+	u.GetUser(req.Uid)
+	phone := u.Phone
+	var err error
+	rsp.Code, err = u.AuthCodeByAl(req.Email, req.EmailCode,  model.SMS_BIND_EMAIL )
+	if err != nil {
+		Log.Errorln("auth code by email error!")
+		return err
+	}
+	if req.VerifyType == 1 {       // 3: 短信校验
+		rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_EMAIL)
+		if err != nil {
+			return err
+		}
+	}else if req.VerifyType == 2 {  // 4 谷歌验证
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_EMAIL)
+		if err != nil {
+			return err
+		}
+	} else{
+		Log.Errorln(" not found verifyType!")
+		rsp.Code = ERRCODE_UNKNOWN
+		return nil
+	}
+	err = u.BindUserEmail(req.Email, req.Uid)
+	if err != nil {
+		Log.Errorln("bind user email err!", err.Error())
+		rsp.Code = ERRCODE_UNKNOWN
+		return nil
+	}
+	err = u.SecurityChmod(model.AUTH_EMAIL)
+	if err != nil {
+		msg := "after bind user email, security chmod error!"
+		Log.Errorln(msg)
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Message = msg
+	}
+	return nil
+}
+
+func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest, rsp *proto.BindPhoneEmailResponse) error{
+	u := new(model.User)
+	u.GetUser(req.Uid)
+	phone := u.Phone
+	var err error
+	rsp.Code, err = u.AuthCodeByAl(req.Phone, req.PhoneCode, model.SMS_BIND_PHONE)
+	if err != nil {
+		return err
+	}
+	if req.VerifyType == 1 {       //  1. email verify
+		rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_PHONE)
+		if err != nil {
+			return err
+		}
+	}else if req.VerifyType == 2 {  // 2. google verify
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_PHONE)
+		if err != nil {
+			return err
+		}
+	} else{
+		Log.Errorln(" not found verifyType!")
+		rsp.Code = ERRCODE_UNKNOWN
+		return nil
+	}
+	err = u.BindUserPhone(req.Phone, req.Uid)
+	if err != nil {
+		Log.Errorln("bind user phone err!", err.Error())
+		rsp.Code = ERRCODE_UNKNOWN
+		return nil
+	}
+	err = u.SecurityChmod(model.AUTH_PHONE)
+	if err != nil {
+		msg := "after bind user phone, security chmod error!"
+		Log.Errorln(msg)
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Message = msg
+		return nil
+	}
+	return nil
+}

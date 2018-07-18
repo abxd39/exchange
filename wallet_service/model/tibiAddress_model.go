@@ -27,7 +27,7 @@ func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 	this.Id = uid
 	rets := make([]TibiAddress, 0)
 
-	err = utils.Engine_wallet.Where("uid=?", uid).Find(&rets)
+	err = utils.Engine_wallet.Where("uid=?", uid).Desc("created_time").Find(&rets)
 
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (this *TibiAddress) List(uid int) (lists []*proto.AddrlistPos, err error) {
 			}
 		}
 	}
-	//fmt.Println(lists)
+	fmt.Println(lists)
 	return lists, err
 
 }

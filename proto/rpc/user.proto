@@ -62,7 +62,9 @@ service UserRPC {
 
     // 短信验证rpc
     rpc AuthVerify (AuthVerifyRequest) returns (AuthVerifyResponse) {};
-
+    // bind phone email
+    rpc BindEmail (BindEmailRequest)  returns (BindPhoneEmailResponse) {};
+    rpc BindPhone (BindPhoneRequest)  returns (BindPhoneEmailResponse) {};
 }
 
 message AuthVerifyRequest  {
@@ -72,6 +74,29 @@ message AuthVerifyRequest  {
 }
 
 message AuthVerifyResponse {
+    int32   code    = 1;
+    string  data    = 2;
+    string  message = 3;
+}
+
+
+message BindEmailRequest{
+    string    email          = 2;    // 需要绑定的邮箱
+    string    email_code     = 3;    // 需要绑定的邮箱 验证码
+    string    verify_code    = 4;    // 短信验证码 or 谷歌验证码
+    uint64    verify_type    = 5;    // 验证类型 (1: 短信验证, 2 谷歌验证, )
+    uint64    uid            = 6;    // uid
+}
+
+message BindPhoneRequest {
+    string    phone          = 2;    // 需要绑定的电话
+    string    phone_code     = 3;    // 需要绑定的电 验证码
+    string    verify_code    = 4;    // 短信验证码 or 谷歌验证码
+    uint64    verify_type    = 5;    // 验证类型 ( 1邮箱验证, 2谷歌验证 )
+    uint64    uid            = 6;    // uid
+}
+
+message BindPhoneEmailResponse{
     int32   code    = 1;
     string  data    = 2;
     string  message = 3;
