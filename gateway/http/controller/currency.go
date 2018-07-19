@@ -1072,6 +1072,10 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
 	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
+	ret.SetDataSection("email_auth", 1)
+	ret.SetDataSection("phone_auth", 1)
+	ret.SetDataSection("real_name" ,1)
+	ret.SetDataSection("two_level_auth", 1)
 	return
 }
 
