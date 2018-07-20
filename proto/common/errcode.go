@@ -38,6 +38,8 @@ const (
 	ERRCODE_PHONE_EXIST						 =220
 	ERRCODE_PHONE_NOT_EXIST       	        =221
 
+
+	ERRCODE_EMAIL_EXIST                     = 222
 	//300-
 
 	ERRCODE_ADS_NOTEXIST      = 301
@@ -127,6 +129,7 @@ func init() {
 	message[ERRCODE_ARTICLE_NOT_EXIST] = "文章不存在"
 	message[ERRCODE_PHONE_EXIST] = "电话号码已经存在"
 	message[ERRCODE_PHONE_NOT_EXIST] = "电话号码不存在"
+	message[ERRCODE_EMAIL_EXIST] = "邮箱已经存在"
 }
 
 type PublicErrorType struct {
