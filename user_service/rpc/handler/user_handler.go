@@ -10,7 +10,12 @@ import (
 	"digicon/user_service/model"
 
 	"time"
+
 	"github.com/go-redis/redis"
+
+	"fmt"
+
+	"strconv"
 )
 
 type RPCServer struct{}
@@ -138,7 +143,7 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		rsp.Err=ret
 		return nil
 	}
-	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, model.SMS_FORGET)
+	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, model.SMS_FORGET,false)
 	if err==redis.Nil {
 		rsp.Err=ERRCODE_SMS_CODE_NIL
 		rsp.Message=GetErrorMessage(rsp.Err)
@@ -308,8 +313,15 @@ func (this *RPCServer) CheckSecurity(ctx context.Context, req *proto.CheckSecuri
 	u := &model.User{}
 	var ret int32
 	var err error
+	var uid int64
 	if req.Type == 3 {
-		ret, err = u.GetUser(req.Uid)
+		uid,err =strconv.ParseInt(req.Ukey, 10, 64)
+		if err!=nil {
+			rsp.Err=ERRCODE_UNKNOWN
+			rsp.Message=err.Error()
+			return nil
+		}
+		ret, err = u.GetUser(uint64(uid))
 
 	} else if req.Type == 2 {
 		ret, err = u.GetUserByEmail(req.Ukey)
@@ -330,7 +342,13 @@ func (this *RPCServer) CheckSecurity(ctx context.Context, req *proto.CheckSecuri
 		rsp.Err = ret
 		return nil
 	}
-	rsp.Auth = u.GetAuthMethod()
+
+	if req.Type==3 {
+		rsp.Auth= u.GetAuthMethodExpectGoogle()
+	}else{
+		rsp.Auth = u.GetAuthMethod()
+	}
+	//rsp.Auth = u.GetAuthMethod()
 	if rsp.Auth==model.AUTH_PHONE {
 		rsp.Region=u.Country
 	}
@@ -347,18 +365,26 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	u.GetUser(req.Uid)
 	phone := u.Phone
 	var err error
-	rsp.Code, err = u.AuthCodeByAl(req.Email, req.EmailCode,  model.SMS_BIND_EMAIL )
+	code , err := model.AuthEmail(req.Email, model.SMS_BIND_EMAIL, req.EmailCode)
+	fmt.Println("code:",code , err )
+	//rsp.Code, err = u.AuthCodeByAl(req.Email, req.EmailCode,  model.SMS_BIND_EMAIL )
+	//fmt.Println("code: ",rsp.Code, err)
+
+
 	if err != nil {
 		Log.Errorln("auth code by email error!")
 		return err
 	}
 	if req.VerifyType == 1 {       // 3: 短信校验
-		rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_EMAIL)
+		rsp.Code, err = model.AuthSms(phone, model.SMS_BIND_EMAIL, req.VerifyCode)
+		fmt.Println(rsp.Code, err)
+		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_EMAIL)
+
 		if err != nil {
 			return err
 		}
 	}else if req.VerifyType == 2 {  // 4 谷歌验证
-		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_EMAIL)
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_EMAIL,false)
 		if err != nil {
 			return err
 		}
@@ -368,12 +394,15 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 		return nil
 	}
 	err = u.BindUserEmail(req.Email, req.Uid)
+	fmt.Println("bind user email:", err )
+
 	if err != nil {
 		Log.Errorln("bind user email err!", err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
 	err = u.SecurityChmod(model.AUTH_EMAIL)
+	fmt.Println("security chmod :", err )
 	if err != nil {
 		msg := "after bind user email, security chmod error!"
 		Log.Errorln(msg)
@@ -386,19 +415,23 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest, rsp *proto.BindPhoneEmailResponse) error{
 	u := new(model.User)
 	u.GetUser(req.Uid)
-	phone := u.Phone
+	//phone := u.Phone
+	email := u.Email
 	var err error
-	rsp.Code, err = u.AuthCodeByAl(req.Phone, req.PhoneCode, model.SMS_BIND_PHONE)
+	//rsp.Code, err = u.AuthCodeByAl(req.Phone, req.PhoneCode, model.SMS_BIND_PHONE)
+	rsp.Code, err = model.AuthSms(req.Phone,model.SMS_BIND_PHONE ,req.PhoneCode)
+
 	if err != nil {
 		return err
 	}
 	if req.VerifyType == 1 {       //  1. email verify
-		rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_PHONE)
+		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_PHONE)
+		rsp.Code, err = model.AuthEmail(email, model.SMS_BIND_PHONE, req.VerifyCode)
 		if err != nil {
 			return err
 		}
 	}else if req.VerifyType == 2 {  // 2. google verify
-		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_PHONE)
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_PHONE,false)
 		if err != nil {
 			return err
 		}

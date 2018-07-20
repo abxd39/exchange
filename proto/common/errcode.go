@@ -1,6 +1,9 @@
 package errdefine
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"errors"
+)
 
 var ERR_CODE_RET = "code"
 var ERR_CODE_MESSAGE = "msg"
@@ -86,6 +89,7 @@ func NewErrorMessage() gin.H {
 }
 
 func init() {
+	errors.New("{err:}")
 	message = make(map[int32]string, 0)
 	message[ERRCODE_SUCCESS] = "成功"
 	message[ERRCODE_UNKNOWN] = "未知错误"

@@ -3,6 +3,7 @@ package conf
 import (
 	"flag"
 	"github.com/Unknwon/goconfig"
+	"github.com/micro/go-plugins/registry/consul"
 )
 
 var (

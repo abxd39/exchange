@@ -168,12 +168,8 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 	}
 	return
 }
-func (s *UserRPCCli) CallResetGoogleSecretKey(uid uint64, auth uint32, sms string) (rsp *proto.CommonErrResponse, err error) {
-	rsp, err = s.conn.ResetGoogleSecretKey(context.TODO(), &proto.ResetGoogleSecretKeyRequest{
-		Uid:      uid,
-		SmsCode:  sms,
-		AuthCode: auth,
-	})
+func (s *UserRPCCli) CallResetGoogleSecretKey(p *proto.ResetGoogleSecretKeyRequest) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.ResetGoogleSecretKey(context.TODO(),p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -193,6 +189,7 @@ type UserBaseData struct {
 	NeedPwd        bool   `json:"need_pwd"`
 	NeedPwdTime    int32  `json:"need_pwd_time"`
 	Country        string `json:"country"`
+	GoogleExist    bool   `json:"google_exist"`
 }
 
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
@@ -223,6 +220,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		NeedPwd:        out.NeedPwd,
 		NeedPwdTime:    out.NeedPwdTime,
 		Country:        out.Country,
+		GoogleExist:out.GoogleExist,
 	}
 
 	return

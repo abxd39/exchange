@@ -217,6 +217,7 @@ message ResetGoogleSecretKeyRequest {
     uint64 uid       =1;
     string sms_code      =2;
     uint32 auth_code     =3;
+  //  string ukey     =4;
 }
 
 
@@ -236,6 +237,7 @@ message UserBaseData{
     bool need_pwd               =9;
     int32 need_pwd_time         =10;
     string country                =11;
+    bool google_exist       =12;
 }
 
 message UserRealData{
@@ -389,7 +391,7 @@ message TokenListResponse{
 message CheckSecurityRequest{
     string ukey     =1;
     int32  type     =2;//1手机2邮箱3用户ID
-    uint64 uid       =3;
+   // uint64 uid       =3;
 }
 
 message CheckSecurityResponse{

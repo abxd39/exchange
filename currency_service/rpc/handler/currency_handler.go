@@ -414,7 +414,6 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	AddUserBalance
 */
 func (s *RPCServer) AddUserBalance (ctx context.Context, req *proto.AddUserBalanceRequest, rsp *proto.OtherResponse) error{
-	//uCurrency := new(model.UserCurrency)
 	uCurrency, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_UNKNOWN

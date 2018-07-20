@@ -6,6 +6,7 @@ import (
 	. "digicon/price_service/log"
 	proto "digicon/proto/rpc"
 	"time"
+	"github.com/sirupsen/logrus"
 )
 
 type Price struct {
@@ -33,7 +34,9 @@ type Price struct {
 func InsertPrice(p *Price) {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		Log.WithFields(logrus.Fields{
+			"id": p.Id,
+		}).Errorln(err.Error())
 		return
 	}
 	return

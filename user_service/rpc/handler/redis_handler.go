@@ -153,6 +153,27 @@ func (s *RPCServer) ResetGoogleSecretKey(ctx context.Context, req *proto.ResetGo
 		return nil
 	}
 
+	m:=u.GetAuthMethodExpectGoogle()
+	if m==model.AUTH_PHONE {
+		ret, err = u.AuthCodeByAl(u.Phone, req.SmsCode, model.SMS_SET_GOOGLE_CODE,true)
+	}else{
+		ret, err = u.AuthCodeByAl(u.Email, req.SmsCode, model.SMS_SET_GOOGLE_CODE,true)
+	}
+	//ret, err = u.AuthCodeByAl(req.Ukey, req.SmsCode, model.SMS_FORGET,true)
+	if err==redis.Nil {
+		rsp.Err=ERRCODE_SMS_CODE_NIL
+		rsp.Message=GetErrorMessage(rsp.Err)
+		return nil
+	}else  if err != nil {
+		rsp.Err = ret
+		rsp.Message = err.Error()
+		return err
+	}
+	if ret!=ERRCODE_SUCCESS {
+		rsp.Err=ret
+		return nil
+	}
+	/*
 	ret, err = model.AuthSms(u.Phone, model.SMS_SET_GOOGLE_CODE, req.SmsCode)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
@@ -163,7 +184,7 @@ func (s *RPCServer) ResetGoogleSecretKey(ctx context.Context, req *proto.ResetGo
 		rsp.Err = ret
 		return nil
 	}
-
+*/
 	ret, err = u.AuthGoogleCode(key, req.AuthCode)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN

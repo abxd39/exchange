@@ -72,7 +72,9 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 	engine := dao.DB.GetMysqlConn()
 	//没有指定 每页的行数
 	var star_row int
-	star_row = (int(page) - 1) * int(page_num)
+	if page>1{
+		star_row = (int(page) - 1) * int(page_num)
+	}
 	total, err := engine.Where("type =?", req.ArticleType).Count(list)
 	if err != nil {
 		Dlog.Log.Errorln(err.Error())

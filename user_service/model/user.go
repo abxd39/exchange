@@ -16,6 +16,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/pkg/errors"
+	"github.com/liudng/godump"
 )
 
 type User struct {
@@ -132,6 +133,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 			NeedPwdTime:    int32(s.NeedPwdTime),
 			LoginPwdLevel:  pwd_level,
 			Country:        s.Country,
+			GoogleExist:s.authSecurityCode(AUTH_GOOGLE),
 		},
 
 		Real: &proto.UserRealData{
@@ -146,7 +148,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 	}
 
 	m := jsonpb.Marshaler{EmitDefaults: true}
-
+	godump.Dump(r)
 	data, err = m.MarshalToString(r)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -187,17 +189,7 @@ func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err 
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-	/*
-	   	out = &proto.UserAllData{}
 
-	   	err = json.Unmarshal([]byte(d), out)
-	   	if err != nil {
-	   		ret = ERRCODE_UNKNOWN
-	   		return
-	   	}
-	   	godump.Dump("ll")
-	   godump.Dump(out)
-	*/
 	out = &proto.UserAllData{}
 	err = jsonpb.UnmarshalString(d, out)
 	if err != nil {
@@ -555,7 +547,17 @@ func (s *User) GetAuthMethod() int32 {
 	}
 	return 0
 }
+//获取排除谷歌验证类型
+func (s *User) GetAuthMethodExpectGoogle() int32 {
+	 if s.authSecurityCode(AUTH_PHONE) {
+		return AUTH_PHONE
+	} else if s.authSecurityCode(AUTH_EMAIL) {
+		return AUTH_EMAIL
+	}
+	return 0
+}
 
+//验证类型是否设置
 func (s *User) authSecurityCode(code int) bool {
 	g := s.SecurityAuth & code
 	if g > 0 {
@@ -564,9 +566,15 @@ func (s *User) authSecurityCode(code int) bool {
 	return false
 }
 
-//自动判断验证方式 dian
-func (s *User) AuthCodeByAl(ukey, code string,ty int32)(ret int32, err error) {
-	m := s.GetAuthMethod()
+//自动判断验证方式
+func (s *User) AuthCodeByAl(ukey, code string,ty int32, need bool)(ret int32, err error) {
+	var m int32
+	if !need {
+		m = s.GetAuthMethod()
+	}else {
+		m = s.GetAuthMethodExpectGoogle()
+	}
+
 	switch m {
 	case AUTH_EMAIL:
 		return AuthEmail(ukey, ty, code)

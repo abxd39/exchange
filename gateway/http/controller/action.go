@@ -6,6 +6,7 @@ import (
 	. "digicon/proto/common"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	proto "digicon/proto/rpc"
 )
 
 type ActionGroup struct{}
@@ -21,6 +22,8 @@ func (s *ActionGroup) Router(r *gin.Engine) {
 		action.GET("/get_user_real", s.GetUserRealName)
 		action.GET("/get_user_invite", s.GetUserInvite)
 		action.GET("/get_ip_record", s.GetIpRecord)
+
+		//action.GET("/get_auth_method", s.GetCheckAuthMethod)
 	}
 }
 
@@ -108,8 +111,10 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 	}()
 	type GoogleDelCodeParam struct {
 		Uid  uint64 `form:"uid" binding:"required"`
+		Token  string `form:"token" binding:"required"`
 		Auth uint32 `form:"auth" binding:"required"`
-		Sms  string `form:"sms" binding:"required"`
+		Code  string `form:"code" binding:"required"`
+		//Ukey string `form:"ukey" binding:"required"`
 	}
 	var param GoogleDelCodeParam
 
@@ -119,7 +124,12 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallResetGoogleSecretKey(param.Uid, param.Auth, param.Sms)
+	rsp, err := rpc.InnerService.UserSevice.CallResetGoogleSecretKey(&proto.ResetGoogleSecretKeyRequest{
+		Uid:param.Uid,
+		AuthCode:param.Auth,
+		SmsCode:param.Code,
+		//Ukey:param.Ukey,
+	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
@@ -232,3 +242,38 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("list", rsp.Data)
 }
+
+
+
+func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		Uid string `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
+		//Type int32  `form:"type" binding:"required"`
+
+	}{}
+
+	if err := c.ShouldBindQuery(&req); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallCheckAuthSecurity(&proto.CheckSecurityRequest{
+		Ukey: req.Uid,
+		Type: 3,
+	})
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err)
+	ret.SetDataSection("auth", rsp.Auth)
+	ret.SetDataSection("region",rsp.Region)
+}
+

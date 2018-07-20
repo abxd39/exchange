@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
 	"time"
-	"github.com/liudng/godump"
 )
 
 type PriceInfo struct {
@@ -63,7 +62,7 @@ func (s *PriceWorkQuene) GetEntry() *proto.PriceCache {
 	return s.entry
 }
 
-func (s *PriceWorkQuene) updatePrice(k *proto.PriceCache) {
+func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) {
 	InsertPrice(&Price{
 		Id:          k.Id,
 		Vol:         k.Vol,
@@ -82,7 +81,7 @@ func (s *PriceWorkQuene) Publish() {
 	ch := pb.Channel()
 	for v := range ch {
 		k := &proto.PriceCache{}
-		godump.Dump(v.Payload)
+		//godump.Dump(v.Payload)
 		err := jsonpb.UnmarshalString(v.Payload, k)
 		if err != nil {
 			Log.Errorln(err.Error())
@@ -93,8 +92,7 @@ func (s *PriceWorkQuene) Publish() {
 
 		t := time.Unix(k.Id, 0)
 		if t.Second() == 0 {
-			fmt.Println("ss")
-			godump.Dump(k)
+			s.updatePrice2(k)
 			s.save(OneMinPrice, k)
 			min := t.Minute()
 			if min%5 == 0 {
