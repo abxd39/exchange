@@ -581,15 +581,13 @@ func (s *UserGroup) BindUserEmail (c *gin.Context) {
 		VerifyCode: req.VerifyCode,
 		VerifyType: req.VerifyType,
 	})
-	fmt.Println("err: ", err)
-	fmt.Println(rsp)
 	if err != nil {
 		Log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 	ret.SetDataSection("data", rsp.Data)
-	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 
 }
@@ -628,7 +626,7 @@ func (s *UserGroup) BindUserPhone(c *gin.Context) {
 		return
 	}
 	ret.SetDataSection("data", rsp.Data)
-	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 
 }

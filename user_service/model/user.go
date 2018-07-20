@@ -36,13 +36,9 @@ type User struct {
 	NeedPwdTime      int    `xorm:"comment('免密周期') INT(11)"`
 	Status           int    `xorm:"default 0 comment('用户状态，1正常，2冻结') INT(11)"`
 	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
+	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
 }
 
-const (
-	AUTH_EMAIL  = 2 //00000010
-	AUTH_PHONE  = 1 //00000001
-	AUTH_GOOGLE = 8 //00001000
-)
 
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
@@ -566,15 +562,11 @@ func (s *User) authSecurityCode(code int) bool {
 	return false
 }
 
-//自动判断验证方式
-func (s *User) AuthCodeByAl(ukey, code string,ty int32, need bool)(ret int32, err error) {
-	var m int32
-	if !need {
-		m = s.GetAuthMethod()
-	}else {
-		m = s.GetAuthMethodExpectGoogle()
-	}
 
+
+//自动判断验证方式 dian
+func (s *User) AuthCodeByAl(ukey, code string, ty int32) (ret int32, err error) {
+	m := s.GetAuthMethod()
 	switch m {
 	case AUTH_EMAIL:
 		return AuthEmail(ukey, ty, code)
@@ -617,13 +609,23 @@ func (s *User) DelSecurityChmod(code int) (err error) {
 	return nil
 }
 
-
 /*
 	func: bind user email
 */
-func (s *User) BindUserEmail(email string, uid uint64) (err error){
+func (s *User) BindUserEmail(email string, uid uint64) (has bool, err error) {
 	engine := DB.GetMysqlConn()
 	s.Email = email
+	eu := User{Email: email}
+	has, err = engine.Where("account=? or email =?", email, email).Exist(&eu)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	if has {
+		msg := "邮箱已经存在"
+		Log.Println(msg)
+		return
+	}
 	_, err = engine.Where("uid=? ", uid).Update(s)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -634,10 +636,21 @@ func (s *User) BindUserEmail(email string, uid uint64) (err error){
 
 /*
 	func: bind user phone
- */
-func (s *User) BindUserPhone(phone string, uid uint64) (err error){
+*/
+func (s *User) BindUserPhone(phone string, uid uint64) (has bool, err error) {
 	engine := DB.GetMysqlConn()
 	s.Phone = phone
+	nu := User{Phone: phone}
+	has, err = engine.Where(" account=? or phone=?", phone, phone).Exist(&nu)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	if has {
+		msg := "电话已经存在"
+		Log.Println(msg)
+		return
+	}
 	_, err = engine.Where("uid=? ", uid).Update(s)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -645,4 +658,3 @@ func (s *User) BindUserPhone(phone string, uid uint64) (err error){
 	}
 	return
 }
-
