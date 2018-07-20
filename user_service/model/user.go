@@ -620,9 +620,20 @@ func (s *User) DelSecurityChmod(code int) (err error) {
 /*
 	func: bind user email
 */
-func (s *User) BindUserEmail(email string, uid uint64) (err error){
+func (s *User) BindUserEmail(email string, uid uint64) (has bool, err error){
 	engine := DB.GetMysqlConn()
 	s.Email = email
+	eu := User{Email:email}
+	has, err = engine.Where("account=? or email =?", email, email).Exist(&eu)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	if has{
+		msg := "邮箱已经存在"
+		Log.Println(msg)
+		return
+	}
 	_, err = engine.Where("uid=? ", uid).Update(s)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -634,9 +645,20 @@ func (s *User) BindUserEmail(email string, uid uint64) (err error){
 /*
 	func: bind user phone
  */
-func (s *User) BindUserPhone(phone string, uid uint64) (err error){
+func (s *User) BindUserPhone(phone string, uid uint64) (has bool, err error){
 	engine := DB.GetMysqlConn()
 	s.Phone = phone
+	nu := User{Phone:phone}
+	has, err = engine.Where(" account=? or phone=?", phone ,phone).Exist(&nu)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	if has {
+		msg := "电话已经存在"
+		Log.Println(msg)
+		return
+	}
 	_, err = engine.Where("uid=? ", uid).Update(s)
 	if err != nil {
 		Log.Errorln(err.Error())
