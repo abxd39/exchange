@@ -216,5 +216,6 @@ func SaveChatMsg(mesg Message) {
 	chat.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	code := chat.Add()
 	fmt.Println(code)
-	Log.Errorln("write to mysql code:", code)
+	Log.Println("write to mysql code:", code)
+
 }
