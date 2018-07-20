@@ -373,7 +373,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 		return nil
 	}
 
-	err = u.SecurityChmod(model.AUTH_EMAIL)
+	err = u.SecurityChmod(AUTH_EMAIL)
 	fmt.Println("security chmod :", err )
 	if err != nil {
 		msg := "after bind user email, security chmod error!"
@@ -428,7 +428,7 @@ func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest
 		rsp.Message = "电话已经存在"
 		return nil
 	}
-	err = u.SecurityChmod(model.AUTH_PHONE)
+	err = u.SecurityChmod(AUTH_PHONE)
 	if err != nil {
 		msg := "after bind user phone, security chmod error!"
 		Log.Errorln(msg)

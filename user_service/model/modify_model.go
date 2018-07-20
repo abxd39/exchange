@@ -130,9 +130,7 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (int32, erro
 	if eq := strings.Compare(req.ConfirmPwd, req.NewPwd); eq != 0 {
 		return ERRCODE_PWD_COMFIRM, nil
 	}
-	if eq := strings.Compare(req.NewPwd, ph.PayPwd); eq != 0 {
-		return ERRCODE_OLDPWD, nil
-	}
+
 	result, err := AuthSms(ph.Phone, SMS_RESET_TRADE_PWD, req.Verify)
 	if err != nil {
 		return  ERRCODE_UNKNOWN,err
@@ -142,8 +140,11 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (int32, erro
 	}
 	//验证token
 	//修改数据库字段
-
-	_, err = engine.Where("uid=?", req.Uid).Update(&User{PayPwd: req.NewPwd})
+	ph.SetTardeMark = ph.SetTardeMark ^ AUTH_TRADEMARK
+	_, err = engine.Where("uid=?", req.Uid).Update(&User{
+		PayPwd: req.NewPwd,
+		SetTardeMark:ph.SetTardeMark,
+	})
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
