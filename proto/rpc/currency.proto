@@ -82,6 +82,9 @@ service CurrencyRPC {
         // 获取用戶评级
         rpc GetUserRating(GetUserRatingRequest) returns (OtherResponse) {};
 
+        //  添加余额的rpc
+        rpc AddUserBalance(AddUserBalanceRequest) returns (OtherResponse){};
+
 }
 
 ////////////////////////
@@ -96,6 +99,12 @@ message  SellingPriceRequest {
 message  GetCurrencyBalanceRequest {
     uint64  uid       = 1;    // 用户id
     uint32  token_id  = 2;    // 币种id
+}
+
+message AddUserBalanceRequest{
+    uint64   uid       = 1;    //  用户id
+    uint32   token_id  = 2;    //  币种id
+    string   amount    = 3;    //  添加的额度
 }
 
 message OtherResponse {

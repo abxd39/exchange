@@ -70,6 +70,9 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/user_currency_rating", this.GetUserRating)   // 获取用戶评级
 		Currency.GET("/trade_history", this.GetTradeHistory)        // 获取历史交易
 
+
+		//
+		Currency.GET("/add_user_balance", this.AddUserBalance)
 	}
 }
 
@@ -1088,3 +1091,16 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 }
 
 
+
+
+func (this *CurrencyGroup)AddUserBalance(ctx *gin.Context) {
+	rsp, err := rpc.InnerService.CurrencyService.CallAddUserBalance(&proto.AddUserBalanceRequest{
+		Uid:2,
+		TokenId:2,
+		Amount: "3.33",
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(rsp)
+}

@@ -395,6 +395,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.Good    = data.Good
 	rateAndAuth.Cancel  = data.Cancel
 	rateAndAuth.Orders  = data.Orders
+
 	//rateAndAuth.EmailAuth = data.
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
@@ -406,4 +407,35 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rsp.Data = string(rData)
 	rsp.Code = errdefine.ERRCODE_SUCCESS
 	return nil
+}
+
+
+/*
+	AddUserBalance
+*/
+func (s *RPCServer) AddUserBalance (ctx context.Context, req *proto.AddUserBalanceRequest, rsp *proto.OtherResponse) error{
+	//uCurrency := new(model.UserCurrency)
+	uCurrency, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
+	if err != nil {
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		rsp.Message = "get balance error!"
+		return err
+	}
+	intAmount, err := convert.StringToInt64By8Bit(req.Amount)
+	if err != nil {
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		rsp.Message = "amount strint convert to int64 err!"
+		return err
+	}
+	err  = uCurrency.SetBalance(req.Uid, req.TokenId,  intAmount)
+	if err != nil {
+		fmt.Println(err.Error())
+		rsp.Data = ""
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		rsp.Message = "set balance error!"
+		return err
+	}else{
+		rsp.Code = errdefine.ERRCODE_SUCCESS
+		return nil
+	}
 }
