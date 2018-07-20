@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"digicon/common/convert"
-
 )
 
 type RPCServer struct{}
@@ -379,7 +378,25 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
-	rData, err := json.Marshal(data)
+
+	//client.InnerService.UserSevice.CallAuthVerify()
+
+	type UserRateAndAuth struct {
+		model.UserCurrencyCount
+		EmailAuth    int32    `json:"email_auth"`     //
+		PhoneAuth    int32    `json:"phone_auth"`     //
+		RealName     int32    `json:"real_name"`      //
+		TwoLevelAuth int32    `json:"two_level_auth"` //
+	}
+	rateAndAuth := new(UserRateAndAuth)
+	rateAndAuth.Uid     = data.Uid
+	rateAndAuth.Success = data.Success
+	rateAndAuth.Failure = data.Failure
+	rateAndAuth.Good    = data.Good
+	rateAndAuth.Cancel  = data.Cancel
+	rateAndAuth.Orders  = data.Orders
+	//rateAndAuth.EmailAuth = data.
+	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
 		fmt.Println(err.Error())
 		rsp.Data = ""

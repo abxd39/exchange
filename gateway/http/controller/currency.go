@@ -1057,6 +1057,12 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		Success      int64   `json:"success"`       // 成功订单
 		Failure      int64   `json:"failure"`       // 失败
 		AverageTo    int64   `json:"average_to"`    // 120 分钟
+
+		EmailAuth    int32    `json:"email_auth"`     //
+		PhoneAuth    int32    `json:"phone_auth"`     //
+		RealName     int32    `json:"real_name"`      //
+		TwoLevelAuth int32    `json:"two_level_auth"` //
+
 	}
 	//fmt.Println("data:", rsp.Data)
 	var uCurrencyCount UserCurrencyCount
@@ -1065,6 +1071,8 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		fmt.Println(err.Error())
 		return
 	}
+	fmt.Println("uCurrencyCount:", uCurrencyCount)
+
 	ret.SetErrCode(rsp.Code, rsp.Message)
 	ret.SetDataSection("orders", uCurrencyCount.Orders)
 	ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
@@ -1072,10 +1080,10 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
 	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
-	ret.SetDataSection("email_auth", 1)
-	ret.SetDataSection("phone_auth", 1)
-	ret.SetDataSection("real_name" ,1)
-	ret.SetDataSection("two_level_auth", 1)
+	ret.SetDataSection("email_auth", uCurrencyCount.EmailAuth)
+	ret.SetDataSection("phone_auth", uCurrencyCount.PhoneAuth)
+	ret.SetDataSection("real_name" ,uCurrencyCount.RealName)
+	ret.SetDataSection("two_level_auth", uCurrencyCount.TwoLevelAuth)
 	return
 }
 
