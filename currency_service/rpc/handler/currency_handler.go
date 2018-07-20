@@ -5,12 +5,13 @@ import (
 	"digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"fmt"
-	"github.com/gin-gonic/gin/json"
+	//"github.com/gin-gonic/gin/json"
 	"golang.org/x/net/context"
 	"log"
 	"time"
-
+	"encoding/json"
 	"digicon/common/convert"
+	"digicon/currency_service/rpc/client"
 )
 
 type RPCServer struct{}
@@ -379,15 +380,32 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 
-	//client.InnerService.UserSevice.CallAuthVerify()
+	authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(req.Uid)
+	fmt.Println("authResp:", authResp)
 
-	type UserRateAndAuth struct {
-		model.UserCurrencyCount
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println(authResp)
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}
+	type AuthInfo struct {
 		EmailAuth    int32    `json:"email_auth"`     //
 		PhoneAuth    int32    `json:"phone_auth"`     //
 		RealName     int32    `json:"real_name"`      //
 		TwoLevelAuth int32    `json:"two_level_auth"` //
 	}
+	type UserRateAndAuth struct {
+		model.UserCurrencyCount
+		AuthInfo
+	}
+	var authInfo AuthInfo
+	if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
+		fmt.Println(err)
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}
+
 	rateAndAuth := new(UserRateAndAuth)
 	rateAndAuth.Uid     = data.Uid
 	rateAndAuth.Success = data.Success
@@ -395,6 +413,11 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.Good    = data.Good
 	rateAndAuth.Cancel  = data.Cancel
 	rateAndAuth.Orders  = data.Orders
+
+	rateAndAuth.RealName      = authInfo.RealName
+	rateAndAuth.TwoLevelAuth  = authInfo.TwoLevelAuth
+	rateAndAuth.EmailAuth     = authInfo.EmailAuth
+	rateAndAuth.PhoneAuth     = authInfo.PhoneAuth
 
 	//rateAndAuth.EmailAuth = data.
 	rData, err := json.Marshal(rateAndAuth)

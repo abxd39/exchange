@@ -17,6 +17,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/pkg/errors"
 	"github.com/liudng/godump"
+	"digicon/common/constant"
 )
 
 type User struct {
@@ -534,21 +535,21 @@ func (s *User) DelGoogleCode(input uint32) (ret int32, err error) {
 
 //获取验证类型
 func (s *User) GetAuthMethod() int32 {
-	if s.authSecurityCode(AUTH_GOOGLE) {
-		return AUTH_GOOGLE
-	} else if s.authSecurityCode(AUTH_PHONE) {
-		return AUTH_PHONE
-	} else if s.authSecurityCode(AUTH_EMAIL) {
-		return AUTH_EMAIL
+	if s.authSecurityCode(constant.AUTH_GOOGLE) {
+		return constant.AUTH_GOOGLE
+	} else if s.authSecurityCode(constant.AUTH_PHONE) {
+		return constant.AUTH_PHONE
+	} else if s.authSecurityCode(constant.AUTH_EMAIL) {
+		return constant.AUTH_EMAIL
 	}
 	return 0
 }
 //获取排除谷歌验证类型
 func (s *User) GetAuthMethodExpectGoogle() int32 {
-	 if s.authSecurityCode(AUTH_PHONE) {
-		return AUTH_PHONE
-	} else if s.authSecurityCode(AUTH_EMAIL) {
-		return AUTH_EMAIL
+	 if s.authSecurityCode(constant.AUTH_PHONE) {
+		return constant.AUTH_PHONE
+	} else if s.authSecurityCode(constant.AUTH_EMAIL) {
+		return constant.AUTH_EMAIL
 	}
 	return 0
 }
@@ -563,16 +564,20 @@ func (s *User) authSecurityCode(code int) bool {
 }
 
 
-
-//自动判断验证方式 dian
-func (s *User) AuthCodeByAl(ukey, code string, ty int32) (ret int32, err error) {
-	m := s.GetAuthMethod()
+//自动判断验证方式
+func (s *User) AuthCodeByAl(ukey, code string,ty int32, need bool)(ret int32, err error) {
+	var m int32
+	if !need {
+		m = s.GetAuthMethod()
+	}else {
+		m = s.GetAuthMethodExpectGoogle()
+	}
 	switch m {
-	case AUTH_EMAIL:
+	case constant.AUTH_EMAIL:
 		return AuthEmail(ukey, ty, code)
-	case AUTH_PHONE:
+	case constant.AUTH_PHONE:
 		return AuthSms(ukey, ty, code)
-	case AUTH_GOOGLE:
+	case constant.AUTH_GOOGLE:
 		var code_ int
 		code_, err = strconv.Atoi(code)
 		if err != nil {

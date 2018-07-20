@@ -11,6 +11,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"golang.org/x/net/context"
+	"digicon/common/constant"
 )
 
 //获取谷歌验密钥
@@ -154,7 +155,7 @@ func (s *RPCServer) ResetGoogleSecretKey(ctx context.Context, req *proto.ResetGo
 	}
 
 	m:=u.GetAuthMethodExpectGoogle()
-	if m==model.AUTH_PHONE {
+	if m==constant.AUTH_PHONE {
 		ret, err = u.AuthCodeByAl(u.Phone, req.SmsCode, model.SMS_SET_GOOGLE_CODE,true)
 	}else{
 		ret, err = u.AuthCodeByAl(u.Email, req.SmsCode, model.SMS_SET_GOOGLE_CODE,true)
