@@ -42,6 +42,7 @@ func (s *RPCServer) ModifyTradePwd(ctx context.Context, req *proto.UserModifyTra
 	rsp.Err, err = u.ModifyTradePwd(req)
 	if err != nil {
 		log.Log.Errorf(err.Error())
+		return err
 	}
 	return nil
 }
