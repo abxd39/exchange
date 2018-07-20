@@ -14,10 +14,10 @@ type PriceRPCCli struct {
 	conn proto.PriceRPCService
 }
 
-func (s *PriceRPCCli) CallGetTokensList(symbol string) (*proto.LastPriceResponse, error) {
+func (s *PriceRPCCli) CallLastPrice(symbol string) (*proto.LastPriceResponse, error) {
 
 	return s.conn.LastPrice(context.Background(), &proto.LastPriceRequest{
-		Symbol:symbol,
+		Symbol: symbol,
 	})
 
 }

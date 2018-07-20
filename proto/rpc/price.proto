@@ -3,13 +3,19 @@ package g2u;
 
 
 import "rpc/currency.proto";
-
+import "rpc/define.proto";
 
 service PriceRPC {
     rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
     rpc CurrentPrice(CurrentPriceRequest) returns (CurrentPriceResponse) {};
 
     rpc LastPrice(LastPriceRequest) returns (LastPriceResponse) {};
+    //交易队列
+    rpc Symbols(NullRequest) returns (SymbolsResponse) {};
+
+
+    //自定义队列
+    rpc SelfSymbols(SelfSymbolsRequest) returns (SelfSymbolsResponse) {};
 }
 
 message PriceCache {
@@ -59,4 +65,39 @@ message LastPriceRequest{
 
 message LastPriceResponse{
     PriceCache data     =1;
+    bool ok             =2;
+}
+
+message SelfSymbolsResponse{
+    int32 err                       =1;
+    string message                  =2;
+    SymbolsBaseData data                      =3;
+}
+
+
+message SymbolBaseData{
+    string  symbol                       =1;
+    string  price                       =2;
+    string  cny_price                    =3;
+    string  scope                        =4;
+    int32  trade_token_id                      =5;
+}
+
+message SelfSymbolsRequest{
+    uint64 uid                      =1;
+}
+
+message SymbolsBaseData{
+    int32 token_id                      =1;
+    int32 mark                          =2;
+    repeated SymbolBaseData data        =3;
+}
+
+message SymbolsResponse{
+    int32 err                       =1;
+    string message                  =2;
+    SymbolsBaseData        usdt     =3;
+    SymbolsBaseData        btc      =4;
+    SymbolsBaseData        eth      =5;
+    SymbolsBaseData        sdc      =6;
 }

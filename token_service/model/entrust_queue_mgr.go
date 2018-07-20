@@ -14,8 +14,8 @@ var once sync.Once
 func GetQueneMgr() *EntrustQueneMgr {
 	once.Do(func() {
 		ins = &EntrustQueneMgr{
-			dataMgr: make(map[string]*EntrustQuene),
-			readyQuene:make(chan ConfigQuenes,1000),
+			dataMgr:    make(map[string]*EntrustQuene),
+			readyQuene: make(chan ConfigQuenes, 1000),
 		}
 	})
 	return ins
@@ -23,7 +23,7 @@ func GetQueneMgr() *EntrustQueneMgr {
 
 //币币交易管理器
 type EntrustQueneMgr struct {
-	dataMgr map[string]*EntrustQuene
+	dataMgr    map[string]*EntrustQuene
 	readyQuene chan ConfigQuenes
 }
 
@@ -62,26 +62,24 @@ func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene)) {
 func (s *EntrustQueneMgr) Init() bool {
 	InitConfigTokenCny()
 
-
-
 	/*
-	for _, v := range d {
-		cny := GetTokenCnyPrice(v.TokenId)
-		if v.Price == 0 {
-			panic("err last price")
-		}
+		for _, v := range d {
+			cny := GetTokenCnyPrice(v.TokenId)
+			if v.Price == 0 {
+				panic("err last price")
+			}
 
-		rpc.
-		p,ok := GetPrice(v.Name)
-		if ok {
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny)
-			s.AddQuene(e)
-		}else{
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny)
-			s.AddQuene(e)
-		}
+			rpc.
+			p,ok := GetPrice(v.Name)
+			if ok {
+				e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny)
+				s.AddQuene(e)
+			}else{
+				e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny)
+				s.AddQuene(e)
+			}
 
-	}
-*/
+		}
+	*/
 	return true
 }

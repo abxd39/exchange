@@ -10,15 +10,17 @@ var Log *logrus.Logger
 
 func InitLog() {
 	Log = logrus.New()
+	s := cf.Cfg.MustValue("log", "switch")
+	if s == "1" {
+		filename := cf.Cfg.MustValue("log", "log_path")
 
-	filename := cf.Cfg.MustValue("log", "log_path")
-
-	_, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
-	if err == nil {
-		//Log.Out = file
-		Log.Out = os.Stdout
+		file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
+		if err == nil {
+			Log.Out = file
+		} else {
+			Log.Out = os.Stdout
+		}
 	} else {
 		Log.Out = os.Stdout
-		//panic("Failed to log to file, using default stderr")
 	}
 }

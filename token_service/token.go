@@ -3,6 +3,7 @@ package main
 import (
 	cf "digicon/token_service/conf"
 	"digicon/token_service/dao"
+	"digicon/token_service/exchange"
 	. "digicon/token_service/log"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
@@ -11,7 +12,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"digicon/token_service/exchange"
 )
 
 func main() {

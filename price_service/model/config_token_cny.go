@@ -1,10 +1,6 @@
 package model
 
-import (
-	. "digicon/price_service/dao"
-	. "digicon/price_service/log"
-)
-
+/*
 type ConfigTokenCny struct {
 	TokenId int   `xorm:"not null pk comment(' 币类型') INT(10)"`
 	Price   int64 `xorm:"comment('人民币价格') BIGINT(20)"`
@@ -27,3 +23,4 @@ func GetTokenCnyPrice(token_id int32) int64 {
 	}
 	return 0
 }
+*/

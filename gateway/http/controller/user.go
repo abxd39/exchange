@@ -241,7 +241,7 @@ func (s *UserGroup) ForgetPwdController(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-//提交手机验证
+//安全认证
 func (s *UserGroup) AuthSecurityController(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -547,6 +547,7 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err)
 	ret.SetDataSection("auth", rsp.Auth)
+	ret.SetDataSection("region",rsp.Region)
 }
 
 

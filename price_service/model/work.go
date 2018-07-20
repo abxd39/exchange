@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
 	"time"
+	"github.com/liudng/godump"
 )
 
 type PriceInfo struct {
@@ -34,7 +35,7 @@ type PriceWorkQuene struct {
 	data  []*PriceInfo
 }
 
-func NewPriceWorkQuene(name string, token_id int32) *PriceWorkQuene {
+func NewPriceWorkQuene(name string, token_id int32, d *proto.PriceCache) *PriceWorkQuene {
 	var period_key = [MaxPrice]string{
 		"1min",
 		"5min",
@@ -45,6 +46,7 @@ func NewPriceWorkQuene(name string, token_id int32) *PriceWorkQuene {
 		PriceChannel: genkey.GetPulishKey(name),
 		data:         make([]*PriceInfo, 0),
 		TokenId:      token_id,
+		entry:d,
 	}
 
 	for i := 0; i < MaxPrice; i++ {
@@ -80,17 +82,19 @@ func (s *PriceWorkQuene) Publish() {
 	ch := pb.Channel()
 	for v := range ch {
 		k := &proto.PriceCache{}
-
+		godump.Dump(v.Payload)
 		err := jsonpb.UnmarshalString(v.Payload, k)
 		if err != nil {
 			Log.Errorln(err.Error())
 			continue
 		}
-
-		s.updatePrice(k)
+		s.entry = k
+		//s.updatePrice(k)
 
 		t := time.Unix(k.Id, 0)
 		if t.Second() == 0 {
+			fmt.Println("ss")
+			godump.Dump(k)
 			s.save(OneMinPrice, k)
 			min := t.Minute()
 			if min%5 == 0 {

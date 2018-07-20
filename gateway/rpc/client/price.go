@@ -22,6 +22,15 @@ func (s *PriceRPCCli) CallCurrentPrice(p *proto.CurrentPriceRequest) (rsp *proto
 	return
 }
 
+func (s *PriceRPCCli) CallSymbols(p *proto.NullRequest) (rsp *proto.SymbolsResponse, err error) {
+	rsp, err = s.conn.Symbols(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")

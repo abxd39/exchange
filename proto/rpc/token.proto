@@ -13,8 +13,7 @@ service TokenRPC {
         rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
 
 
-        //自定义队列
-        rpc SelfSymbols(SelfSymbolsRequest) returns (SelfSymbolsResponse) {};
+
 
         //历史委托队列
         rpc EntrustHistory(EntrustHistoryRequest) returns (EntrustHistoryResponse) {};
@@ -26,8 +25,7 @@ service TokenRPC {
         rpc TokenBalance(TokenBalanceRequest) returns (TokenBalanceResponse) {};
         //########market##########//
 
-        //交易队列
-        rpc Symbols(NullRequest) returns (SymbolsResponse) {};
+
 
         rpc HistoryKline(HistoryKlineRequest) returns (HistoryKlineResponse) {};
 
@@ -40,6 +38,10 @@ service TokenRPC {
         //行情列表
         rpc Quotation(QuotationRequest) returns (QuotationResponse) {};
         //########market##########//
+
+
+        //获取队列配置
+        rpc GetConfigQuene(NullRequest) returns (ConfigQueneResponse) {}
 }
 
 enum ENTRUST_OPT //操作方向类型
@@ -102,39 +104,9 @@ message HistoryKlineResponse{
     string message                  =2;
 }
 
-message SelfSymbolsRequest{
-    uint64 uid                      =1;
-}
 
-message SelfSymbolsResponse{
-    int32 err                       =1;
-    string message                  =2;
-    SymbolsBaseData data                      =3;
-}
 
-message SymbolBaseData{
-    string  symbol                       =1;
-    string  price                       =2;
-    string  cny_price                    =3;
-    string  scope                        =4;
-    int32  trade_token_id                      =5;
-}
 
-message SymbolsBaseData{
-    int32 token_id                      =1;
-    int32 mark                          =2;
-    repeated SymbolBaseData data        =3;
-}
-
-message SymbolsResponse{
-    int32 err                       =1;
-    string message                  =2;
-    SymbolsBaseData        usdt     =3;
-    SymbolsBaseData        btc      =4;
-    SymbolsBaseData        eth      =5;
-    SymbolsBaseData        sdc      =6;
-    //repeated SymbolBaseData data     =3;
-}
 
 
 message EntrustBaseData{
@@ -253,4 +225,21 @@ message QutationBaseData{
 
 message QuotationResponse{
     repeated QutationBaseData data          =1;
+}
+
+
+message ConfigQueneBaseData{
+    int32 token_id          =1;
+    int32 token_trade_id    =2;
+    string name             =4;
+}
+
+message CnyPriceBaseData{
+    int32 token_id          =1;
+    int64 cny_price         =2;
+}
+
+message ConfigQueneResponse{
+    repeated ConfigQueneBaseData data           =1;
+    repeated CnyPriceBaseData cny_data                  =2;
 }

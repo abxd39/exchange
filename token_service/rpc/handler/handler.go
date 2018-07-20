@@ -40,70 +40,68 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 }
 
 func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolsResponse) error {
-	t := new(model.ConfigQuenes).GetAllQuenes()
-	rsp.Usdt = new(proto.SymbolsBaseData)
-	rsp.Usdt.Data = make([]*proto.SymbolBaseData, 0)
-	rsp.Btc = new(proto.SymbolsBaseData)
-	rsp.Btc.Data = make([]*proto.SymbolBaseData, 0)
-	rsp.Eth = new(proto.SymbolsBaseData)
-	rsp.Eth.Data = make([]*proto.SymbolBaseData, 0)
-	rsp.Sdc = new(proto.SymbolsBaseData)
-	rsp.Sdc.Data = make([]*proto.SymbolBaseData, 0)
-	for _, v := range t {
-		if v.TokenId == 1 {
-			rsp.Usdt.TokenId = int32(v.TokenId)
-			cny := model.GetTokenCnyPrice(v.TokenId)
+	/*
+		t := new(model.ConfigQuenes).GetAllQuenes()
+		rsp.Usdt = new(proto.SymbolsBaseData)
+		rsp.Usdt.Data = make([]*proto.SymbolBaseData, 0)
+		rsp.Btc = new(proto.SymbolsBaseData)
+		rsp.Btc.Data = make([]*proto.SymbolBaseData, 0)
+		rsp.Eth = new(proto.SymbolsBaseData)
+		rsp.Eth.Data = make([]*proto.SymbolBaseData, 0)
+		rsp.Sdc = new(proto.SymbolsBaseData)
+		rsp.Sdc.Data = make([]*proto.SymbolBaseData, 0)
+		for _, v := range t {
+			if v.TokenId == 1 {
+				rsp.Usdt.TokenId = int32(v.TokenId)
+				cny := model.GetTokenCnyPrice(v.TokenId)
 
-			rsp.Usdt.Data = append(rsp.Usdt.Data, &proto.SymbolBaseData{
-				Symbol:       v.Name,
-				Price:        convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
-				Scope:        v.Scope,
-				TradeTokenId: int32(v.TokenTradeId),
-			})
-		} else if v.TokenId == 2 {
-			rsp.Btc.TokenId = int32(v.TokenId)
-			cny := model.GetTokenCnyPrice(v.TokenId)
-			rsp.Btc.Data = append(rsp.Btc.Data, &proto.SymbolBaseData{
-				Symbol:       v.Name,
-				Price:        convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
-				Scope:        v.Scope,
-				TradeTokenId: int32(v.TokenTradeId),
-			})
+				rsp.Usdt.Data = append(rsp.Usdt.Data, &proto.SymbolBaseData{
+					Symbol:       v.Name,
+					Price:        convert.Int64ToStringBy8Bit(v.Price),
+					CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
+					Scope:        v.Scope,
+					TradeTokenId: int32(v.TokenTradeId),
+				})
+			} else if v.TokenId == 2 {
+				rsp.Btc.TokenId = int32(v.TokenId)
+				cny := model.GetTokenCnyPrice(v.TokenId)
+				rsp.Btc.Data = append(rsp.Btc.Data, &proto.SymbolBaseData{
+					Symbol:       v.Name,
+					Price:        convert.Int64ToStringBy8Bit(v.Price),
+					CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
+					Scope:        v.Scope,
+					TradeTokenId: int32(v.TokenTradeId),
+				})
 
-		} else if v.TokenId == 3 {
-			rsp.Eth.TokenId = int32(v.TokenId)
-			cny := model.GetTokenCnyPrice(v.TokenId)
-			rsp.Eth.Data = append(rsp.Eth.Data, &proto.SymbolBaseData{
-				Symbol:       v.Name,
-				Price:        convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
-				Scope:        v.Scope,
-				TradeTokenId: int32(v.TokenTradeId),
-			})
-		} else if v.TokenId == 4 {
-			rsp.Sdc.TokenId = int32(v.TokenId)
-			cny := model.GetTokenCnyPrice(v.TokenId)
-			rsp.Sdc.Data = append(rsp.Sdc.Data, &proto.SymbolBaseData{
-				Symbol:       v.Name,
-				Price:        convert.Int64ToStringBy8Bit(v.Price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
-				Scope:        v.Scope,
-				TradeTokenId: int32(v.TokenTradeId),
-			})
-		} else {
-			continue
+			} else if v.TokenId == 3 {
+				rsp.Eth.TokenId = int32(v.TokenId)
+				cny := model.GetTokenCnyPrice(v.TokenId)
+				rsp.Eth.Data = append(rsp.Eth.Data, &proto.SymbolBaseData{
+					Symbol:       v.Name,
+					Price:        convert.Int64ToStringBy8Bit(v.Price),
+					CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
+					Scope:        v.Scope,
+					TradeTokenId: int32(v.TokenTradeId),
+				})
+			} else if v.TokenId == 4 {
+				rsp.Sdc.TokenId = int32(v.TokenId)
+				cny := model.GetTokenCnyPrice(v.TokenId)
+				rsp.Sdc.Data = append(rsp.Sdc.Data, &proto.SymbolBaseData{
+					Symbol:       v.Name,
+					Price:        convert.Int64ToStringBy8Bit(v.Price),
+					CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, v.Price)),
+					Scope:        v.Scope,
+					TradeTokenId: int32(v.TokenTradeId),
+				})
+			} else {
+				continue
+			}
+
 		}
-
-	}
-
+	*/
 	return nil
 }
-func (s *RPCServer) SelfSymbols(ctx context.Context, req *proto.SelfSymbolsRequest, rsp *proto.SelfSymbolsResponse) error {
-	//t := new(model.QuenesConfig).GetQuenes(req.Uid)
-	return nil
-}
+
 
 func (s *RPCServer) AddTokenNum(ctx context.Context, req *proto.AddTokenNumRequest, rsp *proto.CommonErrResponse) error {
 	ret, err := model.AddTokenSess(req)
@@ -262,12 +260,37 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 	for _, v := range g {
 		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
 			Symbol: v.Name,
-			Price:  convert.Int64ToStringBy8Bit(v.Price),
-			Scope:  v.Scope,
-			Low:    convert.Int64ToStringBy8Bit(v.Low),
-			High:   convert.Int64ToStringBy8Bit(v.High),
-			Amount: convert.Int64ToStringBy8Bit(v.Amount),
+			/*
+				Price:  convert.Int64ToStringBy8Bit(v.Price),
+
+				Scope:  v.Scope,
+				Low:    convert.Int64ToStringBy8Bit(v.Low),
+				High:   convert.Int64ToStringBy8Bit(v.High),
+				Amount: convert.Int64ToStringBy8Bit(v.Amount),
+			*/
 		})
 	}
+	return nil
+}
+
+func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, rsp *proto.ConfigQueneResponse) error {
+	t := new(model.ConfigQuenes).GetAllQuenes()
+
+	for _, v := range t {
+		rsp.Data = append(rsp.Data, &proto.ConfigQueneBaseData{
+			TokenId:      int32(v.TokenId),
+			TokenTradeId: int32(v.TokenTradeId),
+			Name:         v.Name,
+		})
+	}
+
+	m := model.GetCnyData()
+	for _, v := range m {
+		rsp.CnyData = append(rsp.CnyData, &proto.CnyPriceBaseData{
+			TokenId:  int32(v.TokenId),
+			CnyPrice: v.Price,
+		})
+	}
+
 	return nil
 }

@@ -219,29 +219,30 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		return ret
 	}
 
-	/*
-		e := &User{
-			Pwd:     req.Pwd,
-			Phone:   req.Ukey,
-			Account: req.Ukey,
-			Country: req.Country,
-		}
-		_, err = DB.GetMysqlConn().Cols("pwd", filed, "account", "country").Insert(e)
+	d := &UserEx{} //主邀请人
+	if req.InviteCode != "" {
+		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
 		if err != nil {
 			Log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN
 		}
-	*/
+		if !ok {
+			return ERRCODE_INVITE
+		}
+	}
 	var chmod int
+	var sql string
 	if filed == "phone" {
 		chmod = AUTH_PHONE
+		sql=fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
 	} else if filed == "email" {
 		chmod = AUTH_EMAIL
+		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Ukey, chmod)
 	} else {
 		Log.Fatalf("register error filed %s", filed)
 	}
 
-	sql := fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
+	//sql := fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
 	_, err = DB.GetMysqlConn().Exec(sql)
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -258,16 +259,8 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 
 	code := random.Krand(6, random.KC_RAND_KIND_UPPER)
 	str_code := string(code)
-	d := &UserEx{} //主邀请人
+
 	if req.InviteCode != "" {
-		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
-		if err != nil {
-			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
-		}
-		if !ok {
-			return ERRCODE_UNKNOWN
-		}
 		m := &UserEx{
 			Uid:          e.Uid,
 			RegisterTime: time.Now().Unix(),
@@ -591,7 +584,7 @@ func (s *User) AuthCodeByAl(ukey, code string,ty int32)(ret int32, err error) {
 		break
 	}
 
-	return ERRCODE_UNKNOWN, errors.New("err auth methon")
+	return ERRCODE_UNKNOWN, errors.New("err auth method")
 }
 
 //验证通过修改权限

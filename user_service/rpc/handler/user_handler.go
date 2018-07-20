@@ -10,6 +10,7 @@ import (
 	"digicon/user_service/model"
 
 	"time"
+	"github.com/go-redis/redis"
 )
 
 type RPCServer struct{}
@@ -133,11 +134,23 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		return err
 	}
 
-	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, req.Type)
-	if err != nil {
+	if ret!=ERRCODE_SUCCESS {
+		rsp.Err=ret
+		return nil
+	}
+	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, model.SMS_FORGET)
+	if err==redis.Nil {
+		rsp.Err=ERRCODE_SMS_CODE_NIL
+		rsp.Message=GetErrorMessage(rsp.Err)
+		return nil
+	}else  if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
 		return err
+	}
+	if ret!=ERRCODE_SUCCESS {
+		rsp.Err=ret
+		return nil
 	}
 
 	err = u.ModifyPwd(req.Pwd)
@@ -318,6 +331,9 @@ func (this *RPCServer) CheckSecurity(ctx context.Context, req *proto.CheckSecuri
 		return nil
 	}
 	rsp.Auth = u.GetAuthMethod()
+	if rsp.Auth==model.AUTH_PHONE {
+		rsp.Region=u.Country
+	}
 	return nil
 }
 

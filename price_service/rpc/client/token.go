@@ -10,12 +10,12 @@ import (
 	"github.com/micro/go-plugins/registry/consul"
 )
 
-type UserRPCCli struct {
-	conn proto.UserRPCService
+type TokenRPCCli struct {
+	conn proto.TokenRPCService
 }
 
-func (s *UserRPCCli) Hello(name string) (rsp *proto.HelloResponse, err error) {
-	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest{})
+func (s *TokenRPCCli) CallGetConfigQuene() (rsp *proto.ConfigQueneResponse, err error) {
+	rsp, err = s.conn.GetConfigQuene(context.TODO(), &proto.NullRequest{})
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -23,7 +23,7 @@ func (s *UserRPCCli) Hello(name string) (rsp *proto.HelloResponse, err error) {
 	return
 }
 
-func NewUserRPCCli() (u *UserRPCCli) {
+func NewTokenRPCCli() (u *TokenRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))
 	service := micro.NewService(
@@ -32,9 +32,12 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	)
 	service.Init()
 
-	service_name := cf.Cfg.MustValue("base", "service_name")
-	greeter := proto.NewUserRPCService(service_name, service.Client())
-	u = &UserRPCCli{
+	service_name := cf.Cfg.MustValue("base", "service_client_token")
+	if service_name=="" {
+		Log.Fatalln("err config please check config")
+	}
+	greeter := proto.NewTokenRPCService(service_name, service.Client())
+	u = &TokenRPCCli{
 		conn: greeter,
 	}
 	return

@@ -28,4 +28,6 @@ func GetTokenCnyPrice(token_id int) int64 {
 	return 0
 }
 
-
+func GetCnyData() map[int]*ConfigTokenCny {
+	return configTokenCnyData
+}

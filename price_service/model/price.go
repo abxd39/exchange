@@ -70,14 +70,14 @@ func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseDa
 	t := time.Now()
 	l := t.Add(-86400 * time.Second)
 
-	begin:=l.Unix()
-	end:=t.Unix()
+	begin := l.Unix()
+	end := t.Unix()
 	h := GetHigh(begin, end)
 
-	j := GetLow(begin,end)
+	j := GetLow(begin, end)
 
 	p := &Price{}
-	_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin,end).Asc("created_time").Limit(1, 0).Get(p)
+	_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return nil
@@ -95,11 +95,41 @@ func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseDa
 
 }
 
-func GetPrice(symbol string)  (*Price, bool){
+//从数据库获取最新价格
+func GetPrice(symbol string) (*Price, bool) {
 	m := &Price{}
 	ok, err := DB.GetMysqlConn().Where("symbol=?", symbol).Desc("created_time").Limit(1, 0).Get(m)
 	if err != nil {
 		Log.Fatalln("err data price")
 	}
-	return m,ok
+	return m, ok
+}
+
+func Get24HourPrice(symbol string) (*Price, bool) {
+	t := time.Now()
+	l := t.Add(-86400 * time.Second)
+
+	begin := l.Unix()
+	end := t.Unix()
+	p := &Price{}
+
+	ok, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return nil, ok
+	}
+
+	return p, ok
+}
+
+func (s *Price) SetProtoData()*proto.PriceCache  {
+	return &proto.PriceCache{
+		Id:s.Id,
+		Symbol:s.Symbol,
+		Price:s.Price,
+		CreatedTime:s.CreatedTime,
+		Amount:s.Amount,
+		Vol:s.Vol,
+		Count:s.Count,
+	}
 }

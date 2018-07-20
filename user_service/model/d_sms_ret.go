@@ -12,7 +12,6 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis"
-	"github.com/liudng/godump"
 	"github.com/pkg/errors"
 )
 
@@ -162,16 +161,22 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-	godump.Dump(p)
 
 	g, err := strconv.Atoi(p.Code)
 	if err != nil {
 		ret = int32(g)
 		return
 	}
-	if g == 0 {
+
+
+	switch g {
+	case 0:
 		ret = ERRCODE_SUCCESS
 		return
+	case 108:
+		ret = ERRCODE_SMS_PHONE_FORMAT
+		return
+
 	}
 	ret = ERRCODE_UNKNOWN
 	err = errors.New(p.ErrorMsg)

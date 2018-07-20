@@ -35,7 +35,7 @@ const (
 	ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH = 217
 	ERRCODE_ARTICLE_NOT_EXIST                 = 218
 	ERRCODE_OLDPWD                            = 219
-
+	ERRCODE_INVITE    			 = 220
 	//300-
 
 	ERRCODE_ADS_NOTEXIST      = 301
@@ -102,6 +102,8 @@ func init() {
 	message[ERRCODE_GOOGLE_CODE] = "谷歌验证码错误"
 	message[ERRCODE_GOOGLE_CODE_EXIST] = "谷歌验证码已经存在无法重复拉取"
 	message[ERRCODE_GOOGLE_CODE_NOT_EXIST] = "谷歌验证码不存在无法解绑"
+	message[ERRCODE_INVITE] = "邀请码不存在"
+
 
 	message[ERRCODE_ADS_NOTEXIST] = "广告不存在"
 	message[ERRCODE_TOKENS_NOTEXIST] = "货币类型不存在"

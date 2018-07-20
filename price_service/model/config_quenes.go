@@ -1,10 +1,10 @@
 package model
 
 import (
-	. "digicon/price_service/dao"
-	. "digicon/price_service/log"
+	proto "digicon/proto/rpc"
 )
 
+/*
 type ConfigQuenes struct {
 	Id           int64  `xorm:"pk autoincr BIGINT(20)"`
 	TokenId      int    `xorm:"comment('交易币') unique(union_quene_id) INT(11)"`
@@ -27,3 +27,27 @@ func (s *ConfigQuenes) GetAllQuenes() []ConfigQuenes {
 	}
 	return t
 }
+*/
+
+var ConfigQuenes map[string]*proto.ConfigQueneBaseData
+
+var ConfigCny map[int32]*proto.CnyPriceBaseData
+var IsFinish bool
+
+
+func GetTokenCnyPrice(token_id int32) int64 {
+	g, ok := ConfigCny[token_id]
+	if ok {
+		return g.CnyPrice
+	}
+	return 0
+}
+
+
+func init() {
+	ConfigQuenes = make(map[string]*proto.ConfigQueneBaseData, 0)
+	ConfigCny = make(map[int32]*proto.CnyPriceBaseData, 0)
+	IsFinish = false
+}
+
+

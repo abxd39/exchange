@@ -73,7 +73,7 @@ func (s *MarketGroup) Symbols(c *gin.Context) {
 			return
 		}
 	*/
-	rsp, err := rpc.InnerService.TokenService.CallSymbols(&proto.NullRequest{})
+	rsp, err := rpc.InnerService.PriceService.CallSymbols(&proto.NullRequest{})
 
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())

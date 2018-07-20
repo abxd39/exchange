@@ -14,7 +14,6 @@ type Price struct {
 
 */
 
-
 /*
 type Price struct {
 	Id          int64  `xorm:"index(keep) BIGINT(20)"`

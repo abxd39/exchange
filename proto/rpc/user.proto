@@ -37,6 +37,8 @@ service UserRPC {
     //获取账户安全验证方式
     rpc CheckSecurity(CheckSecurityRequest) returns (CheckSecurityResponse) {}
 
+
+
     //获取实名信息
     rpc GetUserRealName(UserInfoRequest) returns (UserRealNameResponse) {}
 
@@ -394,4 +396,6 @@ message CheckSecurityResponse{
     int32 err       =1;
     string message  =2;
     int32 auth      =3;
+    string region    =4;
 }
+

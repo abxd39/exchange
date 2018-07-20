@@ -32,21 +32,14 @@ func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto
 	return
 }
 
-func (s *TokenRPCCli) CallSymbols(p *proto.NullRequest) (rsp *proto.SymbolsResponse, err error) {
-	rsp, err = s.conn.Symbols(context.TODO(), p)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
-	return
-}
-
 func (s *TokenRPCCli) CallSelfSymbols(p *proto.SelfSymbolsRequest) (rsp *proto.SelfSymbolsResponse, err error) {
+	/*
 	rsp, err = s.conn.SelfSymbols(context.TODO(), p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
+	*/
 	return
 }
 

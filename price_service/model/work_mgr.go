@@ -1,9 +1,8 @@
 package model
 
 import (
-	. "digicon/price_service/log"
-
 	"sync"
+	. "digicon/price_service/log"
 )
 
 var ins *WorkQueneMgr
@@ -24,13 +23,18 @@ type WorkQueneMgr struct {
 }
 
 func (s *WorkQueneMgr) Init() {
-	InitConfigTokenCny()
-	d := new(ConfigQuenes).GetAllQuenes()
-	for _, v := range d {
-		g := NewPriceWorkQuene(v.Name, int32(v.TokenId))
-		s.AddQuene(g)
-	}
+	for _, v := range ConfigQuenes {
+		p,ok:=GetPrice(v.Name)
+		if !ok {
+			//Log.Fatalln("please init price")
+			g := NewPriceWorkQuene(v.Name, int32(v.TokenId),nil)
+			s.AddQuene(g)
+		}else {
+			g := NewPriceWorkQuene(v.Name, int32(v.TokenId),p.SetProtoData())
+			s.AddQuene(g)
+		}
 
+	}
 }
 
 //添加一个币币交易
