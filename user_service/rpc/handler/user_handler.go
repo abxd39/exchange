@@ -8,9 +8,10 @@ import (
 
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
-
+	"digicon/common/constant"
 	"time"
 	"fmt"
+	"github.com/gin-gonic/gin/json"
 )
 
 type RPCServer struct{}
@@ -437,6 +438,48 @@ func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest
 		return nil
 	}
 	u.RefreshCache(req.Uid)
+	rsp.Code = ERRCODE_SUCCESS
+	return nil
+}
+
+
+
+/*
+	获取认证信息
+*/
+
+func(this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRequest, rsp *proto.GetAuthInfoResponse) error {
+	u := new(model.User)
+	u.GetUser(req.Uid)
+	securityCode := u.SecurityAuth
+	//fmt.Println(securityCode)
+	type AuthInfo struct {
+		EmailAuth    int32    `json:"email_auth"`     //
+		PhoneAuth    int32    `json:"phone_auth"`     //
+		RealName     int32    `json:"real_name"`      //
+		TwoLevelAuth int32    `json:"two_level_auth"` //
+	}
+	authInfo := new(AuthInfo)
+	if (securityCode  - securityCode ^ constant.AUTH_PHONE) == constant.AUTH_PHONE {
+		authInfo.PhoneAuth = 1
+	}
+	if (securityCode - securityCode ^ constant.AUTH_EMAIL) == constant.AUTH_EMAIL {
+		authInfo.EmailAuth = 1
+	}
+	if (securityCode - securityCode ^ constant.AUTH_TWO) == constant.AUTH_TWO {
+		authInfo.TwoLevelAuth = 1
+	}
+	if (securityCode - securityCode ^ constant.AUTH_FIRST) == constant.AUTH_FIRST {
+		authInfo.RealName = 1
+	}
+	data, err := json.Marshal(authInfo)
+	if err != nil {
+		fmt.Println(err.Error())
+		Log.Errorln(err)
+		rsp.Code = ERRCODE_UNKNOWN
+		return err
+	}
+	rsp.Data = string(data)
 	rsp.Code = ERRCODE_SUCCESS
 	return nil
 }
