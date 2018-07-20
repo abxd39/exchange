@@ -36,9 +36,24 @@ type Article_list struct {
 	Title       string `xorm:"not null default '' comment('文章标题') VARCHAR(100)"`
 	CreateTime  string `xorm:"default '' comment('创建时间') VARCHAR(36)"`
 }
+type ArticleType struct {
+	Id       int    `xorm:"not null pk autoincr MEDIUMINT(6)"`
+	TypeId   int    `xorm:"not null default 0 TINYINT(10)"`
+	TypeName string `xorm:"not null default '' comment('类型名称 1关于我们，2媒体报道，3联系我们，4团队介绍，5数据资产介绍，6服务条款，7免责声明，8隐私保护9 业界新闻 10 公告 11 帮助手册 12 币种介绍') VARCHAR(100)"`
+}
 
 func (a *Article_list) TableName() string {
 	return "article"
+}
+
+func (ArticleType)GetArticleTypeList()([]ArticleType,error)  {
+	engine := dao.DB.GetMysqlConn()
+	list :=make([]ArticleType,0)
+	err:=engine.Find(&list)
+	if err!=nil {
+		return nil,err
+	}
+	return list,nil
 }
 
 func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list) (int, int32) {

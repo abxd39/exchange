@@ -18,8 +18,24 @@ service PublicRPC {
 	 rpc  GetBannerList (BannerRequest) returns (BannerResponse){};
 
 	rpc  GetTokensList (TokensRequest) returns (TokensResponse){};
+	//获取文章类型表
+	rpc ArticleTypeList (ArticleTypeRequest) returns (ArticleTypeListResponse){};
 }
 
+message ArticleTypeRequest{
+
+}
+
+message ArticleTypeListResponse {
+	message ArticleType{
+		int32 Id =1;
+		string Name=2;
+}
+repeated ArticleType type =1;
+	int32 code =2;
+	string msg =3;
+	string data =4;
+}
 
 message ArticleListRequest{
 	int32 Article_type=1;

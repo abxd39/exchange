@@ -37,9 +37,26 @@ func (s *RPCServer) Article(ctx context.Context, req *proto.ArticleRequest, rsp 
 	js, err := json.Marshal(result)
 	if err != nil {
 		log.Fatalf("struct model.Article Marshal Fatalf!!")
+		return err
 	}
 	//json.Unmarshal
 	rsp.Data = string(js)
 	//fmt.Println(rsp.Data)
+	return nil
+}
+
+func (s *RPCServer)ArticleTypeList (ctx context.Context,req*proto.ArticleTypeRequest,rsp*proto.ArticleTypeListResponse)error{
+	list,err:= new(model.ArticleType).GetArticleTypeList()
+	if err!=nil{
+		log.Fatalf(err.Error())
+		return err
+	}
+	for _,v:=range list{
+		at:=&proto.ArticleTypeListResponse_ArticleType{
+			Id:int32(v.TypeId),
+			Name:v.TypeName,
+		}
+		rsp.Type = append(rsp.Type,at)
+	}
 	return nil
 }
