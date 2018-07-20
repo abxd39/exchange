@@ -63,12 +63,10 @@ func (s *User) ModifyUserPhone1(req *proto.UserModifyPhoneRequest) (result int32
 	var ok bool
 	ok, err = engine.ID(req.Uid).Get(ph)
 	if err != nil {
-		result = ERRCODE_UNKNOWN
-		return
+		 return ERRCODE_UNKNOWN,err
 	}
 	if !ok {
-		result = ERRCODE_UNKNOWN
-		err = errors.New("get phone number failed")
+		return ERRCODE_PHONE_NOT_EXIST,nil
 	}
 	fmt.Println("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv")
 	fmt.Println("电话号码为：", ph.Phone, "验证码为：", req.Verify)
@@ -91,14 +89,25 @@ func (s *User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (result int32
 		return
 	}
 	if result != ERRCODE_SUCCESS {
-		return
+		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	//token
 	//修改数据库字段
 	engine := dao.DB.GetMysqlConn()
-	_, err = engine.ID(req.Uid).Update(&User{Phone: req.Phone})
+	u := new(User)
+	has, err := engine.ID(req.Uid).Get(u)
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
+	}
+	if !has {
+		return ERRCODE_ACCOUNT_NOTEXIST, nil
+	}
+	if strings.Compare(req.Phone, u.Phone) == 0 {
+		return ERRCODE_PHONE_EXIST, nil
+	}
+	_, err = engine.ID(req.Uid).Update(&User{Phone: req.Phone})
+	if err!=nil{
+		return ERRCODE_UNKNOWN,err
 	}
 	s.RefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil

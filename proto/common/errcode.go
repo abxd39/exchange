@@ -35,6 +35,8 @@ const (
 	ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH = 217
 	ERRCODE_ARTICLE_NOT_EXIST                 = 218
 	ERRCODE_OLDPWD                            = 219
+	ERRCODE_PHONE_EXIST						 =220
+	ERRCODE_PHONE_NOT_EXIST       	        =221
 
 	//300-
 
@@ -123,6 +125,8 @@ func init() {
 
 	message[ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH] = "两次输入的银行卡号码不相同"
 	message[ERRCODE_ARTICLE_NOT_EXIST] = "文章不存在"
+	message[ERRCODE_PHONE_EXIST] = "电话号码已经存在"
+	message[ERRCODE_PHONE_NOT_EXIST] = "电话号码不存在"
 }
 
 type PublicErrorType struct {
