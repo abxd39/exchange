@@ -1102,5 +1102,5 @@ func (this *CurrencyGroup)AddUserBalance(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println(rsp)
+	fmt.Println("rsp:", rsp.Data, rsp.Code, rsp.Message)
 }

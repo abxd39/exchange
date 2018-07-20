@@ -10,6 +10,7 @@ import (
 	"digicon/user_service/model"
 
 	"time"
+	"fmt"
 )
 
 type RPCServer struct{}
@@ -331,13 +332,21 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	u.GetUser(req.Uid)
 	phone := u.Phone
 	var err error
-	rsp.Code, err = u.AuthCodeByAl(req.Email, req.EmailCode,  model.SMS_BIND_EMAIL )
+	code , err := model.AuthEmail(req.Email, model.SMS_BIND_EMAIL, req.EmailCode)
+	fmt.Println("code:",code , err )
+	//rsp.Code, err = u.AuthCodeByAl(req.Email, req.EmailCode,  model.SMS_BIND_EMAIL )
+	//fmt.Println("code: ",rsp.Code, err)
+
+
 	if err != nil {
 		Log.Errorln("auth code by email error!")
 		return err
 	}
 	if req.VerifyType == 1 {       // 3: 短信校验
-		rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_EMAIL)
+		rsp.Code, err = model.AuthSms(phone, model.SMS_BIND_EMAIL, req.VerifyCode)
+		fmt.Println(rsp.Code, err)
+		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_EMAIL)
+
 		if err != nil {
 			return err
 		}
@@ -352,12 +361,15 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 		return nil
 	}
 	err = u.BindUserEmail(req.Email, req.Uid)
+	fmt.Println("bind user email:", err )
+
 	if err != nil {
 		Log.Errorln("bind user email err!", err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
 	err = u.SecurityChmod(model.AUTH_EMAIL)
+	fmt.Println("security chmod :", err )
 	if err != nil {
 		msg := "after bind user email, security chmod error!"
 		Log.Errorln(msg)
@@ -370,14 +382,18 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest, rsp *proto.BindPhoneEmailResponse) error{
 	u := new(model.User)
 	u.GetUser(req.Uid)
-	phone := u.Phone
+	//phone := u.Phone
+	email := u.Email
 	var err error
-	rsp.Code, err = u.AuthCodeByAl(req.Phone, req.PhoneCode, model.SMS_BIND_PHONE)
+	//rsp.Code, err = u.AuthCodeByAl(req.Phone, req.PhoneCode, model.SMS_BIND_PHONE)
+	rsp.Code, err = model.AuthSms(req.Phone,model.SMS_BIND_PHONE ,req.PhoneCode)
+
 	if err != nil {
 		return err
 	}
 	if req.VerifyType == 1 {       //  1. email verify
-		rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_PHONE)
+		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_PHONE)
+		rsp.Code, err = model.AuthEmail(email, model.SMS_BIND_PHONE, req.VerifyCode)
 		if err != nil {
 			return err
 		}

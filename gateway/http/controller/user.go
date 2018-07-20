@@ -580,7 +580,7 @@ func (s *UserGroup) BindUserEmail (c *gin.Context) {
 		VerifyCode: req.VerifyCode,
 		VerifyType: req.VerifyType,
 	})
-	fmt.Println("err: ", err.Error())
+	fmt.Println("err: ", err)
 	fmt.Println(rsp)
 	if err != nil {
 		Log.Errorln(err.Error())
