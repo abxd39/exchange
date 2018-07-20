@@ -136,3 +136,10 @@ func (s *CurrencyRPCCli) CallGetUserRating(req *proto.GetUserRatingRequest) (*pr
 	rsp, err := s.conn.GetUserRating(context.TODO(), req)
 	return rsp, err
 }
+
+
+//
+func (s *CurrencyRPCCli) CallAddUserBalance(req *proto.AddUserBalanceRequest) (*proto.OtherResponse, error) {
+	rsp, err := s.conn.AddUserBalance(context.TODO(), req)
+	return rsp, err
+}

@@ -3,6 +3,7 @@ package model
 import (
 	"digicon/currency_service/dao"
 	. "digicon/currency_service/log"
+	"errors"
 )
 
 // 用户虚拟货币资产表
@@ -46,4 +47,21 @@ func (this *UserCurrency) GetBalance(uid uint64, token_id uint32) (data UserCurr
 	_, err = dao.DB.GetMysqlConn().Where("uid=? AND token_id=?", uid, token_id).Get(&data)
 	return
 
+}
+
+
+func (this *UserCurrency) SetBalance(uid uint64, token_id uint32, amount int64) (err error) {
+	engine := dao.DB.GetMysqlConn()
+	sql := "UPDATE user_currency SET   balance= balance + ?, version = version + 1 WHERE uid = ? AND token_id = ? AND version = ?"
+	sqlRest, err := engine.Exec(sql, amount, uid, token_id, this.Version)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return err
+	}
+	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
+		Log.Errorln("添加余额失败")
+		err = errors.New("添加余额失败!")
+		return err
+	}
+	return
 }
