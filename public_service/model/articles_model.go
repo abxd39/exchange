@@ -79,6 +79,7 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 
 func (Article) Article(Id int32, u *Article) int32 {
 	engine := dao.DB.GetMysqlConn()
+	fmt.Println("101011111", Id)
 	ok, err := engine.Where("id=?", Id).Get(u)
 	if err != nil {
 		Dlog.Log.Errorln(err.Error())

@@ -6,11 +6,12 @@ import (
 	"digicon/public_service/model"
 
 	"golang.org/x/net/context"
+	"fmt"
 )
 
 func (s *RPCServer) GetBannerList(ctx context.Context, req *proto.BannerRequest, rsp *proto.BannerResponse) error {
-	b := model.Banner{}
-	err := b.GetBannerList(req, rsp)
+	err := new(model.Banner).GetBannerList(req, rsp)
+	fmt.Println("1010110bannerlist")
 	if err != nil {
 		log.Log.Errorf(err.Error())
 	}

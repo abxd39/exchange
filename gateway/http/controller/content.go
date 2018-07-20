@@ -80,7 +80,7 @@ func (cm *ContentManageGroup) GetFriendlyLink(c *gin.Context) {
 		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
-	fmt.Println("2121211111111111111111")
+
 	fmt.Println(req)
 	rsp, err := rpc.InnerService.PublicService.CallGetFriendlyLink(&proto.FriendlyLinkRequest{})
 	if err != nil {
@@ -98,9 +98,10 @@ func (cm *ContentManageGroup) GetBannerList(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-
+	fmt.Println("2121211111111111111111")
 	rsp, err := rpc.InnerService.PublicService.CallGetBannerList(&proto.BannerRequest{})
 	if err != nil {
+		fmt.Println("cccccccccccccccccccccccccccccc")
 		log.Log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
