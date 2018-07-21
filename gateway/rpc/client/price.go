@@ -32,6 +32,16 @@ func (s *PriceRPCCli) CallSymbols(p *proto.NullRequest) (rsp *proto.SymbolsRespo
 }
 
 
+func (s *PriceRPCCli) CallQuotation(p *proto.QuotationRequest) (rsp *proto.QuotationResponse, err error) {
+	rsp, err = s.conn.Quotation(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

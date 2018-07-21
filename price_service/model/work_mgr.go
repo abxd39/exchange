@@ -25,13 +25,14 @@ type WorkQueneMgr struct {
 func (s *WorkQueneMgr) Init() {
 	InitConfig()
 	for _, v := range ConfigQueneData {
+
+		cny:=GetTokenCnyPrice2(v.TokenId)
 		p, ok := GetPrice(v.Name)
 		if !ok {
-			//Log.Fatalln("please init price")
-			g := NewPriceWorkQuene(v.Name, int32(v.TokenId), nil)
+			g := NewPriceWorkQuene(v.Name, int32(v.TokenId), cny,nil)
 			s.AddQuene(g)
 		} else {
-			g := NewPriceWorkQuene(v.Name, int32(v.TokenId), p.SetProtoData())
+			g := NewPriceWorkQuene(v.Name, int32(v.TokenId),cny, p.SetProtoData())
 			s.AddQuene(g)
 		}
 

@@ -60,19 +60,6 @@ func (s *MarketGroup) Symbols(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	/*
-		type SymbolsParam struct {
-			//TokenId int32  `form:"token_id" binding:"required"`
-		}
-
-		var param SymbolsParam
-
-		if err := c.ShouldBindQuery(&param); err != nil {
-			Log.Errorf(err.Error())
-			ret.SetErrCode(ERRCODE_PARAM, err.Error())
-			return
-		}
-	*/
 	rsp, err := rpc.InnerService.PriceService.CallSymbols(&proto.NullRequest{})
 
 	if err != nil {
@@ -162,7 +149,7 @@ func (s *MarketGroup) Quotation(c *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.TokenService.CallQuotation(&proto.QuotationRequest{
+	rsp, err := rpc.InnerService.PriceService.CallQuotation(&proto.QuotationRequest{
 		TokenId: param.TokenId,
 	})
 	if err != nil {

@@ -90,7 +90,7 @@ func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseDa
 		Symbol:   symbol,
 		High:     convert.Int64ToStringBy8Bit(h),
 		Low:      convert.Int64ToStringBy8Bit(j),
-		Scope:    convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
+		Scope:    convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 		Amount:   convert.Int64ToStringBy8Bit(amount - p.Amount),
 		Price:    convert.Int64ToStringBy8Bit(price),
 		CnyPrice: convert.Int64MulInt64By8BitString(cny_price, price),
