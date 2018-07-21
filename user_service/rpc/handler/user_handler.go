@@ -59,7 +59,11 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 
 		*/
 		ret, err := model.AuthSms(req.Ukey, model.SMS_REGISTER, req.Code)
-		if err != nil {
+		if err==redis.Nil {
+			rsp.Err = ret
+			rsp.Message=GetErrorMessage(rsp.Err)
+			return nil
+		}else if err != nil {
 			rsp.Err = ERRCODE_UNKNOWN
 			rsp.Message = err.Error()
 			return nil

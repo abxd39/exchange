@@ -45,7 +45,7 @@ func NewPriceWorkQuene(name string, token_id int32, d *proto.PriceCache) *PriceW
 		PriceChannel: genkey.GetPulishKey(name),
 		data:         make([]*PriceInfo, 0),
 		TokenId:      token_id,
-		entry:d,
+		entry:        d,
 	}
 
 	for i := 0; i < MaxPrice; i++ {
@@ -85,6 +85,10 @@ func (s *PriceWorkQuene) Publish() {
 		err := jsonpb.UnmarshalString(v.Payload, k)
 		if err != nil {
 			Log.Errorln(err.Error())
+			continue
+		}
+
+		if k.Price==0 {
 			continue
 		}
 		s.entry = k

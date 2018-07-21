@@ -1,8 +1,8 @@
 package model
 
 import (
-	"sync"
 	. "digicon/price_service/log"
+	"sync"
 )
 
 var ins *WorkQueneMgr
@@ -23,14 +23,15 @@ type WorkQueneMgr struct {
 }
 
 func (s *WorkQueneMgr) Init() {
-	for _, v := range ConfigQuenes {
-		p,ok:=GetPrice(v.Name)
+	InitConfig()
+	for _, v := range ConfigQueneData {
+		p, ok := GetPrice(v.Name)
 		if !ok {
 			//Log.Fatalln("please init price")
-			g := NewPriceWorkQuene(v.Name, int32(v.TokenId),nil)
+			g := NewPriceWorkQuene(v.Name, int32(v.TokenId), nil)
 			s.AddQuene(g)
-		}else {
-			g := NewPriceWorkQuene(v.Name, int32(v.TokenId),p.SetProtoData())
+		} else {
+			g := NewPriceWorkQuene(v.Name, int32(v.TokenId), p.SetProtoData())
 			s.AddQuene(g)
 		}
 

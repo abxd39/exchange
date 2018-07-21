@@ -24,5 +24,6 @@ func init() {
 }
 
 func Init() {
+
 	Cfg = NewConfig(confPath)
 }

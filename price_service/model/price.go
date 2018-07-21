@@ -5,8 +5,8 @@ import (
 	. "digicon/price_service/dao"
 	. "digicon/price_service/log"
 	proto "digicon/proto/rpc"
-	"time"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 type Price struct {
@@ -125,14 +125,14 @@ func Get24HourPrice(symbol string) (*Price, bool) {
 	return p, ok
 }
 
-func (s *Price) SetProtoData()*proto.PriceCache  {
+func (s *Price) SetProtoData() *proto.PriceCache {
 	return &proto.PriceCache{
-		Id:s.Id,
-		Symbol:s.Symbol,
-		Price:s.Price,
-		CreatedTime:s.CreatedTime,
-		Amount:s.Amount,
-		Vol:s.Vol,
-		Count:s.Count,
+		Id:          s.Id,
+		Symbol:      s.Symbol,
+		Price:       s.Price,
+		CreatedTime: s.CreatedTime,
+		Amount:      s.Amount,
+		Vol:         s.Vol,
+		Count:       s.Count,
 	}
 }
