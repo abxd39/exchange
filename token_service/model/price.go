@@ -1,4 +1,8 @@
 package model
+import (
+	. "digicon/token_service/dao"
+	. "digicon/token_service/log"
+)
 
 /*
 type Price struct {
@@ -14,7 +18,7 @@ type Price struct {
 
 */
 
-/*
+
 type Price struct {
 	Id          int64  `xorm:"index(keep) BIGINT(20)"`
 	Symbol      string `xorm:"index(keep) VARCHAR(32)"`
@@ -27,7 +31,7 @@ type Price struct {
 
 func GetPrice(symbol string) (*Price, bool) {
 	m := &Price{}
-	ok, err := DB.GetMysqlConn().Where("symbol=?", symbol).Desc("created_time").Limit(1, 0).Get(m)
+	ok, err := DB.GetMysqlConn2().Where("symbol=?", symbol).Desc("created_time").Limit(1, 0).Get(m)
 	if err != nil {
 		Log.Fatalln("err data price")
 	}
@@ -35,4 +39,4 @@ func GetPrice(symbol string) (*Price, bool) {
 }
 
 
-*/
+

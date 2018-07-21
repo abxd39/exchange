@@ -33,7 +33,7 @@ func NewTokenRPCCli() (u *TokenRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_client_token")
-	if service_name=="" {
+	if service_name == "" {
 		Log.Fatalln("err config please check config")
 	}
 	greeter := proto.NewTokenRPCService(service_name, service.Client())

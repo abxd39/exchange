@@ -37,7 +37,7 @@ func (s *RPCServer) SelfSymbols(ctx context.Context, req *proto.SelfSymbolsReque
 
 func (s *RPCServer) LastPrice(ctx context.Context, req *proto.LastPriceRequest, rsp *proto.LastPriceResponse) error {
 	p, ok := model.GetPrice(req.Symbol)
-	rsp.Ok=ok
+	rsp.Ok = ok
 	if ok {
 		rsp.Data = &proto.PriceCache{
 			Id:          p.Id,
@@ -63,7 +63,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 	rsp.Eth.Data = make([]*proto.SymbolBaseData, 0)
 	rsp.Sdc = new(proto.SymbolsBaseData)
 	rsp.Sdc.Data = make([]*proto.SymbolBaseData, 0)
-	for _, v := range model.ConfigQuenes {
+	for _, v := range model.ConfigQueneData {
 		if v.TokenId == 1 {
 			rsp.Usdt.TokenId = int32(v.TokenId)
 

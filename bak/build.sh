@@ -18,6 +18,6 @@ GOOS=linux GOARCH=amd64 go build
 mv price_service ../bin
 cd ../bin
 ssh root@47.106.136.96   "cd /root/go/src/dig/ && sh del.sh"
-scp -r -2 /d/mygo/src/digicon/bin/* root@47.106.136.96:/root/go/src/dig/
+scp -r -2 /d/mygo/src/digicon/bin/* root@47.106.136.96:/root/go/src/dig
 
 
