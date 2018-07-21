@@ -19,3 +19,8 @@ const (
 	AUTH_TWO = 4    //0100 //二级
 	AUTH_FIRST = 16 //0001 0000 实名认证
 )
+
+//是否设置资金密码状态标识
+const(
+	AUTH_TRADEMARK=1//0001资金密码设置状态
+)

@@ -13,11 +13,12 @@ import (
 	"strconv"
 	"time"
 
+	. "digicon/common/constant"
+
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/pkg/errors"
 	"github.com/liudng/godump"
-	"digicon/common/constant"
+	"github.com/pkg/errors"
 )
 
 type User struct {
@@ -39,7 +40,6 @@ type User struct {
 	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
 	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
 }
-
 
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
@@ -130,7 +130,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 			NeedPwdTime:    int32(s.NeedPwdTime),
 			LoginPwdLevel:  pwd_level,
 			Country:        s.Country,
-			GoogleExist:s.authSecurityCode(AUTH_GOOGLE),
+			GoogleExist:    s.authSecurityCode(AUTH_GOOGLE),
 		},
 
 		Real: &proto.UserRealData{
@@ -223,7 +223,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 	var sql string
 	if filed == "phone" {
 		chmod = AUTH_PHONE
-		sql=fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
+		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
 	} else if filed == "email" {
 		chmod = AUTH_EMAIL
 		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Ukey, chmod)
@@ -535,21 +535,22 @@ func (s *User) DelGoogleCode(input uint32) (ret int32, err error) {
 
 //获取验证类型
 func (s *User) GetAuthMethod() int32 {
-	if s.authSecurityCode(constant.AUTH_GOOGLE) {
-		return constant.AUTH_GOOGLE
-	} else if s.authSecurityCode(constant.AUTH_PHONE) {
-		return constant.AUTH_PHONE
-	} else if s.authSecurityCode(constant.AUTH_EMAIL) {
-		return constant.AUTH_EMAIL
+	if s.authSecurityCode(AUTH_GOOGLE) {
+		return AUTH_GOOGLE
+	} else if s.authSecurityCode(AUTH_PHONE) {
+		return AUTH_PHONE
+	} else if s.authSecurityCode(AUTH_EMAIL) {
+		return AUTH_EMAIL
 	}
 	return 0
 }
+
 //获取排除谷歌验证类型
 func (s *User) GetAuthMethodExpectGoogle() int32 {
-	 if s.authSecurityCode(constant.AUTH_PHONE) {
-		return constant.AUTH_PHONE
-	} else if s.authSecurityCode(constant.AUTH_EMAIL) {
-		return constant.AUTH_EMAIL
+	if s.authSecurityCode(AUTH_PHONE) {
+		return AUTH_PHONE
+	} else if s.authSecurityCode(AUTH_EMAIL) {
+		return AUTH_EMAIL
 	}
 	return 0
 }
@@ -563,21 +564,20 @@ func (s *User) authSecurityCode(code int) bool {
 	return false
 }
 
-
 //自动判断验证方式
-func (s *User) AuthCodeByAl(ukey, code string,ty int32, need bool)(ret int32, err error) {
+func (s *User) AuthCodeByAl(ukey, code string, ty int32, need bool) (ret int32, err error) {
 	var m int32
 	if !need {
 		m = s.GetAuthMethod()
-	}else {
+	} else {
 		m = s.GetAuthMethodExpectGoogle()
 	}
 	switch m {
-	case constant.AUTH_EMAIL:
+	case AUTH_EMAIL:
 		return AuthEmail(ukey, ty, code)
-	case constant.AUTH_PHONE:
+	case AUTH_PHONE:
 		return AuthSms(ukey, ty, code)
-	case constant.AUTH_GOOGLE:
+	case AUTH_GOOGLE:
 		var code_ int
 		code_, err = strconv.Atoi(code)
 		if err != nil {
