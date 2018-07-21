@@ -1,25 +1,24 @@
 package handler
 
 import (
+	. "digicon/common/constant"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	//. "digicon/user_service/dao"
 	"golang.org/x/net/context"
 
+	"digicon/common/constant"
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
-	"digicon/common/constant"
 	"time"
 
 	"github.com/go-redis/redis"
 
 	"fmt"
 
-
 	"strconv"
 
 	"github.com/gin-gonic/gin/json"
-
 )
 
 type RPCServer struct{}
@@ -147,22 +146,22 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		return err
 	}
 
-	if ret!=ERRCODE_SUCCESS {
-		rsp.Err=ret
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
 		return nil
 	}
-	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, model.SMS_FORGET,false)
-	if err==redis.Nil {
-		rsp.Err=ERRCODE_SMS_CODE_NIL
-		rsp.Message=GetErrorMessage(rsp.Err)
+	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, model.SMS_FORGET, false)
+	if err == redis.Nil {
+		rsp.Err = ERRCODE_SMS_CODE_NIL
+		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
-	}else  if err != nil {
+	} else if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
 		return err
 	}
-	if ret!=ERRCODE_SUCCESS {
-		rsp.Err=ret
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
 		return nil
 	}
 
@@ -323,10 +322,10 @@ func (this *RPCServer) CheckSecurity(ctx context.Context, req *proto.CheckSecuri
 	var err error
 	var uid int64
 	if req.Type == 3 {
-		uid,err =strconv.ParseInt(req.Ukey, 10, 64)
-		if err!=nil {
-			rsp.Err=ERRCODE_UNKNOWN
-			rsp.Message=err.Error()
+		uid, err = strconv.ParseInt(req.Ukey, 10, 64)
+		if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
 			return nil
 		}
 		ret, err = u.GetUser(uint64(uid))
@@ -351,37 +350,35 @@ func (this *RPCServer) CheckSecurity(ctx context.Context, req *proto.CheckSecuri
 		return nil
 	}
 
-	if req.Type==3 {
-		rsp.Auth= u.GetAuthMethodExpectGoogle()
-	}else{
+	if req.Type == 3 {
+		rsp.Auth = u.GetAuthMethodExpectGoogle()
+	} else {
 		rsp.Auth = u.GetAuthMethod()
 	}
 	//rsp.Auth = u.GetAuthMethod()
-	if rsp.Auth==constant.AUTH_PHONE {
-		rsp.Region=u.Country
+	if rsp.Auth == constant.AUTH_PHONE {
+		rsp.Region = u.Country
 	}
 	return nil
 }
 
-
-
 /*
 	// bind user email
 */
-func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailRequest, rsp *proto.BindPhoneEmailResponse) error{
+func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailRequest, rsp *proto.BindPhoneEmailResponse) error {
 	u := new(model.User)
 	u.GetUser(req.Uid)
 	phone := u.Phone
 	var err error
-	code , err := model.AuthEmail(req.Email, model.SMS_BIND_EMAIL, req.EmailCode)
-	fmt.Println("code:",code , err )
+	code, err := model.AuthEmail(req.Email, model.SMS_BIND_EMAIL, req.EmailCode)
+	fmt.Println("code:", code, err)
 
 	if err != nil {
 		Log.Errorln("auth code by email error!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return err
 	}
-	if req.VerifyType == 1 {       // 3: 短信校验
+	if req.VerifyType == 1 { // 3: 短信校验
 		rsp.Code, err = model.AuthSms(phone, model.SMS_BIND_EMAIL, req.VerifyCode)
 		fmt.Println(rsp.Code, err)
 		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_EMAIL)
@@ -389,12 +386,12 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 			rsp.Code = ERRCODE_UNKNOWN
 			return err
 		}
-	}else if req.VerifyType == 2 {  // 4 谷歌验证
-		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_EMAIL,false)
+	} else if req.VerifyType == 2 { // 4 谷歌验证
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_EMAIL, false)
 		if err != nil {
 			return err
 		}
-	} else{
+	} else {
 		Log.Errorln(" not found verifyType!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
@@ -406,14 +403,14 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
-	if has{
+	if has {
 		rsp.Code = ERRCODE_EMAIL_EXIST
 		rsp.Message = "邮箱已经存在"
 		return nil
 	}
 
 	err = u.SecurityChmod(AUTH_EMAIL)
-	fmt.Println("security chmod :", err )
+	fmt.Println("security chmod :", err)
 	if err != nil {
 		msg := "after bind user email, security chmod error!"
 		Log.Errorln(msg)
@@ -425,33 +422,32 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	return nil
 }
 
-
-func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest, rsp *proto.BindPhoneEmailResponse) error{
+func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest, rsp *proto.BindPhoneEmailResponse) error {
 	u := new(model.User)
 	u.GetUser(req.Uid)
 	email := u.Email
 	var err error
 	//rsp.Code, err = u.AuthCodeByAl(req.Phone, req.PhoneCode, model.SMS_BIND_PHONE)
-	rsp.Code, err = model.AuthSms(req.Phone,model.SMS_BIND_PHONE ,req.PhoneCode)
+	rsp.Code, err = model.AuthSms(req.Phone, model.SMS_BIND_PHONE, req.PhoneCode)
 
 	if err != nil {
 		rsp.Code = ERRCODE_UNKNOWN
 		return err
 	}
-	if req.VerifyType == 1 {       //  1. email verify
+	if req.VerifyType == 1 { //  1. email verify
 		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_PHONE)
 		rsp.Code, err = model.AuthEmail(email, model.SMS_BIND_PHONE, req.VerifyCode)
 		if err != nil {
 			rsp.Code = ERRCODE_UNKNOWN
 			return err
 		}
-	}else if req.VerifyType == 2 {  // 2. google verify
-		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_PHONE,false)
+	} else if req.VerifyType == 2 { // 2. google verify
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_PHONE, false)
 		if err != nil {
 			rsp.Code = ERRCODE_UNKNOWN
 			return err
 		}
-	} else{
+	} else {
 		Log.Errorln(" not found verifyType!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
@@ -462,7 +458,7 @@ func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
-	if has{
+	if has {
 		rsp.Code = ERRCODE_PHONE_EXIST
 		rsp.Message = "电话已经存在"
 		return nil
@@ -480,34 +476,40 @@ func(this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneRequest
 	return nil
 }
 
-
-
 /*
 	获取认证信息
 */
 
-func(this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRequest, rsp *proto.GetAuthInfoResponse) error {
+func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRequest, rsp *proto.GetAuthInfoResponse) error {
 	u := new(model.User)
-	u.GetUser(req.Uid)
+
+	code, err := u.GetUser(req.Uid)
+	if err != nil {
+		fmt.Println(err)
+		rsp.Data = ""
+		rsp.Code = code
+		return err
+	}
+	//fmt.Println("uid:", req.Uid)
 	securityCode := u.SecurityAuth
-	//fmt.Println(securityCode)
+
 	type AuthInfo struct {
-		EmailAuth    int32    `json:"email_auth"`     //
-		PhoneAuth    int32    `json:"phone_auth"`     //
-		RealName     int32    `json:"real_name"`      //
-		TwoLevelAuth int32    `json:"two_level_auth"` //
+		EmailAuth    int32 `json:"email_auth"`     //
+		PhoneAuth    int32 `json:"phone_auth"`     //
+		RealName     int32 `json:"real_name"`      //
+		TwoLevelAuth int32 `json:"two_level_auth"` //
 	}
 	authInfo := new(AuthInfo)
-	if (securityCode  - securityCode ^ constant.AUTH_PHONE) == constant.AUTH_PHONE {
+	if securityCode-(securityCode^constant.AUTH_PHONE) == constant.AUTH_PHONE {
 		authInfo.PhoneAuth = 1
 	}
-	if (securityCode - securityCode ^ constant.AUTH_EMAIL) == constant.AUTH_EMAIL {
+	if securityCode-(securityCode^constant.AUTH_EMAIL) == constant.AUTH_EMAIL {
 		authInfo.EmailAuth = 1
 	}
-	if (securityCode - securityCode ^ constant.AUTH_TWO) == constant.AUTH_TWO {
+	if securityCode-(securityCode^constant.AUTH_TWO) == constant.AUTH_TWO {
 		authInfo.TwoLevelAuth = 1
 	}
-	if (securityCode - securityCode ^ constant.AUTH_FIRST) == constant.AUTH_FIRST {
+	if securityCode-(securityCode^constant.AUTH_FIRST) == constant.AUTH_FIRST {
 		authInfo.RealName = 1
 	}
 	data, err := json.Marshal(authInfo)
