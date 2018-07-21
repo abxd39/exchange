@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/shopspring/decimal"
+	"fmt"
 )
 
 func ByteToInt32(b []byte) (x uint32) {
@@ -69,6 +70,7 @@ func Int64MulInt64By8BitString(a int64, b int64) string {
 	return  r.String()
 }
 
+//两数相除保持8位
 func Int64DivInt64By8Bit(a int64, b int64) int64 {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
@@ -77,10 +79,24 @@ func Int64DivInt64By8Bit(a int64, b int64) int64 {
 	return num
 }
 
+//两数相除保持8位
 func Int64DivInt64By8BitString(a int64, b int64) string {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
 
 	num := dd.Div(dp).Round(8).Coefficient().String()
 	return num
+}
+
+//两数相除保持2位
+func Int64DivInt64StringPercent(a int64, b int64) string {
+	dd := decimal.New(a, 0)
+	dp := decimal.New(b, 0)
+	d:=decimal.New(100, 0)
+
+	t := dd.Div(dp).Mul(d)
+	k,_:=t.Float64()
+	s := fmt.Sprintf("%.2f", k)
+
+	return s
 }
