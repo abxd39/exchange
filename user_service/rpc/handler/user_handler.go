@@ -152,7 +152,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 
 			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, secReferNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
 			if err != nil || resp.Err != ERRCODE_SUCCESS {
-				Log.Errorf("【注册奖励代币】奖励二级推荐人代币出错，uid：%d，referUid：%d，referInviteCode：%s，err：%s", uid, referUid, referUserEx.InviteCode, err.Error())
+				Log.Errorf("【注册奖励代币】奖励二级推荐人代币出错，uid：%d，referUid：%d，secReferUid：%d，err：%s", uid, referUid, secReferUid, err.Error())
 			}
 		}
 	}
