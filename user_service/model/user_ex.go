@@ -20,6 +20,10 @@ type UserEx struct {
 	Invites       int    `xorm:"default 0 comment('邀请人数') INT(11)"`
 }
 
+func (s *UserEx) TableName() string {
+	return "user_ex"
+}
+
 func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {

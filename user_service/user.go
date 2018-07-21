@@ -5,6 +5,7 @@ import (
 	"digicon/user_service/dao"
 	. "digicon/user_service/log"
 	"digicon/user_service/rpc"
+	"digicon/user_service/rpc/client"
 	"flag"
 	"os"
 	"os/signal"
@@ -18,6 +19,7 @@ func main() {
 	Log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
+	client.InitInnerService()
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
