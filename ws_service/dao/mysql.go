@@ -2,17 +2,16 @@ package dao
 
 import (
 	"digicon/ws_service/conf"
-	"github.com/go-xorm/xorm"
 	. "digicon/ws_service/log"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-xorm/xorm"
 )
 
 type Mysql struct {
 	im *xorm.Engine
 }
 
-
-func NewMysql()(mysql *Mysql){
+func NewMysql() (mysql *Mysql) {
 	dsource := conf.Cfg.MustValue("mysql", "conn")
 
 	engine, err := xorm.NewEngine("mysql", dsource)
@@ -37,5 +36,3 @@ func NewMysql()(mysql *Mysql){
 func (s *Dao) GetMysqlConn() *xorm.Engine {
 	return s.mysql.im
 }
-
-

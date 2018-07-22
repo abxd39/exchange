@@ -34,11 +34,11 @@ func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto
 
 func (s *TokenRPCCli) CallSelfSymbols(p *proto.SelfSymbolsRequest) (rsp *proto.SelfSymbolsResponse, err error) {
 	/*
-	rsp, err = s.conn.SelfSymbols(context.TODO(), p)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
+		rsp, err = s.conn.SelfSymbols(context.TODO(), p)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return
+		}
 	*/
 	return
 }
@@ -87,7 +87,6 @@ func (s *TokenRPCCli) CallTokenBalance(p *proto.TokenBalanceRequest) (rsp *proto
 	}
 	return
 }
-
 
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID

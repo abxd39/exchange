@@ -35,7 +35,7 @@ type PriceWorkQuene struct {
 	data  []*PriceInfo
 }
 
-func NewPriceWorkQuene(name string, token_id int32,cny int64,d *proto.PriceCache) *PriceWorkQuene {
+func NewPriceWorkQuene(name string, token_id int32, cny int64, d *proto.PriceCache) *PriceWorkQuene {
 	var period_key = [MaxPrice]string{
 		"1min",
 		"5min",
@@ -47,7 +47,7 @@ func NewPriceWorkQuene(name string, token_id int32,cny int64,d *proto.PriceCache
 		data:         make([]*PriceInfo, 0),
 		TokenId:      token_id,
 		entry:        d,
-		CnyPrice:cny,
+		CnyPrice:     cny,
 	}
 
 	for i := 0; i < MaxPrice; i++ {

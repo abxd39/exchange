@@ -1,9 +1,8 @@
 package confjson
 
-
 /*
 表： config_quenes
- */
+*/
 type ConfigQuenes struct {
 	Id           int64  `json:"id"`
 	TokenId      int    `json:"token_id"`
@@ -19,8 +18,6 @@ type ConfigQuenes struct {
 	*/
 }
 
-
 /*
 
-*/
-
+ */

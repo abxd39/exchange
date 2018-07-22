@@ -2,6 +2,7 @@ package model
 
 import (
 	"digicon/common/random"
+	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
 	. "digicon/user_service/log"
 	"errors"
@@ -9,7 +10,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dm"
 	"github.com/go-redis/redis"
-	. "digicon/proto/common"
 )
 
 func SendEmail(email string, ty int32) (err error) {
@@ -54,7 +54,7 @@ func sendAliEmail(email, code string) (err error) {
 
 //验证邮箱
 func AuthEmail(email string, ty int32, code string) (ret int32, err error) {
-	fmt.Println(email, ty, code )
+	fmt.Println(email, ty, code)
 	r := RedisOp{}
 	auth_code, err := r.GetEmailCode(email, ty)
 	fmt.Println(auth_code)

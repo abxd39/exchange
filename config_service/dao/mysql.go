@@ -2,28 +2,18 @@ package dao
 
 import (
 	"digicon/config_service/conf"
-	"github.com/go-xorm/xorm"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-xorm/xorm"
 )
-
-
-
-
-
 
 type Mysql struct {
 	//im *xorm.Engine
 	Engine_wallet *xorm.Engine
-    Engine_token *xorm.Engine
+	Engine_token  *xorm.Engine
 	Engine_common *xorm.Engine
 }
 
-
-
-
-
-
-func NewMysql()(mysql *Mysql){
+func NewMysql() (mysql *Mysql) {
 	var err error
 	//
 	//var Engine_wallet *xorm.Engine
@@ -62,12 +52,11 @@ func NewMysql()(mysql *Mysql){
 		panic(err)
 	}
 
-
 	mysql = &Mysql{
 		//im: engine,
-		Engine_common:Engine_common,
-		Engine_wallet:Engine_common,
-		Engine_token: Engine_token,
+		Engine_common: Engine_common,
+		Engine_wallet: Engine_common,
+		Engine_token:  Engine_token,
 	}
 	return mysql
 }
@@ -76,15 +65,10 @@ func (s *Dao) GetMysqlTokenConn() *xorm.Engine {
 	return s.mysql.Engine_token
 }
 
-func (s *Dao) GetMysqlWalletConn() *xorm.Engine{
+func (s *Dao) GetMysqlWalletConn() *xorm.Engine {
 	return s.mysql.Engine_wallet
 }
 
-func (s *Dao) GetMysqlCommonConn() *xorm.Engine{
+func (s *Dao) GetMysqlCommonConn() *xorm.Engine {
 	return s.mysql.Engine_common
 }
-
-
-
-
-

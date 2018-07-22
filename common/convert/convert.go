@@ -3,8 +3,8 @@ package convert
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/shopspring/decimal"
 	"fmt"
+	"github.com/shopspring/decimal"
 )
 
 func ByteToInt32(b []byte) (x uint32) {
@@ -26,7 +26,6 @@ func Int64ToFloat64By8Bit(b int64) (x float64) {
 	x, _ = a.Float64()
 	return
 }
-
 
 func Int64ToStringBy8Bit(b int64) string {
 	a := decimal.New(b, 0)
@@ -53,21 +52,21 @@ func Float64ToInt64By8Bit(s float64) int64 {
 func Int64MulInt64By8Bit(a int64, b int64) int64 {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
-	m:=dd.Mul(dp)
-	d:=decimal.New(100000000, 0)
-	n:=m.Div(d)
-	return  n.IntPart()
+	m := dd.Mul(dp)
+	d := decimal.New(100000000, 0)
+	n := m.Div(d)
+	return n.IntPart()
 }
 
 func Int64MulInt64By8BitString(a int64, b int64) string {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
-	m:=dd.Mul(dp)
-	d:=decimal.New(100000000, 0)
-	n:=m.Div(d)
+	m := dd.Mul(dp)
+	d := decimal.New(100000000, 0)
+	n := m.Div(d)
 
 	r := n.Div(decimal.New(100000000, 0))
-	return  r.String()
+	return r.String()
 }
 
 //两数相除保持8位
@@ -92,10 +91,10 @@ func Int64DivInt64By8BitString(a int64, b int64) string {
 func Int64DivInt64StringPercent(a int64, b int64) string {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
-	d:=decimal.New(100, 0)
+	d := decimal.New(100, 0)
 
 	t := dd.Div(dp).Mul(d)
-	k,_:=t.Float64()
+	k, _ := t.Float64()
 	s := fmt.Sprintf("%.2f", k)
 
 	return s

@@ -25,5 +25,3 @@ type Order struct {
 	ReleaseTime sql.NullString `xorm:"default null comment('放行时间')     DATETIME"              json:"release_time"`
 	ExpiryTime  string         `xorm:"comment('过期时间')     DATETIME"                           json:"expiry_time"`
 }
-
-

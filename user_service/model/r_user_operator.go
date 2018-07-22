@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
+	"github.com/go-redis/redis"
+	. "digicon/proto/common"
 )
 
 type RedisOp struct {
@@ -122,6 +124,29 @@ func (s *RedisOp) SetUserToken(token string, uid uint64) (err error) {
 		return
 	}
 	return
+}
+
+//验证
+func (s *RedisOp) GetUserToken(token string, uid uint64) (err error, ret int32) {
+	rsp, err := DB.GetRedisConn().Get(token).Uint64()
+
+	if err == redis.Nil {
+		ret = ERRCODE_TokenVerify
+		Log.Errorln(err.Error())
+		return err, ret
+
+	} else if err != nil {
+
+		ret = ERRCODE_UNKNOWN
+		Log.Errorln(err.Error())
+		return err, ret
+	}
+
+	if rsp != uid {
+		ret = ERRCODE_TokenVerify
+		return err, ret
+	}
+	return err, ERRCODE_SUCCESS
 }
 
 /*

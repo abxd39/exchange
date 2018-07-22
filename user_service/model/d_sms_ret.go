@@ -31,8 +31,6 @@ const (
 	SMS_BIND_PHONE       = 11
 	SMS_BIND_EMAIL       = 12
 	SMS_MAX              = 13
-
-
 )
 
 //发送短信
@@ -167,7 +165,6 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 		ret = int32(g)
 		return
 	}
-
 
 	switch g {
 	case 0:

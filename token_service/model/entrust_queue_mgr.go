@@ -4,7 +4,6 @@ import (
 	"digicon/common/genkey"
 	. "digicon/token_service/log"
 	"sync"
-
 )
 
 var ins *EntrustQueneMgr
@@ -64,19 +63,19 @@ func (s *EntrustQueneMgr) Init() bool {
 
 	d := new(ConfigQuenes).GetAllQuenes()
 
-		for _, v := range d {
-			cny := GetTokenCnyPrice(v.TokenId)
+	for _, v := range d {
+		cny := GetTokenCnyPrice(v.TokenId)
 
-			p,ok := GetPrice(v.Name)
-			if ok {
-				e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny,p.Amount,p.Vol,p.Count)
-				s.AddQuene(e)
-			}else{
-				e := NewEntrustQueue(v.TokenId, v.TokenTradeId, 100000000, v.Name, cny,0,0,0)
-				s.AddQuene(e)
-			}
-
+		p, ok := GetPrice(v.Name)
+		if ok {
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny, p.Amount, p.Vol, p.Count)
+			s.AddQuene(e)
+		} else {
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, 100000000, v.Name, cny, 0, 0, 0)
+			s.AddQuene(e)
 		}
+
+	}
 
 	return true
 }

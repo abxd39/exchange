@@ -29,13 +29,9 @@ func (s *UserRPCCli) CallGetNickName(uids []uint64) (rsp *proto.UserGetNickNameR
 	return s.userconn.GetNickName(context.TODO(), &proto.UserGetNickNameRequest{Uid: uids})
 }
 
-
 func (s *UserRPCCli) CallGetAuthInfo(uid uint64) (rsp *proto.GetAuthInfoResponse, err error) {
-	return s.userconn.GetAuthInfo(context.TODO(), &proto.GetAuthInfoRequest{Uid:uid})
+	return s.userconn.GetAuthInfo(context.TODO(), &proto.GetAuthInfoRequest{Uid: uid})
 }
-
-
-
 
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")

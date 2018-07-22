@@ -49,7 +49,6 @@ func (this *UserCurrency) GetBalance(uid uint64, token_id uint32) (data UserCurr
 
 }
 
-
 func (this *UserCurrency) SetBalance(uid uint64, token_id uint32, amount int64) (err error) {
 	engine := dao.DB.GetMysqlConn()
 	sql := "UPDATE user_currency SET   balance= balance + ?, version = version + 1 WHERE uid = ? AND token_id = ? AND version = ?"

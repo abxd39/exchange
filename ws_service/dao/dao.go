@@ -7,9 +7,8 @@ type Dao struct {
 	mysql *Mysql
 }
 
-
-func NewDao()(dao *Dao) {
-	mysql :=NewMysql()
+func NewDao() (dao *Dao) {
+	mysql := NewMysql()
 	rediscli := NewRedisCli()
 	dao = &Dao{
 		redis: rediscli,
@@ -18,6 +17,6 @@ func NewDao()(dao *Dao) {
 	return
 }
 
-func InitDao(){
+func InitDao() {
 	DB = NewDao()
 }

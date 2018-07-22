@@ -102,7 +102,6 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 	return nil
 }
 
-
 func (s *RPCServer) AddTokenNum(ctx context.Context, req *proto.AddTokenNumRequest, rsp *proto.CommonErrResponse) error {
 	ret, err := model.AddTokenSess(req)
 	if err != nil {

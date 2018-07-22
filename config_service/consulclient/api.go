@@ -1,30 +1,26 @@
 package consulclient
 
 import (
-	"github.com/hashicorp/consul/api"
-	"fmt"
 	"digicon/config_service/dao"
+	"fmt"
+	"github.com/hashicorp/consul/api"
 )
 
-
-
 type Client struct {
-	c  *api.Client
+	c *api.Client
 }
 
-
-
-func NewClient() (*Client){
+func NewClient() *Client {
 	c := dao.DB.GetConsulCli()
-	return &Client{c:c}
+	return &Client{c: c}
 }
 
 /*
 	设置单个值
- */
-func (this *Client) Put(k string, value []byte)(err error){
+*/
+func (this *Client) Put(k string, value []byte) (err error) {
 	kv := this.c.KV()
-	p := &api.KVPair{Key: k , Value: value}
+	p := &api.KVPair{Key: k, Value: value}
 	wm, err := kv.Put(p, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -36,7 +32,7 @@ func (this *Client) Put(k string, value []byte)(err error){
 /*
 	result 结果根据对应的struct数据结构来解析
 */
-func( this *Client) List (key string)  (result api.KVPairs, pair *api.QueryMeta, err error){
+func (this *Client) List(key string) (result api.KVPairs, pair *api.QueryMeta, err error) {
 	kv := this.c.KV()
 	result, pair, err = kv.List(key, nil)
 	if err != nil {
@@ -45,13 +41,11 @@ func( this *Client) List (key string)  (result api.KVPairs, pair *api.QueryMeta,
 	return
 }
 
-
 /*
 	删除单个键值
 */
-func (this *Client) Delete(key string) (wmeta *api.WriteMeta , err error){
+func (this *Client) Delete(key string) (wmeta *api.WriteMeta, err error) {
 	kv := this.c.KV()
- 	wmeta, err =kv.Delete(key, nil )
+	wmeta, err = kv.Delete(key, nil)
 	return
 }
-

@@ -33,7 +33,7 @@ func (s *RPCServer) ModifyPhone2(ctx context.Context, req *proto.UserSetNewPhone
 	rsp.Err, err = u.ModifyUserPhone2(req)
 	if err != nil {
 		log.Log.Errorf(err.Error())
-		return  err
+		return err
 	}
 	return nil
 }

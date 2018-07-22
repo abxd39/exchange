@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"digicon/common/ip"
+	"github.com/gin-gonic/gin"
 )
 
 type UserGroup struct{}
@@ -28,12 +28,11 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		//user.POST("/Modify_pwd", s.ModifyPwdcontroller)
 		user.POST("/send_sms", s.SendPhoneSMSController)
 		user.POST("/send_email", s.SendEmailController)
-		user.POST("/modify_login_pwd", s.ModifyLoginPwd)
+		user.POST("/modify_login_pwd", TokenVerify, s.ModifyLoginPwd)
 		user.POST("/modify_phone", s.ModifyPhone1)
 		user.POST("/set_new_phone", s.ModifyPhone2)
 		user.POST("/modify_trade_pwd", s.ResetTradePwd)
 		user.GET("/get_auth_method", s.GetCheckAuthMethod)
-
 
 		// bind user email
 		user.POST("/bind_email", s.BindUserEmail)
@@ -43,6 +42,37 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		//user.POST("/unbind_email", s.UnBindUserEmail)
 		//user.POST("/unbind_phone", s.UnBindUserPhone)
 	}
+}
+
+func TokenVerify(c *gin.Context) {
+
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type RegisterParam struct {
+		Uid   uint64 `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
+	}
+	var param RegisterParam
+	if err := c.ShouldBind(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.UserSevice.CallTokenVerify(param.Uid, param.Token)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	if rsp.Err == ERRCODE_SUCCESS {
+		c.Next()
+	} else {
+		ret.SetErrCode(rsp.Err, rsp.Message)
+		return
+	}
+
 }
 
 //用户注册
@@ -547,24 +577,23 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err)
 	ret.SetDataSection("auth", rsp.Auth)
-	ret.SetDataSection("region",rsp.Region)
+	ret.SetDataSection("region", rsp.Region)
 }
-
 
 /*
 	// bind user email
- */
-func (s *UserGroup) BindUserEmail (c *gin.Context) {
+*/
+func (s *UserGroup) BindUserEmail(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid         uint64     `form:"uid"          json:"uid"          binding:"required"`
-		Email       string     `form:"email"        json:"email"        binding:"required"`
-		EmailCode   string     `form:"email_code"   json:"email_code"   binding:"required"`
-		VerifyCode  string     `form:"verify_code"  json:"verify_code"  binding:"required"`
-		VerifyType  uint64     `form:"verify_type"  json:"verify_type"  binding:"required"`    // 验证类型 (1: 短信验证, 2 谷歌验证, )
+		Uid        uint64 `form:"uid"          json:"uid"          binding:"required"`
+		Email      string `form:"email"        json:"email"        binding:"required"`
+		EmailCode  string `form:"email_code"   json:"email_code"   binding:"required"`
+		VerifyCode string `form:"verify_code"  json:"verify_code"  binding:"required"`
+		VerifyType uint64 `form:"verify_type"  json:"verify_type"  binding:"required"` // 验证类型 (1: 短信验证, 2 谷歌验证, )
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
@@ -597,16 +626,15 @@ func (s *UserGroup) BindUserEmail (c *gin.Context) {
 */
 func (s *UserGroup) BindUserPhone(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid         uint64     `form:"uid"          json:"uid"          binding:"required"`
-		Phone       string     `form:"phone"        json:"phone"        binding:"required"`
-		PhoneCode   string     `form:"phone_code"   json:"phone_code"   binding:"required"`
-		VerifyCode  string     `form:"verify_code"  json:"verify_code"  binding:"required"`
-		VerifyType  uint64     `form:"verify_type"  json:"verify_type"  binding:"required"`     // 验证类型 ( 1邮箱验证, 2谷歌验证 )
-
+		Uid        uint64 `form:"uid"          json:"uid"          binding:"required"`
+		Phone      string `form:"phone"        json:"phone"        binding:"required"`
+		PhoneCode  string `form:"phone_code"   json:"phone_code"   binding:"required"`
+		VerifyCode string `form:"verify_code"  json:"verify_code"  binding:"required"`
+		VerifyType uint64 `form:"verify_type"  json:"verify_type"  binding:"required"` // 验证类型 ( 1邮箱验证, 2谷歌验证 )
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		Log.Errorln(err.Error())
@@ -634,9 +662,9 @@ func (s *UserGroup) BindUserPhone(c *gin.Context) {
 /*
 func: UnBindUserEmail
 */
-func( s *UserGroup) UnBindUserEmail ( c *gin.Context) {
+func (s *UserGroup) UnBindUserEmail(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
@@ -651,14 +679,12 @@ func( s *UserGroup) UnBindUserEmail ( c *gin.Context) {
 	return
 }
 
-
-
 /*
 func: UnBindUserPhone
 */
-func(s *UserGroup) UnBindUserPhone(c *gin.Context){
+func (s *UserGroup) UnBindUserPhone(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {

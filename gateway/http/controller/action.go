@@ -4,9 +4,9 @@ import (
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
+	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	proto "digicon/proto/rpc"
 )
 
 type ActionGroup struct{}
@@ -110,9 +110,9 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type GoogleDelCodeParam struct {
-		Uid  uint64 `form:"uid" binding:"required"`
-		Token  string `form:"token" binding:"required"`
-		Auth uint32 `form:"auth" binding:"required"`
+		Uid   uint64 `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
+		Auth  uint32 `form:"auth" binding:"required"`
 		Code  string `form:"code" binding:"required"`
 		//Ukey string `form:"ukey" binding:"required"`
 	}
@@ -125,9 +125,9 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallResetGoogleSecretKey(&proto.ResetGoogleSecretKeyRequest{
-		Uid:param.Uid,
-		AuthCode:param.Auth,
-		SmsCode:param.Code,
+		Uid:      param.Uid,
+		AuthCode: param.Auth,
+		SmsCode:  param.Code,
 		//Ukey:param.Ukey,
 	})
 	if err != nil {
@@ -243,8 +243,6 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 	ret.SetDataSection("list", rsp.Data)
 }
 
-
-
 func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -252,7 +250,7 @@ func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid string `form:"uid" binding:"required"`
+		Uid   string `form:"uid" binding:"required"`
 		Token string `form:"token" binding:"required"`
 		//Type int32  `form:"type" binding:"required"`
 
@@ -274,6 +272,5 @@ func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err)
 	ret.SetDataSection("auth", rsp.Auth)
-	ret.SetDataSection("region",rsp.Region)
+	ret.SetDataSection("region", rsp.Region)
 }
-

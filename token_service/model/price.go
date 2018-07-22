@@ -1,4 +1,5 @@
 package model
+
 import (
 	. "digicon/token_service/dao"
 	. "digicon/token_service/log"
@@ -18,7 +19,6 @@ type Price struct {
 
 */
 
-
 type Price struct {
 	Id          int64  `xorm:"index(keep) BIGINT(20)"`
 	Symbol      string `xorm:"index(keep) VARCHAR(32)"`
@@ -35,8 +35,5 @@ func GetPrice(symbol string) (*Price, bool) {
 	if err != nil {
 		Log.Fatalln("err data price")
 	}
-	return m,ok
+	return m, ok
 }
-
-
-

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"crypto/sha1"
 	. "digicon/ws_service/log"
 	"digicon/ws_service/model"
 	"encoding/json"
@@ -8,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/olahol/melody.v1"
 	"time"
-	"crypto/sha1"
 )
 
 type WebChatGroup struct {
@@ -122,7 +122,7 @@ func (this *WebChatGroup) WSChannel(c *gin.Context) {
 /*
 	generate hash channelid
 */
-func(this *WebChatGroup) GenerateHashChannelId(mesg Message) (hashChannelId string){
+func (this *WebChatGroup) GenerateHashChannelId(mesg Message) (hashChannelId string) {
 	channelid := fmt.Sprintf("%v-%v-%v", mesg.OrderId, mesg.SellerId, mesg.Buyer_id)
 	Sha1Inst := sha1.New()
 	Sha1Inst.Write([]byte(channelid))
