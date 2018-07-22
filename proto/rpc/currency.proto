@@ -31,7 +31,9 @@ service CurrencyRPC {
         // 获取订单聊天列表
         rpc CurrencyChatsList(CurrencyChats) returns (CurrencyChatsListResponse){}
         // 获取用户虚拟货币资产
-        rpc GetUserCurrency(UserCurrencyRequest) returns (UserCurrency){}
+        rpc GetUserCurrencyDetail(UserCurrencyRequest) returns (UserCurrency){}
+
+        rpc GetUserCurrency(UserCurrencyRequest) returns (OtherResponse){}
 
         /// Order ///
         // 获取订单列表
@@ -282,6 +284,7 @@ message UserCurrency {
     int64  freeze       = 6; // 资产冻结
     string address      = 7;
     int64  version      = 8;
+    int64  valuation    = 9;  // 估值
 }
 
 message UserCurrencyRequest {
