@@ -12,6 +12,7 @@ import (
 
 	"digicon/common/ip"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 type UserGroup struct{}
@@ -47,23 +48,28 @@ func (s *UserGroup) Router(r *gin.Engine) {
 func TokenVerify(c *gin.Context) {
 
 	ret := NewPublciError()
-	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
-	}()
-
-	type RegisterParam struct {
-		Uid   uint64 `form:"uid" binding:"required"`
-		Token string `form:"token" binding:"required"`
-	}
-	var param RegisterParam
-	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+	token,ok:=c.Params.Get("token")
+	if !ok {
+		ret.SetErrCode(ERRCODE_PARAM,)
 		return
 	}
-	rsp, err := rpc.InnerService.UserSevice.CallTokenVerify(param.Uid, param.Token)
+
+	uid,ok:=c.Params.Get("uid")
+	if !ok {
+		ret.SetErrCode(ERRCODE_PARAM,)
+		return
+	}
+
+	uid_,err:=strconv.Atoi(uid)
+	if err!=nil {
+		ret.SetErrCode(ERRCODE_PARAM,)
+		return
+	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallTokenVerify(uint64(uid_), token)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		c.JSON(http.StatusOK, ret.GetResult())
 		return
 	}
 	if rsp.Err == ERRCODE_SUCCESS {

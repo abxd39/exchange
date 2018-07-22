@@ -7,10 +7,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"time"
 	"github.com/go-redis/redis"
-<<<<<<< HEAD
+
 	. "digicon/proto/common"
-=======
->>>>>>> ed3432268b6c41d232ad2ea3d5a1ff832ff89bdb
+
 )
 
 type RedisOp struct {
