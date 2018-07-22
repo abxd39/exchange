@@ -136,9 +136,9 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		high = data.Price
 	} else {
 
-		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime)
+		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime,data.Symbol)
 
-		low = GetLow(p.PreData.CreatedTime, data.CreatedTime)
+		low = GetLow(p.PreData.CreatedTime, data.CreatedTime,data.Symbol)
 		h = &proto.PeriodPrice{
 			Id:     data.Id,
 			Open:   convert.Int64ToFloat64By8Bit(p.PreData.Price),

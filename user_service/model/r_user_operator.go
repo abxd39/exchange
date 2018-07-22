@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"time"
+	"github.com/go-redis/redis"
 )
 
 type RedisOp struct {
@@ -108,7 +109,9 @@ func (s *RedisOp) SetUserBaseInfo(uid uint64, data string) (err error) {
 
 func (s *RedisOp) GetUserBaseInfo(uid uint64) (rsp string, err error) {
 	rsp, err = DB.GetRedisConn().Get(GetUserTagByLogic(uid, UID_TAG_BASE_INFO)).Result()
-	if err != nil {
+	if err==redis.Nil {
+		
+	} else  if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}

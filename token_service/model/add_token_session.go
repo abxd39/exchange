@@ -26,9 +26,11 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		return
 	}
 
-	if u.Balance < req.Num {
-		ret = ERR_TOKEN_LESS
-		return
+	if req.Opt==proto.TOKEN_OPT_TYPE_DEL {
+		if u.Balance < req.Num {
+			ret = ERR_TOKEN_LESS
+			return
+		}
 	}
 
 	//开始入账
@@ -51,6 +53,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 			return
 		}
 	} else {
+		ret = ERRCODE_PARAM
 		return
 	}
 

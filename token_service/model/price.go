@@ -1,4 +1,5 @@
 package model
+
 import (
 	. "digicon/token_service/dao"
 	. "digicon/token_service/log"
@@ -34,8 +35,5 @@ func GetPrice(symbol string) (*Price, bool) {
 	if err != nil {
 		Log.Fatalln("err data price")
 	}
-	return m,ok
+	return m, ok
 }
-
-
-
