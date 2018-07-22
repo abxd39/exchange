@@ -329,6 +329,8 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	return nil
 }
 
+
+
 // 获取当前法币账户余额
 func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
 	balance, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
@@ -341,8 +343,10 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		return nil
 	}
-
 }
+
+
+
 
 // 获取get售价
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
@@ -420,6 +424,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.PhoneAuth     = authInfo.PhoneAuth
 
 	//rateAndAuth.EmailAuth = data.
+
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
 		fmt.Println(err.Error())

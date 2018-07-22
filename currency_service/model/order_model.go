@@ -40,7 +40,7 @@ type Order struct {
 
 //列出订单
 func (this *Order) List(Page, PageNum int32,
-	AdType, States uint32, Id uint64,
+	AdType, States uint32, Id, Uid uint64,
 	TokenId float64, StartTime, EndTime string, o *[]Order) (total int64, rPage int32, rPageNum int32, code int32) {
 
 	engine := dao.DB.GetMysqlConn()
@@ -53,6 +53,8 @@ func (this *Order) List(Page, PageNum int32,
 
 	query := engine.Desc("id")
 	orderModel := new(Order)
+
+	query = query.Where("sell_id=? or buy_id=?", Uid, Uid)
 
 	if States == 0 { // 状态为0，表示已经删除
 		return 0, 0, 0, ERRCODE_SUCCESS

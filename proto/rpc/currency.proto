@@ -82,12 +82,21 @@ service CurrencyRPC {
         // 获取用戶评级
         rpc GetUserRating(GetUserRatingRequest) returns (OtherResponse) {};
 
+        // 获取交易历史价格记录
+        rpc GetTradeHistory(GetTradeHistoryRequest) returns (OtherResponse) {};
+
         //  添加余额的rpc
         rpc AddUserBalance(AddUserBalanceRequest) returns (OtherResponse){};
 
 }
 
 ////////////////////////
+message GetTradeHistoryRequest {
+    string start_time    = 1;
+    string end_time      = 2;
+}
+
+
 message GetUserRatingRequest {
     uint64  uid   =1;         //  用户id
 }
@@ -326,6 +335,7 @@ message OrdersListRequest {
     string   start_time   = 6;  //开始日期
     string   end_time     = 7;  // 结束日期
     uint64   id           = 8;  // Id
+    uint64   uid          = 9;  // uid
 }
 
 
