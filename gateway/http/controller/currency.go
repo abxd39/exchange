@@ -1047,6 +1047,7 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	 var RespUCurrencyList []RespFloatCurrency
 	 for _,ucurrency := range uCurrencyList{
 	 	var uc RespFloatCurrency
+	 	uc.Id = ucurrency.Id
 	 	uc.Uid = ucurrency.Uid
 	 	uc.TokenId = ucurrency.TokenId
 	 	uc.TokenName = ucurrency.TokenName
