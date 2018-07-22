@@ -95,6 +95,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		StartTime string  `form:"start_time" json:"start_time"`
 		EndTime   string  `form:"end_time"   json:"end_time"`
 		Id        uint64  `form:"id"           json:"id"`
+		Uid       uint64  `form:"uid"        json:"uid"`
 	}
 	var param OrderListParam
 	if err := c.ShouldBindQuery(&param); err != nil {
@@ -119,6 +120,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		StartTime: param.StartTime,
 		EndTime:   param.EndTime,
 		Id:        param.Id,
+		Uid:       param.Uid,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -371,8 +373,8 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		ret.SetDataSection("paypal_num", dt.PaypalNum)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
-
 }
+
 
 /*
   func: GetTradeHistory
@@ -382,6 +384,26 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+	req := struct {
+		StartTime   string     `form:"start_time"    json:"start_time"`
+		EndTime     string     `form:"end_time"      json:"end_time"`
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.CurrencyService.CallGetTradeHistory(&proto.GetTradeHistoryRequest{
+		StartTime: req.StartTime,
+		EndTime:req.EndTime,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 
 	return
 }
+

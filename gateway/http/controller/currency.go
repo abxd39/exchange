@@ -11,12 +11,12 @@ import (
 	"strings"
 
 	"digicon/gateway/utils"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	//"github.com/gorilla/websocket"
 
 	//"time"
+	"encoding/json"
 )
 
 type CurrencyGroup struct{}
@@ -36,6 +36,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/pays_list", this.GetPaysList)                // 获取支付方式列表
 		Currency.POST("/created_chats", this.AddChats)              // 新增订单聊天
 		Currency.GET("/chats_list", this.GetChatsList)              // 获取订单聊天列表
+
 
 		//// order ////
 		Currency.GET("/orders", this.OrdersList)                    // 获取订单列表
@@ -73,6 +74,9 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 		//
 		Currency.GET("/add_user_balance", this.AddUserBalance)
+		Currency.GET("/get_user_currency_detail", this.GetUserCurrencyDetail)
+		Currency.GET("/get_user_currency", this.GetUserCurrency)
+
 	}
 }
 
@@ -979,6 +983,121 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
+
+
+/*
+  get user currency 获取法币账户
+ */
+
+ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context){
+	 ret := NewPublciError()
+	 defer func() {
+		 c.JSON(http.StatusOK, ret.GetResult())
+	 }()
+	 req := struct {
+		 Id      uint64  `form:"id"      json:"id" `
+		 Uid     uint64  `form:"uid"     json:"uid"       binding:"required"`
+		 TokenId uint32  `form:"token_id" json:"token_id" `
+	 }{}
+	 err := c.ShouldBind(&req)
+	 if err != nil {
+		 Log.Errorf(err.Error())
+		 ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		 return
+	 }
+
+	rsp, err := rpc.InnerService.CurrencyService.CallGetUserCurrency(&proto.UserCurrencyRequest{
+		Uid:req.Uid,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	type UCurrency struct {
+		Id        uint64 `json:"id"`
+		Uid       uint64 `json:"uid"`
+		TokenId   uint32 `json:"token_id"`
+		TokenName string `json:"token_name"`
+		Address   string `json:"address"`
+	}
+	type UCint struct {
+		Freeze    int64  `json:"freeze"`
+		Balance   int64  `json:"balance"`
+		Valuation int64 `json:"valuation"`
+	}
+
+	type UCfloat struct {
+		Freeze    float64  `json:"freeze"`
+		Balance   float64  `json:"balance"`
+		Valuation float64  `json:"valuation"`
+	}
+	type RespIntCurrency struct {
+		UCurrency
+		UCint
+	}
+	type RespFloatCurrency struct {
+		UCurrency
+		UCfloat
+	}
+	 var uCurrencyList []RespIntCurrency
+	 if err = json.Unmarshal([]byte(rsp.Data), &uCurrencyList); err != nil {
+		 Log.Errorln(err.Error())
+		 ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		 return
+	 }
+	 var RespUCurrencyList []RespFloatCurrency
+	 for _,ucurrency := range uCurrencyList{
+	 	var uc RespFloatCurrency
+	 	uc.Uid = ucurrency.Uid
+	 	uc.TokenId = ucurrency.TokenId
+	 	uc.TokenName = ucurrency.TokenName
+	    uc.Address = ucurrency.Address
+	 	uc.Balance = convert.Int64ToFloat64By8Bit(ucurrency.Balance)
+	    uc.Freeze = convert.Int64ToFloat64By8Bit(ucurrency.Freeze)
+	    uc.Valuation = convert.Int64ToFloat64By8Bit(ucurrency.Valuation)
+		RespUCurrencyList = append(RespUCurrencyList, uc)
+	}
+	ret.SetDataSection("list", RespUCurrencyList)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+ }
+
+ func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context){
+ 	ret := NewPublciError()
+	 defer func() {
+		 c.JSON(http.StatusOK, ret.GetResult())
+	 }()
+	req := struct {
+		Id      uint64  `form:"id"      json:"id" `
+		Uid     uint64  `form:"uid"     json:"uid"       binding:"required"`
+		TokenId uint32  `form:"token_id" json:"token_id" binding:"required"`
+	}{}
+	 err := c.ShouldBind(&req)
+	 if err != nil {
+		 Log.Errorf(err.Error())
+		 ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		 return
+	 }
+	 rsp, err := rpc.InnerService.CurrencyService.CallGetUserCurrencyDetail(&proto.UserCurrencyRequest{
+	 	Id:    req.Id,
+	 	Uid:   req.Uid,
+	 	TokenId: req.TokenId,
+	 })
+	 if err != nil {
+	 	ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+	 }
+	 ret.SetDataSection("uid", rsp.Uid)
+	 ret.SetDataSection("token_id", rsp.TokenId)
+	 ret.SetDataSection("token_name", rsp.TokenName)
+	 ret.SetDataSection("balance", convert.Int64ToFloat64By8Bit(rsp.Balance))
+	 ret.SetDataSection("freeze", convert.Int64ToFloat64By8Bit(rsp.Freeze))
+	 ret.SetDataSection("address", rsp.Address)
+	 ret.SetDataSection("valuation", rsp.Valuation)
+	 ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+ 	return
+ }
+
+
 
 // get this.GetCurrencyQuota)     // 余额
 func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {

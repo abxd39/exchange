@@ -21,7 +21,7 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 	result := []model.Order{}
 	o := new(model.Order)
 
-	rsp.Total, rsp.Page, rsp.PageNum, rsp.Err = o.List(req.Page, req.PageNum, req.AdType, req.States, req.Id, req.TokenId, req.StartTime, req.EndTime, &result)
+	rsp.Total, rsp.Page, rsp.PageNum, rsp.Err = o.List(req.Page, req.PageNum, req.AdType, req.States, req.Id, req.Uid, req.TokenId, req.StartTime, req.EndTime, &result)
 
 	orders, err := json.Marshal(result)
 	if err != nil {
@@ -33,6 +33,7 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 	rsp.Orders = string(orders)
 	return nil
 }
+
 
 // 取消订单
 func (s *RPCServer) CancelOrder(ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) error {
@@ -61,6 +62,7 @@ func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, r
 	rsp.Message = msg
 	return nil
 }
+
 
 // 待放行
 func (s *RPCServer) ReadyOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
@@ -218,5 +220,13 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 		rsp.Data = string(resultdt)
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 	}
+	return nil
+}
+
+
+
+func (s *RPCServer) GetTradeHistory (ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
+
+
 	return nil
 }

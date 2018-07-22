@@ -69,3 +69,13 @@ func (s *CurrencyRPCCli) CallGetTradeDetail(req *proto.TradeDetailRequest) (rsp 
 	}
 	return
 }
+
+
+func (s *CurrencyRPCCli) CallGetTradeHistory(req *proto.GetTradeHistoryRequest) (rsp *proto.OtherResponse, err error) {
+	rsp, err = s.conn.GetTradeHistory(context.TODO(), req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
