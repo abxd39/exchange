@@ -121,16 +121,22 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 	secReferNum := int64(conf.Cfg.MustInt("register_reward", "sec_refer_num"))
 
 	// 1. 注册送20UNT
-	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, myNum, proto.TOKEN_OPT_TYPE_ADD, []byte(string(uid)), 3)
-	if err != nil || resp.Err != ERRCODE_SUCCESS {
+	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, myNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d", uid)), 3)
+	if err != nil {
 		Log.Errorf("【注册奖励代币】奖励代币出错，uid：%d，err：%s", uid, err.Error())
+	}
+	if resp.Err != ERRCODE_SUCCESS {
+		Log.Errorf("【注册奖励代币】奖励代币出错，uid：%d，err：%s", uid, resp.Message)
 	}
 
 	if referUid != 0 {
 		// 2. 推荐一级注册送20UNT
 		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, referNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d", uid, referUid)), 4)
-		if err != nil || resp.Err != ERRCODE_SUCCESS {
+		if err != nil {
 			Log.Errorf("【注册奖励代币】奖励一级推荐人代币出错，uid：%d，referUid：%d，err：%s", uid, referUid, err.Error())
+		}
+		if resp.Err != ERRCODE_SUCCESS {
+			Log.Errorf("【注册奖励代币】奖励一级推荐人代币出错，uid：%d，referUid：%d，err：%s", uid, referUid, resp.Message)
 		}
 
 		// 判断一级推荐人是否有推荐人，即二级推荐
@@ -151,8 +157,11 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 			}
 
 			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, secReferNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
-			if err != nil || resp.Err != ERRCODE_SUCCESS {
+			if err != nil {
 				Log.Errorf("【注册奖励代币】奖励二级推荐人代币出错，uid：%d，referUid：%d，secReferUid：%d，err：%s", uid, referUid, secReferUid, err.Error())
+			}
+			if resp.Err != ERRCODE_SUCCESS {
+				Log.Errorf("【注册奖励代币】奖励二级推荐人代币出错，uid：%d，referUid：%d，secReferUid：%d，err：%s", uid, referUid, secReferUid, resp.Message)
 			}
 		}
 	}
