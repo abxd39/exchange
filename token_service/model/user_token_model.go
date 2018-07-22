@@ -125,6 +125,7 @@ func (s *UserToken) AddMoney(num int64, ukey string, ty int) (ret int32, err err
 }
 */
 
+//减少代币数量
 func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err error) {
 	if s.Balance < num {
 		ret = ERR_TOKEN_LESS
@@ -310,10 +311,12 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 }
 
 //返还冻结资金
-func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string) (ret int32, err error) {
+func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string) (err error) {
+
 	return
 }
 
+//获取个人资金明细
 func (s *UserToken) GetAllToken(uid uint64) []*UserToken {
 	r := make([]*UserToken, 0)
 	err := DB.GetMysqlConn().Where("uid=?", uid).Find(&r)

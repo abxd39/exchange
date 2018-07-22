@@ -109,14 +109,14 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	type GoogleDelCodeParam struct {
+	type ResetGoogleCodeParam struct {
 		Uid  uint64 `form:"uid" binding:"required"`
 		Token  string `form:"token" binding:"required"`
 		Auth uint32 `form:"auth" binding:"required"`
 		Code  string `form:"code" binding:"required"`
 		//Ukey string `form:"ukey" binding:"required"`
 	}
-	var param GoogleDelCodeParam
+	var param ResetGoogleCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
 		Log.Errorf(err.Error())

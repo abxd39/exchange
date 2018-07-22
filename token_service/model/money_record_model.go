@@ -20,6 +20,7 @@ type MoneyRecord struct {
 	Type        int    `xorm:"comment('流水类型1区块2委托') INT(11)"`
 	Opt         int    `xorm:"comment('操作方向1加2减') unique(hash_index) TINYINT(4)"`
 	Num         int64  `xorm:"comment('数量') BIGINT(20)"`
+	Surplus     int64  `xorm:"comment('余额') BIGINT(20)"`
 	CreatedTime int64  `xorm:"comment('操作时间')  created BIGINT(20)"`
 }
 

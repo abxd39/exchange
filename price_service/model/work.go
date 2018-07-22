@@ -83,7 +83,6 @@ func (s *PriceWorkQuene) Publish() {
 	ch := pb.Channel()
 	for v := range ch {
 		k := &proto.PriceCache{}
-		//godump.Dump(v.Payload)
 		err := jsonpb.UnmarshalString(v.Payload, k)
 		if err != nil {
 			Log.Errorln(err.Error())
@@ -94,7 +93,6 @@ func (s *PriceWorkQuene) Publish() {
 			continue
 		}
 		s.entry = k
-		//s.updatePrice(k)
 
 		t := time.Unix(k.Id, 0)
 		if t.Second() == 0 {
@@ -138,9 +136,9 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		high = data.Price
 	} else {
 
-		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime)
+		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime,data.Symbol)
 
-		low = GetLow(p.PreData.CreatedTime, data.CreatedTime)
+		low = GetLow(p.PreData.CreatedTime, data.CreatedTime,data.Symbol)
 		h = &proto.PeriodPrice{
 			Id:     data.Id,
 			Open:   convert.Int64ToFloat64By8Bit(p.PreData.Price),
