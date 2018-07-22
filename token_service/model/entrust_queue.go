@@ -183,6 +183,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
 		Type:    MONEY_UKEY_TYPE_ENTRUST,
 		Num:     p.Num,
+		Surplus: m.Balance,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -275,6 +276,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
 		Type:    MONEY_UKEY_TYPE_ENTRUST,
 		Num:     p.Num,
+		Surplus:m.Balance,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -417,6 +419,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Opt:     int(proto.ENTRUST_OPT_BUY),
 		Type:    MONEY_UKEY_TYPE_TRADE,
 		Num:     deal_num,
+		Surplus: buy_trade_token_account.Balance,
 	})
 
 	if err != nil {
@@ -451,6 +454,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Opt:     int(proto.ENTRUST_OPT_SELL),
 		Type:    MONEY_UKEY_TYPE_TRADE,
 		Num:     num,
+		Surplus: sell_trade_token_account.Balance,
 	})
 	if err != nil {
 		session.Rollback()
@@ -1176,4 +1180,8 @@ func (s *EntrustQuene) GetTradeList(count int64) []*TradeInfo {
 
 func (s *EntrustQuene) GetCnyPrice(price int64) string {
 	return convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(s.cny, price))
+}
+
+func (s *EntrustQuene) DelEntrust(entrust_id string)  {
+	
 }

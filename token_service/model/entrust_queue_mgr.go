@@ -72,7 +72,7 @@ func (s *EntrustQueneMgr) Init() bool {
 				e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny,p.Amount,p.Vol,p.Count)
 				s.AddQuene(e)
 			}else{
-				e := NewEntrustQueue(v.TokenId, v.TokenTradeId, 100000000, v.Name, cny,0,0,0)
+				e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny,0,0,0)
 				s.AddQuene(e)
 			}
 

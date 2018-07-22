@@ -23,6 +23,9 @@ service TokenRPC {
 
         //代币余额
         rpc TokenBalance(TokenBalanceRequest) returns (TokenBalanceResponse) {};
+
+
+        rpc DelEntrust(DelEntrustRequest) returns (DelEntrustResponse) {}
         //########market##########//
 
 
@@ -223,4 +226,15 @@ message CnyPriceBaseData{
 message ConfigQueneResponse{
     repeated ConfigQueneBaseData data           =1;
     repeated CnyPriceBaseData cny_data                  =2;
+}
+
+
+message DelEntrustRequest{
+    uint64 uid          =1;
+    string entrust_id   =2;
+}
+
+message DelEntrustResponse{
+    int32 err                       =1;
+    string message                  =2;
 }

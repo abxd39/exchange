@@ -174,18 +174,7 @@ func (s *RPCServer) ResetGoogleSecretKey(ctx context.Context, req *proto.ResetGo
 		rsp.Err=ret
 		return nil
 	}
-	/*
-	ret, err = model.AuthSms(u.Phone, model.SMS_SET_GOOGLE_CODE, req.SmsCode)
-	if err != nil {
-		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message = err.Error()
-		return nil
-	}
-	if ret != ERRCODE_SUCCESS {
-		rsp.Err = ret
-		return nil
-	}
-*/
+
 	ret, err = u.AuthGoogleCode(key, req.AuthCode)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN

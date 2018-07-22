@@ -288,85 +288,6 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 
 }
 
-/*
-//通过手机注册
-func (s *User) RegisterByPhone(req *proto.RegisterRequest) int32 {
-	if ret := s.CheckUserExist(req.Ukey, "phone"); ret != ERRCODE_SUCCESS {
-		return ret
-	}
-
-	e := &User{
-		Pwd:     req.Pwd,
-		Phone:   req.Ukey,
-		Account: req.Ukey,
-	}
-	_, err := DB.GetMysqlConn().Cols("pwd", "phone", "account").Insert(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	_, err = DB.GetMysqlConn().Where("phone=?", req.Ukey).Get(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	m := &UserEx{
-		Uid:          e.Uid,
-		RegisterTime: time.Now().Unix(),
-		InviteCode:   req.InviteCode,
-	}
-
-	_, err = DB.GetMysqlConn().Insert(m)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	return ERRCODE_SUCCESS
-}
-
-//通过邮箱注册
-
-
-func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
-	if ret := s.CheckUserExist(req.Email, "email"); ret != ERRCODE_SUCCESS {
-		return ret
-	}
-
-	e := &User{
-		Pwd:     req.Pwd,
-		Email:   req.Email,
-		Account: req.Email,
-	}
-	_, err := DB.GetMysqlConn().Cols("pwd", "email", "account").Insert(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	_, err = DB.GetMysqlConn().Where("email=?", req.Email).Get(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	m := &UserEx{
-		Uid:          e.Uid,
-		RegisterTime: time.Now().Unix(),
-		InviteCode:   req.InviteCode,
-	}
-
-	_, err = DB.GetMysqlConn().Insert(m)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	return ERRCODE_SUCCESS
-}
-*/
 
 //检查用户注册过没
 func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
@@ -448,7 +369,6 @@ func (s *User) refreshToken() (token string, err error) {
 	uid_ := fmt.Sprintf("%d", s.Uid)
 	salt := random.Krand(6, random.KC_RAND_KIND_NUM)
 	b := encryption.Gensha256(uid_, time.Now().Unix(), string(salt))
-	//_,err:=DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("token").Update(s)
 	err = new(RedisOp).SetUserToken(string(b), s.Uid)
 	if err != nil {
 		return

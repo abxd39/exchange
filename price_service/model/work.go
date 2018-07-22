@@ -83,7 +83,6 @@ func (s *PriceWorkQuene) Publish() {
 	ch := pb.Channel()
 	for v := range ch {
 		k := &proto.PriceCache{}
-		//godump.Dump(v.Payload)
 		err := jsonpb.UnmarshalString(v.Payload, k)
 		if err != nil {
 			Log.Errorln(err.Error())
@@ -94,7 +93,6 @@ func (s *PriceWorkQuene) Publish() {
 			continue
 		}
 		s.entry = k
-		//s.updatePrice(k)
 
 		t := time.Unix(k.Id, 0)
 		if t.Second() == 0 {
