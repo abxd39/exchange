@@ -42,9 +42,9 @@ func InsertPrice(p *Price) {
 	return
 }
 
-func GetHigh(begin, end int64) (high int64) {
+func GetHigh(begin, end int64,symbol string) (high int64) {
 	hp := &Price{}
-	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<?", begin, end).Decr("price").Limit(1, 0).Get(hp)
+	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end,symbol).Desc("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return 0
@@ -55,9 +55,9 @@ func GetHigh(begin, end int64) (high int64) {
 	return 0
 }
 
-func GetLow(begin, end int64) (low int64) {
+func GetLow(begin, end int64,symbol string) (low int64) {
 	hp := &Price{}
-	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<?", begin, end).Asc("price").Limit(1, 0).Get(hp)
+	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end,symbol).Asc("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return 0
@@ -75,9 +75,9 @@ func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseDa
 
 	begin := l.Unix()
 	end := t.Unix()
-	h := GetHigh(begin, end)
+	h := GetHigh(begin, end,symbol)
 
-	j := GetLow(begin, end)
+	j := GetLow(begin, end,symbol)
 
 	p := &Price{}
 	_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
@@ -103,7 +103,7 @@ func GetPrice(symbol string) (*Price, bool) {
 	m := &Price{}
 	ok, err := DB.GetMysqlConn().Where("symbol=?", symbol).Desc("created_time").Limit(1, 0).Get(m)
 	if err != nil {
-		Log.Fatalln("err data price")
+		Log.Errorf(err.Error())
 	}
 	return m, ok
 }

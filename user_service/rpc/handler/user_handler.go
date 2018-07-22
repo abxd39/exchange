@@ -34,30 +34,6 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 //注册
 func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
 	if req.Type == 1 { //手机注册
-		/*
-			r := model.RedisOp{}
-			code, err := r.GetSmsCode(req.Ukey, model.SMS_REGISTER)
-			if err == redis.Nil {
-				rsp.Err = ERRCODE_SMS_CODE_NIL
-				rsp.Message = GetErrorMessage(rsp.Err)
-				return nil
-			} else if err != nil {
-				rsp.Err = ERRCODE_UNKNOWN
-				rsp.Message = err.Error()
-				return nil
-			}
-
-			if req.Code == code {
-				u := &model.User{}
-				rsp.Err = u.Register(req, "phone")
-				rsp.Message = GetErrorMessage(rsp.Err)
-				return nil
-			}
-
-			rsp.Err = ERRCODE_SMS_CODE_DIFF
-			rsp.Message = GetErrorMessage(rsp.Err)
-
-		*/
 		ret, err := model.AuthSms(req.Ukey, model.SMS_REGISTER, req.Code)
 		if err == redis.Nil {
 			rsp.Err = ret
@@ -249,51 +225,6 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		return nil
 	}
 	rsp.Err = ERRCODE_SUCCESS
-	return nil
-
-	/*
-		if req.Type == 1 { //电话找回
-			ret, err := model.AuthSms(req.Ukey, req.Type, req.Code)
-			if err != nil {
-				rsp.Err = ERRCODE_UNKNOWN
-				rsp.Message = err.Error()
-				return nil
-			}
-
-			if ret != ERRCODE_SUCCESS {
-				rsp.Err = ret
-				rsp.Message = GetErrorMessage(ret)
-			}
-
-			u := model.User{}
-			ret, err = u.GetUserByPhone(req.Ukey)
-			if err != nil {
-				rsp.Err = ret
-				rsp.Message = err.Error()
-				return err
-			}
-
-			if ret != ERRCODE_SUCCESS {
-				rsp.Err = ret
-				rsp.Message = GetErrorMessage(rsp.Err)
-				return nil
-			}
-			err = u.ModifyPwd(req.Pwd)
-			if err != nil {
-				rsp.Err = ERRCODE_UNKNOWN
-				rsp.Message = err.Error()
-				return nil
-			}
-			rsp.Err = ERRCODE_SUCCESS
-			rsp.Message = GetErrorMessage(rsp.Err)
-			return nil
-
-		} else if req.Type == 2 { //邮箱找回
-
-		}
-	*/
-	rsp.Err = ERRCODE_PARAM
-	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
 }
 

@@ -293,3 +293,8 @@ func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, 
 
 	return nil
 }
+
+func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest, rsp *proto.DelEntrustResponse) error {
+
+	return nil
+}

@@ -313,7 +313,7 @@ func (s *RPCServer) CurrencyChatsList(ctx context.Context, req *proto.CurrencyCh
 }
 
 // 获取用户虚拟货币资产
-func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.UserCurrency) error {
+func (s *RPCServer) GetUserCurrencyDetail(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.UserCurrency) error {
 	data := new(model.UserCurrency).Get(req.Id, req.Uid, req.TokenId)
 	if data == nil {
 		return nil
@@ -326,6 +326,24 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	rsp.Balance = data.Balance
 	rsp.Address = data.Address
 	rsp.Version = data.Version
+	rsp.Valuation = 0 // 汇率转化
+	return nil
+}
+
+func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.OtherResponse) error {
+	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid)
+	fmt.Println("data:", data)
+	if err != nil {
+		rsp.Code = errdefine.ERRCODE_USER_BALANCE
+		return err
+	}
+	result, err := json.Marshal(data)
+	if err != nil {
+		rsp.Data = "[]"
+		rsp.Message = err.Error()
+		return err
+	}
+	rsp.Data = string(result)
 	return nil
 }
 

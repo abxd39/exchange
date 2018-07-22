@@ -42,6 +42,14 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 	return data
 }
 
+
+func (this *UserCurrency) GetUserCurrency(uid uint64) (uCurrenList []UserCurrency, err error){
+	engine := dao.DB.GetMysqlConn()
+	err = engine.Where("uid = ?", uid).Find(&uCurrenList)
+	return
+}
+
+
 func (this *UserCurrency) GetBalance(uid uint64, token_id uint32) (data UserCurrency, err error) {
 	//data := new(UserCurrency)
 	_, err = dao.DB.GetMysqlConn().Where("uid=? AND token_id=?", uid, token_id).Get(&data)

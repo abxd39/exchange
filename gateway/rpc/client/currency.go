@@ -114,9 +114,13 @@ func (s *CurrencyRPCCli) CallCurrencyChatsList(req *proto.CurrencyChats) (*proto
 }
 
 // 调用 rpc 获取用户虚拟货币资产
-func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*proto.UserCurrency, error) {
+func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.GetUserCurrency(context.TODO(), req)
 	return rsp, err
+}
+func (s *CurrencyRPCCli) CallGetUserCurrencyDetail(req *proto.UserCurrencyRequest) (*proto.UserCurrency, error){
+	rsp, err := s.conn.GetUserCurrencyDetail(context.TODO(), req)
+	return  rsp, err
 }
 
 // get 售价
