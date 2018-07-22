@@ -91,6 +91,29 @@ func (s *User) GetUserByEmail(email string) (ret int32, err error) {
 	return
 }
 
+//根据邀请码属性获取用户
+func (s *User) GetUserByInviteCode(inviteCode string) (ret int32, err error) {
+	ok, err := DB.GetMysqlConn().
+		Alias("u").
+		Select("u.*").
+		Join("INNER", []string{new(UserEx).TableName(), "ue"}, "ue.uid=u.uid").
+		Where("ue.invite_code=?", inviteCode).
+		Get(s)
+
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+
 //序列化用户基础数据
 func (s *User) SerialJsonData() (data string, err error) {
 	var (
@@ -197,15 +220,15 @@ func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err 
 }
 
 //通用注册
-func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
+func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32, uid uint64, referUid uint64) {
 	ret, err := s.CheckUserExist(req.Ukey, filed)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, 0, 0
 	}
 
 	if ret != ERRCODE_SUCCESS {
-		return ret
+		return ret, 0, 0
 	}
 
 	d := &UserEx{} //主邀请人
@@ -213,10 +236,10 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 		if !ok {
-			return ERRCODE_INVITE
+			return ERRCODE_INVITE, 0, 0
 		}
 	}
 	var chmod int
@@ -237,7 +260,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 	_, err = DB.GetMysqlConn().Exec(sql)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, 0, 0
 	}
 
 	e := &User{}
@@ -245,7 +268,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 	_, err = DB.GetMysqlConn().Where(sql, req.Ukey).Get(e)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, 0, 0
 	}
 
 	code := random.Krand(6, random.KC_RAND_KIND_UPPER)
@@ -262,13 +285,13 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 
 		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Incr("invites", 1).Update(d)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 	} else {
 		m := &UserEx{
@@ -280,11 +303,11 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 	}
 
-	return ERRCODE_SUCCESS
+	return ERRCODE_SUCCESS, e.Uid, d.Uid
 
 }
 
