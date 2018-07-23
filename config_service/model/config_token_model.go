@@ -1,22 +1,17 @@
 package model
 
 import (
+	"digicon/config_service/confcommon"
+	"digicon/config_service/confjson"
+	"digicon/config_service/consulclient"
 	"digicon/config_service/dao"
 	. "digicon/config_service/log"
-	"digicon/config_service/confjson"
-	"fmt"
 	"encoding/json"
-	"digicon/config_service/confcommon"
-	"digicon/config_service/consulclient"
+	"fmt"
 )
-
-
-
 
 type ConfigQuenesModel struct {
 }
-
-
 
 func (c *ConfigQuenesModel) GetAllQuenes() []confjson.ConfigQuenes {
 	t := make([]confjson.ConfigQuenes, 0)
@@ -30,7 +25,7 @@ func (c *ConfigQuenesModel) GetAllQuenes() []confjson.ConfigQuenes {
 
 func (c *ConfigQuenesModel) PutToConsul() (err error) {
 	result := c.GetAllQuenes()
-	quenesJson, err  := json.Marshal(result)
+	quenesJson, err := json.Marshal(result)
 	if err != nil {
 		fmt.Println(" quenes marshal json error:", quenesJson)
 	}
@@ -42,22 +37,20 @@ func (c *ConfigQuenesModel) PutToConsul() (err error) {
 	return
 }
 
-
-
-func (c *ConfigQuenesModel) GetQuenesFromConsul () (result []confjson.ConfigQuenes, err error) {
+func (c *ConfigQuenesModel) GetQuenesFromConsul() (result []confjson.ConfigQuenes, err error) {
 
 	client := consulclient.NewClient()
-	entries, _,_ :=  client.List(confcommon.ConfigQuenesKey)
+	entries, _, _ := client.List(confcommon.ConfigQuenesKey)
 
-	var  quenesList []confjson.ConfigQuenes
-	for _, enpair := range entries{
+	var quenesList []confjson.ConfigQuenes
+	for _, enpair := range entries {
 		var cquenes []confjson.ConfigQuenes
 		err = json.Unmarshal(enpair.Value, &cquenes)
 		if err != nil {
 			fmt.Println("json unmarshal error!", err.Error())
 			continue
-		}else{
-			for _, quenes := range cquenes{
+		} else {
+			for _, quenes := range cquenes {
 				quenesList = append(quenesList, quenes)
 			}
 		}
@@ -69,6 +62,3 @@ func (c *ConfigQuenesModel) GetQuenesFromConsul () (result []confjson.ConfigQuen
 	result = quenesList
 	return
 }
-
-
-

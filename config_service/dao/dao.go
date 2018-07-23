@@ -1,29 +1,27 @@
 package dao
 
 var DB *Dao
+
 //var CDao *ConsuleDao
 
 type Dao struct {
-	redis *RedisCli
-	mysql *Mysql
+	redis  *RedisCli
+	mysql  *Mysql
 	consul *ConsulCli
 }
 
-
-
-func NewDao()(dao *Dao) {
-	mysql :=NewMysql()
+func NewDao() (dao *Dao) {
+	mysql := NewMysql()
 	rediscli := NewRedisCli()
 	consulcli := NewConsulCli()
 	dao = &Dao{
-		redis: rediscli,
-		mysql: mysql,
+		redis:  rediscli,
+		mysql:  mysql,
 		consul: consulcli,
 	}
 	return
 }
 
-
-func InitDao(){
+func InitDao() {
 	DB = NewDao()
 }

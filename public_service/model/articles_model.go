@@ -46,14 +46,14 @@ func (a *Article_list) TableName() string {
 	return "article"
 }
 
-func (ArticleType)GetArticleTypeList()([]ArticleType,error)  {
+func (ArticleType) GetArticleTypeList() ([]ArticleType, error) {
 	engine := dao.DB.GetMysqlConn()
-	list :=make([]ArticleType,0)
-	err:=engine.Find(&list)
-	if err!=nil {
-		return nil,err
+	list := make([]ArticleType, 0)
+	err := engine.Find(&list)
+	if err != nil {
+		return nil, err
 	}
-	return list,nil
+	return list, nil
 }
 
 func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list) (int, int32) {
@@ -72,7 +72,7 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 	engine := dao.DB.GetMysqlConn()
 	//没有指定 每页的行数
 	var star_row int
-	if page>1{
+	if page > 1 {
 		star_row = (int(page) - 1) * int(page_num)
 	}
 	total, err := engine.Where("type =?", req.ArticleType).Count(list)
@@ -89,14 +89,12 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 
 	total_page = int(total)
 	total_page = total_page / page_num
-	fmt.Println("total=", total_page)
 	return total_page, ERRCODE_SUCCESS
 
 }
 
 func (Article) Article(Id int32, u *Article) int32 {
 	engine := dao.DB.GetMysqlConn()
-	fmt.Println("101011111", Id)
 	ok, err := engine.Where("id=?", Id).Get(u)
 	if err != nil {
 		Dlog.Log.Errorln(err.Error())

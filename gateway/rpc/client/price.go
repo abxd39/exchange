@@ -13,6 +13,7 @@ import (
 type PriceRPCCli struct {
 	conn proto.PriceRPCService
 }
+
 func (s *PriceRPCCli) CallCurrentPrice(p *proto.CurrentPriceRequest) (rsp *proto.CurrentPriceResponse, err error) {
 	rsp, err = s.conn.CurrentPrice(context.TODO(), p)
 	if err != nil {
@@ -31,7 +32,6 @@ func (s *PriceRPCCli) CallSymbols(p *proto.NullRequest) (rsp *proto.SymbolsRespo
 	return
 }
 
-
 func (s *PriceRPCCli) CallQuotation(p *proto.QuotationRequest) (rsp *proto.QuotationResponse, err error) {
 	rsp, err = s.conn.Quotation(context.TODO(), p)
 	if err != nil {
@@ -40,7 +40,6 @@ func (s *PriceRPCCli) CallQuotation(p *proto.QuotationRequest) (rsp *proto.Quota
 	}
 	return
 }
-
 
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")

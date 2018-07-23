@@ -1,9 +1,9 @@
 package model
 
 import (
+	. "digicon/proto/common"
 	"digicon/ws_service/dao"
 	. "digicon/ws_service/log"
-	. "digicon/proto/common"
 	"fmt"
 )
 
@@ -50,6 +50,4 @@ func (this *Chats) Add() int {
 
 	return ERRCODE_SUCCESS
 
-
 }
-

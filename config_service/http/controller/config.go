@@ -1,16 +1,15 @@
 package controller
 
 import (
+	. "digicon/config_service/log"
+	"digicon/config_service/model"
+	. "digicon/proto/common"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	. "digicon/proto/common"
-	"digicon/config_service/model"
-	. "digicon/config_service/log"
 )
 
 type ConfigGroup struct {
 }
-
 
 func (this *ConfigGroup) Router(r *gin.Engine) {
 	Config := r.Group("/config")
@@ -18,14 +17,13 @@ func (this *ConfigGroup) Router(r *gin.Engine) {
 		Config.POST("/config_put", this.ConfigPut)
 		Config.GET("/config_list", this.ConfigList)
 
-
 		//Config.POST("/config_put_key", this.ConfigPutOne)
 		//Config.DELETE("/config_delete", this.ConfigDelete)
 
 	}
 }
 
-func (this *ConfigGroup) ConfigPut(c *gin.Context){
+func (this *ConfigGroup) ConfigPut(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -33,7 +31,7 @@ func (this *ConfigGroup) ConfigPut(c *gin.Context){
 	var err error
 
 	req := struct {
-		PutType   int32   `json:"put_type"`
+		PutType int32 `json:"put_type"`
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
@@ -51,15 +49,13 @@ func (this *ConfigGroup) ConfigPut(c *gin.Context){
 	return
 }
 
-
-
-func (this *ConfigGroup) ConfigList(c *gin.Context){
+func (this *ConfigGroup) ConfigList(c *gin.Context) {
 	ret := NewPublciError()
-	defer func(){
+	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		PutType   int32   `form:"put_type"    json:"put_type"  binding:"required"`
+		PutType int32 `form:"put_type"    json:"put_type"  binding:"required"`
 	}{}
 
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -77,7 +73,6 @@ func (this *ConfigGroup) ConfigList(c *gin.Context){
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
-
 
 //
 //func (this *ConfigGroup) ConfigDelete(c *gin.Context){

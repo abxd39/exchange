@@ -5,7 +5,7 @@
 *.dylib
 *.log
 *.ini
-
+.gitignore
 # Test binary, build with `go test -c`
 *.test
 
@@ -32,3 +32,4 @@
 ./currency_service/currency_service
 ./token_service/token_service
 ./public_service/user/public_service
+/admin/*

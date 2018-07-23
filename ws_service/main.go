@@ -2,8 +2,8 @@ package main
 
 import (
 	cf "digicon/ws_service/conf"
-	. "digicon/ws_service/log"
 	"digicon/ws_service/dao"
+	. "digicon/ws_service/log"
 	//"digicon/ws_service/rpc"
 	//"digicon/ws_service/rpc/client"
 	"digicon/ws_service/http"

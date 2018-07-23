@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"time"
 	"github.com/go-redis/redis"
+
 )
 
 type RedisOp struct {
@@ -42,6 +43,10 @@ func GetUserTagByLogic(uid uint64, tag string) string {
 //获取用户短信标签
 func getUserTagSms(phone string, ty int32) string {
 	return fmt.Sprintf("phone:%s:Sms:%d", phone, ty)
+}
+
+func getUserToken(uid uint64) string {
+	return fmt.Sprintf("uid:%d:token", uid)
 }
 
 func (s *RedisOp) SetSmsCode(phone string, code string, ty int32) (err error) {
@@ -119,11 +124,39 @@ func (s *RedisOp) GetUserBaseInfo(uid uint64) (rsp string, err error) {
 }
 
 func (s *RedisOp) SetUserToken(token string, uid uint64) (err error) {
-	err = DB.GetRedisConn().Set(token, uid, 604800*time.Second).Err()
+	err = DB.GetRedisConn().Set(getUserToken(uid), token, 604800*time.Second).Err()
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
 	}
+	return
+}
+
+//验证
+func (s *RedisOp) GetUserToken( uid uint64) (ret string,err error) {
+	ret, err = DB.GetRedisConn().Get(getUserToken(uid)).Result()
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+/*
+	if err == redis.Nil {
+		ret = ERRCODE_TokenVerify
+		Log.Errorln(err.Error())
+		return err, ret
+
+	} else if err != nil {
+		ret = ERRCODE_UNKNOWN
+		Log.Errorln(err.Error())
+		return err, ret
+	}
+
+	if rsp != token {
+		ret = ERRCODE_TokenVerify
+		return err, ret
+	}
+
+	*/
 	return
 }
 

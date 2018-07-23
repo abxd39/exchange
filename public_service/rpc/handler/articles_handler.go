@@ -17,12 +17,12 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 	total, rsp.Code = new(model.Article_list).ArticleList(req, &result)
 	rsp.TotalPage = int32(total)
 	for _, value := range result {
-		ntc := proto.ArticleListResponse_Article{}
-		ntc.Id = int32(value.Id)
-		ntc.Title = value.Title
-		ntc.Description = value.Description
-		ntc.CreateDateTime = value.CreateTime
-		rsp.Article = append(rsp.Article, &ntc)
+		rsp.Article = append(rsp.Article, &proto.ArticleListResponse_Article{
+		Id : int32(value.Id),
+		Title :value.Title,
+		Description:value.Description,
+		CreateDateTime:value.CreateTime,
+		})
 
 	}
 	//fmt.Println("ArticleList 列表为", ntc)
@@ -45,18 +45,18 @@ func (s *RPCServer) Article(ctx context.Context, req *proto.ArticleRequest, rsp 
 	return nil
 }
 
-func (s *RPCServer)ArticleTypeList (ctx context.Context,req*proto.ArticleTypeRequest,rsp*proto.ArticleTypeListResponse)error{
-	list,err:= new(model.ArticleType).GetArticleTypeList()
-	if err!=nil{
+func (s *RPCServer) ArticleTypeList(ctx context.Context, req *proto.ArticleTypeRequest, rsp *proto.ArticleTypeListResponse) error {
+	list, err := new(model.ArticleType).GetArticleTypeList()
+	if err != nil {
 		log.Fatalf(err.Error())
 		return err
 	}
-	for _,v:=range list{
-		at:=&proto.ArticleTypeListResponse_ArticleType{
-			Id:int32(v.TypeId),
-			Name:v.TypeName,
+	for _, v := range list {
+		at := &proto.ArticleTypeListResponse_ArticleType{
+			Id:   int32(v.TypeId),
+			Name: v.TypeName,
 		}
-		rsp.Type = append(rsp.Type,at)
+		rsp.Type = append(rsp.Type, at)
 	}
 	return nil
 }

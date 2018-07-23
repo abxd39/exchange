@@ -4,9 +4,9 @@ import (
 	"digicon/gateway/log"
 	"digicon/gateway/rpc"
 	Err "digicon/proto/common"
+	proto "digicon/proto/rpc"
 	"encoding/json"
 	"net/http"
-	proto "digicon/proto/rpc"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +19,7 @@ func (this *ArticleGroup) Router(r *gin.Engine) {
 		log.Log.Printf("Router func")
 		article.GET("/des", this.Article)
 		article.GET("/list", this.ArticleList)
-		article.GET("type_list",this.ArticleTypeList)
+		article.GET("type_list", this.ArticleTypeList)
 
 	}
 }
@@ -28,7 +28,7 @@ func (this *ArticleGroup) ArticleTypeList(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	rsp,err:=rpc.InnerService.PublicService.CallGetArticleTypeList(&proto.ArticleTypeRequest{})
+	rsp, err := rpc.InnerService.PublicService.CallGetArticleTypeList(&proto.ArticleTypeRequest{})
 	if err != nil {
 		log.Log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())

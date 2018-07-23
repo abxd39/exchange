@@ -2,9 +2,9 @@ package http
 
 import (
 	cf "digicon/config_service/conf"
+	"digicon/config_service/http/controller"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"digicon/config_service/http/controller"
 )
 
 func initRouter() *gin.Engine {

@@ -69,6 +69,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		Opt:     int(req.Opt),
 		Type:    int(req.Type),
 		Surplus: u.Balance,
+		Num:req.Num,
 	})
 
 	if err != nil {

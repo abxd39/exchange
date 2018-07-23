@@ -1,6 +1,6 @@
 package dao
 
-import  (
+import (
 	cf "digicon/ws_service/conf"
 	. "digicon/ws_service/log"
 	"github.com/go-redis/redis"
@@ -10,13 +10,13 @@ type RedisCli struct {
 	rcon *redis.Client
 }
 
-func NewRedisCli() *RedisCli{
+func NewRedisCli() *RedisCli {
 	addr := cf.Cfg.MustValue("redis", "addr")
 	pass := cf.Cfg.MustValue("redis", "pass")
 	client := redis.NewClient(&redis.Options{
-		Addr:addr,
-		Password:pass,
-		DB: 0,
+		Addr:     addr,
+		Password: pass,
+		DB:       0,
 	})
 
 	pong, err := client.Ping().Result()
@@ -26,6 +26,6 @@ func NewRedisCli() *RedisCli{
 	Log.Infoln(pong)
 
 	return &RedisCli{
-		rcon:client,
+		rcon: client,
 	}
 }

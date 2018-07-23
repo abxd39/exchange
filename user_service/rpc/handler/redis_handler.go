@@ -8,10 +8,10 @@ import (
 	"digicon/user_service/model"
 	"fmt"
 
+	"digicon/common/constant"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"golang.org/x/net/context"
-	"digicon/common/constant"
 )
 
 //获取谷歌验密钥
@@ -28,13 +28,7 @@ func (s *RPCServer) GetGoogleSecretKey(ctx context.Context, req *proto.GoogleAut
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-	/*
-		if u.CheckGoogleExist() { //检查是否已经有谷歌私钥，有的话不能再次申请
-			rsp.Err = ERRCODE_GOOGLE_CODE_EXIST
-			rsp.Message = GetErrorMessage(rsp.Err)
-			return nil
-		}
-	*/
+
 	code := random.Krand(16, random.KC_RAND_KIND_UPPER)
 	str_code := string(code)
 	r := model.RedisOp{}
@@ -154,24 +148,25 @@ func (s *RPCServer) ResetGoogleSecretKey(ctx context.Context, req *proto.ResetGo
 		return nil
 	}
 
-	m:=u.GetAuthMethodExpectGoogle()
-	if m==constant.AUTH_PHONE {
-		ret, err = u.AuthCodeByAl(u.Phone, req.SmsCode, model.SMS_SET_GOOGLE_CODE,true)
-	}else{
-		ret, err = u.AuthCodeByAl(u.Email, req.SmsCode, model.SMS_SET_GOOGLE_CODE,true)
+	m := u.GetAuthMethodExpectGoogle()
+	if m == constant.AUTH_PHONE {
+		ret, err = u.AuthCodeByAl(u.Phone, req.SmsCode, model.SMS_SET_GOOGLE_CODE, true)
+	} else {
+		ret, err = u.AuthCodeByAl(u.Email, req.SmsCode, model.SMS_SET_GOOGLE_CODE, true)
 	}
 	//ret, err = u.AuthCodeByAl(req.Ukey, req.SmsCode, model.SMS_FORGET,true)
-	if err==redis.Nil {
-		rsp.Err=ERRCODE_SMS_CODE_NIL
-		rsp.Message=GetErrorMessage(rsp.Err)
+	if err == redis.Nil {
+		rsp.Err = ERRCODE_SMS_CODE_NIL
+		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
-	}else  if err != nil {
+	} else if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
 		return err
 	}
-	if ret!=ERRCODE_SUCCESS {
-		rsp.Err=ret
+
+	if ret != ERRCODE_SUCCESS {
+		rsp.Err = ret
 		return nil
 	}
 

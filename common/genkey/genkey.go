@@ -17,7 +17,6 @@ func GetSymbol(a, b string) string {
 	return fmt.Sprintf("%s/%s", a, b)
 }
 
-
 func GetPulishKey(symbol string) string {
 	return fmt.Sprintf("%s:channel", symbol)
 }

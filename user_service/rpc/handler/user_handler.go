@@ -178,6 +178,30 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 	return nil
 }
 
+//token 验证
+
+func (s *RPCServer) TokenVerify(ctx context.Context, req *proto.TokenVerifyRequest, rsp *proto.TokenVerifyResponse) error {
+
+	ruo := &model.RedisOp{}
+	token,err  := ruo.GetUserToken(req.Uid)
+	if err==redis.Nil {
+		rsp.Err = ERRCODE_TOKENVERIFY
+		return nil
+	}else if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message=err.Error()
+		return nil
+	}
+	k:=string(req.Token)
+	if token==k {
+		rsp.Err = ERRCODE_SUCCESS
+		return nil
+	}
+	rsp.Err = ERRCODE_TOKENVERIFY
+	return nil
+
+}
+
 //忘记密码
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
 	var ret int32

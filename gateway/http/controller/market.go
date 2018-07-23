@@ -160,7 +160,6 @@ func (s *MarketGroup) Quotation(c *gin.Context) {
 	ret.SetDataSection("list", rsp.Data)
 }
 
-
 func (s *MarketGroup) CurrentPrice(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {

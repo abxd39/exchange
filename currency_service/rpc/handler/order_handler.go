@@ -34,7 +34,6 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 	return nil
 }
 
-
 // 取消订单
 func (s *RPCServer) CancelOrder(ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
@@ -62,7 +61,6 @@ func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, r
 	rsp.Message = msg
 	return nil
 }
-
 
 // 待放行
 func (s *RPCServer) ReadyOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
@@ -135,10 +133,10 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.States = 1
 
 	now := time.Now()
-	mm, _ := time.ParseDuration("15m")        // 过期时间15分钟
+	mm, _ := time.ParseDuration("15m") // 过期时间15分钟
 	od.CreatedTime = now.Format("2006-01-02 15:04:05")
 	od.UpdatedTime = now.Format("2006-01-02 15:04:05")
-	od.ExpiryTime  = now.Add(mm).Format("2006-01-02 15:04:05")
+	od.ExpiryTime = now.Add(mm).Format("2006-01-02 15:04:05")
 
 	//fmt.Println("od:", od)
 	id, code := od.Add()
@@ -163,54 +161,50 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	paypalPay.GetByUid(sellid)
 	wechatPay.GetByUid(sellid)
 
+	type Data struct {
+		SellId     uint64 `form:"sell_id"                json:"sell_id"`
+		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
+		States     uint32 `form:"states"                 json:"states"`
+		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
 
-	type Data struct{
-		SellId               uint64     `form:"sell_id"                json:"sell_id"`
-		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
-		States               uint32     `form:"states"                 json:"states"`
-		ExpiryTime           string     `xorm:"expiry_time"            json:"expiry_time" `
+		OrderId        string `form:"order_id"               json:"order_id"`
+		PayPrice       int64  `form:"pay_price"              json:"pay_price"`
+		Num            int64  `form:"num"                    json:"num"`
+		Price          int64  `form:"price"                  json:"price"`
+		AliPayName     string `form:"alipay_name"            json:"alipay_name"`
+		Alipay         string `form:"alipay"                 json:"alipay"`
+		AliReceiptCode string `form:"ali_receipt_code"       json:"ali_receipt_code"`
 
+		BankpayName string `form:"bankpay_name"            json:"bankpay_name"`
+		CardNum     string `form:"card_num"               json:"card_num"`
+		BankName    string `form:"bank_name"              json:"bank_name"`
+		BankInfo    string `form:"bank_info"              json:"bank_info"`
 
-		OrderId              string     `form:"order_id"               json:"order_id"`
-		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
-		Num                  int64      `form:"num"                    json:"num"`
-		Price                int64      `form:"price"                  json:"price"`
-		AliPayName           string     `form:"alipay_name"            json:"alipay_name"`
-		Alipay               string     `form:"alipay"                 json:"alipay"`
-		AliReceiptCode       string     `form:"ali_receipt_code"       json:"ali_receipt_code"`
-
-		BankpayName         string     `form:"bankpay_name"            json:"bankpay_name"`
-		CardNum              string     `form:"card_num"               json:"card_num"`
-		BankName             string     `form:"bank_name"              json:"bank_name"`
-		BankInfo             string     `form:"bank_info"              json:"bank_info"`
-
-		WechatName           string     `form:"wechat_name"            json:"wechat_name"`
-		Wechat               string     `form:"wechat"                 json:"wechat"`
-		WechatReceiptCode    string     `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
-		PaypalNum            string     `form:"paypal_num"             json:"paypal_num"`
+		WechatName        string `form:"wechat_name"            json:"wechat_name"`
+		Wechat            string `form:"wechat"                 json:"wechat"`
+		WechatReceiptCode string `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
+		PaypalNum         string `form:"paypal_num"             json:"paypal_num"`
 	}
 	var dt Data
-	dt.SellId             = order.SellId
-	dt.BuyId              = order.BuyId
-	dt.States             = order.States
-	dt.ExpiryTime         = order.ExpiryTime
+	dt.SellId = order.SellId
+	dt.BuyId = order.BuyId
+	dt.States = order.States
+	dt.ExpiryTime = order.ExpiryTime
 
-
-	dt.OrderId            = order.OrderId
-	dt.Price              = order.Price
-	dt.Num                = order.Num
-	dt.PayPrice           = convert.Int64MulInt64By8Bit(dt.Price, dt.Num)
-	dt.AliPayName         = aliPay.Name
-	dt.Alipay             = aliPay.Alipay
-	dt.AliReceiptCode     = aliPay.ReceiptCode
-	dt.BankpayName        = bankPay.Name
-	dt.BankInfo           = bankPay.BankInfo
-	dt.CardNum            = bankPay.CardNum
-	dt.WechatName         = wechatPay.Name
-	dt.Wechat             = wechatPay.Wechat
-	dt.WechatReceiptCode  = wechatPay.ReceiptCode
-	dt.PaypalNum          = paypalPay.Paypal
-
+	dt.OrderId = order.OrderId
+	dt.Price = order.Price
+	dt.Num = order.Num
+	dt.PayPrice = convert.Int64MulInt64By8Bit(dt.Price, dt.Num)
+	dt.AliPayName = aliPay.Name
+	dt.Alipay = aliPay.Alipay
+	dt.AliReceiptCode = aliPay.ReceiptCode
+	dt.BankpayName = bankPay.Name
+	dt.BankInfo = bankPay.BankInfo
+	dt.CardNum = bankPay.CardNum
+	dt.WechatName = wechatPay.Name
+	dt.Wechat = wechatPay.Wechat
+	dt.WechatReceiptCode = wechatPay.ReceiptCode
+	dt.PaypalNum = paypalPay.Paypal
 
 	resultdt, err := json.Marshal(dt)
 	if err != nil {
@@ -223,10 +217,17 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	return nil
 }
 
-
-
-func (s *RPCServer) GetTradeHistory (ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
-
+func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
+	uCurrencyHistory := new(model.UserCurrencyHistory)
+	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime)
+	if err != nil {
+		Log.Errorln(err.Error())
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}
+	data, err := json.Marshal(uCurrencyHistoryList)
+	rsp.Data = string(data)
+	rsp.Code = errdefine.ERRCODE_SUCCESS
 
 	return nil
 }
