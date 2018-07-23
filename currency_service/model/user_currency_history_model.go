@@ -9,6 +9,7 @@ import (
 type UserCurrencyHistory struct {
 	Id          int       `json:"id"                  xorm:"not null pk autoincr comment('ID') INT(10)"`
 	Uid         int       `json:"uid"                 xorm:"not null default 0 INT(10)"`
+	TradeUid    int       `json:"trade_uid"           xorm:"not null default 0 INT(10)"`
 	OrderId     string    `json:"order_id"            xorm:"not null default '' comment('订单ID') VARCHAR(64)"`
 	TokenId     int       `json:"token_id"            xorm:"not null default 0 comment('货币类型') INT(10)"`
 	Num         int64     `json:"num"                 xorm:"not null default 0 comment('数量') BIGINT(64)"`
