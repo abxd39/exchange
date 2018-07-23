@@ -28,13 +28,7 @@ func (s *RPCServer) GetGoogleSecretKey(ctx context.Context, req *proto.GoogleAut
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-	/*
-		if u.CheckGoogleExist() { //检查是否已经有谷歌私钥，有的话不能再次申请
-			rsp.Err = ERRCODE_GOOGLE_CODE_EXIST
-			rsp.Message = GetErrorMessage(rsp.Err)
-			return nil
-		}
-	*/
+
 	code := random.Krand(16, random.KC_RAND_KIND_UPPER)
 	str_code := string(code)
 	r := model.RedisOp{}

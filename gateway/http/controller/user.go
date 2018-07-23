@@ -68,6 +68,13 @@ func TokenVerify(c *gin.Context) {
 			c.JSON(http.StatusOK, ret.GetResult())
 			return
 		}
+	}else {
+		if err := c.ShouldBind(&param); err != nil {
+			Log.Errorf(err.Error())
+			ret.SetErrCode(ERRCODE_PARAM, err.Error())
+			c.JSON(http.StatusOK, ret.GetResult())
+			return
+		}
 	}
 
 	rsp, err := rpc.InnerService.UserSevice.CallTokenVerify(param.Uid, []byte(param.Token))
