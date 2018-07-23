@@ -58,7 +58,7 @@ func (this *Ads) Add() int {
 		Log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
-	if uCurrency.Balance < int64(this.Num) {
+	if this.TypeId == 2 &&  uCurrency.Balance < int64(this.Num) {            // type_id=2  是发布出售单
 		Log.Errorln("add ads error, user currency balance lower this num!")
 		return ERR_TOKEN_LESS
 	}
