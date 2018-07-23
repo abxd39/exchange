@@ -13,10 +13,10 @@ var message map[int32]string
 
 const (
 	//0-49 base
-	ERRCODE_SUCCESS = 0
-	ERRCODE_UNKNOWN = 1
-	ERRCODE_PARAM   = 2
-	ERRCODE_TokenVerify   = 3
+	ERRCODE_SUCCESS     = 0
+	ERRCODE_UNKNOWN     = 1
+	ERRCODE_PARAM       = 2
+	ERRCODE_TOKENVERIFY = 3
 
 	//200-
 	ERRCODE_ACCOUNT_EXIST     = 202
@@ -94,7 +94,7 @@ func init() {
 	message[ERRCODE_SUCCESS] = "成功"
 	message[ERRCODE_UNKNOWN] = "未知错误"
 	message[ERRCODE_PARAM] = "参数错误"
-	message[ERRCODE_TokenVerify] = "令牌失效"
+	message[ERRCODE_TOKENVERIFY] = "令牌失效"
 
 	message[ERRCODE_ACCOUNT_EXIST] = "账户已经存在"
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"

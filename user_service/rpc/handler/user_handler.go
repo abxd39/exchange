@@ -170,7 +170,7 @@ func (s *RPCServer) TokenVerify(ctx context.Context, req *proto.TokenVerifyReque
 	ruo := &model.RedisOp{}
 	token,err  := ruo.GetUserToken(req.Uid)
 	if err==redis.Nil {
-		rsp.Err = ERRCODE_TokenVerify
+		rsp.Err = ERRCODE_TOKENVERIFY
 		return nil
 	}else if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
@@ -182,7 +182,7 @@ func (s *RPCServer) TokenVerify(ctx context.Context, req *proto.TokenVerifyReque
 		rsp.Err = ERRCODE_SUCCESS
 		return nil
 	}
-	rsp.Err = ERRCODE_TokenVerify
+	rsp.Err = ERRCODE_TOKENVERIFY
 	return nil
 
 }
