@@ -1,7 +1,7 @@
 package controller
 
 import (
-	convert "digicon/common/convert"
+	"digicon/common/convert"
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
@@ -49,8 +49,8 @@ type OneOrder struct {
 type Order struct {
 	OrderRequest
 	OneOrder
-	TotalPrice   float64  `form:"total_price"  json:"total_price"   `   //
-	Fee          float64  `form:"fee"          json:"fee"  ` // 手续费用
+	TotalPrice float64 `form:"total_price"  json:"total_price"   ` //
+	Fee        float64 `form:"fee"          json:"fee"  `          // 手续费用
 	OtherOrderType
 }
 
@@ -95,6 +95,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		StartTime string  `form:"start_time" json:"start_time"`
 		EndTime   string  `form:"end_time"   json:"end_time"`
 		Id        uint64  `form:"id"           json:"id"`
+		Uid       uint64  `form:"uid"        json:"uid"`
 	}
 	var param OrderListParam
 	if err := c.ShouldBindQuery(&param); err != nil {
@@ -119,6 +120,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		StartTime: param.StartTime,
 		EndTime:   param.EndTime,
 		Id:        param.Id,
+		Uid:       param.Uid,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -155,7 +157,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		o.CancelType = bod.CancelType
 		o.CreatedTime = bod.CreatedTime
 		o.UpdatedTime = bod.UpdatedTime
-		o.TotalPrice  = convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(bod.Num, bod.Price))
+		o.TotalPrice = convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(bod.Num, bod.Price))
 		orders = append(orders, o)
 	}
 
@@ -315,29 +317,27 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		Id: param.Id,
 	})
 
+	type Data struct {
+		SellId     uint64 `form:"sell_id"                json:"sell_id"`
+		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
+		States     uint32 `form:"states"                 json:"states"`
+		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
 
-
-	type Data struct{
-		SellId               uint64     `form:"sell_id"                json:"sell_id"`
-		BuyId                uint64     `form:"buy_id"                 json:"buy_id"`
-		States               uint32     `form:"states"                 json:"states"`
-		ExpiryTime           string     `xorm:"expiry_time"            json:"expiry_time" `
-
-		OrderId              string     `form:"order_id"               json:"order_id"`
-		PayPrice             int64      `form:"pay_price"              json:"pay_price"`
-		Num                  int64      `form:"num"                    json:"num"`
-		Price                int64      `form:"price"                  json:"price"`
-		AliPayName           string     `form:"alipay_name"            json:"alipay_name"`
-		Alipay               string     `form:"alipay"                 json:"alipay"`
-		AliReceiptCode       string     `form:"ali_receipt_code"       json:"ali_receipt_code"`
-		BankpayName         string     `form:"bankpay_name"           json:"bankpay_name"`
-		CardNum              string     `form:"card_num"               json:"card_num"`
-		BankName             string     `form:"bank_name"              json:"bank_name"`
-		BankInfo             string     `form:"bank_info"              json:"bank_info"`
-		WechatName           string     `form:"wechat_name"            json:"wechat_name"`
-		Wechat               string     `form:"wechat"                 json:"wechat"`
-		WechatReceiptCode    string     `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
-		PaypalNum            string     `form:"paypal_num"             json:"paypal_num"`
+		OrderId           string `form:"order_id"               json:"order_id"`
+		PayPrice          int64  `form:"pay_price"              json:"pay_price"`
+		Num               int64  `form:"num"                    json:"num"`
+		Price             int64  `form:"price"                  json:"price"`
+		AliPayName        string `form:"alipay_name"            json:"alipay_name"`
+		Alipay            string `form:"alipay"                 json:"alipay"`
+		AliReceiptCode    string `form:"ali_receipt_code"       json:"ali_receipt_code"`
+		BankpayName       string `form:"bankpay_name"           json:"bankpay_name"`
+		CardNum           string `form:"card_num"               json:"card_num"`
+		BankName          string `form:"bank_name"              json:"bank_name"`
+		BankInfo          string `form:"bank_info"              json:"bank_info"`
+		WechatName        string `form:"wechat_name"            json:"wechat_name"`
+		Wechat            string `form:"wechat"                 json:"wechat"`
+		WechatReceiptCode string `form:"wechat_receipt_code"    json:"wechat_receipt_code"`
+		PaypalNum         string `form:"paypal_num"             json:"paypal_num"`
 	}
 	var dt Data
 	if err = json.Unmarshal([]byte(rsp.Data), &dt); err != nil {
@@ -371,7 +371,6 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		ret.SetDataSection("paypal_num", dt.PaypalNum)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
-
 }
 
 /*
@@ -382,6 +381,52 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+	req := struct {
+		StartTime string `form:"start_time"    json:"start_time"`
+		EndTime   string `form:"end_time"      json:"end_time"`
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.CurrencyService.CallGetTradeHistory(&proto.GetTradeHistoryRequest{
+		StartTime: req.StartTime,
+		EndTime:   req.EndTime,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+
+	type UserCurrencyHistory struct {
+		Num         int64     `json:"num"           `
+		Fee         int64     `json:"fee"           `
+		CreatedTime string    `json:"created_time"  `
+	}
+	type RespUserCurrencyHistory struct {
+		Num         float64     `json:"num"           `
+		Fee         float64     `json:"fee"           `
+		CreatedTime string      `json:"created_time"  `
+	}
+	var uCurrencyHistoryList []UserCurrencyHistory
+	err = json.Unmarshal([]byte(rsp.Data), &uCurrencyHistoryList)
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	var rspCuHistory []RespUserCurrencyHistory
+	for _, v := range uCurrencyHistoryList {
+		var tmp RespUserCurrencyHistory
+		tmp.CreatedTime =  v.CreatedTime
+		tmp.Num = convert.Int64ToFloat64By8Bit(v.Num)
+		tmp.Fee = convert.Int64ToFloat64By8Bit(v.Fee)
+		rspCuHistory = append(rspCuHistory, tmp)
+	}
+	ret.SetDataSection("list", rspCuHistory)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 
 	return
 }

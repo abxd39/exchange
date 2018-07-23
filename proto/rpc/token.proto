@@ -23,6 +23,9 @@ service TokenRPC {
 
         //代币余额
         rpc TokenBalance(TokenBalanceRequest) returns (TokenBalanceResponse) {};
+
+
+        rpc DelEntrust(DelEntrustRequest) returns (DelEntrustResponse) {}
         //########market##########//
 
 
@@ -35,8 +38,7 @@ service TokenRPC {
 
         //实时交易
         rpc Trade(TradeRequest) returns (TradeRespone) {};
-        //行情列表
-        rpc Quotation(QuotationRequest) returns (QuotationResponse) {};
+
         //########market##########//
 
 
@@ -83,8 +85,6 @@ message EntrustOrderResponse{
 }
 
 message AddTokenNumRequest {
-    int32 err = 1;
-    string message = 2;
     uint64 uid = 3;
     int32 token_id = 4;
     int64 num = 6;
@@ -210,22 +210,6 @@ message TokenBalanceResponse{
     TokenBaseData balance                 =3;
 }
 
-message QuotationRequest{
-    int32 token_id              =1;
-}
-
-message QutationBaseData{
-    string symbol                       =1;
-    string price                        =2;
-    string scope                        =3;
-    string low                          =4;
-    string high                         =5;
-    string amount                         =6;
-}
-
-message QuotationResponse{
-    repeated QutationBaseData data          =1;
-}
 
 
 message ConfigQueneBaseData{
@@ -242,4 +226,15 @@ message CnyPriceBaseData{
 message ConfigQueneResponse{
     repeated ConfigQueneBaseData data           =1;
     repeated CnyPriceBaseData cny_data                  =2;
+}
+
+
+message DelEntrustRequest{
+    uint64 uid          =1;
+    string entrust_id   =2;
+}
+
+message DelEntrustResponse{
+    int32 err                       =1;
+    string message                  =2;
 }

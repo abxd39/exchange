@@ -34,11 +34,11 @@ func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto
 
 func (s *TokenRPCCli) CallSelfSymbols(p *proto.SelfSymbolsRequest) (rsp *proto.SelfSymbolsResponse, err error) {
 	/*
-	rsp, err = s.conn.SelfSymbols(context.TODO(), p)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
+		rsp, err = s.conn.SelfSymbols(context.TODO(), p)
+		if err != nil {
+			Log.Errorln(err.Error())
+			return
+		}
 	*/
 	return
 }
@@ -81,15 +81,6 @@ func (s *TokenRPCCli) CallTrade(p *proto.TradeRequest) (rsp *proto.TradeRespone,
 
 func (s *TokenRPCCli) CallTokenBalance(p *proto.TokenBalanceRequest) (rsp *proto.TokenBalanceResponse, err error) {
 	rsp, err = s.conn.TokenBalance(context.TODO(), p)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return
-	}
-	return
-}
-
-func (s *TokenRPCCli) CallQuotation(p *proto.QuotationRequest) (rsp *proto.QuotationResponse, err error) {
-	rsp, err = s.conn.Quotation(context.TODO(), p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return

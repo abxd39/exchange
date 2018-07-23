@@ -55,12 +55,31 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 	return
 }
 
+
+type LoginUserBaseData struct {
+	Uid   uint64 `json:"uid"`
+	Token string `json:"token"`
+}
+
 func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32, ip string) (rsp *proto.LoginResponse, err error) {
 	rsp, err = s.conn.Login(context.TODO(), &proto.LoginRequest{
 		Ukey: ukey,
 		Pwd:  pwd,
 		Type: ty,
 		Ip:   ip,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+
+	return
+}
+
+func (s *UserRPCCli) CallTokenVerify(uid uint64, token []byte) (rsp *proto.TokenVerifyResponse, err error) {
+	rsp, err = s.conn.TokenVerify(context.TODO(), &proto.TokenVerifyRequest{
+		Uid:   uid,
+		Token: token,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
@@ -169,7 +188,7 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 	return
 }
 func (s *UserRPCCli) CallResetGoogleSecretKey(p *proto.ResetGoogleSecretKeyRequest) (rsp *proto.CommonErrResponse, err error) {
-	rsp, err = s.conn.ResetGoogleSecretKey(context.TODO(),p)
+	rsp, err = s.conn.ResetGoogleSecretKey(context.TODO(), p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
@@ -220,7 +239,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		NeedPwd:        out.NeedPwd,
 		NeedPwdTime:    out.NeedPwdTime,
 		Country:        out.Country,
-		GoogleExist:out.GoogleExist,
+		GoogleExist:    out.GoogleExist,
 	}
 
 	return
@@ -355,13 +374,10 @@ func (s *UserRPCCli) CallGetNickName(req *proto.UserGetNickNameRequest) (*proto.
 	return s.conn.GetNickName(context.TODO(), req)
 }
 
-
-
-func (s *UserRPCCli) CallBindEmail (req *proto.BindEmailRequest) (*proto.BindPhoneEmailResponse, error) {
+func (s *UserRPCCli) CallBindEmail(req *proto.BindEmailRequest) (*proto.BindPhoneEmailResponse, error) {
 	return s.conn.BindEmail(context.TODO(), req)
 }
 
-func (s *UserRPCCli) CallBindPhone (req *proto.BindPhoneRequest) (*proto.BindPhoneEmailResponse, error) {
+func (s *UserRPCCli) CallBindPhone(req *proto.BindPhoneRequest) (*proto.BindPhoneEmailResponse, error) {
 	return s.conn.BindPhone(context.TODO(), req)
 }
-

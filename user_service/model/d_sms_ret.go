@@ -31,8 +31,6 @@ const (
 	SMS_BIND_PHONE       = 11
 	SMS_BIND_EMAIL       = 12
 	SMS_MAX              = 13
-
-
 )
 
 //发送短信
@@ -121,7 +119,7 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 	params["password"] = cf.SmsPwd
 	// 手机号码，格式(区号+手机号码)，例如：8615800000000，其中86为中国的区号
 	params["mobile"] = phone
-	content := fmt.Sprintf("【爱来多科技】您的验证码是：%s", code)
+	content := fmt.Sprintf("【UNT】您的验证码是：%s", code)
 	params["msg"] = content
 	bytesData, err := json.Marshal(params)
 	if err != nil {
@@ -167,7 +165,6 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 		ret = int32(g)
 		return
 	}
-
 
 	switch g {
 	case 0:

@@ -1,14 +1,14 @@
 package log
 
 import (
+	cf "digicon/ws_service/conf"
 	"github.com/sirupsen/logrus"
 	"os"
-	cf "digicon/ws_service/conf"
 )
 
 var Log *logrus.Logger
 
-func InitLog(){
+func InitLog() {
 	Log = logrus.New()
 	filename := cf.Cfg.MustValue("log", "log_path")
 
@@ -19,4 +19,3 @@ func InitLog(){
 		panic("Failed to log to file, using default stderr")
 	}
 }
-

@@ -1,24 +1,22 @@
 package utils
 
 import (
-	"encoding/json"
-	"fmt"
 	"bytes"
-	"net/http"
-	"io/ioutil"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 )
 
 type USDTClient struct {
 }
 
-
-
 /*
 	usdt new address
 	exp:curl --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getnewaddress", "params": [] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
 */
-func USDTNewAddress(url string) (address string, err error)  {
+func USDTNewAddress(url string) (address string, err error) {
 	data := make(map[string]interface{})
 	data["jsonrpc"] = "1.0"
 	data["id"] = 1
@@ -29,7 +27,7 @@ func USDTNewAddress(url string) (address string, err error)  {
 	if err != nil {
 		return "", err
 	}
-	address,ok := result.(string)
+	address, ok := result.(string)
 	if !ok {
 		msg := "get new address error!"
 		err = errors.New(msg)
@@ -37,7 +35,6 @@ func USDTNewAddress(url string) (address string, err error)  {
 	}
 	return address, nil
 }
-
 
 /*
 	func: USDT wallet Phrase usdt 解锁
@@ -51,11 +48,10 @@ func USDTWalletPhrase(url string, pass string, keepTime int64) error {
 	return nil
 }
 
-
 /*
 	usdt send to address
 	exp: curl  --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "sendtoaddress", "params": ["1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd", 0.1, "donation", "seans outpost"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
- */
+*/
 func USDTSendToAddress(url string, address string, mount string) (string, error) {
 	data := make(map[string]interface{})
 	data["jsonrpc"] = "1.0"
@@ -66,11 +62,11 @@ func USDTSendToAddress(url string, address string, mount string) (string, error)
 	params = append(params, mount)
 	data["params"] = params
 
-	result , err := UsdtRpcPost(url, data)
+	result, err := UsdtRpcPost(url, data)
 	if err != nil {
 		return "", err
 	}
-	txHash,ok := result.(string)
+	txHash, ok := result.(string)
 	if !ok {
 		msg := "get transaction txid error!"
 		err = errors.New(msg)
@@ -79,12 +75,10 @@ func USDTSendToAddress(url string, address string, mount string) (string, error)
 	return txHash, nil
 }
 
-
-
 /*
 	usdt rpc
 */
-func UsdtRpcPost(url string, send map[string]interface{}) (result interface{},err  error) {
+func UsdtRpcPost(url string, send map[string]interface{}) (result interface{}, err error) {
 	bytesData, err := json.Marshal(send)
 	if err != nil {
 		fmt.Println(err.Error())

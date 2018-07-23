@@ -91,6 +91,29 @@ func (s *User) GetUserByEmail(email string) (ret int32, err error) {
 	return
 }
 
+//根据邀请码属性获取用户
+func (s *User) GetUserByInviteCode(inviteCode string) (ret int32, err error) {
+	ok, err := DB.GetMysqlConn().
+		Alias("u").
+		Select("u.*").
+		Join("INNER", []string{new(UserEx).TableName(), "ue"}, "ue.uid=u.uid").
+		Where("ue.invite_code=?", inviteCode).
+		Get(s)
+
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	if ok {
+		ret = ERRCODE_SUCCESS
+		return
+	}
+	ret = ERRCODE_ACCOUNT_NOTEXIST
+	return
+}
+
 //序列化用户基础数据
 func (s *User) SerialJsonData() (data string, err error) {
 	var (
@@ -197,15 +220,15 @@ func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err 
 }
 
 //通用注册
-func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
+func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32, uid uint64, referUid uint64) {
 	ret, err := s.CheckUserExist(req.Ukey, filed)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, 0, 0
 	}
 
 	if ret != ERRCODE_SUCCESS {
-		return ret
+		return ret, 0, 0
 	}
 
 	d := &UserEx{} //主邀请人
@@ -213,20 +236,22 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 		if !ok {
-			return ERRCODE_INVITE
+			return ERRCODE_INVITE, 0, 0
 		}
 	}
 	var chmod int
 	var sql string
 	if filed == "phone" {
 		chmod = AUTH_PHONE
-		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
+
+		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
+
 	} else if filed == "email" {
 		chmod = AUTH_EMAIL
-		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Ukey, chmod)
+		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Ukey, chmod)
 	} else {
 		Log.Fatalf("register error filed %s", filed)
 	}
@@ -235,7 +260,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 	_, err = DB.GetMysqlConn().Exec(sql)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, 0, 0
 	}
 
 	e := &User{}
@@ -243,7 +268,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 	_, err = DB.GetMysqlConn().Where(sql, req.Ukey).Get(e)
 	if err != nil {
 		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
+		return ERRCODE_UNKNOWN, 0, 0
 	}
 
 	code := random.Krand(6, random.KC_RAND_KIND_UPPER)
@@ -260,13 +285,13 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 
 		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Incr("invites", 1).Update(d)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 	} else {
 		m := &UserEx{
@@ -278,93 +303,14 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) int32 {
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
 			Log.Errorln(err.Error())
-			return ERRCODE_UNKNOWN
+			return ERRCODE_UNKNOWN, 0, 0
 		}
 	}
 
-	return ERRCODE_SUCCESS
+	return ERRCODE_SUCCESS, e.Uid, d.Uid
 
 }
 
-/*
-//通过手机注册
-func (s *User) RegisterByPhone(req *proto.RegisterRequest) int32 {
-	if ret := s.CheckUserExist(req.Ukey, "phone"); ret != ERRCODE_SUCCESS {
-		return ret
-	}
-
-	e := &User{
-		Pwd:     req.Pwd,
-		Phone:   req.Ukey,
-		Account: req.Ukey,
-	}
-	_, err := DB.GetMysqlConn().Cols("pwd", "phone", "account").Insert(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	_, err = DB.GetMysqlConn().Where("phone=?", req.Ukey).Get(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	m := &UserEx{
-		Uid:          e.Uid,
-		RegisterTime: time.Now().Unix(),
-		InviteCode:   req.InviteCode,
-	}
-
-	_, err = DB.GetMysqlConn().Insert(m)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	return ERRCODE_SUCCESS
-}
-
-//通过邮箱注册
-
-
-func (s *User) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
-	if ret := s.CheckUserExist(req.Email, "email"); ret != ERRCODE_SUCCESS {
-		return ret
-	}
-
-	e := &User{
-		Pwd:     req.Pwd,
-		Email:   req.Email,
-		Account: req.Email,
-	}
-	_, err := DB.GetMysqlConn().Cols("pwd", "email", "account").Insert(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	_, err = DB.GetMysqlConn().Where("email=?", req.Email).Get(e)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	m := &UserEx{
-		Uid:          e.Uid,
-		RegisterTime: time.Now().Unix(),
-		InviteCode:   req.InviteCode,
-	}
-
-	_, err = DB.GetMysqlConn().Insert(m)
-	if err != nil {
-		Log.Errorln(err.Error())
-		return ERRCODE_UNKNOWN
-	}
-
-	return ERRCODE_SUCCESS
-}
-*/
 
 //检查用户注册过没
 func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
@@ -446,7 +392,6 @@ func (s *User) refreshToken() (token string, err error) {
 	uid_ := fmt.Sprintf("%d", s.Uid)
 	salt := random.Krand(6, random.KC_RAND_KIND_NUM)
 	b := encryption.Gensha256(uid_, time.Now().Unix(), string(salt))
-	//_,err:=DB.GetMysqlConn().Where("uid=?",s.Uid).Cols("token").Update(s)
 	err = new(RedisOp).SetUserToken(string(b), s.Uid)
 	if err != nil {
 		return
@@ -484,6 +429,8 @@ func (s *User) SetGoogleSecertKey(uid uint64, secert_key string) (ret int32) {
 		ret = ERRCODE_UNKNOWN
 		return
 	}
+	s.authSecurityCode(AUTH_GOOGLE)
+	s.refreshToken()
 	return ERRCODE_SUCCESS
 }
 

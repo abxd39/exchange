@@ -68,6 +68,6 @@ func (s *PublciRPCCli) CallGetBannerList(req *proto.BannerRequest) (rsp *proto.B
 	return s.conn.GetBannerList(context.TODO(), req)
 }
 
-func (s*PublciRPCCli)CallGetArticleTypeList (req*proto.ArticleTypeRequest)(rsp* proto.ArticleTypeListResponse,err error) {
-	return s.conn.ArticleTypeList(context.TODO(),req)
+func (s *PublciRPCCli) CallGetArticleTypeList(req *proto.ArticleTypeRequest) (rsp *proto.ArticleTypeListResponse, err error) {
+	return s.conn.ArticleTypeList(context.TODO(), req)
 }

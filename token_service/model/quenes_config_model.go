@@ -11,13 +11,7 @@ type ConfigQuenes struct {
 	TokenTradeId int    `xorm:"comment('实际交易币') unique(union_quene_id) INT(11)"`
 	Switch       int    `xorm:"comment('开关0关1开') TINYINT(4)"`
 	Name         string `xorm:"comment('USDT/BTC') VARCHAR(32)"`
-	/*
-		Price        int64  `xorm:"comment('初始价格') BIGINT(20)"`
-		Scope        string `xorm:"comment('振幅') DECIMAL(6,2)"`
-		Low          int64  `xorm:"comment('最低价') BIGINT(20)"`
-		High         int64  `xorm:"comment('最高价') BIGINT(20)"`
-		Amount       int64  `xorm:"comment('成交量') BIGINT(20)"`
-	*/
+	Price        int64  `xorm:"BIGINT(20)"`
 }
 
 func (s *ConfigQuenes) GetQuenes(uid uint64) []ConfigQuenes {

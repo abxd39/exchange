@@ -6,12 +6,12 @@ import (
 	proto "digicon/proto/rpc"
 	"fmt"
 	//"github.com/gin-gonic/gin/json"
+	"digicon/common/convert"
+	"digicon/currency_service/rpc/client"
+	"encoding/json"
 	"golang.org/x/net/context"
 	"log"
 	"time"
-	"encoding/json"
-	"digicon/common/convert"
-	"digicon/currency_service/rpc/client"
 )
 
 type RPCServer struct{}
@@ -313,7 +313,7 @@ func (s *RPCServer) CurrencyChatsList(ctx context.Context, req *proto.CurrencyCh
 }
 
 // 获取用户虚拟货币资产
-func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.UserCurrency) error {
+func (s *RPCServer) GetUserCurrencyDetail(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.UserCurrency) error {
 	data := new(model.UserCurrency).Get(req.Id, req.Uid, req.TokenId)
 	if data == nil {
 		return nil
@@ -326,6 +326,24 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	rsp.Balance = data.Balance
 	rsp.Address = data.Address
 	rsp.Version = data.Version
+	rsp.Valuation = 0 // 汇率转化
+	return nil
+}
+
+func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.OtherResponse) error {
+	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid)
+	fmt.Println("data:", data)
+	if err != nil {
+		rsp.Code = errdefine.ERRCODE_USER_BALANCE
+		return err
+	}
+	result, err := json.Marshal(data)
+	if err != nil {
+		rsp.Data = "[]"
+		rsp.Message = err.Error()
+		return err
+	}
+	rsp.Data = string(result)
 	return nil
 }
 
@@ -336,12 +354,11 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 		rsp.Data = string("0.00")
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
-	}else{
+	} else {
 		rsp.Data = convert.Int64ToStringBy8Bit(balance.Balance)
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		return nil
 	}
-
 }
 
 // 获取get售价
@@ -390,10 +407,10 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 	type AuthInfo struct {
-		EmailAuth    int32    `json:"email_auth"`     //
-		PhoneAuth    int32    `json:"phone_auth"`     //
-		RealName     int32    `json:"real_name"`      //
-		TwoLevelAuth int32    `json:"two_level_auth"` //
+		EmailAuth    int32 `json:"email_auth"`     //
+		PhoneAuth    int32 `json:"phone_auth"`     //
+		RealName     int32 `json:"real_name"`      //
+		TwoLevelAuth int32 `json:"two_level_auth"` //
 	}
 	type UserRateAndAuth struct {
 		model.UserCurrencyCount
@@ -407,19 +424,20 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	}
 
 	rateAndAuth := new(UserRateAndAuth)
-	rateAndAuth.Uid     = data.Uid
+	rateAndAuth.Uid = data.Uid
 	rateAndAuth.Success = data.Success
 	rateAndAuth.Failure = data.Failure
-	rateAndAuth.Good    = data.Good
-	rateAndAuth.Cancel  = data.Cancel
-	rateAndAuth.Orders  = data.Orders
+	rateAndAuth.Good = data.Good
+	rateAndAuth.Cancel = data.Cancel
+	rateAndAuth.Orders = data.Orders
 
-	rateAndAuth.RealName      = authInfo.RealName
-	rateAndAuth.TwoLevelAuth  = authInfo.TwoLevelAuth
-	rateAndAuth.EmailAuth     = authInfo.EmailAuth
-	rateAndAuth.PhoneAuth     = authInfo.PhoneAuth
+	rateAndAuth.RealName = authInfo.RealName
+	rateAndAuth.TwoLevelAuth = authInfo.TwoLevelAuth
+	rateAndAuth.EmailAuth = authInfo.EmailAuth
+	rateAndAuth.PhoneAuth = authInfo.PhoneAuth
 
 	//rateAndAuth.EmailAuth = data.
+
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -432,11 +450,10 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	return nil
 }
 
-
 /*
 	AddUserBalance
 */
-func (s *RPCServer) AddUserBalance (ctx context.Context, req *proto.AddUserBalanceRequest, rsp *proto.OtherResponse) error{
+func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanceRequest, rsp *proto.OtherResponse) error {
 	uCurrency, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
@@ -449,14 +466,14 @@ func (s *RPCServer) AddUserBalance (ctx context.Context, req *proto.AddUserBalan
 		rsp.Message = "amount strint convert to int64 err!"
 		return err
 	}
-	err  = uCurrency.SetBalance(req.Uid, req.TokenId,  intAmount)
+	err = uCurrency.SetBalance(req.Uid, req.TokenId, intAmount)
 	if err != nil {
 		fmt.Println(err.Error())
 		rsp.Data = ""
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		rsp.Message = "set balance error!"
 		return err
-	}else{
+	} else {
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		return nil
 	}

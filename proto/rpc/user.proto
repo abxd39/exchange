@@ -12,6 +12,8 @@ service UserRPC {
 	rpc RegisterByEmail(RegisterEmailRequest) returns (CommonErrResponse) {}
 	//登陆
 	rpc Login(LoginRequest) returns (LoginResponse) {}
+	//token验证
+	rpc TokenVerify(TokenVerifyRequest) returns (TokenVerifyResponse){}
 	//忘记密码
 	rpc ForgetPwd(ForgetRequest) returns (ForgetResponse) {}
 	//安全认证
@@ -152,6 +154,17 @@ message LoginRequest {
     string pwd=3;
     int32  type       =4;
     string ip=5;
+}
+
+message TokenVerifyRequest{
+        uint64 uid=1;
+        bytes token=2;
+}
+
+message TokenVerifyResponse{
+	int32 err = 1;
+	string message  =2;
+    bytes tokenverify=3;
 }
 
 message LoginUserBaseData{

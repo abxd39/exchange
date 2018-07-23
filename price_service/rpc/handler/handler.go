@@ -23,10 +23,8 @@ func (s *RPCServer) CurrentPrice(ctx context.Context, req *proto.CurrentPriceReq
 	if !ok {
 		return nil
 	}
-
-	cny := model.GetTokenCnyPrice(q.TokenId)
 	e := q.GetEntry()
-	rsp.Data = model.Calculate(e.Price, e.Amount, cny, q.Symbol)
+	rsp.Data = model.Calculate(e.Price, e.Amount, q.CnyPrice, q.Symbol)
 	return nil
 }
 
@@ -37,7 +35,7 @@ func (s *RPCServer) SelfSymbols(ctx context.Context, req *proto.SelfSymbolsReque
 
 func (s *RPCServer) LastPrice(ctx context.Context, req *proto.LastPriceRequest, rsp *proto.LastPriceResponse) error {
 	p, ok := model.GetPrice(req.Symbol)
-	rsp.Ok=ok
+	rsp.Ok = ok
 	if ok {
 		rsp.Data = &proto.PriceCache{
 			Id:          p.Id,
@@ -63,7 +61,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 	rsp.Eth.Data = make([]*proto.SymbolBaseData, 0)
 	rsp.Sdc = new(proto.SymbolsBaseData)
 	rsp.Sdc.Data = make([]*proto.SymbolBaseData, 0)
-	for _, v := range model.ConfigQuenes {
+	for _, v := range model.ConfigQueneData {
 		if v.TokenId == 1 {
 			rsp.Usdt.TokenId = int32(v.TokenId)
 
@@ -72,18 +70,29 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 				return nil
 			}
 
-			cny := model.GetTokenCnyPrice(q.TokenId)
-
 			p, ok := model.Get24HourPrice(v.Name)
 			if !ok {
 				return nil
 			}
+
 			price := q.GetEntry().Price
+			/*
+				if price==1200000000 {
+					price= 111111111
+					p.Price=155555555
+					h:=convert.Int64DivInt64StringPercent(price-p.Price, p.Price)
+					price= 1
+					p.Price=10000005
+					k:=convert.Int64DivInt64StringPercent(price-p.Price, p.Price)
+					fmt.Println(h)
+					fmt.Println(k)
+				}
+			*/
 			rsp.Usdt.Data = append(rsp.Usdt.Data, &proto.SymbolBaseData{
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, price)),
-				Scope:        convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
+				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
+				Scope:        convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 				TradeTokenId: int32(v.TokenTradeId),
 			})
 		} else if v.TokenId == 2 {
@@ -94,8 +103,6 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 				return nil
 			}
 
-			cny := model.GetTokenCnyPrice(q.TokenId)
-
 			p, ok := model.Get24HourPrice(v.Name)
 			if !ok {
 				return nil
@@ -104,7 +111,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 			rsp.Btc.Data = append(rsp.Btc.Data, &proto.SymbolBaseData{
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, price)),
+				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
 				Scope:        convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
 				TradeTokenId: int32(v.TokenTradeId),
 			})
@@ -116,8 +123,6 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 				return nil
 			}
 
-			cny := model.GetTokenCnyPrice(q.TokenId)
-
 			p, ok := model.Get24HourPrice(v.Name)
 			if !ok {
 				return nil
@@ -126,7 +131,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 			rsp.Eth.Data = append(rsp.Eth.Data, &proto.SymbolBaseData{
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, price)),
+				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
 				Scope:        convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
 				TradeTokenId: int32(v.TokenTradeId),
 			})
@@ -138,8 +143,6 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 				return nil
 			}
 
-			cny := model.GetTokenCnyPrice(q.TokenId)
-
 			p, ok := model.Get24HourPrice(v.Name)
 			if !ok {
 				return nil
@@ -148,11 +151,37 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 			rsp.Sdc.Data = append(rsp.Sdc.Data, &proto.SymbolBaseData{
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),
-				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(cny, price)),
+				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
 				Scope:        convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
 				TradeTokenId: int32(v.TokenTradeId),
 			})
 		}
+	}
+	return nil
+}
+
+func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
+	g := model.GetConfigQuenesByType(req.TokenId)
+
+	for _, v := range g {
+
+		q, ok := model.GetQueneMgr().GetQueneByUKey(v.Name)
+		if !ok {
+			return nil
+		}
+
+		price := q.GetEntry().Price
+
+		r := model.Calculate(price, q.GetEntry().Amount, q.CnyPrice, q.Symbol)
+
+		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
+			Symbol: v.Name,
+			Price:  r.Price,
+			Scope:  r.Scope,
+			Low:    r.Low,
+			High:   r.High,
+			Amount: r.Amount,
+		})
 	}
 	return nil
 }

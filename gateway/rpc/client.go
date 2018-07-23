@@ -25,7 +25,7 @@ func NewRPCClient() (c *RPCClient) {
 		PublicService:   client.NewPublciRPCCli(),
 		WalletSevice:    client.NewWalletRPCCli(),
 		KineService:     client.NewKlineRPCCli(),
-		PriceService:	 client.NewPriceRPCCli(),
+		PriceService:    client.NewPriceRPCCli(),
 	}
 	return c
 }

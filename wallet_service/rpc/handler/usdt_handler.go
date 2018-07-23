@@ -12,6 +12,5 @@ func (s *WalletHandler) CreateUSDTWallet(ctx context.Context, req *proto.CreateW
 	var err error
 	fmt.Println(err)
 
-
 	return nil
 }

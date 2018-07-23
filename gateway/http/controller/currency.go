@@ -11,18 +11,17 @@ import (
 	"strings"
 
 	"digicon/gateway/utils"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	//"github.com/gorilla/websocket"
-
 	//"time"
+	"encoding/json"
 )
 
 type CurrencyGroup struct{}
 
 func (this *CurrencyGroup) Router(r *gin.Engine) {
-	Currency := r.Group("/currency")
+	Currency := r.Group("/currency",TokenVerify)
 	{
 		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)
 		Currency.POST("/created_otc", this.AddAds)                  // 新增广告(买卖)
@@ -37,42 +36,45 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/created_chats", this.AddChats)              // 新增订单聊天
 		Currency.GET("/chats_list", this.GetChatsList)              // 获取订单聊天列表
 
-		//// order ////
-		Currency.GET("/orders", this.OrdersList)                    // 获取订单列表
-		Currency.POST("/add_order", this.AddOrder)                  // 添加订单
-		Currency.POST("/ready_order", this.ReadyOrder)              // 待放行
-		Currency.POST("/confirm_order", this.ConfirmOrder)          // 确认放行
-		Currency.POST("/cancel_order", this.CancelOrder)            // 取消订单
-		Currency.POST("/delete_order", this.CancelOrder)            // 删除订单
 
-		Currency.GET("/trade_detail", this.TradeDetail)             //获取订单付款信息
+		//// order ////
+		Currency.GET("/orders", this.OrdersList)           // 获取订单列表
+		Currency.POST("/add_order", this.AddOrder)         // 添加订单
+		Currency.POST("/ready_order", this.ReadyOrder)     // 待放行
+		Currency.POST("/confirm_order", this.ConfirmOrder) // 确认放行
+		Currency.POST("/cancel_order", this.CancelOrder)   // 取消订单
+		Currency.POST("/delete_order", this.CancelOrder)   // 删除订单
+
+		Currency.GET("/trade_detail", this.TradeDetail) //获取订单付款信息
 
 		////payment///
-		Currency.POST("/bank_pay", this.BankPay)                    // 添加 bank_pay
-		Currency.GET("/bank_pay", this.GetBankPay)                  // 获取 bank_pay
-		Currency.PUT("/bank_pay", this.UpdateBankPay)               // 更新 bank_pay
+		Currency.POST("/bank_pay", this.BankPay)      // 添加 bank_pay
+		Currency.GET("/bank_pay", this.GetBankPay)    // 获取 bank_pay
+		Currency.PUT("/bank_pay", this.UpdateBankPay) // 更新 bank_pay
 
-		Currency.POST("/alipay", this.Alipay)                       // 添加 ali_pay
-		Currency.GET("/alipay", this.GetAliPay)                     // 获取 ali_pay
-		Currency.PUT("/alipay", this.UpdateAliPay)                  // 更新 ali_pay
+		Currency.POST("/alipay", this.Alipay)      // 添加 ali_pay
+		Currency.GET("/alipay", this.GetAliPay)    // 获取 ali_pay
+		Currency.PUT("/alipay", this.UpdateAliPay) // 更新 ali_pay
 
-		Currency.POST("/wechatpay", this.WeChatPay)                 // 添加 wechat_pay
-		Currency.GET("/wechatpay", this.GetWeChatPay)               // 获取 wechat_pay
-		Currency.PUT("/wechatpay", this.UpdateWeChatPay)            // 更新 wechat_pay
+		Currency.POST("/wechatpay", this.WeChatPay)      // 添加 wechat_pay
+		Currency.GET("/wechatpay", this.GetWeChatPay)    // 获取 wechat_pay
+		Currency.PUT("/wechatpay", this.UpdateWeChatPay) // 更新 wechat_pay
 
-		Currency.POST("/paypal", this.Paypal)                       // 添加 paypal
-		Currency.GET("/paypal", this.GetPaypal)                     // 获取 paypal
-		Currency.PUT("/paypal", this.UpdatePaypal)                  // 更新 paypal
+		Currency.POST("/paypal", this.Paypal)      // 添加 paypal
+		Currency.GET("/paypal", this.GetPaypal)    // 获取 paypal
+		Currency.PUT("/paypal", this.UpdatePaypal) // 更新 paypal
 
 		// 追加
-		Currency.GET("/selling_price", this.GetSellingPrice)        // 售价
-		Currency.GET("/currency_balance", this.GetCurrencyBalance)  // 余额
-		Currency.GET("/user_currency_rating", this.GetUserRating)   // 获取用戶评级
-		Currency.GET("/trade_history", this.GetTradeHistory)        // 获取历史交易
-
+		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
+		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
+		Currency.POST("/user_currency_rating", this.GetUserRating)  // 获取用戶评级
+		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
 
 		//
 		Currency.GET("/add_user_balance", this.AddUserBalance)
+		Currency.GET("/get_user_currency_detail", this.GetUserCurrencyDetail)
+		Currency.GET("/get_user_currency", this.GetUserCurrency)
+
 	}
 }
 
@@ -496,8 +498,8 @@ type AdsListsData struct {
 	TokenId     uint32  `json:"token_id"`     // 货币类型
 	TokenName   string  `json:"token_name"`   // 货币名称
 
-	Premium     float64  `json:"premium"`      // 溢价
-	States      uint32   `json:"states"`       // 状态:0下架 1上架
+	Premium float64 `json:"premium"` // 溢价
+	States  uint32  `json:"states"`  // 状态:0下架 1上架
 
 }
 
@@ -598,8 +600,8 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 				TokenId:    data.Data[i].TokenId,
 				TokenName:  data.Data[i].TokenName,
 
-				Premium:    convert.Int64ToFloat64By8Bit(data.Data[i].Premium),
-				States:     data.Data[i].States,
+				Premium: convert.Int64ToFloat64By8Bit(data.Data[i].Premium),
+				States:  data.Data[i].States,
 			}
 			userList = append(userList, data.Data[i].Uid)
 			reaList.List[i] = adsLists
@@ -980,6 +982,122 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	return
 }
 
+
+/*
+  get user currency 获取法币账户
+ */
+
+ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context){
+	 ret := NewPublciError()
+	 defer func() {
+		 c.JSON(http.StatusOK, ret.GetResult())
+	 }()
+	 req := struct {
+		 Id      uint64  `form:"id"      json:"id" `
+		 Uid     uint64  `form:"uid"     json:"uid"       binding:"required"`
+		 TokenId uint32  `form:"token_id" json:"token_id" `
+	 }{}
+	 err := c.ShouldBind(&req)
+	 if err != nil {
+		 Log.Errorf(err.Error())
+		 ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		 return
+	 }
+
+	rsp, err := rpc.InnerService.CurrencyService.CallGetUserCurrency(&proto.UserCurrencyRequest{
+		Uid:req.Uid,
+	})
+	if err != nil {
+		Log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	type UCurrency struct {
+		Id        uint64 `json:"id"`
+		Uid       uint64 `json:"uid"`
+		TokenId   uint32 `json:"token_id"`
+		TokenName string `json:"token_name"`
+		Address   string `json:"address"`
+	}
+	type UCint struct {
+		Freeze    int64  `json:"freeze"`
+		Balance   int64  `json:"balance"`
+		Valuation int64 `json:"valuation"`
+	}
+
+	type UCfloat struct {
+		Freeze    float64  `json:"freeze"`
+		Balance   float64  `json:"balance"`
+		Valuation float64  `json:"valuation"`
+	}
+	type RespIntCurrency struct {
+		UCurrency
+		UCint
+	}
+	type RespFloatCurrency struct {
+		UCurrency
+		UCfloat
+	}
+	 var uCurrencyList []RespIntCurrency
+	 if err = json.Unmarshal([]byte(rsp.Data), &uCurrencyList); err != nil {
+		 Log.Errorln(err.Error())
+		 ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		 return
+	 }
+	 var RespUCurrencyList []RespFloatCurrency
+	 for _,ucurrency := range uCurrencyList{
+	 	var uc RespFloatCurrency
+	 	uc.Id = ucurrency.Id
+	 	uc.Uid = ucurrency.Uid
+	 	uc.TokenId = ucurrency.TokenId
+	 	uc.TokenName = ucurrency.TokenName
+	    uc.Address = ucurrency.Address
+	 	uc.Balance = convert.Int64ToFloat64By8Bit(ucurrency.Balance)
+	    uc.Freeze = convert.Int64ToFloat64By8Bit(ucurrency.Freeze)
+	    uc.Valuation = convert.Int64ToFloat64By8Bit(ucurrency.Valuation)
+		RespUCurrencyList = append(RespUCurrencyList, uc)
+	}
+	ret.SetDataSection("list", RespUCurrencyList)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+ }
+
+ func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context){
+ 	ret := NewPublciError()
+	 defer func() {
+		 c.JSON(http.StatusOK, ret.GetResult())
+	 }()
+	req := struct {
+		Id      uint64  `form:"id"      json:"id" `
+		Uid     uint64  `form:"uid"     json:"uid"       binding:"required"`
+		TokenId uint32  `form:"token_id" json:"token_id" binding:"required"`
+	}{}
+	 err := c.ShouldBind(&req)
+	 if err != nil {
+		 Log.Errorf(err.Error())
+		 ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		 return
+	 }
+	 rsp, err := rpc.InnerService.CurrencyService.CallGetUserCurrencyDetail(&proto.UserCurrencyRequest{
+	 	Id:    req.Id,
+	 	Uid:   req.Uid,
+	 	TokenId: req.TokenId,
+	 })
+	 if err != nil {
+	 	ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+	 }
+	 ret.SetDataSection("uid", rsp.Uid)
+	 ret.SetDataSection("token_id", rsp.TokenId)
+	 ret.SetDataSection("token_name", rsp.TokenName)
+	 ret.SetDataSection("balance", convert.Int64ToFloat64By8Bit(rsp.Balance))
+	 ret.SetDataSection("freeze", convert.Int64ToFloat64By8Bit(rsp.Freeze))
+	 ret.SetDataSection("address", rsp.Address)
+	 ret.SetDataSection("valuation", rsp.Valuation)
+	 ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+ 	return
+ }
+
+
+
 // get this.GetCurrencyQuota)     // 余额
 func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 	ret := NewPublciError()
@@ -1016,7 +1134,6 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 	//ret.SetDataSection("msg", GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
-
 
 // get GetUserRating
 // 获取用戶评级
@@ -1061,10 +1178,10 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		Failure      int64   `json:"failure"`       // 失败
 		AverageTo    int64   `json:"average_to"`    // 120 分钟
 
-		EmailAuth    int32    `json:"email_auth"`     //
-		PhoneAuth    int32    `json:"phone_auth"`     //
-		RealName     int32    `json:"real_name"`      //
-		TwoLevelAuth int32    `json:"two_level_auth"` //
+		EmailAuth    int32 `json:"email_auth"`     //
+		PhoneAuth    int32 `json:"phone_auth"`     //
+		RealName     int32 `json:"real_name"`      //
+		TwoLevelAuth int32 `json:"two_level_auth"` //
 
 	}
 	//fmt.Println("data:", rsp.Data)
@@ -1085,19 +1202,16 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
 	ret.SetDataSection("email_auth", uCurrencyCount.EmailAuth)
 	ret.SetDataSection("phone_auth", uCurrencyCount.PhoneAuth)
-	ret.SetDataSection("real_name" ,uCurrencyCount.RealName)
+	ret.SetDataSection("real_name", uCurrencyCount.RealName)
 	ret.SetDataSection("two_level_auth", uCurrencyCount.TwoLevelAuth)
 	return
 }
 
-
-
-
-func (this *CurrencyGroup)AddUserBalance(ctx *gin.Context) {
+func (this *CurrencyGroup) AddUserBalance(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallAddUserBalance(&proto.AddUserBalanceRequest{
-		Uid:2,
-		TokenId:2,
-		Amount: "3.33",
+		Uid:     2,
+		TokenId: 2,
+		Amount:  "3.33",
 	})
 	if err != nil {
 		fmt.Println(err.Error())

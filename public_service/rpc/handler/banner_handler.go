@@ -5,8 +5,8 @@ import (
 	"digicon/public_service/log"
 	"digicon/public_service/model"
 
-	"golang.org/x/net/context"
 	"fmt"
+	"golang.org/x/net/context"
 )
 
 func (s *RPCServer) GetBannerList(ctx context.Context, req *proto.BannerRequest, rsp *proto.BannerResponse) error {

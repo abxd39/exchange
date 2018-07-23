@@ -2,6 +2,7 @@ package model
 
 import (
 	"digicon/common/random"
+	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
 	. "digicon/user_service/log"
 	"errors"
@@ -9,7 +10,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dm"
 	"github.com/go-redis/redis"
-	. "digicon/proto/common"
 )
 
 func SendEmail(email string, ty int32) (err error) {
@@ -34,8 +34,8 @@ func sendAliEmail(email, code string) (err error) {
 	r.AddressType = requests.NewInteger(1)
 	r.ToAddress = email
 	r.FromAlias = "shendun"
-	r.Subject = "欢迎注册神盾"
-	r.TextBody = fmt.Sprintf("您好，您正在注册神盾账号。【神盾】安全验证: %s 出于安全原因，该验证码将于10分钟后失效。请勿将验证码透露给他人。", code)
+	r.Subject = "欢迎注册UNT"
+	r.TextBody = fmt.Sprintf("您好，您正在注册神盾账号。【UNT】安全验证: %s 出于安全原因，该验证码将于10分钟后失效。请勿将验证码透露给他人。", code)
 	r.ReplyToAddress = requests.NewBoolean(false)
 
 	h, err := d.SingleSendMail(r)
@@ -54,7 +54,7 @@ func sendAliEmail(email, code string) (err error) {
 
 //验证邮箱
 func AuthEmail(email string, ty int32, code string) (ret int32, err error) {
-	fmt.Println(email, ty, code )
+	fmt.Println(email, ty, code)
 	r := RedisOp{}
 	auth_code, err := r.GetEmailCode(email, ty)
 	fmt.Println(auth_code)

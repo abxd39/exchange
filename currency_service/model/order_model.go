@@ -40,7 +40,7 @@ type Order struct {
 
 //列出订单
 func (this *Order) List(Page, PageNum int32,
-	AdType, States uint32, Id uint64,
+	AdType, States uint32, Id, Uid uint64,
 	TokenId float64, StartTime, EndTime string, o *[]Order) (total int64, rPage int32, rPageNum int32, code int32) {
 
 	engine := dao.DB.GetMysqlConn()
@@ -53,6 +53,8 @@ func (this *Order) List(Page, PageNum int32,
 
 	query := engine.Desc("id")
 	orderModel := new(Order)
+
+	query = query.Where("sell_id=? or buy_id=?", Uid, Uid)
 
 	if States == 0 { // 状态为0，表示已经删除
 		return 0, 0, 0, ERRCODE_SUCCESS
@@ -354,7 +356,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	}
 	if has {
 		fmt.Println("has ....")
-		_ , err := session.Where("uid=? AND  token_id=? AND version=?",this.BuyId, this.TokenId, uCurrency.Version).Update(&UserCurrency{Balance:allNum})
+		_, err := session.Where("uid=? AND  token_id=? AND version=?", this.BuyId, this.TokenId, uCurrency.Version).Update(&UserCurrency{Balance: allNum})
 		if err != nil {
 			fmt.Println("insert error!, ", err.Error())
 			Log.Println(err.Error())
@@ -363,7 +365,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 			return code, err
 		}
 	} else {
-		_, err := session.InsertOne(&UserCurrency{Uid:this.BuyId, TokenId: uint32(this.TokenId), TokenName:tokenName, Balance:allNum})
+		_, err := session.InsertOne(&UserCurrency{Uid: this.BuyId, TokenId: uint32(this.TokenId), TokenName: tokenName, Balance: allNum})
 		if err != nil {
 			fmt.Println("insert error!, ", err.Error())
 			Log.Println(err.Error())
@@ -372,7 +374,6 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 			return code, err
 		}
 	}
-
 
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
@@ -393,11 +394,11 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 
 	nowCreate := time.Now().Format("2006-01-02 15:04:05")
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId, this.OrderId, this.TokenId, sellNum, rateFee, 2, "", this.States,nowCreate, updateTimeStr, // 卖家记录 , 2订单转出
-		this.BuyId, this.OrderId, this.TokenId, this.Num, 0, 1, "", this.States,nowCreate,  updateTimeStr, // 买家记录 , 1订单转入
+		this.SellId, this.OrderId, this.TokenId, sellNum, rateFee, 2, "", this.States, nowCreate, updateTimeStr, // 卖家记录 , 2订单转出
+		this.BuyId, this.OrderId, this.TokenId, this.Num, 0, 1, "", this.States, nowCreate, updateTimeStr, // 买家记录 , 1订单转入
 	)
 	if err != nil {
-		fmt.Println("insert into history error: ",  err.Error())
+		fmt.Println("insert into history error: ", err.Error())
 		Log.Println(err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR

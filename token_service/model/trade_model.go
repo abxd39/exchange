@@ -3,9 +3,9 @@ package model
 import "github.com/go-xorm/xorm"
 
 const (
-	TRADE_STATES_PART = 1
-	TRADE_STATES_ALL  = 2
-	TRADE_STATES_DEL  = 3
+	TRADE_STATES_PART = 1 //部分成交
+	TRADE_STATES_ALL  = 2 //全部成交
+	TRADE_STATES_DEL  = 3 //撤单
 )
 
 type Trade struct {

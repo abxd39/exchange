@@ -1,8 +1,8 @@
 package errdefine
 
 import (
-	"github.com/gin-gonic/gin"
 	"errors"
+	"github.com/gin-gonic/gin"
 )
 
 var ERR_CODE_RET = "code"
@@ -13,9 +13,10 @@ var message map[int32]string
 
 const (
 	//0-49 base
-	ERRCODE_SUCCESS = 0
-	ERRCODE_UNKNOWN = 1
-	ERRCODE_PARAM   = 2
+	ERRCODE_SUCCESS     = 0
+	ERRCODE_UNKNOWN     = 1
+	ERRCODE_PARAM       = 2
+	ERRCODE_TOKENVERIFY = 3
 
 	//200-
 	ERRCODE_ACCOUNT_EXIST     = 202
@@ -39,14 +40,11 @@ const (
 	ERRCODE_ARTICLE_NOT_EXIST                 = 218
 	ERRCODE_OLDPWD                            = 219
 
+	ERRCODE_PHONE_EXIST     = 220
+	ERRCODE_PHONE_NOT_EXIST = 221
+	ERRCODE_INVITE          = 222
 
-
-	ERRCODE_PHONE_EXIST						 =220
-	ERRCODE_PHONE_NOT_EXIST       	        =221
-	ERRCODE_INVITE    			 = 222
-
-
-	ERRCODE_EMAIL_EXIST                     = 222
+	ERRCODE_EMAIL_EXIST = 222
 	//300-
 
 	ERRCODE_ADS_NOTEXIST      = 301
@@ -96,6 +94,7 @@ func init() {
 	message[ERRCODE_SUCCESS] = "成功"
 	message[ERRCODE_UNKNOWN] = "未知错误"
 	message[ERRCODE_PARAM] = "参数错误"
+	message[ERRCODE_TOKENVERIFY] = "令牌失效"
 
 	message[ERRCODE_ACCOUNT_EXIST] = "账户已经存在"
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"
@@ -115,7 +114,6 @@ func init() {
 	message[ERRCODE_GOOGLE_CODE_EXIST] = "谷歌验证码已经存在无法重复拉取"
 	message[ERRCODE_GOOGLE_CODE_NOT_EXIST] = "谷歌验证码不存在无法解绑"
 	message[ERRCODE_INVITE] = "邀请码不存在"
-
 
 	message[ERRCODE_ADS_NOTEXIST] = "广告不存在"
 	message[ERRCODE_TOKENS_NOTEXIST] = "货币类型不存在"
