@@ -3,7 +3,7 @@ package model
 import (
 	"digicon/common/convert"
 	. "digicon/price_service/dao"
-	. "digicon/price_service/log"
+	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -34,7 +34,7 @@ type Price struct {
 func InsertPrice(p *Price) {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
-		Log.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"id": p.Id,
 		}).Errorln(err.Error())
 		return
@@ -46,7 +46,7 @@ func GetHigh(begin, end int64,symbol string) (high int64) {
 	hp := &Price{}
 	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end,symbol).Desc("price").Limit(1, 0).Get(hp)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return 0
 	}
 	if ok {
@@ -59,7 +59,7 @@ func GetLow(begin, end int64,symbol string) (low int64) {
 	hp := &Price{}
 	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end,symbol).Asc("price").Limit(1, 0).Get(hp)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return 0
 	}
 	if ok {
@@ -82,7 +82,7 @@ func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseDa
 	p := &Price{}
 	_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 
@@ -103,7 +103,7 @@ func GetPrice(symbol string) (*Price, bool) {
 	m := &Price{}
 	ok, err := DB.GetMysqlConn().Where("symbol=?", symbol).Desc("created_time").Limit(1, 0).Get(m)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return m, ok
 }
@@ -118,7 +118,7 @@ func Get24HourPrice(symbol string) (*Price, bool) {
 
 	ok, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil, ok
 	}
 

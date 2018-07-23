@@ -58,21 +58,21 @@ func TokenVerify(c *gin.Context) {
 		if err := c.ShouldBind(&param); err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
-			c.JSON(http.StatusOK, ret.GetResult())
+			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
 		}
 	}else if c.Request.Method=="GET" {
 		if err := c.ShouldBindQuery(&param); err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
-			c.JSON(http.StatusOK, ret.GetResult())
+			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
 		}
 	}else {
 		if err := c.ShouldBind(&param); err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
-			c.JSON(http.StatusOK, ret.GetResult())
+			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
 		}
 	}

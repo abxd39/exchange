@@ -1,12 +1,74 @@
 package log
 
 import (
-	cf "digicon/user_service/conf"
 	"github.com/sirupsen/logrus"
 	"os"
+	cf "digicon/user_service/conf"
+
 )
 
 var Log *logrus.Logger
+/*
+func InitLogger() {
+
+	path := cf.Cfg.MustValue("log", "log_dir")
+	filename := cf.Cfg.MustValue("log", "log_name")
+	baseLogPath := fmt.Sprintf("%s%s",path,filename)
+	writer, err := rotatelogs.New(
+		baseLogPath+".%Y%m%d%H%M",
+		rotatelogs.WithLinkName(baseLogPath),      // 生成软链，指向最新日志文件
+		rotatelogs.WithMaxAge(7*24*time.Hour),     // 文件最大保存时间
+		rotatelogs.WithRotationTime(24*time.Hour), // 日志切割时间间隔
+	)
+	if err != nil {
+		panic("config local file system logger error. ")
+	}
+
+	//log.SetFormatter(&log.TextFormatter{})
+	level := cf.Cfg.MustValue("log", "log_level")
+	switch level  {
+
+	case "debug":
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.SetOutput(os.Stderr)
+	case "info":
+		setNull()
+		logrus.SetLevel(logrus.InfoLevel)
+	case "warn":
+		setNull()
+		logrus.SetLevel(logrus.WarnLevel)
+	case "error":
+		setNull()
+		logrus.SetLevel(logrus.ErrorLevel)
+	default:
+		setNull()
+		logrus.SetLevel(logrus.InfoLevel)
+	}
+	g:=&logrus.TextFormatter{
+		ForceColors:true,
+		DisableColors:false,
+	}
+
+	lfHook := lfshook.NewHook(lfshook.WriterMap{
+		logrus.DebugLevel: writer, // 为不同级别设置不同的输出目的
+		logrus.InfoLevel:  writer,
+		logrus.WarnLevel:  writer,
+		logrus.ErrorLevel: writer,
+		logrus.FatalLevel: writer,
+		logrus.PanicLevel: writer,
+	},g)
+	logrus.AddHook(lfHook)
+}
+
+func setNull() {
+	src, err := os.OpenFile(os.DevNull, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err!= nil{
+		fmt.Println("err", err)
+	}
+	writer := bufio.NewWriter(src)
+	logrus.SetOutput(writer)
+}
+*/
 
 func InitLog() {
 	Log = logrus.New()
@@ -14,7 +76,7 @@ func InitLog() {
 	if s == "1" {
 		filename := cf.Cfg.MustValue("log", "log_path")
 
-		file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
+		file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err == nil {
 			Log.Out = file
 		} else {

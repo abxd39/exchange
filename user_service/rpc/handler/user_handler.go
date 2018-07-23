@@ -23,6 +23,7 @@ import (
 
 	"github.com/gin-gonic/gin/json"
 	"github.com/sirupsen/logrus"
+
 )
 
 type RPCServer struct{}

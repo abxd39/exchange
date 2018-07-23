@@ -4,11 +4,12 @@ import (
 	"digicon/common/convert"
 	"digicon/common/genkey"
 	. "digicon/price_service/dao"
-	. "digicon/price_service/log"
+
 	proto "digicon/proto/rpc"
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
 	"time"
+	log "github.com/sirupsen/logrus"
 )
 
 type PriceInfo struct {
@@ -85,7 +86,7 @@ func (s *PriceWorkQuene) Publish() {
 		k := &proto.PriceCache{}
 		err := jsonpb.UnmarshalString(v.Payload, k)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			continue
 		}
 
@@ -159,13 +160,13 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 	t := jsonpb.Marshaler{EmitDefaults: true}
 	y, err := t.MarshalToString(h)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	err = DB.GetRedisConn().LPush(p.Key, y).Err()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 

@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/price_service/dao"
-	. "digicon/price_service/log"
+	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"fmt"
 )
@@ -38,7 +38,7 @@ func GetAllQuenes() []ConfigQuenes {
 	t := make([]ConfigQuenes, 0)
 	err := DB.GetMysqlConn2().Where("switch=1").Find(&t)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return t
@@ -48,7 +48,7 @@ func GetCnyQuenes() []ConfigTokenCny {
 	t := make([]ConfigTokenCny, 0)
 	err := DB.GetMysqlConn2().Find(&t)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return t

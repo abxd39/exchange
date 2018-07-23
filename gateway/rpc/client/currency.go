@@ -146,3 +146,10 @@ func (s *CurrencyRPCCli) CallAddUserBalance(req *proto.AddUserBalanceRequest) (*
 	rsp, err := s.conn.AddUserBalance(context.TODO(), req)
 	return rsp, err
 }
+
+
+//
+func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*proto.OtherResponse, error){
+	rsp, err := s.conn.GetAssetDetail(context.TODO(), req)
+	return rsp, err
+}

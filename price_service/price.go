@@ -11,14 +11,17 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	flag.Parse()
 	cf.Init()
-	InitLog()
-	Log.Infof("begin run server")
+	InitLogger()
+	log.Infof("begin run server")
+
 	dao.InitDao()
+
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	//exchange.LoadCacheQuene()
@@ -31,5 +34,5 @@ func main() {
 	)
 
 	sig := <-quitChan
-	Log.Infof("server close by sig %s", sig.String())
+	log.Infof("server close by sig %s", sig.String())
 }

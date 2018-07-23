@@ -35,7 +35,7 @@ func sendAliEmail(email, code string) (err error) {
 	r.ToAddress = email
 	r.FromAlias = "shendun"
 	r.Subject = "欢迎注册UNT"
-	r.TextBody = fmt.Sprintf("您好，您正在注册神盾账号。【UNT】安全验证: %s 出于安全原因，该验证码将于10分钟后失效。请勿将验证码透露给他人。", code)
+	r.TextBody = fmt.Sprintf("您好，您正在注册UNT账号。【UNT】安全验证: %s 出于安全原因，该验证码将于10分钟后失效。请勿将验证码透露给他人。", code)
 	r.ReplyToAddress = requests.NewBoolean(false)
 
 	h, err := d.SingleSendMail(r)
