@@ -36,8 +36,8 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.GET("/get_auth_method", s.GetCheckAuthMethod)
 
 		// bind user email
-		user.POST("/bind_email", s.BindUserEmail)
-		user.POST("/bind_phone", s.BindUserPhone)
+		user.POST("/bind_email", TokenVerify,s.BindUserEmail)
+		user.POST("/bind_phone", TokenVerify, s.BindUserPhone)
 
 		//
 		//user.POST("/unbind_email", s.UnBindUserEmail)
