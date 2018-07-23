@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 
 	"digicon/common/constant"
+	"digicon/common/convert"
 	"digicon/user_service/conf"
 	. "digicon/user_service/log"
 	"digicon/user_service/model"
@@ -93,15 +94,12 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 	// 读取配置
 	tokenId := int32(conf.Cfg.MustInt("register_reward", "token_id"))
-	myNum := int64(conf.Cfg.MustInt("register_reward", "my_num"))
-	referNum := int64(conf.Cfg.MustInt("register_reward", "refer_num"))
-	secReferNum := int64(conf.Cfg.MustInt("register_reward", "sec_refer_num"))
-
-	Log.WithFields(logrus.Fields{"token_id": tokenId, "my_num": myNum, "refer_num": referNum, "sec_refer_num": secReferNum}).Error("Debug1111")
+	myNum := float64(conf.Cfg.MustInt("register_reward", "my_num"))
+	referNum := float64(conf.Cfg.MustInt("register_reward", "refer_num"))
+	secReferNum := float64(conf.Cfg.MustInt("register_reward", "sec_refer_num"))
 
 	// 1. 注册送20UNT
-	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, myNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d", uid)), 3)
-	Log.WithFields(logrus.Fields{"resp": resp, "err": err}).Error("Debug2222")
+	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, convert.Float64ToInt64By8Bit(myNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d", uid)), 3)
 	if err != nil {
 		Log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
 	}
@@ -111,8 +109,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 
 	if referUid != 0 {
 		// 2. 推荐一级注册送20UNT
-		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, referNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d", uid, referUid)), 4)
-		Log.WithFields(logrus.Fields{"resp": resp, "err": err}).Error("Debug3333")
+		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, convert.Float64ToInt64By8Bit(referNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d", uid, referUid)), 4)
 		if err != nil {
 			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
 		}
@@ -137,8 +134,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 				return
 			}
 
-			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, secReferNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
-			Log.WithFields(logrus.Fields{"resp": resp, "err": err}).Error("Debug4444")
+			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
 			if err != nil {
 				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
 			}
@@ -183,17 +179,17 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 func (s *RPCServer) TokenVerify(ctx context.Context, req *proto.TokenVerifyRequest, rsp *proto.TokenVerifyResponse) error {
 
 	ruo := &model.RedisOp{}
-	token,err  := ruo.GetUserToken(req.Uid)
-	if err==redis.Nil {
+	token, err := ruo.GetUserToken(req.Uid)
+	if err == redis.Nil {
 		rsp.Err = ERRCODE_TOKENVERIFY
 		return nil
-	}else if err != nil {
+	} else if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message=err.Error()
+		rsp.Message = err.Error()
 		return nil
 	}
-	k:=string(req.Token)
-	if token==k {
+	k := string(req.Token)
+	if token == k {
 		rsp.Err = ERRCODE_SUCCESS
 		return nil
 	}
