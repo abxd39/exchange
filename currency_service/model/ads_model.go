@@ -211,6 +211,6 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 		return nil, 0
 	}
 
-	//fmt.Println("User data:", data)
+	fmt.Println("User data:", data)
 	return data, total
 }
