@@ -25,6 +25,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/entrust_history", s.EntrustHistory)
 
 		action.GET("/balance", s.TokenBalance)
+
+		action.GET("/balance_list", s.TokenBalanceList)
 	}
 }
 
@@ -236,4 +238,37 @@ func (s *TokenGroup) TokenBalance(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("balance", rsp.Balance)
+}
+
+func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type TokenBalanceListParam struct {
+		Uid    uint64 `form:"uid" binding:"required"`
+		Token  string `form:"token" binding:"required"`
+		NoZero bool   `form:"no_zero"`
+	}
+
+	var param TokenBalanceListParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallTokenBalanceList(&proto.TokenBalanceListRequest{
+		Uid:    param.Uid,
+		NoZero: param.NoZero,
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list", rsp.ListData)
 }

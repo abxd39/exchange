@@ -24,6 +24,9 @@ service TokenRPC {
         //代币余额
         rpc TokenBalance(TokenBalanceRequest) returns (TokenBalanceResponse) {};
 
+        //代币余额列表
+        rpc TokenBalanceList(TokenBalanceListRequest) returns (TokenBalanceListResponse) {};
+
 
         rpc DelEntrust(DelEntrustRequest) returns (DelEntrustResponse) {}
         //########market##########//
@@ -210,6 +213,25 @@ message TokenBalanceResponse{
     TokenBaseData balance                 =3;
 }
 
+
+message TokenBalanceListRequest{
+    uint64 uid                      =1;
+    bool no_zero                 =2;
+}
+
+message TokenListBaseData{
+    int32 token_id                    =1;
+    string token_name                 =2;
+    string balance                    =3;
+    string frozen                     =4;
+    string worth_cny                  =5;
+}
+
+message TokenBalanceListResponse{
+    int32 err                             =1;
+    string message                        =2;
+    repeated TokenListBaseData list_data  =3;
+}
 
 
 message ConfigQueneBaseData{

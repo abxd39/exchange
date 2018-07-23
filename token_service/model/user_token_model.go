@@ -19,6 +19,38 @@ type UserToken struct {
 	Version int    `xorm:"version"`
 }
 
+type UserTokenWithName struct {
+	UserToken `xorm:"extends"`
+	TokenName string
+}
+
+// 用户币币余额列表
+func (s *UserToken) GetUserTokenList(filter map[string]string) ([]UserTokenWithName, error) {
+	engine := DB.GetMysqlConn()
+	query := engine.Where("1=1")
+
+	// 筛选
+	if v, ok := filter["uid"]; ok {
+		query.And("ut.uid=?", v)
+	}
+	if _, ok := filter["no_zero"]; ok {
+		query.And("ut.balance!=0 OR ut.frozen!=0")
+	}
+
+	var list []UserTokenWithName
+	err := query.
+		Table(s).
+		Alias("ut").
+		Select("ut.*, t.name token_name").
+		Join("LEFT", []string{new(Tokens).TableName(), "t"}, "t.id=ut.token_id").
+		Find(&list)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}
+
 //获取实体
 func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 	var ok bool

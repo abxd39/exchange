@@ -5,12 +5,14 @@ import (
 	"digicon/gateway/http"
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
+	"flag"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	flag.Parse()
 	cf.Init()
 	InitLog()
 	go http.InitHttpServer()

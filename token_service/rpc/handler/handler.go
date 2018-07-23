@@ -5,6 +5,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/token_service/model"
+	"fmt"
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 	"log"
@@ -248,6 +249,37 @@ func (s *RPCServer) TokenBalance(ctx context.Context, req *proto.TokenBalanceReq
 	rsp.Balance = &proto.TokenBaseData{
 		TokenId: int32(d.TokenId),
 		Balance: convert.Int64ToStringBy8Bit(d.Balance),
+	}
+
+	return nil
+}
+
+func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanceListRequest, rsp *proto.TokenBalanceListResponse) error {
+	filter := map[string]string{
+		"uid": fmt.Sprintf("%d", req.Uid),
+	}
+	if req.NoZero {
+		filter["no_zero"] = "no_zero"
+	}
+
+	d := &model.UserToken{}
+	list, err := d.GetUserTokenList(filter)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	for _, v := range list {
+		worthCny := convert.Int64MulInt64By8Bit(v.Balance, model.GetTokenCnyPrice(int(v.TokenId)))
+
+		rsp.ListData = append(rsp.ListData, &proto.TokenListBaseData{
+			TokenId:   int32(v.TokenId),
+			TokenName: v.TokenName,
+			Balance:   fmt.Sprintf("%d", v.Balance),
+			Frozen:    fmt.Sprintf("%d", v.Frozen),
+			WorthCny:  fmt.Sprintf("%d", worthCny),
+		})
 	}
 
 	return nil
