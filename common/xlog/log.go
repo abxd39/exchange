@@ -1,7 +1,6 @@
-package log
+package xlog
 
 import (
-	cf "digicon/price_service/conf"
 	"github.com/sirupsen/logrus"
 	"os"
 	"digicon/common/hook"
@@ -11,13 +10,8 @@ import (
 	"bufio"
 )
 
-//var Log *logrus.Logger
 
-
-func InitLogger() {
-
-	path := cf.Cfg.MustValue("log", "log_dir")
-	name := cf.Cfg.MustValue("log", "log_name")
+func InitLogger(path ,name,level  string) {
 	baseLogPath := fmt.Sprintf("%s%s",path,name)
 	writer, err := rotatelogs.New(
 		baseLogPath+".%Y%m%d%H%M",
@@ -29,8 +23,6 @@ func InitLogger() {
 		panic("config local file system logger error. ")
 	}
 
-	//log.SetFormatter(&log.TextFormatter{})
-	level := cf.Cfg.MustValue("log", "log_level")
 	switch level  {
 
 	case "debug":
@@ -73,22 +65,3 @@ func setNull() {
 	writer := bufio.NewWriter(src)
 	logrus.SetOutput(writer)
 }
-
-/*
-func InitLog() {
-	Log = logrus.New()
-	s := cf.Cfg.MustValue("log", "switch")
-	if s == "1" {
-		filename := cf.Cfg.MustValue("log", "log_path")
-
-		file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
-		if err == nil {
-			Log.Out = file
-		} else {
-			Log.Out = os.Stdout
-		}
-	} else {
-		Log.Out = os.Stdout
-	}
-}
-*/

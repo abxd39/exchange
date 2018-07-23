@@ -236,7 +236,7 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 		param.Page = 1
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid)
+	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid,param.Limit,param.Page)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return

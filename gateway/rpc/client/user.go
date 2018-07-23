@@ -303,9 +303,11 @@ func (s *UserRPCCli) CallGetUserInvite(uid uint64) (rsp *proto.UserInviteRespons
 	return
 }
 
-func (s *UserRPCCli) CallGetIpRecord(uid uint64) (rsp *proto.IpRecordResponse, err error) {
+func (s *UserRPCCli) CallGetIpRecord(uid uint64,limit,page int32) (rsp *proto.IpRecordResponse, err error) {
 	rsp, err = s.conn.GetIpRecord(context.TODO(), &proto.CommonPageRequest{
 		Uid: uid,
+		Limit:limit,
+		Page:page,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())
