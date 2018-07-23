@@ -21,7 +21,7 @@ func (b *Banner) GetBannerList(req *proto.BannerRequest, rsp *proto.BannerRespon
 	engine := dao.DB.GetMysqlConn()
 	ban := make([]Banner, 0)
 	fmt.Println("000000000000000")
-	err := engine.Where("status=1").Find(&ban)
+	err := engine.Desc("order").Where("status=1").Find(&ban)
 	if err != nil {
 		fmt.Println(err)
 		return err
