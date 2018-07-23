@@ -67,7 +67,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		// 追加
 		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
 		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
-		Currency.GET("/user_currency_rating", this.GetUserRating)  // 获取用戶评级
+		Currency.POST("/user_currency_rating", this.GetUserRating)  // 获取用戶评级
 		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
 
 		//
