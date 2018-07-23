@@ -276,9 +276,9 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		rsp.ListData = append(rsp.ListData, &proto.TokenListBaseData{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
-			Balance:   fmt.Sprintf("%d", v.Balance),
-			Frozen:    fmt.Sprintf("%d", v.Frozen),
-			WorthCny:  fmt.Sprintf("%d", worthCny),
+			Balance:   convert.Int64ToStringBy8Bit(v.Balance),
+			Frozen:    convert.Int64ToStringBy8Bit(v.Frozen),
+			WorthCny:  convert.Int64ToStringBy8Bit(worthCny),
 		})
 	}
 
