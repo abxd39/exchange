@@ -18,10 +18,8 @@ func main() {
 	flag.Parse()
 	cf.Init()
 	InitLogger()
-	//Log.Infof("begin run server")
-	log.Info("such as begin server")
-	log.Error("such as begin server")
-	return
+	log.Infof("begin run server")
+
 	dao.InitDao()
 
 	go rpc.RPCServerInit()
@@ -36,5 +34,5 @@ func main() {
 	)
 
 	sig := <-quitChan
-	Log.Infof("server close by sig %s", sig.String())
+	log.Infof("server close by sig %s", sig.String())
 }

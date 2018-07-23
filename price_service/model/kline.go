@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/price_service/dao"
-	. "digicon/price_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type Kline struct {
@@ -21,7 +21,7 @@ type Kline struct {
 func InsertKline(p *Kline) {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

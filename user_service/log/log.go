@@ -3,7 +3,7 @@ package log
 import (
 	"github.com/sirupsen/logrus"
 	"os"
-	cf "digicon/token_service/conf"
+	cf "digicon/user_service/conf"
 
 )
 

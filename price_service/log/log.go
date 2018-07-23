@@ -4,21 +4,21 @@ import (
 	cf "digicon/price_service/conf"
 	"github.com/sirupsen/logrus"
 	"os"
-	"github.com/rifflock/lfshook"
+	"digicon/common/hook"
 	"fmt"
 	"github.com/lestrrat/go-file-rotatelogs"
 	"time"
 	"bufio"
 )
 
-var Log *logrus.Logger
+//var Log *logrus.Logger
 
 
 func InitLogger() {
 
 	path := cf.Cfg.MustValue("log", "log_dir")
-	filename := cf.Cfg.MustValue("log", "log_name")
-	baseLogPath := fmt.Sprintf("%s%s",path,filename)
+	name := cf.Cfg.MustValue("log", "log_name")
+	baseLogPath := fmt.Sprintf("%s%s",path,name)
 	writer, err := rotatelogs.New(
 		baseLogPath+".%Y%m%d%H%M",
 		rotatelogs.WithLinkName(baseLogPath),      // 生成软链，指向最新日志文件
@@ -74,7 +74,7 @@ func setNull() {
 	logrus.SetOutput(writer)
 }
 
-
+/*
 func InitLog() {
 	Log = logrus.New()
 	s := cf.Cfg.MustValue("log", "switch")
@@ -91,3 +91,4 @@ func InitLog() {
 		Log.Out = os.Stdout
 	}
 }
+*/

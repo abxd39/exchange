@@ -1,7 +1,7 @@
 package model
 
 import (
-	. "digicon/price_service/log"
+	log "github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -43,7 +43,7 @@ func (s *WorkQueneMgr) Init() {
 func (s *WorkQueneMgr) AddQuene(e *PriceWorkQuene) bool {
 	_, ok := s.dataMgr[e.Symbol]
 	if ok {
-		Log.Fatalf("insert same quene id is %s", e.Symbol)
+		log.Fatalf("insert same quene id is %s", e.Symbol)
 	}
 	s.dataMgr[e.Symbol] = e
 	return ok

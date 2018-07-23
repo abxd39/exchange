@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	cf "digicon/price_service/conf"
-	. "digicon/price_service/log"
+	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -17,7 +17,7 @@ type TokenRPCCli struct {
 func (s *TokenRPCCli) CallGetConfigQuene() (rsp *proto.ConfigQueneResponse, err error) {
 	rsp, err = s.conn.GetConfigQuene(context.TODO(), &proto.NullRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -34,7 +34,7 @@ func NewTokenRPCCli() (u *TokenRPCCli) {
 
 	service_name := cf.Cfg.MustValue("base", "service_client_token")
 	if service_name == "" {
-		Log.Fatalln("err config please check config")
+		log.Fatalln("err config please check config")
 	}
 	greeter := proto.NewTokenRPCService(service_name, service.Client())
 	u = &TokenRPCCli{
