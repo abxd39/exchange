@@ -12,4 +12,4 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 	log.Print("Received Say.Hello request")
 	rsp.Data = "Hello " + req.Cmd
 	return nil
-}
+ }

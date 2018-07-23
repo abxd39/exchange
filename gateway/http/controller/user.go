@@ -10,9 +10,18 @@ import (
 	"fmt"
 	"net/http"
 
+	"bytes"
+	"crypto/md5"
 	"digicon/common/ip"
-	"github.com/gin-gonic/gin"
 	"digicon/gateway/rpc/client"
+	"encoding/base64"
+	"encoding/hex"
+	"errors"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/gin-gonic/gin"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type UserGroup struct{}
@@ -30,15 +39,15 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/send_sms", s.SendPhoneSMSController)
 		user.POST("/send_email", s.SendEmailController)
 		user.POST("/modify_login_pwd", TokenVerify, s.ModifyLoginPwd)
-		user.POST("/modify_phone",TokenVerify, s.ModifyPhone1)
-		user.POST("/set_new_phone",TokenVerify, s.ModifyPhone2)
-		user.POST("/modify_trade_pwd",TokenVerify, s.ResetTradePwd)
+		user.POST("/modify_phone", TokenVerify, s.ModifyPhone1)
+		user.POST("/set_new_phone", TokenVerify, s.ModifyPhone2)
+		user.POST("/modify_trade_pwd", TokenVerify, s.ResetTradePwd)
 		user.GET("/get_auth_method", s.GetCheckAuthMethod)
 
 		// bind user email
-		user.POST("/bind_email", TokenVerify,s.BindUserEmail)
+		user.POST("/bind_email", TokenVerify, s.BindUserEmail)
 		user.POST("/bind_phone", TokenVerify, s.BindUserPhone)
-
+		user.POST("/set_nickname", s.SetNickName)
 		//
 		//user.POST("/unbind_email", s.UnBindUserEmail)
 		//user.POST("/unbind_phone", s.UnBindUserPhone)
@@ -50,25 +59,25 @@ func TokenVerify(c *gin.Context) {
 	ret := NewPublciError()
 
 	param := struct {
-		Token    string `form:"token" json:"token" binding:"required"`         // token验证
-		Uid      uint64 `form:"uid" json:"uid" binding:"required"`             // 用户ID
+		Token string `form:"token" json:"token" binding:"required"` // token验证
+		Uid   uint64 `form:"uid" json:"uid" binding:"required"`     // 用户ID
 	}{}
 
-	if c.Request.Method=="POST" {
+	if c.Request.Method == "POST" {
 		if err := c.ShouldBind(&param); err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
 			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
 		}
-	}else if c.Request.Method=="GET" {
+	} else if c.Request.Method == "GET" {
 		if err := c.ShouldBindQuery(&param); err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
 			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
 		}
-	}else {
+	} else {
 		if err := c.ShouldBind(&param); err != nil {
 			Log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
@@ -80,14 +89,14 @@ func TokenVerify(c *gin.Context) {
 	rsp, err := rpc.InnerService.UserSevice.CallTokenVerify(param.Uid, []byte(param.Token))
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
-		c.AbortWithStatusJSON(http.StatusOK,ret.GetResult())
+		c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 		return
 	}
 	if rsp.Err == ERRCODE_SUCCESS {
 		c.Next()
 	} else {
 		ret.SetErrCode(rsp.Err, rsp.Message)
-		c.AbortWithStatusJSON(http.StatusOK,ret.GetResult())
+		c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 
 		return
 	}
@@ -258,12 +267,12 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	if rsp.Err!=ERRCODE_SUCCESS {
+	if rsp.Err != ERRCODE_SUCCESS {
 		return
 	}
 	ret.SetDataSection(RET_DATA, client.LoginUserBaseData{
-		Uid:rsp.Data.Uid,
-		Token:string(rsp.Data.Token),
+		Uid:   rsp.Data.Uid,
+		Token: string(rsp.Data.Token),
 	})
 }
 
@@ -552,21 +561,32 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid           uint64 `form:"uid" binding:"required"`
-		Token         string `form:"token" binding:"required"`
-		NickName      string `form:"nick_name" `
-		HeadSculpture string `form:"head_scul" `
+		Uid      uint64 `form:"uid" binding:"required" json:"uid"`
+		Token    string `form:"token" binding:"required" json:"token"`
+		NickName string `form:"nick_name" json:"nick_name" binding:"required"`
+		Url      string `form:"file" json:"file" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		Log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+	url,err:=s.upload_picture(req.Url)
+	if err!=nil{
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
+		return
+	}
+	if url==``{
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
+		return
+	}
 	rsp, err := rpc.InnerService.UserSevice.CallSetNickName(&proto.UserSetNickNameRequest{
 		Uid:           req.Uid,
 		Token:         req.Token,
 		NickName:      req.NickName,
-		HeadSculpture: req.HeadSculpture,
+		HeadSculpture: url,
 	})
 	if err != nil {
 		Log.Errorf(err.Error())
@@ -723,4 +743,62 @@ func (s *UserGroup) UnBindUserPhone(c *gin.Context) {
 
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
+}
+
+//上传Ali coud
+func (a *UserGroup) upload_picture(file string) (string, error) {
+	var remoteurl string = "https://sdun.oss-cn-shenzhen.aliyuncs.com/"
+	client, err := oss.New("http://oss-cn-shenzhen.aliyuncs.com", "LTAIcJgRedhxruPq", "d7p6tWRfy0B2QaRXk7q4mb5seLROtb")
+	if err != nil {
+		// HandleError(err)
+		panic(err)
+	}
+	bucket, err := client.Bucket("sdun")
+	if err != nil {
+		return "", err
+	}
+	//查找base64
+	fmt.Println("base34-1")
+	base := strings.Index(file, ";base64,")
+	if base < 0 {
+		fmt.Println("base34-3")
+		// 是远程的oss 文件路径
+		return file, nil
+	}
+	fmt.Println("base34-2")
+	fmt.Println(file)
+
+	t := time.Now()
+	timestamp := strconv.FormatInt(t.UTC().UnixNano(), 10)
+	subm := strings.IndexByte(file, ',')
+	if subm < 0 {
+		return "", errors.New("find failed!!")
+	}
+	substr := file[:subm]
+	subb := strings.IndexByte(substr, '/')
+	sube := strings.IndexByte(substr, ';')
+	if subb < 0 || sube < 0 {
+		return "", errors.New("find fail!!")
+	}
+	fmt.Println(subb, sube, subm)
+	fSuffix := substr[subb+1 : sube]
+	value := file[subm+1:]
+	h := md5.New()
+	tempValue := value
+	tempValue += timestamp
+	h.Write([]byte(tempValue)) // 需要加密的字符串为 123456
+	cipherStr := h.Sum(nil)
+	okey := hex.EncodeToString(cipherStr)
+	//fmt.Println(okey)
+	okey += "."
+	okey += fSuffix
+	//fmt.Printf("%#v\n", okey)
+	ddd, _ := base64.StdEncoding.DecodeString(value)
+	err = bucket.PutObject(okey, bytes.NewReader(ddd))
+	if err != nil {
+		//fmt.Println(filePath)
+		return "", err
+	}
+	fmt.Println(remoteurl + okey)
+	return remoteurl + okey, nil
 }
