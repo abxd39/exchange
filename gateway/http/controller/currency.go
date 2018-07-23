@@ -1227,6 +1227,36 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 
 
 /*
+	资产明细
+*/
+func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+
+		Uid uint64 `form:"uid"   json:"uid"    binding:"required"`            //
+
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		Log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	if req.Uid == 0 {
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+
+}
+
+
+
+
+/*
 	测试rpc添加用户余额
  */
 func (this *CurrencyGroup) AddUserBalance(ctx *gin.Context) {

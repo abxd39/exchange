@@ -3,17 +3,17 @@ package log
 import (
 	"github.com/sirupsen/logrus"
 	"os"
+	cf "digicon/token_service/conf"
 
-	cf "digicon/price_service/conf"
 )
 
 var Log *logrus.Logger
 /*
 func InitLogger() {
 
-	path := cf.Cfg.MustValue("log", "log_path")
-	filename := cf.Cfg.MustValue("log", "log_path")
-	baseLogPath := fmt.Sprintf(path,filename)
+	path := cf.Cfg.MustValue("log", "log_dir")
+	filename := cf.Cfg.MustValue("log", "log_name")
+	baseLogPath := fmt.Sprintf("%s%s",path,filename)
 	writer, err := rotatelogs.New(
 		baseLogPath+".%Y%m%d%H%M",
 		rotatelogs.WithLinkName(baseLogPath),      // 生成软链，指向最新日志文件
@@ -25,7 +25,7 @@ func InitLogger() {
 	}
 
 	//log.SetFormatter(&log.TextFormatter{})
-	level := cf.Cfg.MustValue("log", "log_path")
+	level := cf.Cfg.MustValue("log", "log_level")
 	switch level  {
 
 	case "debug":
@@ -44,6 +44,10 @@ func InitLogger() {
 		setNull()
 		logrus.SetLevel(logrus.InfoLevel)
 	}
+	g:=&logrus.TextFormatter{
+		ForceColors:true,
+		DisableColors:false,
+	}
 
 	lfHook := lfshook.NewHook(lfshook.WriterMap{
 		logrus.DebugLevel: writer, // 为不同级别设置不同的输出目的
@@ -52,7 +56,7 @@ func InitLogger() {
 		logrus.ErrorLevel: writer,
 		logrus.FatalLevel: writer,
 		logrus.PanicLevel: writer,
-	})
+	},g)
 	logrus.AddHook(lfHook)
 }
 
@@ -64,8 +68,8 @@ func setNull() {
 	writer := bufio.NewWriter(src)
 	logrus.SetOutput(writer)
 }
-
 */
+
 func InitLog() {
 	Log = logrus.New()
 	s := cf.Cfg.MustValue("log", "switch")

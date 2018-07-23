@@ -11,14 +11,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	flag.Parse()
 	cf.Init()
-	InitLog()
-	Log.Infof("begin run server")
+	InitLogger()
+	//Log.Infof("begin run server")
+	log.Info("such as begin server")
+	log.Error("such as begin server")
+	return
 	dao.InitDao()
+
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	//exchange.LoadCacheQuene()
