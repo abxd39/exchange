@@ -11,6 +11,11 @@ type Mysql struct {
 	im *xorm.Engine
 }
 
+type MysqlToken struct {
+	tim *xorm.Engine
+}
+
+
 func NewMysql() (mysql *Mysql) {
 	dsource := conf.Cfg.MustValue("mysql", "conn")
 
@@ -26,13 +31,36 @@ func NewMysql() (mysql *Mysql) {
 	if err != nil {
 		Log.Fatalf("db err is %s", err)
 	}
-
 	mysql = &Mysql{
 		im: engine,
 	}
 	return mysql
 }
 
+
 func (s *Dao) GetMysqlConn() *xorm.Engine {
 	return s.mysql.im
+}
+
+
+func NewTokenMysql() (tkmysql *MysqlToken) {
+	dsource := conf.Cfg.MustValue("mysql", "token_conn")
+
+	engine, err := xorm.NewEngine("mysql", dsource)
+	if err != nil {
+		Log.Fatalf("db err is %s", err)
+	}
+	engine.ShowSQL(true)
+	err = engine.Ping()
+	if err != nil {
+		Log.Fatalf("db err is %s", err)
+	}
+	tkmysql = &MysqlToken{
+		tim: engine,
+	}
+	return tkmysql
+}
+
+func (s *Dao) GetTokenMysqlConn() *xorm.Engine {
+	return  s.tokenMysql.tim
 }

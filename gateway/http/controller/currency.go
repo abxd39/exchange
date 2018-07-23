@@ -71,9 +71,9 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
 
 		//
-		Currency.GET("/add_user_balance", this.AddUserBalance)
+		//Currency.GET("/add_user_balance", this.AddUserBalance)
 		Currency.GET("/get_user_currency_detail", this.GetUserCurrencyDetail)
-		Currency.GET("/get_user_currency", this.GetUserCurrency)
+		Currency.GET("/get_user_currency", this.GetUserCurrency)           //  获取法币账户
 
 	}
 }
@@ -1045,6 +1045,8 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 		 return
 	 }
 	 var RespUCurrencyList []RespFloatCurrency
+	 var sum float64
+	 var sumCNY float64
 	 for _,ucurrency := range uCurrencyList{
 	 	var uc RespFloatCurrency
 	 	uc.Id = ucurrency.Id
@@ -1055,11 +1057,16 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	 	uc.Balance = convert.Int64ToFloat64By8Bit(ucurrency.Balance)
 	    uc.Freeze = convert.Int64ToFloat64By8Bit(ucurrency.Freeze)
 	    uc.Valuation = convert.Int64ToFloat64By8Bit(ucurrency.Valuation)
+	    sum = sum + uc.Balance
+	    sumCNY = sumCNY + uc.Valuation
 		RespUCurrencyList = append(RespUCurrencyList, uc)
 	}
 	ret.SetDataSection("list", RespUCurrencyList)
+	ret.SetDataSection("sum",  sum)
+    ret.SetDataSection("sum_cny", sumCNY)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
  }
+
 
  func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context){
  	ret := NewPublciError()
@@ -1207,6 +1214,10 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	return
 }
 
+
+/*
+	测试rpc添加用户余额
+ */
 func (this *CurrencyGroup) AddUserBalance(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallAddUserBalance(&proto.AddUserBalanceRequest{
 		Uid:     2,
