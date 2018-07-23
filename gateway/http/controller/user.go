@@ -30,9 +30,9 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/send_sms", s.SendPhoneSMSController)
 		user.POST("/send_email", s.SendEmailController)
 		user.POST("/modify_login_pwd", TokenVerify, s.ModifyLoginPwd)
-		user.POST("/modify_phone", s.ModifyPhone1)
-		user.POST("/set_new_phone", s.ModifyPhone2)
-		user.POST("/modify_trade_pwd", s.ResetTradePwd)
+		user.POST("/modify_phone",TokenVerify, s.ModifyPhone1)
+		user.POST("/set_new_phone",TokenVerify, s.ModifyPhone2)
+		user.POST("/modify_trade_pwd",TokenVerify, s.ResetTradePwd)
 		user.GET("/get_auth_method", s.GetCheckAuthMethod)
 
 		// bind user email

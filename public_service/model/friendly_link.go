@@ -5,7 +5,6 @@ import (
 	proto "digicon/proto/rpc"
 	"digicon/public_service/dao"
 	"digicon/public_service/log"
-	"fmt"
 )
 
 type FriendlyLink struct {
@@ -50,8 +49,6 @@ func (f *FriendlyLink) GetFriendlyLinkList(req *proto.FriendlyLinkRequest, rsp *
 		req.Count = 100
 	}
 	engine := dao.DB.GetMysqlConn()
-	fmt.Println("3333333333333333333333333")
-	fmt.Println(req)
 	u := &FriendlyLink{}
 	total, err := engine.Count(u)
 	if err != nil {
@@ -69,24 +66,21 @@ func (f *FriendlyLink) GetFriendlyLinkList(req *proto.FriendlyLinkRequest, rsp *
 	}
 
 	friendlist := make([]FriendlyLink, 0)
-
 	err = engine.Limit(int(req.Count), int(limit)).Find(&friendlist)
 	if err != nil {
 		log.Log.Errorln(err.Error())
 		rsp.Code = Err.ERRCODE_UNKNOWN
 		return nil
 	}
-	fmt.Println("00000000000000000000000000")
-	fmt.Println(friendlist)
+
 	for _, frd := range friendlist {
-		ret := proto.FriendlyLinkResponseFriendlylink{
+		rsp.Friend = append(rsp.Friend, &proto.FriendlyLinkResponseFriendlylink{
 			Id:        frd.Id,
 			Aorder:    frd.Aorder,
 			WebName:   frd.WebName,
 			LinkName:  frd.LinkName,
 			LinkState: frd.LinkState,
-		}
-		rsp.Friend = append(rsp.Friend, &ret)
+		})
 	}
 	return nil
 }

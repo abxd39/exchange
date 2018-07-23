@@ -89,14 +89,12 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 
 	total_page = int(total)
 	total_page = total_page / page_num
-	fmt.Println("total=", total_page)
 	return total_page, ERRCODE_SUCCESS
 
 }
 
 func (Article) Article(Id int32, u *Article) int32 {
 	engine := dao.DB.GetMysqlConn()
-	fmt.Println("101011111", Id)
 	ok, err := engine.Where("id=?", Id).Get(u)
 	if err != nil {
 		Dlog.Log.Errorln(err.Error())

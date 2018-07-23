@@ -17,12 +17,12 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 	total, rsp.Code = new(model.Article_list).ArticleList(req, &result)
 	rsp.TotalPage = int32(total)
 	for _, value := range result {
-		ntc := proto.ArticleListResponse_Article{}
-		ntc.Id = int32(value.Id)
-		ntc.Title = value.Title
-		ntc.Description = value.Description
-		ntc.CreateDateTime = value.CreateTime
-		rsp.Article = append(rsp.Article, &ntc)
+		rsp.Article = append(rsp.Article, &proto.ArticleListResponse_Article{
+		Id : int32(value.Id),
+		Title :value.Title,
+		Description:value.Description,
+		CreateDateTime:value.CreateTime,
+		})
 
 	}
 	//fmt.Println("ArticleList 列表为", ntc)
