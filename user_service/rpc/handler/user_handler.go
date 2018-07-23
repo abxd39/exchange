@@ -97,8 +97,11 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 	referNum := int64(conf.Cfg.MustInt("register_reward", "refer_num"))
 	secReferNum := int64(conf.Cfg.MustInt("register_reward", "sec_refer_num"))
 
+	Log.WithFields(logrus.Fields{"token_id": tokenId, "my_num": myNum, "refer_num": referNum, "sec_refer_num": secReferNum}).Error("Debug1111")
+
 	// 1. 注册送20UNT
 	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, myNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d", uid)), 3)
+	Log.WithFields(logrus.Fields{"resp": resp, "err": err}).Error("Debug2222")
 	if err != nil {
 		Log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
 	}
@@ -109,6 +112,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 	if referUid != 0 {
 		// 2. 推荐一级注册送20UNT
 		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, referNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d", uid, referUid)), 4)
+		Log.WithFields(logrus.Fields{"resp": resp, "err": err}).Error("Debug3333")
 		if err != nil {
 			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
 		}
@@ -134,6 +138,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 			}
 
 			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, secReferNum, proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
+			Log.WithFields(logrus.Fields{"resp": resp, "err": err}).Error("Debug4444")
 			if err != nil {
 				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
 			}
