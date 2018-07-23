@@ -231,3 +231,53 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 
 	return nil
 }
+
+
+
+/*
+	获取用户资产明细
+ */
+
+ func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetailRequest, rsp *proto.OtherResponse) error {
+	 uCurrencyHistory := new(model.UserCurrencyHistory)
+	 uAssetDeailList ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid))
+	if err != nil {
+		Log.Errorln(err.Error())
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}
+	var uids []uint64
+	for _, ua := range uAssetDeailList{
+		uids = append(uids, uint64(ua.TradeUid))
+	}
+	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids) // rpc 获取用户信息
+	fmt.Println("nickNames:", nickNames)
+
+	userNameMap := map[uint64]string{}
+	nickUsers := nickNames.User
+	for i := 0; i < len(nickUsers); i++ {
+		userNameMap[nickUsers[i].Uid] = nickUsers[i].NickName
+	}
+
+	type NewUserCurrencyHisotry struct {
+		model.UserCurrencyHistory
+		TradeName    string    `json:"trade_name"`
+	}
+
+    var NewUAssetDetaillList []NewUserCurrencyHisotry
+	for _, ua := range uAssetDeailList{
+		var tmp NewUserCurrencyHisotry
+		tmp.TradeName = userNameMap[uint64(ua.TradeUid)]
+		tmp.Uid = ua.Uid
+		tmp.TradeUid = ua.TradeUid
+		tmp.Num  = ua.Num
+		tmp.CreatedTime  = ua.CreatedTime
+		tmp.TokenId = ua.TokenId
+		tmp.Operator = ua.Operator
+		NewUAssetDetaillList = append(NewUAssetDetaillList, tmp)
+	}
+	data, err := json.Marshal(uAssetDeailList)
+	rsp.Data = string(data)
+ 	rsp.Code = errdefine.ERRCODE_SUCCESS
+ 	return nil
+ }

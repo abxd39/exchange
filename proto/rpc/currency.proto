@@ -90,9 +90,17 @@ service CurrencyRPC {
         //  添加余额的rpc
         rpc AddUserBalance(AddUserBalanceRequest) returns (OtherResponse){};
 
+        // 获取法币资产明细
+        rpc GetAssetDetail(GetAssetDetailRequest) returns (OtherResponse) {};
+
 }
 
 ////////////////////////
+message GetAssetDetailRequest {
+    uint64  uid          = 1;
+}
+
+
 message GetTradeHistoryRequest {
     string start_time    = 1;
     string end_time      = 2;
