@@ -2,8 +2,8 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
 	. "digicon/proto/common"
+	log "github.com/sirupsen/logrus"
 )
 
 // 订单聊天
@@ -24,7 +24,7 @@ func (this *Chats) Add() int {
 	ord := new(Order)
 	isOrd, err := dao.DB.GetMysqlConn().Where("order_id=?", this.OrderId).Get(ord)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 	if !isOrd {
@@ -40,7 +40,7 @@ func (this *Chats) Add() int {
 
 	_, err = dao.DB.GetMysqlConn().Insert(this)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -52,7 +52,7 @@ func (this *Chats) List(order_id string) []Chats {
 	data := make([]Chats, 0)
 	err := dao.DB.GetMysqlConn().Where("order_id=? AND states=1", order_id).Desc("created_time").Find(&data)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 

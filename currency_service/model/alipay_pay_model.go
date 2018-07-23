@@ -6,7 +6,7 @@ import (
 	proto "digicon/proto/rpc"
 	"time"
 
-	"digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc/client"
 )
 
@@ -29,11 +29,11 @@ func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, er
 		AuthType: 9, // 设置支付宝支付 9
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	if rsp.Code != ERRCODE_SUCCESS {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 

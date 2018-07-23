@@ -154,6 +154,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 			LoginPwdLevel:  pwd_level,
 			Country:        s.Country,
 			GoogleExist:    s.authSecurityCode(AUTH_GOOGLE),
+			//NickName:       s.N
 		},
 
 		Real: &proto.UserRealData{

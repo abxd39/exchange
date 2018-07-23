@@ -33,9 +33,9 @@ func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 }
 
 func (this *CurrencyGroup) Router(r *gin.Engine) {
-	Currency := r.Group("/currency", TokenVerify)
+	//Currency := r.Group("/currency", TokenVerify)
 
-	//Currency := r.Group("/currency")
+	Currency := r.Group("/currency")
 	{
 
 		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)

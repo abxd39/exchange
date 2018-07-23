@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 // 货币类型表
@@ -25,7 +25,7 @@ func (this *Tokens) Get(id uint32, name string) *Tokens {
 	}
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 
@@ -42,7 +42,7 @@ func (this *Tokens) List() []Tokens {
 	data := make([]Tokens, 0)
 	err := dao.DB.GetMysqlConn().Find(&data)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 

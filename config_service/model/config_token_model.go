@@ -5,7 +5,7 @@ import (
 	"digicon/config_service/confjson"
 	"digicon/config_service/consulclient"
 	"digicon/config_service/dao"
-	. "digicon/config_service/log"
+	log "github.com/sirupsen/logrus"
 	"encoding/json"
 	"fmt"
 )
@@ -17,7 +17,7 @@ func (c *ConfigQuenesModel) GetAllQuenes() []confjson.ConfigQuenes {
 	t := make([]confjson.ConfigQuenes, 0)
 	err := dao.DB.GetMysqlTokenConn().Where("switch=1").Find(&t)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return t

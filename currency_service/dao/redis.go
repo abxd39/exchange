@@ -4,7 +4,7 @@ import (
 	//"github.com/go-redis/redis"
 	// "github.com/golang/glog"
 	cf "digicon/currency_service/conf"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/go-redis/redis"
 )
 
@@ -24,9 +24,9 @@ func NewRedisCli() *RedisCli {
 
 	pong, err := client.Ping().Result()
 	if err != nil {
-		Log.Fatalf("redis connect faild ")
+		log.Fatalf("redis connect faild ")
 	}
-	Log.Infoln(pong)
+	log.Infoln(pong)
 
 	return &RedisCli{
 		rcon: client,

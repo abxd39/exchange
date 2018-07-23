@@ -269,6 +269,8 @@ message UserBaseData{
     int32 need_pwd_time         =10;
     string country                =11;
     bool google_exist       =12;
+    string nick_name        = 13;        // 昵称
+    string head_sculpture   = 14;        // 头相
 }
 
 message UserRealData{

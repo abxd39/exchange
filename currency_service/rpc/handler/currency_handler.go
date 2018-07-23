@@ -57,6 +57,7 @@ func (s *RPCServer) GetAds(ctx context.Context, req *proto.AdsGetRequest, rsp *p
 func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
+	fmt.Println(req.TokenId, req.TokenName)
 
 	ads := new(model.Ads)
 	ads.Uid = req.Uid
@@ -181,8 +182,8 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 			TypeId:      data[i].TypeId,
 			TokenId:     data[i].TokenId,
 			TokenName:   data[i].TokenName,
-			Balance:     data[i].Balance,
-			Freeze:      data[i].Freeze,
+			//Balance:     data[i].Balance,
+			//Freeze:      data[i].Freeze,
 		}
 		listData[i] = adsLists
 	}
@@ -197,10 +198,12 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 
 // 获取货币类型
 func (s *RPCServer) GetCurrencyTokens(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokens) error {
+	//fmt.Println(req.Id)
 	data := new(model.Tokens).Get(req.Id, req.Name)
 	if data == nil {
 		return nil
 	}
+	//fmt.Println("data:", data)
 
 	rsp.Id = data.Id
 	rsp.Name = data.Name

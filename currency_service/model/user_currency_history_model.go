@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -35,7 +35,7 @@ func (this *UserCurrencyHistory) GetHistory(startTime, endTime string) (uhistory
 	engine := dao.DB.GetMysqlConn()
 	err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -51,7 +51,7 @@ func (this *UserCurrencyHistory) GetAssetDetail(uid int32) (uAssetDetails []User
 	engine := dao.DB.GetMysqlConn()
 	err = engine.Where("uid=?", uid).Find(&uAssetDetails)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

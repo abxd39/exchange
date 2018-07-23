@@ -1,7 +1,7 @@
 package controller
 
 import (
-	. "digicon/config_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/config_service/model"
 	. "digicon/proto/common"
 	"github.com/gin-gonic/gin"
@@ -35,7 +35,7 @@ func (this *ConfigGroup) ConfigPut(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -59,7 +59,7 @@ func (this *ConfigGroup) ConfigList(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBindQuery(&req); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}

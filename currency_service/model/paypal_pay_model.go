@@ -6,7 +6,7 @@ import (
 	proto "digicon/proto/rpc"
 	"time"
 
-	"digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc/client"
 	"fmt"
 )
@@ -28,11 +28,11 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 	})
 	fmt.Println("=========================", rsp)
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	if rsp.Code != ERRCODE_SUCCESS {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 

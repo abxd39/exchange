@@ -3,7 +3,7 @@ package model
 import (
 	. "digicon/proto/common"
 	"digicon/ws_service/dao"
-	. "digicon/ws_service/log"
+	log "github.com/sirupsen/logrus"
 	"fmt"
 )
 
@@ -25,12 +25,12 @@ func (this *Chats) Add() int {
 	ord := new(Order)
 	isOrd, err := dao.DB.GetMysqlConn().Where("order_id=?", this.OrderId).Get(ord)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		fmt.Println(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 	if !isOrd {
-		Log.Errorln(isOrd)
+		log.Errorln(isOrd)
 		//return ERRCODE_ORDER_NOTEXIST
 	}
 
@@ -44,7 +44,7 @@ func (this *Chats) Add() int {
 	_, err = dao.DB.GetMysqlConn().Insert(this)
 	if err != nil {
 		fmt.Println("insert chat error:", err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 

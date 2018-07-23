@@ -2,9 +2,10 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	//log "github.com/sirupsen/logrus"
 	. "digicon/proto/common"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 // 买卖(广告)表
@@ -37,7 +38,7 @@ func (this *Ads) Get(id uint64) *Ads {
 	data := new(Ads)
 	isdata, err := dao.DB.GetMysqlConn().Id(id).Get(data)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 
@@ -55,18 +56,18 @@ func (this *Ads) Add() int {
 	uCurrency := new(UserCurrency)
 	_, err := engine.Where("uid = ? AND token_id =?", this.Uid, this.TokenId).Get(uCurrency)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
-	if this.TypeId == 2 &&  uCurrency.Balance < int64(this.Num) {            // type_id=2  是发布出售单
-		Log.Errorln("add ads error, user currency balance lower this num!")
+	if this.TypeId == 2 && uCurrency.Balance < int64(this.Num) { // type_id=2  是发布出售单
+		log.Errorln("add ads error, user currency balance lower this num!")
 		return ERR_TOKEN_LESS
 	}
 
 	data := new(Ads)
 	_, err = engine.Where("uid=? AND token_id=? AND type_id=?", this.Uid, this.TokenId, this.TypeId).Get(data)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 	//if isdata && data.Id > 0 {                  /// 去掉 去重
@@ -76,7 +77,7 @@ func (this *Ads) Add() int {
 	_, err = engine.Insert(this)
 	if err != nil {
 		fmt.Println("ad ads error!,", err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -92,7 +93,7 @@ func (this *Ads) Update() int {
 
 	_, err := dao.DB.GetMysqlConn().Id(this.Id).Update(this)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -135,7 +136,7 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 	}
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -148,7 +149,7 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
 	total, err := dao.DB.GetMysqlConn().Where("type_id=? AND token_id=?", TypeId, TokenId).Count(new(Ads))
 	fmt.Println("total:", total)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil, 0
 	}
 	if total <= 0 {
@@ -171,7 +172,7 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
 		Find(&data)
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil, 0
 	}
 	//fmt.Println(data)
@@ -185,7 +186,7 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 
 	fmt.Println("total:", total)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil, 0
 	}
 	if total <= 0 {
@@ -198,19 +199,22 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 	}
 
 	//data := make([]AdsUserCurrencyCount, int(PageNum))
+	fmt.Println("uid:", Uid, " typeid:", TypeId)
 	data := []AdsUserCurrencyCount{}
 	err = dao.DB.GetMysqlConn().
-		Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
+		//Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
+		//Join("INNER", "user_currency","ads.uid=user_currency.uid ").
 		Where("ads.uid=? AND ads.type_id=?", Uid, TypeId).
 		Desc("updated_time").
 		Limit(int(PageNum), limit).
 		Find(&data)
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		fmt.Println(err.Error())
+		log.Errorln(err.Error())
 		return nil, 0
 	}
 
-	fmt.Println("User data:", data)
+	//fmt.Println("User data:", data)
 	return data, total
 }
