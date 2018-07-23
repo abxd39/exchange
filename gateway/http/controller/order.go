@@ -1,7 +1,7 @@
 package controller
 
 import (
-	convert "digicon/common/convert"
+	"digicon/common/convert"
 	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
@@ -399,6 +399,33 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
+
+	type UserCurrencyHistory struct {
+		Num         int64     `json:"num"           `
+		Fee         int64     `json:"fee"           `
+		CreatedTime string    `json:"created_time"  `
+	}
+	type RespUserCurrencyHistory struct {
+		Num         float64     `json:"num"           `
+		Fee         float64     `json:"fee"           `
+		CreatedTime string      `json:"created_time"  `
+	}
+	var uCurrencyHistoryList []UserCurrencyHistory
+	err = json.Unmarshal([]byte(rsp.Data), &uCurrencyHistoryList)
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	var rspCuHistory []RespUserCurrencyHistory
+	for _, v := range uCurrencyHistoryList {
+		var tmp RespUserCurrencyHistory
+		tmp.CreatedTime =  v.CreatedTime
+		tmp.Num = convert.Int64ToFloat64By8Bit(v.Num)
+		tmp.Fee = convert.Int64ToFloat64By8Bit(v.Fee)
+		rspCuHistory = append(rspCuHistory, tmp)
+	}
+	ret.SetDataSection("list", rspCuHistory)
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 
 	return

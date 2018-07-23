@@ -218,6 +218,16 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 }
 
 func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
+	uCurrencyHistory := new(model.UserCurrencyHistory)
+	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime)
+	if err != nil {
+		Log.Errorln(err.Error())
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}
+	data, err := json.Marshal(uCurrencyHistoryList)
+	rsp.Data = string(data)
+	rsp.Code = errdefine.ERRCODE_SUCCESS
 
 	return nil
 }
