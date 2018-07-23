@@ -12,7 +12,7 @@ import (
 
 	"digicon/common/ip"
 	"github.com/gin-gonic/gin"
-	"strconv"
+	"digicon/gateway/rpc/client"
 )
 
 type UserGroup struct{}
@@ -48,34 +48,40 @@ func (s *UserGroup) Router(r *gin.Engine) {
 func TokenVerify(c *gin.Context) {
 
 	ret := NewPublciError()
-	token,ok:=c.Params.Get("token")
-	if !ok {
-		ret.SetErrCode(ERRCODE_PARAM,)
-		return
+
+	param := struct {
+		Token    string `form:"token" json:"token" binding:"required"`         // token验证
+		Uid      uint64 `form:"uid" json:"uid" binding:"required"`             // 用户ID
+	}{}
+
+	if c.Request.Method=="POST" {
+		if err := c.ShouldBind(&param); err != nil {
+			Log.Errorf(err.Error())
+			ret.SetErrCode(ERRCODE_PARAM, err.Error())
+			c.JSON(http.StatusOK, ret.GetResult())
+			return
+		}
+	}else if c.Request.Method=="GET" {
+		if err := c.ShouldBindQuery(&param); err != nil {
+			Log.Errorf(err.Error())
+			ret.SetErrCode(ERRCODE_PARAM, err.Error())
+			c.JSON(http.StatusOK, ret.GetResult())
+			return
+		}
 	}
 
-	uid,ok:=c.Params.Get("uid")
-	if !ok {
-		ret.SetErrCode(ERRCODE_PARAM,)
-		return
-	}
-
-	uid_,err:=strconv.Atoi(uid)
-	if err!=nil {
-		ret.SetErrCode(ERRCODE_PARAM,)
-		return
-	}
-
-	rsp, err := rpc.InnerService.UserSevice.CallTokenVerify(uint64(uid_), token)
+	rsp, err := rpc.InnerService.UserSevice.CallTokenVerify(param.Uid, []byte(param.Token))
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
-		c.JSON(http.StatusOK, ret.GetResult())
+		c.AbortWithStatusJSON(http.StatusOK,ret.GetResult())
 		return
 	}
 	if rsp.Err == ERRCODE_SUCCESS {
 		c.Next()
 	} else {
 		ret.SetErrCode(rsp.Err, rsp.Message)
+		c.AbortWithStatusJSON(http.StatusOK,ret.GetResult())
+
 		return
 	}
 
@@ -245,7 +251,13 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection(RET_DATA, rsp.Data)
+	if rsp.Err!=ERRCODE_SUCCESS {
+		return
+	}
+	ret.SetDataSection(RET_DATA, client.LoginUserBaseData{
+		Uid:rsp.Data.Uid,
+		Token:string(rsp.Data.Token),
+	})
 }
 
 //忘记密码

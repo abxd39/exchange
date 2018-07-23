@@ -168,12 +168,21 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 func (s *RPCServer) TokenVerify(ctx context.Context, req *proto.TokenVerifyRequest, rsp *proto.TokenVerifyResponse) error {
 
 	ruo := &model.RedisOp{}
-	err, ret := ruo.GetUserToken(string(req.Token), req.Uid)
-	if err != nil {
-		rsp.Err = ret
+	token,err  := ruo.GetUserToken(req.Uid)
+	if err==redis.Nil {
+		rsp.Err = ERRCODE_TokenVerify
+		return nil
+	}else if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message=err.Error()
 		return nil
 	}
-	rsp.Err = ret
+	k:=string(req.Token)
+	if token==k {
+		rsp.Err = ERRCODE_SUCCESS
+		return nil
+	}
+	rsp.Err = ERRCODE_TokenVerify
 	return nil
 
 }

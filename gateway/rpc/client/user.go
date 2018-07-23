@@ -55,6 +55,12 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 	return
 }
 
+
+type LoginUserBaseData struct {
+	Uid   uint64 `json:"uid"`
+	Token string `json:"token"`
+}
+
 func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32, ip string) (rsp *proto.LoginResponse, err error) {
 	rsp, err = s.conn.Login(context.TODO(), &proto.LoginRequest{
 		Ukey: ukey,
@@ -66,13 +72,14 @@ func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32, ip string) (rsp *prot
 		Log.Errorln(err.Error())
 		return
 	}
+
 	return
 }
 
-func (s *UserRPCCli) CallTokenVerify(uid uint64, token string) (rsp *proto.TokenVerifyResponse, err error) {
+func (s *UserRPCCli) CallTokenVerify(uid uint64, token []byte) (rsp *proto.TokenVerifyResponse, err error) {
 	rsp, err = s.conn.TokenVerify(context.TODO(), &proto.TokenVerifyRequest{
 		Uid:   uid,
-		Token: []byte(token),
+		Token: token,
 	})
 	if err != nil {
 		Log.Errorln(err.Error())

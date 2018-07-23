@@ -94,6 +94,7 @@ func init() {
 	message[ERRCODE_SUCCESS] = "成功"
 	message[ERRCODE_UNKNOWN] = "未知错误"
 	message[ERRCODE_PARAM] = "参数错误"
+	message[ERRCODE_TokenVerify] = "令牌失效"
 
 	message[ERRCODE_ACCOUNT_EXIST] = "账户已经存在"
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"
