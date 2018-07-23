@@ -20,6 +20,18 @@ import (
 
 type CurrencyGroup struct{}
 
+
+
+func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
+	NCurrency := r.Group("/currency")
+	{
+		NCurrency.GET("/tokens", this.GetTokens)                     // 获取货币类型
+		NCurrency.GET("/otc_list", this.AdsList)                     // 法币交易列表 - (广告(买卖))
+		NCurrency.GET("/otc_user_list", this.AdsUserList)            // 个人法币交易列表 - (广告(买卖))
+	}
+}
+
+
 func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency",TokenVerify)
 	{
@@ -27,9 +39,8 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.POST("/created_otc", this.AddAds)                  // 新增广告(买卖)
 		Currency.POST("/updated_otc", this.UpdatedAds)              // 修改广告(买卖)
 		Currency.POST("/updated_otc_status", this.UpdatedAdsStatus) // 修改广告(买卖)状态
-		Currency.GET("/otc_list", this.AdsList)                     // 法币交易列表 - (广告(买卖))
-		Currency.GET("/otc_user_list", this.AdsUserList)            // 个人法币交易列表 - (广告(买卖))
-		Currency.GET("/tokens", this.GetTokens)                     // 获取货币类型
+
+
 		Currency.GET("/tokens_list", this.GetTokensList)            // 获取货币类型列表
 		Currency.GET("/pays", this.GetPays)                         // 获取支付方式
 		Currency.GET("/pays_list", this.GetPaysList)                // 获取支付方式列表
