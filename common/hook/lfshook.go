@@ -49,10 +49,10 @@ type LfsHook struct {
 func NewHook(output interface{}, formatter logrus.Formatter) *LfsHook {
 	hook := &LfsHook{
 		lock: new(sync.Mutex),
-		Field:  "source",
+		Field:  "line",
 		Skip:   5,
 		Formatter: func(file, function string, line int) string {
-			return fmt.Sprintf("%s:%d", file, line)
+			return fmt.Sprintf("[%s:%d]", file, line)
 		},
 	}
 
