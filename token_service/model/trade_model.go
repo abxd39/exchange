@@ -1,6 +1,7 @@
 package model
 
 import (
+	"digicon/common/model"
 	. "digicon/token_service/dao"
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
@@ -47,7 +48,7 @@ func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
 	return
 }
 
-func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*ModelList, []*Trade, error) {
+func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*model.ModelList, []*Trade, error) {
 	engine := DB.GetMysqlConn()
 
 	query := engine.Where("uid=?", uid).Desc("deal_time")
@@ -59,7 +60,7 @@ func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*ModelLis
 	}
 
 	// 获取分页
-	offset, modelList := Paging(pageIndex, pageSize, int(count))
+	offset, modelList := model.Paging(pageIndex, pageSize, int(count))
 
 	var list []*Trade
 	err = query.Select("*").Limit(modelList.PageSize, offset).Find(&list)
