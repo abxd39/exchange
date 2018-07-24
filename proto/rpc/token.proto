@@ -254,10 +254,11 @@ message TokenTradeListResponse{
             int64 deal_time     =6;
         }
 
-        int32 page                =1;
-        int32 page_num            =2;
-        int32 total_page          =3;
-        repeated Detail items    =4;
+        int32 page_index           =1;
+        int32 page_size            =2;
+        int32 total_page           =3;
+        int32 total                =4;
+        repeated Detail items      =5;
     }
 
     int32 err                             =1;

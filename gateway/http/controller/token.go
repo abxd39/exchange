@@ -305,11 +305,49 @@ func (s *TokenGroup) TokenTradeList(c *gin.Context) {
 		Page:    param.Page,
 		PageNum: param.PageNum,
 	})
-
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
+
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list", rsp.Data)
+
+	// 重组data
+	type item struct {
+		TradeId   int32  `json:"trade_id"`
+		TokenName string `json:"token_name"`
+		Opt       int32  `json:"opt"`
+		Num       string `json:"num"`
+		Fee       string `json:"fee"`
+		DealTime  int64  `json:"deal_time"`
+	}
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*item `json:"items"`
+	}
+
+	newItems := make([]*item, rsp.Data.Total)
+	for k, v := range rsp.Data.Items {
+		newItems[k] = &item{
+			TradeId:   v.TradeId,
+			TokenName: v.TokenName,
+			Opt:       v.Opt,
+			Num:       convert.Int64ToStringBy8Bit(v.Num),
+			Fee:       convert.Int64ToStringBy8Bit(v.Fee),
+			DealTime:  v.DealTime,
+		}
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     newItems,
+	}
+
+	ret.SetDataSection("list", newList)
 }

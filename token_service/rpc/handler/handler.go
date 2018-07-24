@@ -304,9 +304,10 @@ func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeLis
 	rsp.Data = new(proto.TokenTradeListResponse_Data)
 	rsp.Data.Items = make([]*proto.TokenTradeListResponse_Data_Detail, 0)
 
-	rsp.Data.Page = int32(modelList.PageIndex)
-	rsp.Data.PageNum = int32(modelList.PageSize)
+	rsp.Data.PageIndex = int32(modelList.PageIndex)
+	rsp.Data.PageSize = int32(modelList.PageSize)
 	rsp.Data.TotalPage = int32(modelList.PageCount)
+	rsp.Data.Total = int32(modelList.Total)
 
 	for _, v := range list {
 		rsp.Data.Items = append(rsp.Data.Items, &proto.TokenTradeListResponse_Data_Detail{
