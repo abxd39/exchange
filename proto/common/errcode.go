@@ -45,10 +45,10 @@ const (
 	ERRCODE_INVITE          = 222
 
 	ERRCODE_EMAIL_EXIST = 223
-<<<<<<< HEAD
+
 	ERRCODE_UOPLOA_FAILED =224
-=======
->>>>>>> 92bebcacafefb610ecaf7f8386718ee760da31f7
+
+
 	//300-
 
 	ERRCODE_ADS_NOTEXIST      = 301

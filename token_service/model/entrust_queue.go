@@ -1112,6 +1112,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 			}).Errorln("print data")
 			return
 		}
+		godump.Dump(string(b))
 		g := &EntrustData{}
 		err = json.Unmarshal(b, g)
 		if err != nil {
