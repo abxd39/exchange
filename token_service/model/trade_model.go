@@ -1,6 +1,9 @@
 package model
 
-import "github.com/go-xorm/xorm"
+import (
+	"github.com/go-xorm/xorm"
+	log "github.com/sirupsen/logrus"
+)
 
 const (
 	TRADE_STATES_PART = 1 //部分成交
@@ -25,6 +28,20 @@ type Trade struct {
 }
 
 func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
+	defer func() {
+		if err != nil {
+			for _, v := range t {
+				log.WithFields(log.Fields{
+					"uid":      v.Uid,
+					"opt":      v.Opt,
+					"token_id": v.TokenId,
+					"price":    v.Price,
+					"fee":      v.Fee,
+					"trade_no": v.TradeNo,
+				}).Errorf("inset  money record error %s", err.Error())
+			}
+		}
+	}()
 	_, err = session.Insert(t)
 	return
 }

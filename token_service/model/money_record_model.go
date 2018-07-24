@@ -2,8 +2,8 @@ package model
 
 import (
 	. "digicon/token_service/dao"
-	log "github.com/sirupsen/logrus"
 	"github.com/go-xorm/xorm"
+	log "github.com/sirupsen/logrus"
 )
 
 const (

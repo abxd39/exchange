@@ -3,9 +3,9 @@ package model
 import (
 	proto "digicon/proto/rpc"
 	///. "digicon/token_service/dao"
-	log "github.com/sirupsen/logrus"
 	"github.com/go-xorm/xorm"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 import (

@@ -7,7 +7,6 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
-	log "github.com/sirupsen/logrus"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +15,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"sync/atomic"
 	"time"
 )
@@ -217,6 +217,18 @@ func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 
 //委托请求检查
 func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"type":     p.Type,
+				"uid":      p.Uid,
+				"symbol":   p.Symbol,
+				"opt":      p.Opt,
+				"on_price": p.OnPrice,
+				"num":      p.Num,
+			}).Errorf("EntrustReq error %s", err.Error())
+		}
+	}()
 	g := &EntrustDetail{
 		EntrustId:  genkey.GetTimeUnionKey(s.GetUUID()),
 		TokenId:    s.TokenTradeId,
@@ -263,7 +275,6 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	//记录委托
 	err = g.Insert(session)
 	if err != nil {
-		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
@@ -279,14 +290,12 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		Surplus: m.Balance,
 	})
 	if err != nil {
-		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
 
 	err = session.Commit()
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -305,7 +314,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 }
 
 //开始交易加入举例买入USDT-》BTC  ，卖出USDT-》BTC  ,deal_num 卖方实际消耗BTC数量
-func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, buy_num ,deal_num int64) (err error) {
+func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, buy_num, deal_num int64) (err error) {
 	//var ret int32
 	if buyer.Opt != proto.ENTRUST_OPT_BUY {
 		return errors.New("wrong type")
@@ -357,7 +366,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		DealTime:     trade_time,
 		Opt:          int(proto.ENTRUST_OPT_BUY),
 		TokenName:    s.TokenQueueId,
-		
 	}
 
 	sell_fee := deal_num * 5 / 1000
@@ -374,15 +382,15 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		TokenName:    s.TokenQueueId,
 	}
 
-	var buy_surplus ,sell_surplus int64
+	var buy_surplus, sell_surplus int64
 	if seller.SurplusNum < deal_num { //卖方部分成交
 		t.States = TRADE_STATES_PART
 		o.States = TRADE_STATES_ALL
-		buy_surplus=buyer.SurplusNum-buy_num
-		sell_surplus=seller.SurplusNum-deal_num
+		buy_surplus = buyer.SurplusNum - buy_num
+		sell_surplus = seller.SurplusNum - deal_num
 		/*
-		buyer.SurplusNum -= num
-		seller.SurplusNum -= deal_num
+			buyer.SurplusNum -= num
+			seller.SurplusNum -= deal_num
 		*/
 	} else if seller.SurplusNum == deal_num && buyer.SurplusNum == buy_num {
 		t.States = TRADE_STATES_ALL
@@ -391,11 +399,11 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		t.States = TRADE_STATES_ALL
 		o.States = TRADE_STATES_PART
 
-		buy_surplus=buyer.SurplusNum-buy_num
-		sell_surplus=seller.SurplusNum-deal_num
+		buy_surplus = buyer.SurplusNum - buy_num
+		sell_surplus = seller.SurplusNum - deal_num
 		/*
-		seller.SurplusNum -= deal_num
-		buyer.SurplusNum -= num
+			seller.SurplusNum -= deal_num
+			buyer.SurplusNum -= num
 		*/
 	}
 
@@ -487,7 +495,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	err = new(EntrustDetail).UpdateStates(session, seller.EntrustId, o.States,sell_surplus)
+	err = new(EntrustDetail).UpdateStates(session, seller.EntrustId, o.States, sell_surplus)
 	if err != nil {
 		session.Rollback()
 		log.Errorln(err.Error())
@@ -586,8 +594,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			}
 
 			if num > other.SurplusNum { //存在对手单则成交
-				buy_num:=convert.Int64MulInt64By8Bit(other.SurplusNum, price)
-				err = s.MakeDeal(p, other, price, buy_num,other.SurplusNum)
+				buy_num := convert.Int64MulInt64By8Bit(other.SurplusNum, price)
+				err = s.MakeDeal(p, other, price, buy_num, other.SurplusNum)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -601,13 +609,13 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				}
 
 				s.SetTradeInfo(price, other.SurplusNum)
-				other.SurplusNum-=other.SurplusNum
-				p.SurplusNum-=buy_num
+				other.SurplusNum -= other.SurplusNum
+				p.SurplusNum -= buy_num
 				s.match(p)
 
 			} else if num == other.SurplusNum {
-				buy_num:=convert.Int64MulInt64By8Bit(num, price)
-				err = s.MakeDeal(p, other, price, buy_num,num)
+				buy_num := convert.Int64MulInt64By8Bit(num, price)
+				err = s.MakeDeal(p, other, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -620,8 +628,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 			} else {
-				buy_num:=convert.Int64MulInt64By8Bit(num, price)
-				err = s.MakeDeal(p, other, price,buy_num, num)
+				buy_num := convert.Int64MulInt64By8Bit(num, price)
+				err = s.MakeDeal(p, other, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -634,8 +642,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, num)
-				other.SurplusNum-=other.SurplusNum
-				p.SurplusNum-=buy_num
+				other.SurplusNum -= other.SurplusNum
+				p.SurplusNum -= buy_num
 				s.match(other)
 			}
 			return
@@ -667,8 +675,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 
 			if num > other.SurplusNum {
 
-				buy_num:=convert.Int64MulInt64By8Bit(other.SurplusNum, price)
-				err = s.MakeDeal(p, other, price,buy_num, other.SurplusNum)
+				buy_num := convert.Int64MulInt64By8Bit(other.SurplusNum, price)
+				err = s.MakeDeal(p, other, price, buy_num, other.SurplusNum)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -681,13 +689,13 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, other.SurplusNum)
-				other.SurplusNum-=other.SurplusNum
-				p.SurplusNum-=buy_num
+				other.SurplusNum -= other.SurplusNum
+				p.SurplusNum -= buy_num
 				s.match(p)
 
 			} else if num == other.SurplusNum {
-				buy_num:=convert.Int64MulInt64By8Bit(other.SurplusNum, price)
-				err = s.MakeDeal(p, other, price, buy_num,num)
+				buy_num := convert.Int64MulInt64By8Bit(other.SurplusNum, price)
+				err = s.MakeDeal(p, other, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -701,8 +709,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				}
 				s.SetTradeInfo(price, num)
 			} else {
-				buy_num:=convert.Int64MulInt64By8Bit(other.SurplusNum, price)
-				err = s.MakeDeal(p, other, price,buy_num, num)
+				buy_num := convert.Int64MulInt64By8Bit(other.SurplusNum, price)
+				err = s.MakeDeal(p, other, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -715,8 +723,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, num)
-				other.SurplusNum-=other.SurplusNum
-				p.SurplusNum-=buy_num
+				other.SurplusNum -= other.SurplusNum
+				p.SurplusNum -= buy_num
 				s.joinSellQuene(other)
 			}
 			return
@@ -786,8 +794,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			//num := convert.Int64DivInt64By8Bit(other.SurplusNum, other.OnPrice) //买房愿意用花的USDT比例兑换BTC的数量
 			if num > p.SurplusNum { //存在限价则成交
 
-				buy_num:=convert.Int64MulInt64By8Bit(p.SurplusNum, price)
-				err = s.MakeDeal(other, p, price,buy_num,p.SurplusNum)
+				buy_num := convert.Int64MulInt64By8Bit(p.SurplusNum, price)
+				err = s.MakeDeal(other, p, price, buy_num, p.SurplusNum)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -800,13 +808,13 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, p.SurplusNum)
-				other.SurplusNum-=buy_num
-				p.SurplusNum-=p.SurplusNum
+				other.SurplusNum -= buy_num
+				p.SurplusNum -= p.SurplusNum
 				s.match(other)
 
 			} else if num == p.SurplusNum {
-				buy_num:=convert.Int64MulInt64By8Bit(p.SurplusNum, price)
-				err = s.MakeDeal(other, p, price,buy_num ,num)
+				buy_num := convert.Int64MulInt64By8Bit(p.SurplusNum, price)
+				err = s.MakeDeal(other, p, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -819,11 +827,11 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, num)
-				other.SurplusNum-=buy_num
-				p.SurplusNum-=p.SurplusNum
+				other.SurplusNum -= buy_num
+				p.SurplusNum -= p.SurplusNum
 			} else {
-				buy_num:=convert.Int64MulInt64By8Bit(p.SurplusNum, price)
-				err = s.MakeDeal(other, p, price,buy_num, num)
+				buy_num := convert.Int64MulInt64By8Bit(p.SurplusNum, price)
+				err = s.MakeDeal(other, p, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -836,8 +844,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, num)
-				other.SurplusNum-=buy_num
-				p.SurplusNum-=p.SurplusNum
+				other.SurplusNum -= buy_num
+				p.SurplusNum -= p.SurplusNum
 				s.match(p)
 			}
 			return
@@ -881,8 +889,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 
 			if num > p.SurplusNum {
 
-				buy_num:=convert.Int64MulInt64By8Bit(p.SurplusNum, price)
-				err = s.MakeDeal(other, p, price,buy_num, p.SurplusNum)
+				buy_num := convert.Int64MulInt64By8Bit(p.SurplusNum, price)
+				err = s.MakeDeal(other, p, price, buy_num, p.SurplusNum)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -895,13 +903,13 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, p.SurplusNum)
-				other.SurplusNum-=buy_num
-				p.SurplusNum-=p.SurplusNum
+				other.SurplusNum -= buy_num
+				p.SurplusNum -= p.SurplusNum
 				s.match(other)
 
 			} else if num == p.SurplusNum {
-				buy_num:=convert.Int64MulInt64By8Bit(num, price)
-				err = s.MakeDeal(other, p, price, buy_num,num)
+				buy_num := convert.Int64MulInt64By8Bit(num, price)
+				err = s.MakeDeal(other, p, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -916,8 +924,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				s.SetTradeInfo(price, num)
 
 			} else {
-				buy_num:=convert.Int64MulInt64By8Bit(num, price)
-				err = s.MakeDeal(other, p, price,buy_num, num)
+				buy_num := convert.Int64MulInt64By8Bit(num, price)
+				err = s.MakeDeal(other, p, price, buy_num, num)
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
@@ -930,8 +938,8 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 				s.SetTradeInfo(price, num)
-				other.SurplusNum-=buy_num
-				p.SurplusNum-=p.SurplusNum
+				other.SurplusNum -= buy_num
+				p.SurplusNum -= p.SurplusNum
 				s.match(p)
 			}
 			return

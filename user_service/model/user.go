@@ -248,14 +248,13 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	var sql string
 	if filed == "phone" {
 		chmod = AUTH_PHONE
-
 		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
 
 	} else if filed == "email" {
 		chmod = AUTH_EMAIL
 		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Ukey, chmod)
 	} else {
-		log.Fatalf("register error filed %s", filed)
+		log.Errorln("register error filed %s", filed)
 	}
 
 	//sql := fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
