@@ -4,7 +4,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	log "github.com/sirupsen/logrus"
 	"fmt"
 )
 
@@ -27,7 +27,7 @@ func (s *UserEx) TableName() string {
 func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -47,7 +47,7 @@ func (ex *UserEx) GetNickName(req *proto.UserGetNickNameRequest, rsp *proto.User
 	uex := make([]UserEx, 0)
 	err = engine.In("uid", req.Uid).Find(&uex)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}

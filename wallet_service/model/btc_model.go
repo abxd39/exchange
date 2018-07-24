@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 // 创建btc 钱包
@@ -25,7 +26,7 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 	err = BtcWalletPhrase(url, password, 1*60*60)
 	if err != nil {
 		msg := "钱包解锁失败!"
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		fmt.Println(msg)
 		return
 	}
@@ -33,7 +34,7 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 	address, err := BtcGetNewAddress(url, string(userId))
 	if err != nil {
 		msg := "生成地址错误!"
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		fmt.Println(msg)
 		return
 	}
@@ -41,7 +42,7 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 	privateKey, err := BtcDumpPrivKey(url, address)
 	if err != nil {
 		msg := "获取地址私钥错误"
-		Log.Errorln("获取地址", address, "私钥错误!")
+		log.Errorln("获取地址", address, "私钥错误!")
 		fmt.Println(msg)
 		return
 	}
@@ -88,7 +89,7 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (s
 
 	if err != nil {
 		msg := "钱包解锁失败!"
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		fmt.Println(msg)
 		return "", nil
 	}
@@ -97,14 +98,14 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (s
 	if !enough {
 		msg := "balance not enough!"
 		err = errors.New(msg)
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		return "", err
 	}
 	//fmt.Println("btc send before ...")
 	txHash, err := BtcSendToAddressFunc(url, toAddress, mount)
 	if err != nil {
 		fmt.Println(err.Error())
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		return "", err
 	}
 	amount, err := convert.StringToInt64By8Bit(mount)
@@ -117,7 +118,7 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (s
 	)
 
 	if err != nil || row <= 0 {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		fmt.Println(err.Error())
 	}
 

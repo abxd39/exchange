@@ -117,6 +117,7 @@ func (hook *LfsHook) SetDefaultWriter(defaultWriter io.Writer) {
 func (hook *LfsHook) Fire(entry *logrus.Entry) error {
 
 	entry.Data[hook.Field] = hook.Formatter(findCaller(hook.Skip))
+	//entry.Message= hook.Formatter(findCaller(hook.Skip))
 	if hook.writers != nil || hook.hasDefaultWriter {
 		return hook.ioWrite(entry)
 	} else if hook.paths != nil || hook.hasDefaultPath {

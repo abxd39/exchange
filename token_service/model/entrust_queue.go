@@ -308,7 +308,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, buy_num ,deal_num int64) (err error) {
 	//var ret int32
 	if buyer.Opt != proto.ENTRUST_OPT_BUY {
-		log.Fatalln("wrong type")
+		return errors.New("wrong type")
 	}
 
 	buy_token_account := &UserToken{} //买方主账户余额 USDT

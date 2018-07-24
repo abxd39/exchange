@@ -1,0 +1,2 @@
+time="2018-07-23T23:11:39-04:00" level=info msg="begin run server" line="[kline_service/kline.go:27]"
+time="2018-07-23T23:11:40-04:00" level=info msg="server close by sig interrupt" line="[kline_service/kline.go:39]"

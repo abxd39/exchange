@@ -1,7 +1,8 @@
 package controller
 
 import (
-	"digicon/gateway/log"
+	//"digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	Err "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -45,7 +46,7 @@ func (cm *ContentManageGroup) AddFriendlyLink(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -56,7 +57,7 @@ func (cm *ContentManageGroup) AddFriendlyLink(c *gin.Context) {
 		LinkState: req.LinkState,
 	})
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -76,7 +77,7 @@ func (cm *ContentManageGroup) GetFriendlyLink(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -84,7 +85,7 @@ func (cm *ContentManageGroup) GetFriendlyLink(c *gin.Context) {
 	fmt.Println(req)
 	rsp, err := rpc.InnerService.PublicService.CallGetFriendlyLink(&proto.FriendlyLinkRequest{})
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -102,7 +103,7 @@ func (cm *ContentManageGroup) GetBannerList(c *gin.Context) {
 	rsp, err := rpc.InnerService.PublicService.CallGetBannerList(&proto.BannerRequest{})
 	if err != nil {
 		fmt.Println("cccccccccccccccccccccccccccccc")
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}

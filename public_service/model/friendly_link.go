@@ -4,7 +4,8 @@ import (
 	Err "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/public_service/dao"
-	"digicon/public_service/log"
+	//"digicon/public_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type FriendlyLink struct {
@@ -25,12 +26,12 @@ func (f *FriendlyLink) Add(req *proto.AddFriendlyLinkRequest, rsp *proto.AddFrie
 	}
 	result, err := engine.Insert(flink)
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Code = Err.ERRCODE_UNKNOWN
 		return nil
 	}
 	if result == 0 {
-		log.Log.Errorf("friendly link insert fail!!")
+		log.Errorf("friendly link insert fail!!")
 		rsp.Code = Err.ERRCODE_UNKNOWN
 		return nil
 	}
@@ -52,7 +53,7 @@ func (f *FriendlyLink) GetFriendlyLinkList(req *proto.FriendlyLinkRequest, rsp *
 	u := &FriendlyLink{}
 	total, err := engine.Count(u)
 	if err != nil {
-		log.Log.Errorln("统计所有记录失败")
+		log.Errorln("统计所有记录失败")
 		rsp.Code = Err.ERRCODE_UNKNOWN
 		return nil
 	}
@@ -68,7 +69,7 @@ func (f *FriendlyLink) GetFriendlyLinkList(req *proto.FriendlyLinkRequest, rsp *
 	friendlist := make([]FriendlyLink, 0)
 	err = engine.Limit(int(req.Count), int(limit)).Find(&friendlist)
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Code = Err.ERRCODE_UNKNOWN
 		return nil
 	}

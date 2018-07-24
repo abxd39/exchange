@@ -1,0 +1,2 @@
+time="2018-07-23T23:08:31-04:00" level=info msg="Router func" line="[controller/articles.go:20]"
+time="2018-07-23T23:08:43-04:00" level=info msg="server close by sig interrupt" line="[gateway/gateway.go:38]"

@@ -3,7 +3,7 @@ package controller
 
 import (
 	"digicon/common/check"
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -65,21 +65,21 @@ func TokenVerify(c *gin.Context) {
 
 	if c.Request.Method == "POST" {
 		if err := c.ShouldBind(&param); err != nil {
-			Log.Errorf(err.Error())
+			log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
 			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
 		}
 	} else if c.Request.Method == "GET" {
 		if err := c.ShouldBindQuery(&param); err != nil {
-			Log.Errorf(err.Error())
+			log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
 			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
 		}
 	} else {
 		if err := c.ShouldBind(&param); err != nil {
-			Log.Errorf(err.Error())
+			log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_PARAM, err.Error())
 			c.AbortWithStatusJSON(http.StatusOK, ret.GetResult())
 			return
@@ -122,7 +122,7 @@ func (s *UserGroup) RegisterController(c *gin.Context) {
 
 	var param RegisterParam
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -187,7 +187,7 @@ func (s *UserGroup) RegisterPhoneController(c *gin.Context) {
 
 	var param RegisterByPhoneParam
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -223,7 +223,7 @@ func (s *UserGroup) RegisterEmailController(c *gin.Context) {
 
 	var param RegisterByEmailParam
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -256,7 +256,7 @@ func (s *UserGroup) LoginController(c *gin.Context) {
 	var param LoginParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -292,7 +292,7 @@ func (s *UserGroup) ForgetPwdController(c *gin.Context) {
 
 	var param ForgetPwdParam
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -320,7 +320,7 @@ func (s *UserGroup) AuthSecurityController(c *gin.Context) {
 
 	var param AuthSecurityParam
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -348,7 +348,7 @@ func (s *UserGroup) SendPhoneSMSController(c *gin.Context) {
 
 	var param PhoneParam
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -376,7 +376,7 @@ func (s *UserGroup) ChangePwdcontroller(c *gin.Context) {
 
 	var param ChangePwdParam
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -397,7 +397,7 @@ func (s *UserGroup) SendEmailController(c *gin.Context) {
 
 	var param EamilParam
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -431,7 +431,7 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 		Verify     string `form:"verify" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -444,7 +444,7 @@ func (s *UserGroup) ModifyLoginPwd(c *gin.Context) {
 		Verify:     req.Verify,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -464,7 +464,7 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -477,7 +477,7 @@ func (s *UserGroup) ModifyPhone1(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -500,7 +500,7 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -513,7 +513,7 @@ func (s *UserGroup) ModifyPhone2(c *gin.Context) {
 		Verify:  req.Verify,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -535,7 +535,7 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -547,7 +547,7 @@ func (s *UserGroup) ResetTradePwd(c *gin.Context) {
 		Verify:     req.Verify,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -567,18 +567,18 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 		Url      string `form:"file" json:"file" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 	url,err:=s.upload_picture(req.Url)
 	if err!=nil{
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
 		return
 	}
 	if url==``{
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
 		return
 	}
@@ -589,7 +589,7 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 		HeadSculpture: url,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -607,7 +607,7 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 		Type int32  `form:"type" binding:"required"`
 	}{}
 	if err := c.ShouldBindQuery(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -616,7 +616,7 @@ func (s *UserGroup) GetCheckAuthMethod(c *gin.Context) {
 		Type: req.Type,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -643,7 +643,7 @@ func (s *UserGroup) BindUserEmail(c *gin.Context) {
 
 	if err := c.ShouldBind(&req); err != nil {
 		fmt.Println("bind error:", err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -656,7 +656,7 @@ func (s *UserGroup) BindUserEmail(c *gin.Context) {
 		VerifyType: req.VerifyType,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -682,7 +682,7 @@ func (s *UserGroup) BindUserPhone(c *gin.Context) {
 		VerifyType uint64 `form:"verify_type"  json:"verify_type"  binding:"required"` // 验证类型 ( 1邮箱验证, 2谷歌验证 )
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -694,7 +694,7 @@ func (s *UserGroup) BindUserPhone(c *gin.Context) {
 		VerifyType: req.VerifyType,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -716,7 +716,7 @@ func (s *UserGroup) UnBindUserEmail(c *gin.Context) {
 		//Uid :=
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -736,7 +736,7 @@ func (s *UserGroup) UnBindUserPhone(c *gin.Context) {
 		//
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}

@@ -5,7 +5,7 @@
 import os 
 import sys 
 
-services = ["gateway", "user_service", "wallet_service", "ws_service", "config_service", "kline_service", "price_service"]
+services = ["gateway", "user_service", "wallet_service", "ws_service", "config_service", "kline_service", "price_service", "token_service", "wallet_service"]
 
 
 def alter(file,old_str,new_str):

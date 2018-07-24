@@ -3,12 +3,25 @@ package main
 import (
 	"digicon/wallet_service/rpc"
 	_ "digicon/wallet_service/rpc/client"
-	. "digicon/wallet_service/utils"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
+	log "github.com/sirupsen/logrus"
+	//cf "digicon/currency_service/conf"
+	cf "digicon/wallet_service/utils"
+	"digicon/common/xlog"
 )
+
+func init()  {
+	//cf.Init()
+	path := cf.Cfg.MustValue("log", "log_dir")
+	name := cf.Cfg.MustValue("log", "log_name")
+	level := cf.Cfg.MustValue("log", "log_level")
+	xlog.InitLogger(path,name,level)
+}
+
+
 
 func main() {
 	flag.Parse()
@@ -26,5 +39,5 @@ func main() {
 
 	sig := <-quitChan
 
-	Log.Infof("server close by sig %s", sig.String())
+	log.Infof("server close by sig %s", sig.String())
 }

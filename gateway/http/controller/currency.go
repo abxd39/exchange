@@ -2,7 +2,7 @@ package controller
 
 import (
 	"digicon/common/convert"
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -134,7 +134,7 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -211,7 +211,7 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -354,7 +354,7 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -428,7 +428,7 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -457,7 +457,7 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -474,7 +474,7 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -536,7 +536,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -575,7 +575,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 
 	if err != nil {
 		fmt.Println("rpc error:", err)
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -625,7 +625,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameRequest{Uid: userList})
 		if err != nil {
 			fmt.Println("get user name error!", err.Error())
-			Log.Errorf(err.Error())
+			log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 			return
 		}
@@ -669,7 +669,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -695,7 +695,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -744,7 +744,7 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -760,7 +760,7 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -787,7 +787,7 @@ func (this *CurrencyGroup) GetTokensList(c *gin.Context) {
 	data, err := rpc.InnerService.CurrencyService.CallCurrencyTokensList(&proto.CurrencyTokensRequest{})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -811,7 +811,7 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -827,7 +827,7 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -854,7 +854,7 @@ func (this *CurrencyGroup) GetPaysList(c *gin.Context) {
 	data, err := rpc.InnerService.CurrencyService.CallCurrencyPaysList(&proto.CurrencyPaysRequest{})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -881,7 +881,7 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -902,7 +902,7 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -931,7 +931,7 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -947,7 +947,7 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -970,7 +970,7 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -985,7 +985,7 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 		TokenId: req.TokenId,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -1012,7 +1012,7 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -1021,7 +1021,7 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 		Uid: req.Uid,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -1053,7 +1053,7 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	}
 	var uCurrencyList []RespIntCurrency
 	if err = json.Unmarshal([]byte(rsp.Data), &uCurrencyList); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -1092,7 +1092,7 @@ func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -1127,7 +1127,7 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -1142,7 +1142,7 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 		TokenId: req.TokenId,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -1165,7 +1165,7 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -1178,7 +1178,7 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		Uid: req.Uid,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -1238,7 +1238,7 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -1250,7 +1250,7 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		Uid: req.Uid,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -1276,7 +1276,7 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 	var NewList []OldUserCurrencyHisotry
 	err = json.Unmarshal([]byte(rsp.Data) , &NewList)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
