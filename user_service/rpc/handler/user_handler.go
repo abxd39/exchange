@@ -519,6 +519,15 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 		rsp.Code = code
 		return err
 	}
+
+	extu := new(model.UserEx)
+	excode, err := extu.GetUserEx(req.Uid)
+	if err != nil {
+		rsp.Code = excode
+		rsp.Data = ""
+		return err
+	}
+
 	//fmt.Println("uid:", req.Uid)
 	securityCode := u.SecurityAuth
 
@@ -527,6 +536,8 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 		PhoneAuth    int32 `json:"phone_auth"`     //
 		RealName     int32 `json:"real_name"`      //
 		TwoLevelAuth int32 `json:"two_level_auth"` //
+		NickName     string `json:"nick_name"`
+		CreatedTime  string `json:"created_time"`
 	}
 	authInfo := new(AuthInfo)
 	if securityCode-(securityCode^constant.AUTH_PHONE) == constant.AUTH_PHONE {
@@ -541,6 +552,9 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 	if securityCode-(securityCode^constant.AUTH_FIRST) == constant.AUTH_FIRST {
 		authInfo.RealName = 1
 	}
+	timeLayout := "2006-01-02 15:04:05"
+	authInfo.NickName = extu.NickName
+	authInfo.CreatedTime =  time.Unix(extu.RegisterTime, 0).Format(timeLayout)
 	data, err := json.Marshal(authInfo)
 	if err != nil {
 		fmt.Println(err.Error())
