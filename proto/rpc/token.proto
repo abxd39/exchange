@@ -217,6 +217,7 @@ message TokenBalanceResponse{
 message TokenBalanceListRequest{
     uint64 uid                      =1;
     bool no_zero                 =2;
+    int32 token_id               =3;
 }
 
 message TokenListBaseData{

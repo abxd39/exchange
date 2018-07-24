@@ -4,7 +4,7 @@ package exchange
 import (
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
 )
@@ -18,7 +18,7 @@ func LoadSymbol(token_id int32) (err error) {
 	d := make([]model.QuenesConfig, 0)
 	err = DB.GetMysqlConn().Where("switch=", 1).Find(&d)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -30,7 +30,7 @@ func LoadSymbol(token_id int32) (err error) {
 
 	h, err := rpc.InnerService.PublicSevice.CallGetTokensList(ids)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
 	}
 

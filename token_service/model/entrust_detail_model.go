@@ -3,7 +3,7 @@ package model
 import (
 	proto "digicon/proto/rpc"
 	///. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/go-xorm/xorm"
 	"github.com/sirupsen/logrus"
 )
@@ -43,7 +43,7 @@ type EntrustDetail struct {
 func (s *EntrustDetail) Insert(sess *xorm.Session) error {
 	_, err := sess.Insert(s)
 	if err != nil {
-		Log.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"entrust_id":  s.EntrustId,
 			"uid":         s.Uid,
 			"all_num":     s.AllNum,
@@ -64,7 +64,7 @@ func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail 
 	m := make([]EntrustDetail, 0)
 	err := DB.GetMysqlConn().Where("uid=?", uid).Limit(limit, page-1).Find(&m)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return m
@@ -75,7 +75,7 @@ func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	i := []int{0, 1}
 	err := DB.GetMysqlConn().Where("uid=?", uid).In("states", i).Limit(limit, page-1).Find(&m)
 	if err != nil {
-		Log.Fatalln(err.Error())
+		log.Fatalln(err.Error())
 		return nil
 	}
 	return m
@@ -85,7 +85,7 @@ func (s *EntrustDetail) UpdateStates(sess *xorm.Session, entrust_id string, stat
 
 	_, err := sess.Where("entrust_id=?", entrust_id).Cols("states", "surplus_num").Decr("surplus_num", deal_num).Update(&EntrustDetail{States: states})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
 	}
 	return nil

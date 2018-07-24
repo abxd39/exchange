@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/go-xorm/xorm"
 )
 
@@ -28,7 +28,7 @@ type MoneyRecord struct {
 func (s *MoneyRecord) CheckExist(ukey string, ty int32) (ok bool, err error) {
 	ok, err = DB.GetMysqlConn().Where("ukey=? and type=?", ukey, ty).Exist(&MoneyRecord{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -38,7 +38,7 @@ func (s *MoneyRecord) CheckExist(ukey string, ty int32) (ok bool, err error) {
 func (s *MoneyRecord) InsertRecord(session *xorm.Session, p *MoneyRecord) (err error) {
 	_, err = session.InsertOne(p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

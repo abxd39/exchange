@@ -4,7 +4,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 //处理请求代币增加减少事务处理过程
@@ -41,14 +41,14 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 	if proto.TOKEN_OPT_TYPE_DEL == req.Opt {
 		ret, err = u.SubMoney(session, req.Num)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			session.Rollback()
 			return
 		}
 	} else if proto.TOKEN_OPT_TYPE_ADD == req.Opt {
 		err = u.AddMoney(session, req.Num)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			session.Rollback()
 			return
 		}
@@ -73,14 +73,14 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 	})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
 
 	err = session.Commit()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

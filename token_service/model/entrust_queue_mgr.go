@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/common/genkey"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -44,7 +44,7 @@ func (s *EntrustQueneMgr) GetQuene(token_id, trade_token_id int) (d *EntrustQuen
 func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
 	_, ok := s.dataMgr[e.TokenQueueId]
 	if ok {
-		Log.Fatalf("insert same quene id is %s", e.TokenQueueId)
+		log.Fatalf("insert same quene id is %s", e.TokenQueueId)
 	}
 	s.dataMgr[e.TokenQueueId] = e
 	return ok

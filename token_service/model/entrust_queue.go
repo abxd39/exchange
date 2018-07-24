@@ -7,7 +7,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -147,7 +147,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 
 	err = m.GetUserToken(p.Uid, token_id)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -170,7 +170,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	//记录委托
 	err = g.Insert(session)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
@@ -186,14 +186,14 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 		Surplus: m.Balance,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
 
 	err = session.Commit()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -240,7 +240,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 
 	err = m.GetUserToken(p.Uid, token_id)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -263,7 +263,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	//记录委托
 	err = g.Insert(session)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
@@ -279,14 +279,14 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		Surplus: m.Balance,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
 
 	err = session.Commit()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -308,34 +308,34 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, buy_num ,deal_num int64) (err error) {
 	//var ret int32
 	if buyer.Opt != proto.ENTRUST_OPT_BUY {
-		Log.Fatalln("wrong type")
+		log.Fatalln("wrong type")
 	}
 
 	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	buy_trade_token_account := &UserToken{} //买方交易账户余额 BTC
 	err = buy_trade_token_account.GetUserToken(buyer.Uid, s.TokenTradeId)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	sell_token_account := &UserToken{} //卖方主账户余额  BTC
 	err = sell_token_account.GetUserToken(seller.Uid, s.TokenTradeId)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	sell_trade_token_account := &UserToken{} //卖方交易账户余额 USDT
 	err = sell_trade_token_account.GetUserToken(seller.Uid, s.TokenId)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -408,7 +408,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	ret, err = buy_token_account.NotifyDelFronzen(session, buy_num, t.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	if ret != ERRCODE_SUCCESS {
@@ -419,7 +419,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	err = buy_trade_token_account.AddMoney(session, t.Num)
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -435,7 +435,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -447,14 +447,14 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	ret, err = sell_token_account.NotifyDelFronzen(session, deal_num, o.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
 	if err != nil || ret != ERRCODE_SUCCESS {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	err = sell_trade_token_account.AddMoney(session, o.Num)
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -469,33 +469,33 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	})
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	err = new(Trade).Insert(session, t, o)
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	err = new(EntrustDetail).UpdateStates(session, buyer.EntrustId, t.States, buy_surplus)
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	err = new(EntrustDetail).UpdateStates(session, seller.EntrustId, o.States,sell_surplus)
 	if err != nil {
 		session.Rollback()
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	err = session.Commit()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -505,13 +505,13 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Num:        deal_num,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	err = DB.GetRedisConn().LPush(s.TradeQuene, b).Err()
 	if err != nil {
-		Log.Fatalln(err.Error())
+		log.Fatalln(err.Error())
 		return
 	}
 
@@ -545,7 +545,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				})
 
 				if err != nil {
-					Log.Errorln(err.Error())
+					log.Errorln(err.Error())
 					return
 				}
 
@@ -557,11 +557,11 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			}
 
 		} else if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		} else {
 			if len(others) == 0 {
-				Log.WithFields(logrus.Fields{
+				log.WithFields(logrus.Fields{
 					"entrust_id": p.EntrustId,
 				}).Info("print data")
 				s.joinSellQuene(p)
@@ -591,7 +591,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -611,7 +611,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -625,7 +625,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -672,7 +672,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -691,7 +691,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -706,7 +706,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -745,7 +745,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				})
 
 				if err != nil {
-					Log.Errorln(err.Error())
+					log.Errorln(err.Error())
 					return
 				}
 
@@ -758,12 +758,12 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			}
 
 		} else if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		} else {
 			if len(others) == 0 {
 				s.joinSellQuene(p)
-				Log.WithFields(logrus.Fields{
+				log.WithFields(logrus.Fields{
 					"entrust_id": p.EntrustId,
 				}).Errorln(err.Error())
 				return
@@ -791,7 +791,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -810,7 +810,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -827,7 +827,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -863,7 +863,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 					return
 				}
 
-				Log.WithFields(logrus.Fields{
+				log.WithFields(logrus.Fields{
 					"price": price,
 					"uid":   p.Uid,
 					"num":   p.SurplusNum,
@@ -886,7 +886,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -905,7 +905,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -921,7 +921,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				if err != nil {
 					s.joinSellQuene(p)
 					s.joinSellQuene(other)
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"uid":          p.Uid,
 						"entrust_id":   p.EntrustId,
 						"oid":          other.Uid,
@@ -1002,14 +1002,14 @@ func (s *EntrustQuene) Clock() {
 		t := jsonpb.Marshaler{EmitDefaults: true}
 		data, err := t.MarshalToString(m)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 
 		err = DB.GetRedisConn().Publish(s.PriceChannel, data).Err()
 
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 
@@ -1051,7 +1051,7 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustData) (ret int, err error) {
 
 	b, err := json.Marshal(p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -1060,14 +1060,14 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustData) (ret int, err error) {
 		Score:  x,
 	}).Err()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
 	rsp := DB.GetRedisConn().Set(GenSourceKey(p.EntrustId), b, 0)
 	err = rsp.Err()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	/*
@@ -1100,13 +1100,13 @@ func (s *EntrustQuene) delSource(opt proto.ENTRUST_OPT, ty proto.ENTRUST_TYPE, e
 
 	err = DB.GetRedisConn().ZRem(quene_id, entrust_id).Err()
 	if err != nil {
-		Log.Errorln(err)
+		log.Errorln(err)
 		return
 	}
 
 	err = DB.GetRedisConn().Del(GenSourceKey(entrust_id)).Err()
 	if err != nil {
-		Log.Errorln(err)
+		log.Errorln(err)
 		return
 	}
 	return
@@ -1136,7 +1136,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 	}
 
 	if err != nil {
-		Log.Errorln(err)
+		log.Errorln(err)
 		return
 	}
 
@@ -1152,7 +1152,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 		var b []byte
 		b, err = DB.GetRedisConn().Get(GenSourceKey(d)).Bytes()
 		if err != nil {
-			Log.WithFields(logrus.Fields{
+			log.WithFields(logrus.Fields{
 				"en_id": d,
 				"err":   err.Error(),
 			}).Errorln("print data")
@@ -1162,7 +1162,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 		g := &EntrustData{}
 		err = json.Unmarshal(b, g)
 		if err != nil {
-			Log.Errorln(err)
+			log.Errorln(err)
 			return
 		}
 		en = append(en, g)
@@ -1174,7 +1174,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 				var b []byte
 				b, err = DB.GetRedisConn().Get(GenSourceKey(d)).Bytes()
 				if err != nil {
-					Log.WithFields(logrus.Fields{
+					log.WithFields(logrus.Fields{
 						"en_id": d,
 						"err":   err.Error(),
 					}).Errorln("print data")
@@ -1184,7 +1184,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 				en = &EntrustData{}
 				err = json.Unmarshal(b, en)
 				if err != nil {
-					Log.Errorln(err)
+					log.Errorln(err)
 					return
 				}
 				return
@@ -1195,7 +1195,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 			}
 
 		err = errors.New("this is sync data err ")
-		Log.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"quene_id": s.TokenQueueId,
 			"opt":      opt,
 		}).Errorln(err.Error())
@@ -1208,7 +1208,7 @@ func (s *EntrustQuene) GetTradeList(count int64) []*TradeInfo {
 	if err == redis.Nil {
 		return nil
 	} else if err != nil {
-		Log.Errorln(err)
+		log.Errorln(err)
 		return nil
 	}
 	g := make([]*TradeInfo, 0)
@@ -1217,7 +1217,7 @@ func (s *EntrustQuene) GetTradeList(count int64) []*TradeInfo {
 
 		err = json.Unmarshal([]byte(v), data)
 		if err != nil {
-			Log.Errorln(err)
+			log.Errorln(err)
 			return nil
 		}
 		g = append(g, data)
@@ -1234,7 +1234,7 @@ func (s *EntrustQuene) DelEntrust(entrust_id string) error {
 	e := EntrustDetail{}
 	ok, err := DB.GetMysqlConn().Where("entrust_id=?", entrust_id).Get(e)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
 	}
 
@@ -1244,13 +1244,13 @@ func (s *EntrustQuene) DelEntrust(entrust_id string) error {
 
 	err = s.delSource(proto.ENTRUST_OPT(e.Opt), proto.ENTRUST_TYPE(e.Type), e.EntrustId)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
 	}
 	u := &UserToken{}
 	err = u.GetUserToken(e.Uid, e.TokenId)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
 	}
 
@@ -1259,14 +1259,14 @@ func (s *EntrustQuene) DelEntrust(entrust_id string) error {
 	e.States = TRADE_STATES_DEL
 	_, err = sess.Where("entrust_id=?", entrust_id).Update(e)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		sess.Rollback()
 		return err
 	}
 
 	err = u.ReturnFronzen(sess, e.SurplusNum, entrust_id)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		sess.Rollback()
 		return err
 	}

@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type ConfigTokenCny struct {
@@ -16,7 +16,7 @@ func InitConfigTokenCny() {
 	configTokenCnyData = make(map[int]*ConfigTokenCny, 0)
 	err := DB.GetMysqlConn().Find(&configTokenCnyData)
 	if err != nil {
-		Log.Fatalln(err.Error())
+		log.Fatalln(err.Error())
 	}
 }
 
