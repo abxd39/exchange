@@ -4,10 +4,10 @@ import (
 	"context"
 	proto "digicon/proto/rpc"
 	cf "digicon/token_service/conf"
-	log "github.com/sirupsen/logrus"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserRPCCli struct {

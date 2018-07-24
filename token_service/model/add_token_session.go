@@ -26,7 +26,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		return
 	}
 
-	if req.Opt==proto.TOKEN_OPT_TYPE_DEL {
+	if req.Opt == proto.TOKEN_OPT_TYPE_DEL {
 		if u.Balance < req.Num {
 			ret = ERR_TOKEN_LESS
 			return
@@ -69,7 +69,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		Opt:     int(req.Opt),
 		Type:    int(req.Type),
 		Surplus: u.Balance,
-		Num:req.Num,
+		Num:     req.Num,
 	})
 
 	if err != nil {

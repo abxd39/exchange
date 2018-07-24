@@ -4,10 +4,9 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
-	log "github.com/sirupsen/logrus"
 	"errors"
 	"github.com/go-xorm/xorm"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserToken struct {
@@ -90,93 +89,47 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 
 //加代币数量
 func (s *UserToken) AddMoney(session *xorm.Session, num int64) (err error) {
-	log.WithFields(logrus.Fields{
-		"num":      num,
-		"uid":      s.Uid,
-		"token_id": s.TokenId,
-		"balance":  s.Balance,
-	}).Info("add money info data")
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"num":      num,
+				"uid":      s.Uid,
+				"token_id": s.TokenId,
+				"balance":  s.Balance,
+			}).Errorf("add  money  error %s", err.Error())
+		}
+	}()
 
 	s.Balance += num
 	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
-	//_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
-
 	if err != nil {
-		log.Errorln(err.Error())
-		return
-	}
-	//s.Version += 1
-	return
-}
-
-/*
-func (s *UserToken) AddMoney(num int64, ukey string, ty int) (ret int32, err error) {
-	m := &MoneyRecord{}
-	ok, err := m.CheckExist(ukey, ty)
-	if err != nil {
-		log.Errorln(err.Error())
-		return
-	}
-
-	if ok {
-		ret = ERR_TOKEN_REPEAT
-		return
-	}
-
-	//开始事务入账处理
-	session := DB.GetMysqlConn().NewSession()
-	defer session.Close()
-	err = session.Begin()
-
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Incr("balance", num).Update(&UserToken{})
-
-	if err != nil {
-		log.Errorln(err.Error())
-		session.Rollback()
-		return
-	}
-
-	_, err = session.InsertOne(&MoneyRecord{
-		Uid:     s.Uid,
-		TokenId: s.TokenId,
-		Num:     num,
-		Ukey:    ukey,
-		Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
-		Type:    ty,
-	})
-
-	if err != nil {
-		log.Errorln(err.Error())
-		session.Rollback()
-		return
-	}
-
-	err = session.Commit()
-	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 	return
 }
-*/
 
 //减少代币数量
 func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"num":      num,
+				"uid":      s.Uid,
+				"token_id": s.TokenId,
+				"balance":  s.Balance,
+			}).Errorf("sub money info data error %s", err.Error())
+		}
+	}()
 	if s.Balance < num {
 		ret = ERR_TOKEN_LESS
 	}
 
 	s.Balance -= num
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Decr("balance", num).Update(s)
-	//_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(s)
+	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
 
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
-
-	s.Version += 1
-
 	return
 }
 
@@ -261,6 +214,18 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 
 //冻结资金
 func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_id string, ty int) (ret int32, err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"num":         num,
+				"uid":         s.Uid,
+				"token_id":    s.TokenId,
+				"balance":     s.Balance,
+				"entrusdt_id": entrust_id,
+				"ty":          ty,
+			}).Errorf("sub  money with fronzen error %s", err.Error())
+		}
+	}()
 	var aff int64
 	if s.Balance >= num {
 		s.Balance -= num
@@ -295,7 +260,6 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 			ret = ERRCODE_UNKNOWN
 			return
 		}
-
 		return
 	}
 
@@ -305,6 +269,18 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 
 //消耗冻结资金
 func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id string, ty int) (ret int32, err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"num":         num,
+				"uid":         s.Uid,
+				"token_id":    s.TokenId,
+				"balance":     s.Balance,
+				"entrusdt_id": entrust_id,
+				"ty":          ty,
+			}).Errorf("notify  money del fronzen error %s", err.Error())
+		}
+	}()
 	if s.Frozen < num {
 		ret = ERR_TOKEN_LESS
 		return
@@ -315,8 +291,6 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 
 	aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
 	if err != nil {
-
-		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -338,7 +312,6 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 
 	_, err = sess.Insert(f)
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 

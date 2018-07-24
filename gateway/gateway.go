@@ -22,8 +22,6 @@ func init()  {
 
 func main() {
 	flag.Parse()
-	//cf.Init()
-	//InitLog()
 	go http.InitHttpServer()
 	go rpc.InitInnerService()
 

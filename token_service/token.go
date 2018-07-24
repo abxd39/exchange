@@ -1,31 +1,28 @@
 package main
 
 import (
+	"digicon/common/xlog"
 	cf "digicon/token_service/conf"
 	"digicon/token_service/dao"
-	log "github.com/sirupsen/logrus"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
 	"flag"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
-	"digicon/common/xlog"
 )
 
-
-func init()  {
+func init() {
 	cf.Init()
 	path := cf.Cfg.MustValue("log", "log_dir")
 	name := cf.Cfg.MustValue("log", "log_name")
 	level := cf.Cfg.MustValue("log", "log_level")
-	xlog.InitLogger(path,name,level)
+	xlog.InitLogger(path, name, level)
 }
-
 
 func main() {
 	flag.Parse()
-	//cf.Init()
 
 	log.Infof("begin run server")
 	dao.InitDao()

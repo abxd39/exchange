@@ -25,9 +25,9 @@ func init()  {
 
 func main() {
 	flag.Parse()
-	cf.Init()
 
 	log.Infof("begin run server")
+
 	dao.InitDao()
 	go rpc.RPCServerInit()
 	client.InitInnerService()
