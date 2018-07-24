@@ -25,7 +25,7 @@ func init()  {
 
 func main() {
 	flag.Parse()
-	cf.Init()
+	//cf.Init()
 
 	log.Infof("begin run server")
 	dao.InitDao()
