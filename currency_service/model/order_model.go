@@ -162,22 +162,13 @@ func (this *Order) Add() (id uint64, code int32) {
 	uCurrency := new(UserCurrency)
 
 	fmt.Println(this.SellId, this.TokenId)
-	if this.AdType == 2 {
-		_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
-		if err != nil {
-			log.Errorln("查询用户余额失败!", err.Error())
-			code = ERRCODE_USER_BALANCE
-			return
-		}
-	}else {
-		_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.BuyId, this.TokenId).Get(uCurrency)
-		if err != nil {
-			log.Errorln("查询用户余额失败!", err.Error())
-			code = ERRCODE_USER_BALANCE
-			return
-		}
+	
+	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
+	if err != nil {
+		log.Errorln("查询用户余额失败!", err.Error())
+		code = ERRCODE_USER_BALANCE
+		return
 	}
-
 
 	rate := conf.Cfg.MustValue("rate", "fee_rate")
 	rateFloat, _ := strconv.ParseInt(rate, 10, 64)

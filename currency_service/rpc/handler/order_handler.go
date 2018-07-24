@@ -87,6 +87,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	//fmt.Println("req order:", req.Order)
 	//fmt.Println("od num: ", od.Num)
 
+
 	ads := new(model.Ads)
 	var nowAds *model.Ads
 	nowAds = ads.Get(od.AdId)
@@ -98,8 +99,15 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.AdType = nowAds.TypeId
 	od.Price = int64(nowAds.Price)
 	od.TokenId = uint64(nowAds.TokenId)
-	od.SellId = nowAds.Uid
-	od.BuyId = uint64(req.Uid)
+
+	if uint32(req.TypeId) == 2{            //
+		od.BuyId  = nowAds.Uid
+		od.SellId = uint64(req.Uid)
+	}else{
+		od.SellId = nowAds.Uid
+		od.BuyId  = uint64(req.Uid)
+	}
+
 	od.PayId = nowAds.Pays
 
 	fmt.Println("od.selleid:", od.SellId, od.BuyId)
