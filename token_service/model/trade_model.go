@@ -14,6 +14,7 @@ type Trade struct {
 	Uid          uint64 `xorm:"comment('买家uid') index unique(uni_reade_no) BIGINT(11)"`
 	TokenId      int    `xorm:"comment('主货币id') index INT(11)"`
 	TokenTradeId int    `xorm:"comment('交易币种') INT(11)"`
+	TokenName    string `xorm:"comment('交易队') VARCHAR(32)"`
 	Price        int64  `xorm:"comment('价格') BIGINT(20)"`
 	Num          int64  `xorm:"comment('数量') BIGINT(20)"`
 	Money        int64  `xorm:"BIGINT(20)"`
