@@ -10,7 +10,7 @@ import (
 	"digicon/common/constant"
 	"digicon/common/convert"
 	"digicon/user_service/conf"
-	. "digicon/user_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/user_service/model"
 	"digicon/user_service/rpc/client"
 	"time"
@@ -29,7 +29,7 @@ import (
 type RPCServer struct{}
 
 func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *proto.HelloResponse) error {
-	Log.Print("Received Say.Hello request")
+	log.Print("Received Say.Hello request")
 	rsp.Greeting = "Hello " + req.Name
 	return nil
 }
@@ -102,27 +102,27 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 	// 1. 注册送20UNT
 	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, convert.Float64ToInt64By8Bit(myNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d", uid)), 3)
 	if err != nil {
-		Log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
+		log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
 	}
 	if resp.Err != ERRCODE_SUCCESS {
-		Log.WithFields(logrus.Fields{"uid": uid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励代币出错")
+		log.WithFields(logrus.Fields{"uid": uid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励代币出错")
 	}
 
 	if referUid != 0 {
 		// 2. 推荐一级注册送20UNT
 		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, convert.Float64ToInt64By8Bit(referNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d", uid, referUid)), 4)
 		if err != nil {
-			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
+			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
 		}
 		if resp.Err != ERRCODE_SUCCESS {
-			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励一级推荐人代币出错")
+			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励一级推荐人代币出错")
 		}
 
 		// 判断一级推荐人是否有推荐人，即二级推荐
 		referUserEx := &model.UserEx{}
 		_, err := referUserEx.GetUserEx(referUid)
 		if err != nil {
-			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取一级推荐人的邀请UID出错")
+			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取一级推荐人的邀请UID出错")
 			return
 		}
 
@@ -131,16 +131,16 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 			secReferUser := &model.User{}
 			_, err := secReferUser.GetUser(referUserEx.InviteId)
 			if err != nil {
-				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取二级推荐人出错")
+				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取二级推荐人出错")
 				return
 			}
 
 			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
 			if err != nil {
-				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
+				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
 			}
 			if resp.Err != ERRCODE_SUCCESS {
-				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励二级推荐人代币出错")
+				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励二级推荐人代币出错")
 			}
 		}
 	}
@@ -403,7 +403,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	fmt.Println("code:", code, err)
 
 	if err != nil {
-		Log.Errorln("auth code by email error!")
+		log.Errorln("auth code by email error!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return err
 	}
@@ -421,14 +421,14 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 			return err
 		}
 	} else {
-		Log.Errorln(" not found verifyType!")
+		log.Errorln(" not found verifyType!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
 	has, err := u.BindUserEmail(req.Email, req.Uid)
 
 	if err != nil {
-		Log.Errorln("bind user email err!", err.Error())
+		log.Errorln("bind user email err!", err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
@@ -442,7 +442,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	fmt.Println("security chmod :", err)
 	if err != nil {
 		msg := "after bind user email, security chmod error!"
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Message = msg
 	}
@@ -477,13 +477,13 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 			return err
 		}
 	} else {
-		Log.Errorln(" not found verifyType!")
+		log.Errorln(" not found verifyType!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
 	has, err := u.BindUserPhone(req.Phone, req.Uid)
 	if err != nil {
-		Log.Errorln("bind user phone err!", err.Error())
+		log.Errorln("bind user phone err!", err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
@@ -495,7 +495,7 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 	err = u.SecurityChmod(AUTH_PHONE)
 	if err != nil {
 		msg := "after bind user phone, security chmod error!"
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Message = msg
 		return nil
@@ -519,6 +519,15 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 		rsp.Code = code
 		return err
 	}
+
+	extu := new(model.UserEx)
+	excode, err := extu.GetUserEx(req.Uid)
+	if err != nil {
+		rsp.Code = excode
+		rsp.Data = ""
+		return err
+	}
+
 	//fmt.Println("uid:", req.Uid)
 	securityCode := u.SecurityAuth
 
@@ -527,6 +536,8 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 		PhoneAuth    int32 `json:"phone_auth"`     //
 		RealName     int32 `json:"real_name"`      //
 		TwoLevelAuth int32 `json:"two_level_auth"` //
+		NickName     string `json:"nick_name"`
+		CreatedTime  string `json:"created_time"`
 	}
 	authInfo := new(AuthInfo)
 	if securityCode-(securityCode^constant.AUTH_PHONE) == constant.AUTH_PHONE {
@@ -541,10 +552,13 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 	if securityCode-(securityCode^constant.AUTH_FIRST) == constant.AUTH_FIRST {
 		authInfo.RealName = 1
 	}
+	timeLayout := "2006-01-02 15:04:05"
+	authInfo.NickName = extu.NickName
+	authInfo.CreatedTime =  time.Unix(extu.RegisterTime, 0).Format(timeLayout)
 	data, err := json.Marshal(authInfo)
 	if err != nil {
 		fmt.Println(err.Error())
-		Log.Errorln(err)
+		log.Errorln(err)
 		rsp.Code = ERRCODE_UNKNOWN
 		return err
 	}

@@ -4,7 +4,7 @@ import (
 	"digicon/common/random"
 	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
-	. "digicon/user_service/log"
+	log "github.com/sirupsen/logrus"
 	"errors"
 	"fmt"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -40,7 +40,7 @@ func sendAliEmail(email, code string) (err error) {
 
 	h, err := d.SingleSendMail(r)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 

@@ -2,7 +2,7 @@ package dao
 
 import (
 	"digicon/user_service/conf"
-	. "digicon/user_service/log"
+	log "github.com/sirupsen/logrus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 )
@@ -16,7 +16,7 @@ func NewMysql() (mysql *Mysql) {
 	//root:current@tcp(47.106.136.96:3306)/rumi?charset=utf8
 	engine, err := xorm.NewEngine("mysql", dsource)
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 
 	engine.ShowSQL(true)
@@ -25,7 +25,7 @@ func NewMysql() (mysql *Mysql) {
 
 	err = engine.Ping()
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 
 	mysql = &Mysql{
@@ -50,13 +50,13 @@ func (s *Dao) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 	}
 	_, err := s.mysql.im.Cols("pwd", "phone").Insert(e)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
 	_, err = s.mysql.im.Where("phone=?", req.Phone).Get(e)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -68,7 +68,7 @@ func (s *Dao) RegisterByPhone(req *proto.RegisterPhoneRequest) int32 {
 
 	_, err = s.mysql.im.Insert(m)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -86,13 +86,13 @@ func (s *Dao) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 	}
 	_, err := s.mysql.im.Cols("pwd", "email").Insert(e)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
 	_, err = s.mysql.im.Where("email=?", req.Email).Get(e)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -104,7 +104,7 @@ func (s *Dao) RegisterByEmail(req *proto.RegisterEmailRequest) int32 {
 
 	_, err = s.mysql.im.Insert(m)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 
@@ -115,7 +115,7 @@ func (s *Dao) CheckUserExist(param string, col string) int32 {
 	sql := fmt.Sprintf("%s=?", col)
 	ok, err := s.mysql.im.Where(sql, param).Get(&model.User{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 	if ok {
@@ -128,7 +128,7 @@ func (s *Dao) Login(phone, pwd string) int32 {
 	m := &model.User{}
 	ok, err := s.mysql.im.Where("phone=?", phone).Get(m)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 	if ok {
@@ -145,7 +145,7 @@ func (s Dao) GetUserByPhone(phone string) (u *model.User, ret int32) {
 	u = &model.User{}
 	ok, err := s.mysql.im.Where("phone=?", phone).Get(u)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -162,7 +162,7 @@ func (s *Dao) GetUserExByPhone(phone string) (u *model.UserEx, ret int32) {
 	u = &model.UserEx{}
 	ok, err := s.mysql.im.Where("phone=?", phone).Get(u)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}

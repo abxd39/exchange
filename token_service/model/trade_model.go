@@ -3,6 +3,7 @@ package model
 import (
 	. "digicon/token_service/dao"
 	"github.com/go-xorm/xorm"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -17,7 +18,7 @@ type Trade struct {
 	Uid          uint64 `xorm:"comment('买家uid') index unique(uni_reade_no) BIGINT(11)"`
 	TokenId      int    `xorm:"comment('主货币id') index INT(11)"`
 	TokenTradeId int    `xorm:"comment('交易币种') INT(11)"`
-	TokenName    string `xorm:"token_name"`
+	TokenName    string `xorm:"comment('交易队') VARCHAR(32)"`
 	Price        int64  `xorm:"comment('价格') BIGINT(20)"`
 	Num          int64  `xorm:"comment('数量') BIGINT(20)"`
 	Money        int64  `xorm:"BIGINT(20)"`
@@ -28,6 +29,20 @@ type Trade struct {
 }
 
 func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
+	defer func() {
+		if err != nil {
+			for _, v := range t {
+				log.WithFields(log.Fields{
+					"uid":      v.Uid,
+					"opt":      v.Opt,
+					"token_id": v.TokenId,
+					"price":    v.Price,
+					"fee":      v.Fee,
+					"trade_no": v.TradeNo,
+				}).Errorf("inset  money record error %s", err.Error())
+			}
+		}
+	}()
 	_, err = session.Insert(t)
 	return
 }

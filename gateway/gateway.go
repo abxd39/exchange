@@ -1,20 +1,27 @@
 package main
 
 import (
-	cf "digicon/gateway/conf"
 	"digicon/gateway/http"
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
+	"digicon/common/xlog"
+	cf "digicon/gateway/conf"
 )
+
+func init()  {
+	cf.Init()
+	path := cf.Cfg.MustValue("log", "log_dir")
+	name := cf.Cfg.MustValue("log", "log_name")
+	level := cf.Cfg.MustValue("log", "log_level")
+	xlog.InitLogger(path,name,level)
+}
 
 func main() {
 	flag.Parse()
-	cf.Init()
-	InitLog()
 	go http.InitHttpServer()
 	go rpc.InitInnerService()
 
@@ -26,5 +33,5 @@ func main() {
 	)
 
 	sig := <-quitChan
-	Log.Infof("server close by sig %s", sig.String())
+	log.Infof("server close by sig %s", sig.String())
 }

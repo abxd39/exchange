@@ -4,7 +4,8 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/public_service/dao"
-	Dlog "digicon/public_service/log"
+	//Dlog "digicon/public_service/log"
+	Dlog "github.com/sirupsen/logrus"
 	"fmt"
 	"log"
 )
@@ -77,7 +78,7 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 	}
 	total, err := engine.Where("type =?", req.ArticleType).Count(list)
 	if err != nil {
-		Dlog.Log.Errorln(err.Error())
+		Dlog.Errorln(err.Error())
 		return 0, ERRCODE_UNKNOWN
 	}
 
@@ -97,7 +98,7 @@ func (Article) Article(Id int32, u *Article) int32 {
 	engine := dao.DB.GetMysqlConn()
 	ok, err := engine.Where("id=?", Id).Get(u)
 	if err != nil {
-		Dlog.Log.Errorln(err.Error())
+		Dlog.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}
 	if ok {

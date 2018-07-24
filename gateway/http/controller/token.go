@@ -2,7 +2,7 @@ package controller
 
 import (
 	"digicon/common/convert"
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -48,7 +48,7 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 	var param EntrustOrderParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -107,7 +107,7 @@ func (s *TokenGroup) SelfSymbols(c *gin.Context) {
 	var param SelfSymbolsParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -140,7 +140,7 @@ func (s *TokenGroup) EntrustList(c *gin.Context) {
 	var param EntrustListParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -181,7 +181,7 @@ func (s *TokenGroup) EntrustHistory(c *gin.Context) {
 	var param EntrustListParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -222,7 +222,7 @@ func (s *TokenGroup) TokenBalance(c *gin.Context) {
 	var param TokenBalanceParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -257,7 +257,7 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 	var param TokenBalanceListParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -293,7 +293,7 @@ func (s *TokenGroup) TokenTradeList(c *gin.Context) {
 	var param TokenTradeListParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}

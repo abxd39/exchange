@@ -414,10 +414,13 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		PhoneAuth    int32 `json:"phone_auth"`     //
 		RealName     int32 `json:"real_name"`      //
 		TwoLevelAuth int32 `json:"two_level_auth"` //
+		NickName     string `json:"nick_name"`
+		CreatedTime  string `json:"created_time"`
 	}
 	type UserRateAndAuth struct {
 		model.UserCurrencyCount
 		AuthInfo
+		CompleteRate  float64 `json:"complete_rate"` //  完成率
 	}
 	var authInfo AuthInfo
 	if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
@@ -433,13 +436,16 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.Good = data.Good
 	rateAndAuth.Cancel = data.Cancel
 	rateAndAuth.Orders = data.Orders
+	rateAndAuth.CompleteRate = float64((data.Success / data.Orders ) * 100)
 
 	rateAndAuth.RealName = authInfo.RealName
 	rateAndAuth.TwoLevelAuth = authInfo.TwoLevelAuth
 	rateAndAuth.EmailAuth = authInfo.EmailAuth
 	rateAndAuth.PhoneAuth = authInfo.PhoneAuth
-
+	rateAndAuth.NickName  = authInfo.NickName
+	rateAndAuth.CreatedTime = authInfo.CreatedTime
 	//rateAndAuth.EmailAuth = data.
+
 
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {

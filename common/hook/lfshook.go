@@ -52,7 +52,7 @@ func NewHook(output interface{}, formatter logrus.Formatter) *LfsHook {
 		Field:  "line",
 		Skip:   5,
 		Formatter: func(file, function string, line int) string {
-			return fmt.Sprintf("[%s:%d]", file, line)
+			return fmt.Sprintf("[%s:%d:%s]", file, line,function)
 		},
 	}
 
@@ -116,7 +116,8 @@ func (hook *LfsHook) SetDefaultWriter(defaultWriter io.Writer) {
 // User who run this function needs write permissions to the file or directory if the file does not yet exist.
 func (hook *LfsHook) Fire(entry *logrus.Entry) error {
 
-	entry.Data[hook.Field] = hook.Formatter(findCaller(hook.Skip))
+	//entry.Data[hook.Field] = hook.Formatter(findCaller(hook.Skip))
+	entry.Message= hook.Formatter(findCaller(hook.Skip)) +"|"+entry.Message
 	if hook.writers != nil || hook.hasDefaultWriter {
 		return hook.ioWrite(entry)
 	} else if hook.paths != nil || hook.hasDefaultPath {

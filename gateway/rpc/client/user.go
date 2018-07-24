@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"fmt"
 
@@ -11,6 +11,7 @@ import (
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	"strings"
 )
 
 type UserRPCCli struct {
@@ -20,7 +21,7 @@ type UserRPCCli struct {
 func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse, err error) {
 	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest{Name: name})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -36,7 +37,7 @@ func (s *UserRPCCli) CallRegister(ukey string, pwd, invite_code string, country 
 		Country:    country,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -49,7 +50,7 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 		InviteCode: invite_code,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -69,7 +70,7 @@ func (s *UserRPCCli) CallLogin(ukey, pwd string, ty int32, ip string) (rsp *prot
 		Ip:   ip,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -82,7 +83,7 @@ func (s *UserRPCCli) CallTokenVerify(uid uint64, token []byte) (rsp *proto.Token
 		Token: token,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -97,7 +98,7 @@ func (s *UserRPCCli) CallForgetPwd(ukey, pwd, code string, ty int32) (rsp *proto
 	})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -110,7 +111,7 @@ func (s *UserRPCCli) CallAuthSecurity(phone, phone_code, email_code string) (rsp
 		EmailAuthCode: email_code,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -123,7 +124,7 @@ func (s *UserRPCCli) CallSendSms(phone, region string, ty int32) (rsp *proto.Com
 		Region: region,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -135,7 +136,7 @@ func (s *UserRPCCli) CallSendEmail(email string, ty int32) (rsp *proto.CommonErr
 		Type:  ty,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -147,7 +148,7 @@ func (s *UserRPCCli) CallSendEmail(email string, ty int32) (rsp *proto.CommonErr
 // 		SecurityKey: []byte(security_key),
 // 	})
 // 	if err != nil {
-// 		Log.Errorln(err.Error())
+// 		log.Errorln(err.Error())
 // 		return
 // 	}
 // 	return
@@ -158,7 +159,7 @@ func (s *UserRPCCli) CallGoogleSecretKey(uid uint64) (rsp *proto.GoogleAuthRespo
 		Uid: uid,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -170,7 +171,7 @@ func (s *UserRPCCli) CallAuthGoogleSecretKey(uid uint64, code uint32) (rsp *prot
 		Code: code,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -182,7 +183,7 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 		Code: code,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -190,7 +191,7 @@ func (s *UserRPCCli) CallDelGoogleSecretKey(uid uint64, code uint32) (rsp *proto
 func (s *UserRPCCli) CallResetGoogleSecretKey(p *proto.ResetGoogleSecretKeyRequest) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.ResetGoogleSecretKey(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -213,13 +214,23 @@ type UserBaseData struct {
 	HeadSculpture  string  `json:"head_scul"`
 }
 
+func replaceNickName(nickname string) (rpname string){
+	if strings.Contains(nickname, "@") {
+		rpname = strings.Replace(nickname, nickname[3:len(nickname)-9], "****", -1)
+	} else {
+		rpname = strings.Replace(nickname, nickname[3:len(nickname)-5], "***", -1)
+	}
+	return
+}
+
+
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
 	rsp, err = s.conn.GetUserInfo(context.TODO(), &proto.UserInfoRequest{
 		Uid: uid,
 	})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -228,7 +239,12 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 	if err != nil {
 		return
 	}
-
+	var nickname string
+	if out.NickName != ""{
+		nickname = replaceNickName(out.Account)
+	}else{
+		nickname = out.NickName
+	}
 	u = &UserBaseData{
 		Uid:            out.Uid,
 		Account:        out.Account,
@@ -242,12 +258,18 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		NeedPwdTime:    out.NeedPwdTime,
 		Country:        out.Country,
 		GoogleExist:    out.GoogleExist,
-		NickName:       out.NickName,
+		NickName:       nickname,
 		HeadSculpture:  out.HeadSculpture,
 	}
 
 	return
 }
+
+
+
+
+
+
 
 type UserRealData struct {
 	RealName     string `json:"real_name"`
@@ -260,7 +282,7 @@ func (s *UserRPCCli) CallGetUserRealName(uid uint64) (rsp *proto.UserRealNameRes
 	})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -289,7 +311,7 @@ func (s *UserRPCCli) CallGetUserInvite(uid uint64) (rsp *proto.UserInviteRespons
 	})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -314,7 +336,7 @@ func (s *UserRPCCli) CallGetIpRecord(uid uint64,limit,page int32) (rsp *proto.Ip
 		Page:page,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -323,7 +345,7 @@ func (s *UserRPCCli) CallGetIpRecord(uid uint64,limit,page int32) (rsp *proto.Ip
 func (s *UserRPCCli) CallTokensList() (rsp *proto.TokenListResponse, err error) {
 	rsp, err = s.conn.TokenList(context.TODO(), &proto.NullRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -332,7 +354,7 @@ func (s *UserRPCCli) CallTokensList() (rsp *proto.TokenListResponse, err error) 
 func (s *UserRPCCli) CallCheckAuthSecurity(p *proto.CheckSecurityRequest) (rsp *proto.CheckSecurityResponse, err error) {
 	rsp, err = s.conn.CheckSecurity(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

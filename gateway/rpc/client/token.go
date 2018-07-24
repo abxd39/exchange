@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
+	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -16,7 +17,7 @@ type TokenRPCCli struct {
 func (s *TokenRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err error) {
 	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -25,7 +26,7 @@ func (s *TokenRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err erro
 func (s *TokenRPCCli) CallEntrustOrder(p *proto.EntrustOrderRequest) (rsp *proto.CommonErrResponse, err error) {
 	rsp, err = s.conn.EntrustOrder(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -35,7 +36,7 @@ func (s *TokenRPCCli) CallSelfSymbols(p *proto.SelfSymbolsRequest) (rsp *proto.S
 	/*
 		rsp, err = s.conn.SelfSymbols(context.TODO(), p)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 	*/
@@ -45,7 +46,7 @@ func (s *TokenRPCCli) CallSelfSymbols(p *proto.SelfSymbolsRequest) (rsp *proto.S
 func (s *TokenRPCCli) CallEntrustQuene(p *proto.EntrustQueneRequest) (rsp *proto.EntrustQueneResponse, err error) {
 	rsp, err = s.conn.EntrustQuene(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -54,7 +55,7 @@ func (s *TokenRPCCli) CallEntrustQuene(p *proto.EntrustQueneRequest) (rsp *proto
 func (s *TokenRPCCli) CallEntrustList(p *proto.EntrustHistoryRequest) (rsp *proto.EntrustListResponse, err error) {
 	rsp, err = s.conn.EntrustList(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -63,7 +64,7 @@ func (s *TokenRPCCli) CallEntrustList(p *proto.EntrustHistoryRequest) (rsp *prot
 func (s *TokenRPCCli) CallEntrustHistory(p *proto.EntrustHistoryRequest) (rsp *proto.EntrustHistoryResponse, err error) {
 	rsp, err = s.conn.EntrustHistory(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -72,7 +73,7 @@ func (s *TokenRPCCli) CallEntrustHistory(p *proto.EntrustHistoryRequest) (rsp *p
 func (s *TokenRPCCli) CallTrade(p *proto.TradeRequest) (rsp *proto.TradeRespone, err error) {
 	rsp, err = s.conn.Trade(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -81,7 +82,7 @@ func (s *TokenRPCCli) CallTrade(p *proto.TradeRequest) (rsp *proto.TradeRespone,
 func (s *TokenRPCCli) CallTokenBalance(p *proto.TokenBalanceRequest) (rsp *proto.TokenBalanceResponse, err error) {
 	rsp, err = s.conn.TokenBalance(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -90,7 +91,7 @@ func (s *TokenRPCCli) CallTokenBalance(p *proto.TokenBalanceRequest) (rsp *proto
 func (s *TokenRPCCli) CallTokenBalanceList(p *proto.TokenBalanceListRequest) (rsp *proto.TokenBalanceListResponse, err error) {
 	rsp, err = s.conn.TokenBalanceList(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -99,7 +100,7 @@ func (s *TokenRPCCli) CallTokenBalanceList(p *proto.TokenBalanceListRequest) (rs
 func (s *TokenRPCCli) CallTokenTradeList(p *proto.TokenTradeListRequest) (rsp *proto.TokenTradeListResponse, err error) {
 	rsp, err = s.conn.TokenTradeList(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

@@ -8,7 +8,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	log "github.com/sirupsen/logrus"
 	"fmt"
 	"strconv"
 	"time"
@@ -44,7 +44,7 @@ type User struct {
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -61,7 +61,7 @@ func (s *User) GetUser(uid uint64) (ret int32, err error) {
 func (s *User) GetUserByPhone(phone string) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -78,7 +78,7 @@ func (s *User) GetUserByPhone(phone string) (ret int32, err error) {
 func (s *User) GetUserByEmail(email string) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("email=?", email).Get(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -101,7 +101,7 @@ func (s *User) GetUserByInviteCode(inviteCode string) (ret int32, err error) {
 		Get(s)
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -132,11 +132,11 @@ func (s *User) SerialJsonData() (data string, err error) {
 	ex := &UserEx{}
 	ret, err := ex.GetUserEx(s.Uid)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	if ret != ERRCODE_SUCCESS {
-		Log.Errorln("db err when find user_ex,uid=?", s.Uid)
+		log.Errorln("db err when find user_ex,uid=?", s.Uid)
 		return
 	}
 
@@ -173,7 +173,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 	godump.Dump(r)
 	data, err = m.MarshalToString(r)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 	}
 
 	return
@@ -225,7 +225,7 @@ func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err 
 func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32, uid uint64, referUid uint64) {
 	ret, err := s.CheckUserExist(req.Ukey, filed)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, 0, 0
 	}
 
@@ -237,7 +237,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	if req.InviteCode != "" {
 		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 		if !ok {
@@ -248,20 +248,19 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	var sql string
 	if filed == "phone" {
 		chmod = AUTH_PHONE
-
 		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
 
 	} else if filed == "email" {
 		chmod = AUTH_EMAIL
 		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Ukey, chmod)
 	} else {
-		Log.Fatalf("register error filed %s", filed)
+		log.Errorln("register error filed %s", filed)
 	}
 
 	//sql := fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
 	_, err = DB.GetMysqlConn().Exec(sql)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, 0, 0
 	}
 
@@ -269,7 +268,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	sql = fmt.Sprintf("%s=?", filed)
 	_, err = DB.GetMysqlConn().Where(sql, req.Ukey).Get(e)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, 0, 0
 	}
 
@@ -286,13 +285,13 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 
 		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Incr("invites", 1).Update(d)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 	} else {
@@ -304,7 +303,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 	}
@@ -319,7 +318,7 @@ func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 	sql := fmt.Sprintf("%s=?", col)
 	ok, err := DB.GetMysqlConn().Where(sql, param).Exist(&User{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -335,7 +334,7 @@ func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -343,7 +342,7 @@ func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 		if s.Pwd == pwd {
 			token, err = s.refreshToken()
 			if err != nil {
-				Log.Errorln(err.Error())
+				log.Errorln(err.Error())
 				ret = ERRCODE_UNKNOWN
 				return
 			}
@@ -367,7 +366,7 @@ func (s *User) LoginByEmail(eamil, pwd string) (token string, ret int32) {
 
 	ok, err := DB.GetMysqlConn().Where("email=?", eamil).Get(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -375,7 +374,7 @@ func (s *User) LoginByEmail(eamil, pwd string) (token string, ret int32) {
 		if s.Pwd == pwd {
 			token, err = s.refreshToken()
 			if err != nil {
-				Log.Errorln(err.Error())
+				log.Errorln(err.Error())
 				ret = ERRCODE_UNKNOWN
 				return
 			}
@@ -415,7 +414,7 @@ func (s *User) ModifyPwd(newpwd string) (err error) {
 	s.Pwd = newpwd
 	_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("pwd").Update(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -427,7 +426,7 @@ func (s *User) SetGoogleSecertKey(uid uint64, secert_key string) (ret int32) {
 
 	_, err := DB.GetMysqlConn().Where("uid=?", uid).Cols("google_verify_id").Update(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -530,7 +529,7 @@ func (s *User) AuthCodeByAl(ukey, code string, ty int32, need bool) (ret int32, 
 		var code_ int
 		code_, err = strconv.Atoi(code)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 		return s.AuthGoogleCode(s.GoogleVerifyId, uint32(code_))
@@ -546,7 +545,7 @@ func (s *User) SecurityChmod(code int) (err error) {
 	s.SecurityAuth = s.SecurityAuth ^ code
 	_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("security_auth").Update(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return nil
@@ -557,7 +556,7 @@ func (s *User) DelSecurityChmod(code int) (err error) {
 	s.SecurityAuth = s.SecurityAuth &^ code
 	_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("security_auth").Update(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return nil
@@ -572,17 +571,17 @@ func (s *User) BindUserEmail(email string, uid uint64) (has bool, err error) {
 	eu := User{Email: email}
 	has, err = engine.Where("account=? or email =?", email, email).Exist(&eu)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	if has {
 		msg := "邮箱已经存在"
-		Log.Println(msg)
+		log.Println(msg)
 		return
 	}
 	_, err = engine.Where("uid=? ", uid).Update(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -597,17 +596,17 @@ func (s *User) BindUserPhone(phone string, uid uint64) (has bool, err error) {
 	nu := User{Phone: phone}
 	has, err = engine.Where(" account=? or phone=?", phone, phone).Exist(&nu)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	if has {
 		msg := "电话已经存在"
-		Log.Println(msg)
+		log.Println(msg)
 		return
 	}
 	_, err = engine.Where("uid=? ", uid).Update(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

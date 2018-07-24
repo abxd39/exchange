@@ -1,0 +1,3 @@
+time="2018-07-23T23:11:58-04:00" level=info msg="begin run server" line="[public_service/public.go:31]"
+time="2018-07-23T23:11:58-04:00" level=info msg=PONG line="[dao/redis.go:26]"
+time="2018-07-23T23:11:59-04:00" level=info msg="server close by sig interrupt" line="[public_service/public.go:43]"

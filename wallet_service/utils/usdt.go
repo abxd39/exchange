@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	log "github.com/sirupsen/logrus"
 )
 
 type USDTClient struct {
@@ -105,13 +106,13 @@ func UsdtRpcPost(url string, send map[string]interface{}) (result interface{}, e
 	ret := make(map[string]interface{})
 	err = json.Unmarshal(respBytes, &ret)
 	if err != nil {
-		Log.Errorln(err)
+		log.Errorln(err)
 		return "", err
 	}
 	result, ok := ret["result"]
 	if !ok {
 		msg := "get result error!"
-		Log.Errorln(msg, ok)
+		log.Errorln(msg, ok)
 		err = errors.New(msg)
 		return
 	}

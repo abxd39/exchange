@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	log "github.com/sirupsen/logrus"
 )
 
 //var btcClient *rpcclient.Client
@@ -25,7 +26,7 @@ type BtcClient struct {
 //
 //	btcclient, err = rpcclient.New(connCfg, nil)
 //	if err != nil {
-//		Log.Errorln(err.Error())
+//		log.Errorln(err.Error())
 //	}
 //	return
 //}
@@ -63,7 +64,7 @@ func BtcSendToAddressFunc(url string, address string, mount string) (string, err
 	if !ok {
 		msg := "sendtoaddress error!"
 		err = errors.New(msg)
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		return "", err
 	}
 	return txHash, nil
@@ -85,7 +86,7 @@ func BtcWalletPhrase(url string, pass string, keepTime int64) error {
 	_, err := BtcRpcPost(url, data)
 	if err != nil {
 		fmt.Println(err.Error())
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		return err
 	}
 	return nil
@@ -104,7 +105,7 @@ func BtcGetNewAddress(url string, account string) (address string, err error) {
 	data["params"] = params
 	result, err := BtcRpcPost(url, data)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return "", err
 	}
 	address = string(result)
@@ -125,7 +126,7 @@ func BtcDumpPrivKey(url string, myaddress string) (privateKey string, err error)
 	data["params"] = params
 	result, err := BtcRpcPost(url, data)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return "", err
 	}
 	privateKey = string(result)

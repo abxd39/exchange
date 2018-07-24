@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 
 	"github.com/micro/go-micro"
@@ -18,7 +18,7 @@ type CurrencyRPCCli struct {
 func (s *CurrencyRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err error) {
 	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

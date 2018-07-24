@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 /*
@@ -33,7 +33,7 @@ func (this *Tokens) GetTokens() []Tokens {
 	g := make([]Tokens, 0)
 	err := DB.GetMysqlConn().Find(&g)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return g
