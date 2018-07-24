@@ -2,11 +2,11 @@ package controller
 
 import (
 	"digicon/common/convert"
-	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -27,6 +27,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/balance", s.TokenBalance)
 
 		action.GET("/balance_list", s.TokenBalanceList)
+
+		action.GET("/trade_list", s.TokenTradeList)
 	}
 }
 

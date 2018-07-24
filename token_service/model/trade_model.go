@@ -53,7 +53,7 @@ func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*ModelLis
 	query := engine.Where("uid=?", uid).Desc("deal_time")
 	tempQuery := *query
 
-	count, err := tempQuery.Count()
+	count, err := tempQuery.Count(s)
 	if err != nil {
 		return nil, nil, err
 	}
