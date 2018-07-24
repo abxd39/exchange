@@ -290,6 +290,35 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	return nil
 }
 
+func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeListRequest, rsp *proto.TokenTradeListResponse) error {
+	// 查询model
+	tradeMD := &model.Trade{}
+	modelList, list, err := tradeMD.GetUserTradeList(int(req.Page), int(req.PageNum), req.Uid)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	// 拼接返回数据
+	rsp.Data.Page = int32(modelList.PageIndex)
+	rsp.Data.PageNum = int32(modelList.PageSize)
+	rsp.Data.TotalPage = int32(modelList.PageCount)
+
+	for _, v := range list {
+		rsp.Data.Items = append(rsp.Data.Items, &proto.TokenTradeListResponse_Data_Detail{
+			TradeId:   int32(v.TradeId),
+			TokenName: v.TokenName,
+			Opt:       int32(v.Opt),
+			Num:       v.Num,
+			Fee:       v.Fee,
+			DealTime:  v.DealTime,
+		})
+	}
+
+	return nil
+}
+
 func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
 	d := &model.ConfigQuenes{}
 	g := d.GetQuenesByType(req.TokenId)

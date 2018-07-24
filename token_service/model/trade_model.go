@@ -1,6 +1,9 @@
 package model
 
-import "github.com/go-xorm/xorm"
+import (
+	. "digicon/token_service/dao"
+	"github.com/go-xorm/xorm"
+)
 
 const (
 	TRADE_STATES_PART = 1 //部分成交
@@ -14,6 +17,7 @@ type Trade struct {
 	Uid          uint64 `xorm:"comment('买家uid') index unique(uni_reade_no) BIGINT(11)"`
 	TokenId      int    `xorm:"comment('主货币id') index INT(11)"`
 	TokenTradeId int    `xorm:"comment('交易币种') INT(11)"`
+	TokenName    string `xorm:"token_name"`
 	Price        int64  `xorm:"comment('价格') BIGINT(20)"`
 	Num          int64  `xorm:"comment('数量') BIGINT(20)"`
 	Money        int64  `xorm:"BIGINT(20)"`
@@ -26,4 +30,28 @@ type Trade struct {
 func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
 	_, err = session.Insert(t)
 	return
+}
+
+func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*ModelList, []*Trade, error) {
+	engine := DB.GetMysqlConn()
+
+	query := engine.Where("uid=?", uid).Desc("deal_time")
+	tempQuery := *query
+
+	count, err := tempQuery.Count()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 获取分页
+	offset, modelList := Paging(pageIndex, pageSize, int(count))
+
+	var list []*Trade
+	err = query.Select("*").Limit(modelList.PageSize, offset).Find(&list)
+	if err != nil {
+		return nil, nil, err
+	}
+	modelList.Items = list
+
+	return modelList, list, nil
 }

@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -90,6 +89,15 @@ func (s *TokenRPCCli) CallTokenBalance(p *proto.TokenBalanceRequest) (rsp *proto
 
 func (s *TokenRPCCli) CallTokenBalanceList(p *proto.TokenBalanceListRequest) (rsp *proto.TokenBalanceListResponse, err error) {
 	rsp, err = s.conn.TokenBalanceList(context.TODO(), p)
+	if err != nil {
+		Log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *TokenRPCCli) CallTokenTradeList(p *proto.TokenTradeListRequest) (rsp *proto.TokenTradeListResponse, err error) {
+	rsp, err = s.conn.TokenTradeList(context.TODO(), p)
 	if err != nil {
 		Log.Errorln(err.Error())
 		return
