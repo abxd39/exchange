@@ -299,6 +299,7 @@ message UserCurrencyRequest {
     uint64 id           = 1;
     uint64 uid          = 2;
     uint32 token_id     = 3;
+    bool   no_zero      = 4;
 }
 
 ////////////////////////// Order ////////////////////////////

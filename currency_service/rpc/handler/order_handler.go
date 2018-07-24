@@ -106,6 +106,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	if od.SellId == od.BuyId {
 		msg := "无法下自己订单"
 		err := errors.New(msg)
+		log.Errorln(msg)
 		rsp.Code = errdefine.ERRCODE_ORDER_ERROR
 		rsp.Message = msg
 		return err
