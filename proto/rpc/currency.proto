@@ -335,7 +335,7 @@ message CancelOrderRequest {
 message AddOrderRequest {
     string  order       = 1;   // 添加订单 的表单
     int32    uid        = 2;   // 用户 id
-    int32   type_id     = 3;   // 当前用户选择的交易类型
+                                //int32   type_id     = 3;   // 当前用户选择的交易类型
 }
 
 

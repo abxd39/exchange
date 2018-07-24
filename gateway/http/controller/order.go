@@ -70,14 +70,14 @@ type AddOrder struct {
 	Uid     int32   `form:"uid"       json:"uid"        binding:"required"` // 用户 id
 	AdId    uint64  `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
 	Num     float64 `form:"num"       json:"num"        binding:"required"` // 交易数量
-	TypeId  int32   `form:"type_id"   json:"type_id"    binding:"required"` // 当前用户交易类型
+	//TypeId  int32   `form:"type_id"   json:"type_id"    binding:"required"` // 当前用户交易类型
 }
 
 type BackAddOrder struct {
 	Uid     int32  `form:"uid"       json:"uid"        binding:"required"` // 用户 id
 	AdId    uint64 `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
 	Num     int64  `form:"num"       json:"num"        binding:"required"` // 交易数量
-	TypeId  int32   `form:"type_id"   json:"type_id"    binding:"required"` // 当前用户交易类型
+	//TypeId  int32   `form:"type_id"   json:"type_id"    binding:"required"` // 当前用户交易类型
 	//PayId    uint64 `form:"pay_id"     json:"pay_id"     binding:"required"`         // 支付类型
 	//Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
 	//OtherType
@@ -291,7 +291,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallAddOrder(&proto.AddOrderRequest{
 		Order: string(orderStr),
 		Uid:   param.Uid,
-		TypeId:param.TypeId,
+		//TypeId:param.TypeId,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))

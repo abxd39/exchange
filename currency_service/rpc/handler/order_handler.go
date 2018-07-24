@@ -84,8 +84,6 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	}
-	//fmt.Println("req order:", req.Order)
-	//fmt.Println("od num: ", od.Num)
 
 
 	ads := new(model.Ads)
@@ -100,7 +98,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.Price = int64(nowAds.Price)
 	od.TokenId = uint64(nowAds.TokenId)
 
-	if uint32(req.TypeId) == 2{            //
+	if uint32(nowAds.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
 		od.BuyId  = nowAds.Uid
 		od.SellId = uint64(req.Uid)
 	}else{

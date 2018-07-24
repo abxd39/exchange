@@ -162,7 +162,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	uCurrency := new(UserCurrency)
 
 	fmt.Println(this.SellId, this.TokenId)
-	
+
 	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 	if err != nil {
 		log.Errorln("查询用户余额失败!", err.Error())
