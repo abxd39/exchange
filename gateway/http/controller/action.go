@@ -13,6 +13,8 @@ type ActionGroup struct{}
 
 func (s *ActionGroup) Router(r *gin.Engine) {
 	action := r.Group("/action",TokenVerify)
+	//action := r.Group("/action")
+
 	{
 		action.POST("/get_google_key", s.GetGoogleAuthCode)
 		action.POST("/auth_google_code", s.AuthGoogleCode)

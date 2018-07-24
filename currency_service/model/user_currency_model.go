@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"errors"
 )
 
@@ -31,7 +31,7 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 	}
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 
@@ -62,11 +62,11 @@ func (this *UserCurrency) SetBalance(uid uint64, token_id uint32, amount int64) 
 	sql := "UPDATE user_currency SET   balance= balance + ?, version = version + 1 WHERE uid = ? AND token_id = ? AND version = ?"
 	sqlRest, err := engine.Exec(sql, amount, uid, token_id, this.Version)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
 	}
 	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
-		Log.Errorln("添加余额失败")
+		log.Errorln("添加余额失败")
 		err = errors.New("添加余额失败!")
 		return err
 	}

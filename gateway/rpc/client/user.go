@@ -209,6 +209,8 @@ type UserBaseData struct {
 	NeedPwdTime    int32  `json:"need_pwd_time"`
 	Country        string `json:"country"`
 	GoogleExist    bool   `json:"google_exist"`
+	NickName       string  `json:"nick_name"`
+	HeadSculpture  string  `json:"head_scul"`
 }
 
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
@@ -240,6 +242,8 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		NeedPwdTime:    out.NeedPwdTime,
 		Country:        out.Country,
 		GoogleExist:    out.GoogleExist,
+		NickName:       out.NickName,
+		HeadSculpture:  out.HeadSculpture,
 	}
 
 	return

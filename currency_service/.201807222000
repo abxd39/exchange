@@ -1,0 +1,6 @@
+time="2018-07-23T08:32:50-04:00" level=info msg="begin run server" source="currency_service/currency.go:31"
+time="2018-07-23T08:32:50-04:00" level=info msg=PONG source="dao/redis.go:29"
+time="2018-07-23T08:34:00-04:00" level=info msg="server close by sig interrupt" source="currency_service/currency.go:45"
+time="2018-07-23T08:34:12-04:00" level=info msg="begin run server" source="currency_service/currency.go:31"
+time="2018-07-23T08:34:12-04:00" level=info msg=PONG source="dao/redis.go:29"
+time="2018-07-23T08:49:48-04:00" level=info msg="server close by sig interrupt" source="currency_service/currency.go:45"

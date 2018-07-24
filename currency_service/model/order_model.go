@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"digicon/currency_service/conf"
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	. "digicon/proto/common"
 	"errors"
 	"fmt"
@@ -87,7 +87,7 @@ func (this *Order) List(Page, PageNum int32,
 	total, _ = countQuery.Count(orderModel)
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		total = 0
 		rPage = 0
 		rPageNum = 0
@@ -109,7 +109,7 @@ func (this *Order) Delete(Id uint64, updateTimeStr string) (int32, string) {
 	sql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?  WHERE  `id`=? and `states` != 2 "
 	_, err = dao.DB.GetMysqlConn().Exec(sql, 0, updateTimeStr, Id)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, "delete Error!"
 	}
 	return ERRCODE_SUCCESS, ""
@@ -123,7 +123,7 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string) (c
 	sql := "UPDATE   `order`   SET   `states`=? , `cancel_type`=?, `updated_time`=?  WHERE  `id`=?"
 	_, err = dao.DB.GetMysqlConn().Exec(sql, 4, CancelType, updateTimeStr, Id)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		//fmt.Println(err.Error())
 		code = ERRCODE_UNKNOWN
 		msg = "cancel Error!"
@@ -144,7 +144,7 @@ func (this *Order) Ready(Id uint64, updateTimeStr string) (code int32, msg strin
 	_, err = engine.Exec(sql, 2, updateTimeStr, now, Id)
 	if err != nil {
 		fmt.Println(err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		code, msg = ERRCODE_UNKNOWN, "Approved Error!"
 		return
 	}
@@ -164,7 +164,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	fmt.Println(this.SellId, this.TokenId)
 	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 	if err != nil {
-		Log.Errorln("查询用户余额失败!", err.Error())
+		log.Errorln("查询用户余额失败!", err.Error())
 		code = ERRCODE_USER_BALANCE
 		return
 	}
@@ -176,7 +176,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	//fmt.Println(uCurrency)
 	fmt.Println(this.BuyName, freeze, uCurrency.Balance)
 	if freeze > uCurrency.Balance {
-		Log.Errorln("卖家余额不足!")
+		log.Errorln("卖家余额不足!")
 		code = ERRCODE_SELLER_LESS
 		return
 	}
@@ -190,20 +190,20 @@ func (this *Order) Add() (id uint64, code int32) {
 	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
 	sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return
 	}
 	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
-		Log.Errorln("冻结失败!")
+		log.Errorln("冻结失败!")
 		session.Rollback()
 		code = ERRCODE_ORDER_ERROR
 		return
 	}
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return
@@ -221,7 +221,7 @@ func (this *Order) Add() (id uint64, code int32) {
 
 	if err != nil {
 		fmt.Println(err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return
@@ -234,7 +234,7 @@ func (this *Order) Add() (id uint64, code int32) {
 
 	if err != nil {
 		fmt.Println("order error....", err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		code = ERRCODE_UNKNOWN
 		session.Rollback()
 		return
@@ -242,7 +242,7 @@ func (this *Order) Add() (id uint64, code int32) {
 
 	err = session.Commit()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		code = ERRCODE_UNKNOWN
 		session.Rollback()
 		return
@@ -258,7 +258,7 @@ func (this *Order) Add() (id uint64, code int32) {
 func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string) {
 	code, err := this.ConfirmSession(Id, updateTimeStr)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return code, "confirm Error!"
 	} else {
 		return ERRCODE_SUCCESS, ""
@@ -271,7 +271,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 
 	_, err = engine.Table(`order`).Where("id=?", Id).Get(this)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		code = ERRCODE_UNKNOWN
 		return code, err
 	}
@@ -285,7 +285,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	tokens := new(Tokens)
 	_, err = engine.Where("id=?", this.TokenId).Get(tokens)
 	if err != nil {
-		Log.Errorln("获取币种id, token_id 失败")
+		log.Errorln("获取币种id, token_id 失败")
 		code = ERRCODE_UNKNOWN
 		return code, err
 	}
@@ -294,14 +294,14 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	uCurrency := new(UserCurrency)
 	_, err = engine.Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 	if err != nil {
-		Log.Errorln("查询用户余额失败!", err.Error())
+		log.Errorln("查询用户余额失败!", err.Error())
 		code = ERRCODE_USER_BALANCE
 		return code, err
 	}
 
 	sellNum := allNum + rateFee
 	if uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
-		Log.Println("余额不足!")
+		log.Println("余额不足!")
 		err = errors.New("余额不足")
 		code = ERRCODE_SELLER_LESS
 		return code, err
@@ -313,7 +313,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	err = session.Begin()
 
 	if err != nil {
-		Log.Println(err.Error())
+		log.Println(err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
 		return
@@ -326,13 +326,13 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
 	sqlRest, err := session.Exec(sellSql, sellNum, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
-		Log.Println(err.Error())
+		log.Println(err.Error())
 		session.Rollback()
 		return
 	}
 	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
 		fmt.Println("卖家扣除失败!", err.Error())
-		Log.Errorln("卖家扣除失败!", err.Error())
+		log.Errorln("卖家扣除失败!", err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
 		err = errors.New("卖家扣除失败!")
@@ -341,7 +341,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return code, err
@@ -349,7 +349,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 
 	has, err := session.Table(`user_currency`).Where("uid=? AND token_id=? ", this.BuyId, this.TokenId).Exist()
 	if err != nil {
-		Log.Errorln("find user_currency error!")
+		log.Errorln("find user_currency error!")
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return
@@ -359,7 +359,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 		_, err := session.Where("uid=? AND  token_id=? AND version=?", this.BuyId, this.TokenId, uCurrency.Version).Update(&UserCurrency{Balance: allNum})
 		if err != nil {
 			fmt.Println("insert error!, ", err.Error())
-			Log.Println(err.Error())
+			log.Println(err.Error())
 			session.Rollback()
 			code = ERRCODE_TRADE_ERROR
 			return code, err
@@ -368,7 +368,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 		_, err := session.InsertOne(&UserCurrency{Uid: this.BuyId, TokenId: uint32(this.TokenId), TokenName: tokenName, Balance: allNum})
 		if err != nil {
 			fmt.Println("insert error!, ", err.Error())
-			Log.Println(err.Error())
+			log.Println(err.Error())
 			session.Rollback()
 			code = ERRCODE_TRADE_ERROR
 			return code, err
@@ -377,7 +377,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return code, err
@@ -399,14 +399,14 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	)
 	if err != nil {
 		fmt.Println("insert into history error: ", err.Error())
-		Log.Println(err.Error())
+		log.Println(err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
 		return code, err
 	}
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return code, err
@@ -420,14 +420,14 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1  where uid=? "
 	_, err = session.Exec(countAddOneSql, this.SellId)
 	if err != nil {
-		Log.Println(err.Error())
+		log.Println(err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
 		return code, err
 	}
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return code, err
@@ -441,21 +441,21 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	_, err = session.Exec(updateStatesSql, 3, updateTimeStr, now, rateFee, Id)
 	if err != nil {
 		fmt.Println("update order states error:", err.Error())
-		Log.Println(err.Error())
+		log.Println(err.Error())
 		session.Rollback()
 		code = ERRCODE_TRADE_ERROR
 		return code, err
 	}
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return code, err
 	}
 	err = session.Commit()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		code = ERRCODE_UNKNOWN
 		return code, err
@@ -475,7 +475,7 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 	//order := new(Order)
 	_, err = engine.Where("id = ?", Id).Get(this)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		code = ERRCODE_ORDER_NOTEXIST
 	}
 	return
@@ -496,7 +496,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 			engine := dao.DB.GetMysqlConn()
 			_, err := engine.Where("id=?", id).Get(od)
 			if err != nil {
-				Log.Errorln("get order states error!")
+				log.Errorln("get order states error!")
 			} else {
 				if od.States == 0 || od.States == 2 || od.States == 3 || od.States == 4 { // 0删除 2待放行(已支付) 3确认支付(已完成) 4取消
 					fmt.Println("break: od stats", od.States)
@@ -505,7 +505,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 			}
 			_, err = engine.Where("id = ?", id).Update(&Order{States: 4, UpdatedTime: now})
 			if err != nil {
-				Log.Errorln("order id exiry time out update status = 4 error! id:", id, err.Error())
+				log.Errorln("order id exiry time out update status = 4 error! id:", id, err.Error())
 			}
 			break
 		}

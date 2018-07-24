@@ -3,7 +3,9 @@ package handler
 import (
 	"context"
 	"digicon/common/encryption"
-	. "digicon/currency_service/log"
+	//log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+	
 	"digicon/currency_service/model"
 	"digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -25,7 +27,7 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 
 	orders, err := json.Marshal(result)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Orders = "[]"
 		rsp.Message = err.Error()
 		return err
@@ -75,7 +77,7 @@ func (s *RPCServer) ReadyOrder(ctx context.Context, req *proto.OrderRequest, rsp
 func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rsp *proto.OrderResponse) error {
 	od := new(model.Order)
 	if err := json.Unmarshal([]byte(req.Order), &od); err != nil {
-		Log.Println(err.Error())
+		log.Println(err.Error())
 		fmt.Println(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
@@ -114,7 +116,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	//fmt.Println("nickNames:", nickNames)
 	if err != nil {
 		fmt.Println(err)
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		//rsp.Code = errdefine.ERRCODE_UNKNOWN
 		//return nil
 	} else {
@@ -221,7 +223,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 	uCurrencyHistory := new(model.UserCurrencyHistory)
 	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
@@ -242,7 +244,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 	 uCurrencyHistory := new(model.UserCurrencyHistory)
 	 uAssetDeailList ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid))
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
@@ -276,7 +278,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		tmp.Operator = ua.Operator
 		NewUAssetDetaillList = append(NewUAssetDetaillList, tmp)
 	}
-	data, err := json.Marshal(uAssetDeailList)
+	data, err := json.Marshal(NewUAssetDetaillList)
 	rsp.Data = string(data)
  	rsp.Code = errdefine.ERRCODE_SUCCESS
  	return nil

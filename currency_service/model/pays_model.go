@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 // 支付方式表
@@ -27,7 +27,7 @@ func (this *Pays) Get(id uint32, name string) *Pays {
 	}
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	if isdata == false {
@@ -43,7 +43,7 @@ func (this *Pays) List() []Pays {
 	data := make([]Pays, 0)
 	err := dao.DB.GetMysqlConn().Find(&data)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 

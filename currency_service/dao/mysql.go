@@ -2,7 +2,7 @@ package dao
 
 import (
 	"digicon/currency_service/conf"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 )
@@ -21,7 +21,7 @@ func NewMysql() (mysql *Mysql) {
 
 	engine, err := xorm.NewEngine("mysql", dsource)
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 	engine.ShowSQL(true)
 	//cacher := xorm.NewLRUCacher2(xorm.NewMemoryStore(), time.Hour, 1000)
@@ -29,7 +29,7 @@ func NewMysql() (mysql *Mysql) {
 
 	err = engine.Ping()
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 	mysql = &Mysql{
 		im: engine,
@@ -48,12 +48,12 @@ func NewTokenMysql() (tkmysql *MysqlToken) {
 
 	engine, err := xorm.NewEngine("mysql", dsource)
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 	engine.ShowSQL(true)
 	err = engine.Ping()
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 	tkmysql = &MysqlToken{
 		tim: engine,

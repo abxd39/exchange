@@ -2,7 +2,7 @@ package dao
 
 import (
 	cf "digicon/config_service/conf"
-	. "digicon/config_service/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/go-redis/redis"
 )
 
@@ -21,9 +21,9 @@ func NewRedisCli() *RedisCli {
 
 	pong, err := client.Ping().Result()
 	if err != nil {
-		Log.Fatalf("redis connect faild")
+		log.Fatalf("redis connect faild")
 	}
-	Log.Infoln(pong)
+	log.Infoln(pong)
 
 	return &RedisCli{
 		rcon: client,

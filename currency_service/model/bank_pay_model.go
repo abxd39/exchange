@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	"digicon/currency_service/log"
+	//log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc/client"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type UserCurrencyBankPay struct {
@@ -34,11 +36,11 @@ func (p *UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, erro
 		AuthType: 7, // 设置银行卡支付 7
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	if rsp.Code != ERRCODE_SUCCESS {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 

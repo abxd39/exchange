@@ -2,7 +2,7 @@ package controller
 
 import (
 	"crypto/sha1"
-	. "digicon/ws_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/ws_service/model"
 	"encoding/json"
 	"fmt"
@@ -79,7 +79,7 @@ func (this *WebChatGroup) WSChannel(c *gin.Context) {
 		// todo msg
 		var mesg Message
 		if err := json.Unmarshal(msg, &mesg); err == nil {
-			Log.Errorln("mesg:", mesg)
+			log.Errorln("mesg:", mesg)
 			switch mesg.InfoType {
 			// 认证
 			case 1:
@@ -135,7 +135,7 @@ func (this *WebChatGroup) GenerateHashChannelId(mesg Message) (hashChannelId str
 	校验token
 */
 func (this *WebChatGroup) CheckAuth(token string) bool {
-	Log.Println("token:", token)
+	log.Println("token:", token)
 	return true
 	//if token == "sadlfkajslkjalskjfaldks" {
 	//	return true
@@ -165,7 +165,7 @@ func (this *WebChatGroup) CloseSession(s *melody.Session, code int32, msg string
 	})
 	if err != nil {
 		fmt.Println(err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 	}
 	time.Sleep(5 * time.Second)
 	s.Close()
@@ -206,7 +206,7 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 
  */
 func SaveChatMsg(mesg Message) {
-	Log.Errorln("go run to save msg :", mesg)
+	log.Errorln("go run to save msg :", mesg)
 	chat := new(model.Chats)
 	chat.OrderId = mesg.OrderId
 	chat.Uid = mesg.Uid
@@ -216,6 +216,6 @@ func SaveChatMsg(mesg Message) {
 	chat.CreatedTime = time.Now().Format("2006-01-02 15:04:05")
 	code := chat.Add()
 	fmt.Println(code)
-	Log.Println("write to mysql code:", code)
+	log.Println("write to mysql code:", code)
 
 }
