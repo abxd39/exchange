@@ -420,7 +420,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	type UserRateAndAuth struct {
 		model.UserCurrencyCount
 		AuthInfo
-
+		CompleteRate  float64 `json:"complete_rate"` //  完成率
 	}
 	var authInfo AuthInfo
 	if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
@@ -436,6 +436,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.Good = data.Good
 	rateAndAuth.Cancel = data.Cancel
 	rateAndAuth.Orders = data.Orders
+	rateAndAuth.CompleteRate = float64((data.Success / data.Orders ) * 100)
 
 	rateAndAuth.RealName = authInfo.RealName
 	rateAndAuth.TwoLevelAuth = authInfo.TwoLevelAuth
@@ -444,6 +445,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.NickName  = authInfo.NickName
 	rateAndAuth.CreatedTime = authInfo.CreatedTime
 	//rateAndAuth.EmailAuth = data.
+
 
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
