@@ -4,7 +4,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"errors"
 	"github.com/go-xorm/xorm"
 	"github.com/sirupsen/logrus"
@@ -59,7 +59,7 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 	var ok bool
 	ok, err = DB.GetMysqlConn().Where("uid=? and token_id=?", uid, token_id).Get(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -69,13 +69,13 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 
 		_, err = DB.GetMysqlConn().InsertOne(s)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 
 		ok, err = DB.GetMysqlConn().Where("uid=? and token_id=?", uid, token_id).Get(s)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 
@@ -90,7 +90,7 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 
 //加代币数量
 func (s *UserToken) AddMoney(session *xorm.Session, num int64) (err error) {
-	Log.WithFields(logrus.Fields{
+	log.WithFields(logrus.Fields{
 		"num":      num,
 		"uid":      s.Uid,
 		"token_id": s.TokenId,
@@ -102,7 +102,7 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64) (err error) {
 	//_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	//s.Version += 1
@@ -114,7 +114,7 @@ func (s *UserToken) AddMoney(num int64, ukey string, ty int) (ret int32, err err
 	m := &MoneyRecord{}
 	ok, err := m.CheckExist(ukey, ty)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -131,7 +131,7 @@ func (s *UserToken) AddMoney(num int64, ukey string, ty int) (ret int32, err err
 	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Incr("balance", num).Update(&UserToken{})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
@@ -146,14 +146,14 @@ func (s *UserToken) AddMoney(num int64, ukey string, ty int) (ret int32, err err
 	})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		session.Rollback()
 		return
 	}
 
 	err = session.Commit()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -171,7 +171,7 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err e
 	//_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(s)
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -186,7 +186,7 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 	m := &MoneyRecord{}
 	ok, err := m.CheckExist(ukey, ty)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -207,7 +207,7 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 		_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
 
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			session.Rollback()
 			return
 		}
@@ -221,14 +221,14 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 		})
 
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			session.Rollback()
 			return
 		}
 
 		err = session.Commit()
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 	} else {
@@ -237,7 +237,7 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 		_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Decr("balance", num).Update(&UserToken{})
 
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 
@@ -250,7 +250,7 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 		})
 
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			return
 		}
 	}
@@ -267,7 +267,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 		s.Frozen += num
 		aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance", "frozen").Update(s)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			ret = ERRCODE_UNKNOWN
 			return
 		}
@@ -291,7 +291,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 
 		_, err = sess.Insert(f)
 		if err != nil {
-			Log.Errorln(err.Error())
+			log.Errorln(err.Error())
 			ret = ERRCODE_UNKNOWN
 			return
 		}
@@ -316,7 +316,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 	aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
 	if err != nil {
 
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
@@ -338,7 +338,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 
 	_, err = sess.Insert(f)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 
@@ -356,7 +356,7 @@ func (s *UserToken) GetAllToken(uid uint64) []*UserToken {
 	r := make([]*UserToken, 0)
 	err := DB.GetMysqlConn().Where("uid=?", uid).Find(&r)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return r

@@ -24,7 +24,7 @@ func InitInnerService() {
 		d := make([]model.QuenesConfig, 0)
 		err := DB.GetMysqlConn().Find(&d)
 		if err != nil {
-			Log.Fatalln(err.Error())
+			log.Fatalln(err.Error())
 		}
 
 		ids:=make([]int32,0)
@@ -35,7 +35,7 @@ func InitInnerService() {
 
 		rsp,err:=InnerService.PublicSevice.CallGetTokensList(ids)
 		if err!=nil {
-			Log.Fatalln(err.Error())
+			log.Fatalln(err.Error())
 		}
 
 		t:=make(map[int]*proto.TokensData)
