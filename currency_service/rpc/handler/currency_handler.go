@@ -421,6 +421,8 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		model.UserCurrencyCount
 		AuthInfo
 		CompleteRate  float64 `json:"complete_rate"` //  完成率
+		MonthRate    int64   `json:"month_rate"`    // 30日成单
+		AverageTo    int64   `json:"average_to"`    // 120 分钟
 	}
 	var authInfo AuthInfo
 	if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
@@ -429,6 +431,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 
+
 	rateAndAuth := new(UserRateAndAuth)
 	rateAndAuth.Uid = data.Uid
 	rateAndAuth.Success = data.Success
@@ -436,7 +439,12 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.Good = data.Good
 	rateAndAuth.Cancel = data.Cancel
 	rateAndAuth.Orders = data.Orders
-	rateAndAuth.CompleteRate = float64((data.Success / data.Orders ) * 100)
+	if data.Orders <= 0{
+		rateAndAuth.CompleteRate = 100.0
+	}else{
+		rateAndAuth.CompleteRate = float64((data.Success / data.Orders ) * 100)
+	}
+
 
 	rateAndAuth.RealName = authInfo.RealName
 	rateAndAuth.TwoLevelAuth = authInfo.TwoLevelAuth

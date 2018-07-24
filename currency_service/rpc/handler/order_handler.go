@@ -99,9 +99,10 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.Price = int64(nowAds.Price)
 	od.TokenId = uint64(nowAds.TokenId)
 	od.SellId = nowAds.Uid
-	od.BuyId = uint64(nowAds.Uid)
+	od.BuyId = uint64(req.Uid)
 	od.PayId = nowAds.Pays
 
+	fmt.Println("od.selleid:", od.SellId, od.BuyId)
 	if od.SellId == od.BuyId {
 		msg := "无法下自己订单"
 		err := errors.New(msg)
