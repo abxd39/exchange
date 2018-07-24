@@ -25,7 +25,7 @@ type UserTokenWithName struct {
 }
 
 // 用户币币余额列表
-func (s *UserToken) GetUserTokenList(filter map[string]string) ([]UserTokenWithName, error) {
+func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithName, error) {
 	engine := DB.GetMysqlConn()
 	query := engine.Where("1=1")
 
@@ -35,6 +35,9 @@ func (s *UserToken) GetUserTokenList(filter map[string]string) ([]UserTokenWithN
 	}
 	if _, ok := filter["no_zero"]; ok {
 		query.And("ut.balance!=0 OR ut.frozen!=0")
+	}
+	if v, ok := filter["token_id"]; ok {
+		query.And("ut.token_id=?", v)
 	}
 
 	var list []UserTokenWithName

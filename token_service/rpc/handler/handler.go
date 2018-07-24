@@ -5,7 +5,6 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/token_service/model"
-	"fmt"
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 	"log"
@@ -255,13 +254,18 @@ func (s *RPCServer) TokenBalance(ctx context.Context, req *proto.TokenBalanceReq
 }
 
 func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanceListRequest, rsp *proto.TokenBalanceListResponse) error {
-	filter := map[string]string{
-		"uid": fmt.Sprintf("%d", req.Uid),
+	// 组装筛选
+	filter := map[string]interface{}{
+		"uid": req.Uid,
 	}
 	if req.NoZero {
-		filter["no_zero"] = "no_zero"
+		filter["no_zero"] = req.NoZero
+	}
+	if req.TokenId > 0 {
+		filter["token_id"] = req.TokenId
 	}
 
+	// 查询model
 	d := &model.UserToken{}
 	list, err := d.GetUserTokenList(filter)
 	if err != nil {
@@ -270,6 +274,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		return nil
 	}
 
+	// 拼接返回数据
 	for _, v := range list {
 		worthCny := convert.Int64MulInt64By8Bit(v.Balance, model.GetTokenCnyPrice(int(v.TokenId)))
 

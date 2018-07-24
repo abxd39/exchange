@@ -247,9 +247,10 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 	}()
 
 	type TokenBalanceListParam struct {
-		Uid    uint64 `form:"uid" binding:"required"`
-		Token  string `form:"token" binding:"required"`
-		NoZero bool   `form:"no_zero"`
+		Uid     uint64 `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		TokenId int32  `form:"token_id"`
+		NoZero  bool   `form:"no_zero"`
 	}
 
 	var param TokenBalanceListParam
@@ -261,8 +262,9 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallTokenBalanceList(&proto.TokenBalanceListRequest{
-		Uid:    param.Uid,
-		NoZero: param.NoZero,
+		Uid:     param.Uid,
+		NoZero:  param.NoZero,
+		TokenId: param.TokenId,
 	})
 
 	if err != nil {
