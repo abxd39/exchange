@@ -16,6 +16,8 @@ import (
 	"digicon/common/convert"
 	"digicon/currency_service/rpc/client"
 	"strconv"
+	//"github.com/micro/go-micro/errors"
+	"errors"
 )
 
 // 获取订单列表
@@ -99,6 +101,14 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.SellId = nowAds.Uid
 	od.BuyId = uint64(nowAds.Uid)
 	od.PayId = nowAds.Pays
+
+	if od.SellId == od.BuyId {
+		msg := "无法下自己订单"
+		err := errors.New(msg)
+		rsp.Code = errdefine.ERRCODE_ORDER_ERROR
+		rsp.Message = msg
+		return err
+	}
 
 	//fmt.Println(od.SellId, od.BuyId)
 

@@ -11,6 +11,7 @@ import (
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	"strings"
 )
 
 type UserRPCCli struct {
@@ -213,6 +214,16 @@ type UserBaseData struct {
 	HeadSculpture  string  `json:"head_scul"`
 }
 
+func replaceNickName(nickname string) (rpname string){
+	if strings.Contains(nickname, "@") {
+		rpname = strings.Replace(nickname, nickname[3:len(nickname)-9], "****", -1)
+	} else {
+		rpname = strings.Replace(nickname, nickname[3:len(nickname)-5], "***", -1)
+	}
+	return
+}
+
+
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
 	rsp, err = s.conn.GetUserInfo(context.TODO(), &proto.UserInfoRequest{
 		Uid: uid,
@@ -228,7 +239,12 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 	if err != nil {
 		return
 	}
-
+	var nickname string
+	if out.NickName != ""{
+		nickname = replaceNickName(out.Account)
+	}else{
+		nickname = out.NickName
+	}
 	u = &UserBaseData{
 		Uid:            out.Uid,
 		Account:        out.Account,
@@ -242,12 +258,18 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		NeedPwdTime:    out.NeedPwdTime,
 		Country:        out.Country,
 		GoogleExist:    out.GoogleExist,
-		NickName:       out.NickName,
+		NickName:       nickname,
 		HeadSculpture:  out.HeadSculpture,
 	}
 
 	return
 }
+
+
+
+
+
+
 
 type UserRealData struct {
 	RealName     string `json:"real_name"`
