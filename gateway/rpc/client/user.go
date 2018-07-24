@@ -240,7 +240,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		return
 	}
 	var nickname string
-	if out.NickName != ""{
+	if out.NickName == ""{
 		nickname = replaceNickName(out.Account)
 	}else{
 		nickname = out.NickName

@@ -1004,9 +1004,10 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Id      uint64 `form:"id"      json:"id" `
-		Uid     uint64 `form:"uid"     json:"uid"       binding:"required"`
-		TokenId uint32 `form:"token_id" json:"token_id" `
+		Id      uint64 `form:"id"         json:"id" `
+		Uid     uint64 `form:"uid"        json:"uid"       binding:"required"`
+		TokenId uint32 `form:"token_id"   json:"token_id" `
+		NoZero  bool    `form:"no_zero"   json:"no_zero"  `
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -1214,11 +1215,13 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	ret.SetDataSection("nick_name", uCurrencyCount.NickName)
 	ret.SetDataSection("created_time", uCurrencyCount.CreatedTime)
 	ret.SetDataSection("orders", uCurrencyCount.Orders)
+
 	ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
 	ret.SetDataSection("success", uCurrencyCount.Success)
 	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
 	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
+
 	ret.SetDataSection("email_auth", uCurrencyCount.EmailAuth)
 	ret.SetDataSection("phone_auth", uCurrencyCount.PhoneAuth)
 	ret.SetDataSection("real_name", uCurrencyCount.RealName)
