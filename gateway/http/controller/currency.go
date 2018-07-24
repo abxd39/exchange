@@ -33,9 +33,7 @@ func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 }
 
 func (this *CurrencyGroup) Router(r *gin.Engine) {
-	//Currency := r.Group("/currency", TokenVerify)
-
-	Currency := r.Group("/currency")
+	Currency := r.Group("/currency", TokenVerify)
 	{
 
 		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)
@@ -1183,10 +1181,12 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		return
 	}
 	type UserCurrencyCount struct {
-		Uid uint64 `json:"uid"`
+		Uid          uint64 `json:"uid"`
+		NickName     string `json:"nick_name"`
+		CreatedTime  string `json:"created_time"`
 
-		Cancel uint32  `json:"cancel"` // 取消
-		Good   float64 `json:"good"`   // 好评率
+		Cancel       uint32  `json:"cancel"` // 取消
+		Good         float64 `json:"good"`   // 好评率
 
 		Orders       uint32  `json:"orders"`        // 订单数
 		CompleteRate float64 `json:"complete_rate"` //  完成率
@@ -1211,6 +1211,8 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	fmt.Println("uCurrencyCount:", uCurrencyCount)
 
 	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetDataSection("nick_name", uCurrencyCount.NickName)
+	ret.SetDataSection("created_time", uCurrencyCount.CreatedTime)
 	ret.SetDataSection("orders", uCurrencyCount.Orders)
 	ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
 	ret.SetDataSection("success", uCurrencyCount.Success)
