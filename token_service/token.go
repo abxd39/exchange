@@ -3,20 +3,31 @@ package main
 import (
 	cf "digicon/token_service/conf"
 	"digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
+	"digicon/common/xlog"
 )
+
+
+func init()  {
+	cf.Init()
+	path := cf.Cfg.MustValue("log", "log_dir")
+	name := cf.Cfg.MustValue("log", "log_name")
+	level := cf.Cfg.MustValue("log", "log_level")
+	xlog.InitLogger(path,name,level)
+}
+
 
 func main() {
 	flag.Parse()
 	cf.Init()
-	InitLog()
-	Log.Infof("begin run server")
+	
+	log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
 	//client.InitInnerService()
@@ -32,5 +43,5 @@ func main() {
 	)
 
 	sig := <-quitChan
-	Log.Infof("server close by sig %s", sig.String())
+	log.Infof("server close by sig %s", sig.String())
 }

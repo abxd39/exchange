@@ -1,0 +1,6 @@
+time="2018-07-23T22:19:43-04:00" level=info msg="begin run server" source="token_service/token.go:30"
+time="2018-07-23T22:19:44-04:00" level=info msg=PONG source="dao/redis.go:27"
+time="2018-07-23T22:19:44-04:00" level=fatal msg="db err is dial tcp 127.0.0.1:3306: getsockopt: connection refused" source="dao/mysql2.go:28"
+time="2018-07-23T22:20:30-04:00" level=info msg="begin run server" source="token_service/token.go:30"
+time="2018-07-23T22:20:31-04:00" level=info msg=PONG source="dao/redis.go:27"
+time="2018-07-23T22:20:31-04:00" level=fatal msg="db err is dial tcp 127.0.0.1:3306: getsockopt: connection refused" source="dao/mysql2.go:28"

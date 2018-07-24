@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type ConfigQuenes struct {
@@ -22,7 +22,7 @@ func (s *ConfigQuenes) GetAllQuenes() []ConfigQuenes {
 	t := make([]ConfigQuenes, 0)
 	err := DB.GetMysqlConn().Where("switch=1").Find(&t)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return t
@@ -32,7 +32,7 @@ func (s *ConfigQuenes) GetQuenesByType(token_id int32) []ConfigQuenes {
 	t := make([]ConfigQuenes, 0)
 	err := DB.GetMysqlConn().Where("switch=1 and token_id=?", token_id).Find(&t)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return t
