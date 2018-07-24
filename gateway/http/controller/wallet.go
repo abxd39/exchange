@@ -1,7 +1,7 @@
 package controller
 
 import (
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -47,7 +47,7 @@ func (this *WalletGroup) BtcSigntx(ctx *gin.Context) {
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
 		fmt.Println(err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}

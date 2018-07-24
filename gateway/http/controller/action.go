@@ -1,7 +1,7 @@
 package controller
 
 import (
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -41,7 +41,7 @@ func (s *ActionGroup) GetGoogleAuthCode(c *gin.Context) {
 	var param GoogleAuthCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -69,7 +69,7 @@ func (s *ActionGroup) AuthGoogleCode(c *gin.Context) {
 	var param GoogleAuthCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -94,7 +94,7 @@ func (s *ActionGroup) DelGoogleCode(c *gin.Context) {
 	var param GoogleDelCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -123,7 +123,7 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 	var param ResetGoogleCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -152,7 +152,7 @@ func (s *ActionGroup) GetUserBaseInfo(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -176,7 +176,7 @@ func (s *ActionGroup) GetUserRealName(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -200,7 +200,7 @@ func (s *ActionGroup) GetUserInvite(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -226,7 +226,7 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -261,7 +261,7 @@ func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBindQuery(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -270,7 +270,7 @@ func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
 		Type: 3,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}

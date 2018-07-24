@@ -15,7 +15,7 @@ func InitLog() {
 
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
-		Log.Out = file
+		log.Out = file
 	} else {
 		panic("Failed to log to file, using default stderr")
 	}

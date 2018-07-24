@@ -1,7 +1,7 @@
 package controller
 
 import (
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -41,7 +41,7 @@ func (s *MarketGroup) HistoryKline(c *gin.Context) {
 	var param KlineParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -85,7 +85,7 @@ func (s *MarketGroup) EntrustQuene(c *gin.Context) {
 	var param EntrustQueneParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -115,7 +115,7 @@ func (s *MarketGroup) TradeList(c *gin.Context) {
 	var param TradeListParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -144,7 +144,7 @@ func (s *MarketGroup) Quotation(c *gin.Context) {
 	var param QuotationParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -173,7 +173,7 @@ func (s *MarketGroup) CurrentPrice(c *gin.Context) {
 	var param SymbolPrice
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}

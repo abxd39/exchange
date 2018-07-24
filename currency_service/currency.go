@@ -21,7 +21,6 @@ func init()  {
 	name := cf.Cfg.MustValue("log", "log_name")
 	level := cf.Cfg.MustValue("log", "log_level")
 	xlog.InitLogger(path,name,level)
-	//xlog.Initlog.er(path,name,level)
 }
 
 func main() {

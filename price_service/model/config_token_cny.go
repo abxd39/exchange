@@ -12,7 +12,7 @@ func InitConfigTokenCny() {
 	configTokenCnyData = make(map[int32]*ConfigTokenCny, 0)
 	err := DB.GetMysqlConn().Find(&configTokenCnyData)
 	if err != nil {
-		Log.Fatalln(err.Error())
+		log.Fatalln(err.Error())
 	}
 }
 

@@ -78,11 +78,11 @@ func InitLog() {
 
 		file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err == nil {
-			Log.Out = file
+			log.Out = file
 		} else {
-			Log.Out = os.Stdout
+			log.Out = os.Stdout
 		}
 	} else {
-		Log.Out = os.Stdout
+		log.Out = os.Stdout
 	}
 }

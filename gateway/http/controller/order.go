@@ -2,7 +2,7 @@ package controller
 
 import (
 	"digicon/common/convert"
-	. "digicon/gateway/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -99,7 +99,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 	}
 	var param OrderListParam
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -129,7 +129,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 
 	var backOrders []BackOrder
 	if err = json.Unmarshal([]byte(rsp.Orders), &backOrders); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 	}
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -178,7 +178,7 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 	var param CancelOrderRequest
 	err := c.ShouldBind(&param)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -203,7 +203,7 @@ func (this CurrencyGroup) DeleteOrder(c *gin.Context) {
 	var param OrderRequest
 	err := c.ShouldBind(&param)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -227,7 +227,7 @@ func (this CurrencyGroup) ReadyOrder(c *gin.Context) {
 	var param OrderRequest
 	err := c.ShouldBind(&param)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -252,7 +252,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	var param OrderRequest
 	err := c.ShouldBind(&param)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -277,7 +277,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	var backParam BackAddOrder
 	err := c.ShouldBind(&param)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -309,7 +309,7 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 	var param OrderRequest
 	err := c.ShouldBind(&param)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -341,7 +341,7 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 	}
 	var dt Data
 	if err = json.Unmarshal([]byte(rsp.Data), &dt); err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
 
@@ -387,7 +387,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}

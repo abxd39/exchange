@@ -4,7 +4,7 @@ import (
 	"context"
 	proto "digicon/proto/rpc"
 	cf "digicon/public_service/conf"
-	. "digicon/public_service/log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -18,7 +18,7 @@ type UserRPCCli struct {
 func (s *UserRPCCli) Hello(name string) (rsp *proto.HelloResponse, err error) {
 	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
