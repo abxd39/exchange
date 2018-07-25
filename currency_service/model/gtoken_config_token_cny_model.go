@@ -16,6 +16,6 @@ func (this *TokenConfigTokenCNy) GetPrice(tokenid uint32) (err error) {
 }
 
 func (this *TokenConfigTokenCNy) List() (result []TokenConfigTokenCNy, err error) {
-	err = dao.DB.GetCommonMysqlConn().Table("config_token_cny").Find(&result)
+	err = dao.DB.GetTokenMysqlConn().Table("config_token_cny").Find(&result)
 	return
 }

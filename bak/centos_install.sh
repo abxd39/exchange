@@ -41,6 +41,6 @@ function restart_service(){
     done
 }
 
-#build_service
+build_service
 push_to_remote
-restart_service
+#restart_service
