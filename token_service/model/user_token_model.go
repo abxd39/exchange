@@ -126,7 +126,6 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err e
 
 	s.Balance -= num
 	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
-
 	if err != nil {
 		return
 	}

@@ -20,7 +20,7 @@ type Trade struct {
 	TokenName    string `xorm:"comment('交易队') VARCHAR(32)"`
 	Price        int64  `xorm:"comment('价格') BIGINT(20)"`
 	Num          int64  `xorm:"comment('数量') BIGINT(20)"`
-	Money        int64  `xorm:"BIGINT(20)"`
+	Balance      int64  `xorm:"BIGINT(20)"`
 	Fee          int64  `xorm:"comment('手续费') BIGINT(20)"`
 	Opt          int    `xorm:"comment(' buy  1或sell 2') index TINYINT(4)"`
 	DealTime     int64  `xorm:"comment('成交时间') BIGINT(20)"`

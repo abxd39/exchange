@@ -41,11 +41,8 @@ func InitLogger(path ,name,level  string) {
 		setNull()
 		logrus.SetLevel(logrus.InfoLevel)
 	}
-	g:=&logrus.TextFormatter{
-		ForceColors:true,
-		DisableColors:false,
-	}
 
+	g:=&logrus.JSONFormatter{}
 	lfHook := lfshook.NewHook(lfshook.WriterMap{
 		logrus.DebugLevel: writer, // 为不同级别设置不同的输出目的
 		logrus.InfoLevel:  writer,

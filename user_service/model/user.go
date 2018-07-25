@@ -8,8 +8,8 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
-	log "github.com/sirupsen/logrus"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 
@@ -223,9 +223,23 @@ func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err 
 
 //通用注册
 func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32, uid uint64, referUid uint64) {
-	ret, err := s.CheckUserExist(req.Ukey, filed)
+	var ret int32
+	var err error
+	var ok bool
+
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"ukey":    req.Ukey,
+				"type":    req.Type,
+				"code":    req.Code,
+				"invite":  req.InviteCode,
+				"country": req.Country,
+			}).Errorf("Register error %s", err.Error())
+		}
+	}()
+	ret, err = s.CheckUserExist(req.Ukey, filed)
 	if err != nil {
-		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, 0, 0
 	}
 
@@ -233,11 +247,12 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 		return ret, 0, 0
 	}
 
+	pwd := encryption.GenMd5AndReverse(req.Pwd)
+
 	d := &UserEx{} //主邀请人
 	if req.InviteCode != "" {
-		ok, err := DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
+		ok, err = DB.GetMysqlConn().Where("invite_code=?", req.InviteCode).Get(d)
 		if err != nil {
-			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 		if !ok {
@@ -248,11 +263,11 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	var sql string
 	if filed == "phone" {
 		chmod = AUTH_PHONE
-		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
+		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s','%d')", filed, req.Ukey, pwd, req.Country, req.Ukey, chmod)
 
 	} else if filed == "email" {
 		chmod = AUTH_EMAIL
-		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%d')", filed, req.Ukey, req.Pwd, req.Ukey, chmod)
+		sql = fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%d')", filed, req.Ukey, pwd, req.Ukey, chmod)
 	} else {
 		log.Errorln("register error filed %s", filed)
 	}
@@ -260,7 +275,6 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	//sql := fmt.Sprintf("INSERT INTO `user` (`account`,`pwd`,`country`,`%s`,`security_auth`) VALUES ('%s','%s','%s','%s',%d)", filed, req.Ukey, req.Pwd, req.Country, req.Ukey, chmod)
 	_, err = DB.GetMysqlConn().Exec(sql)
 	if err != nil {
-		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, 0, 0
 	}
 
@@ -268,7 +282,6 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	sql = fmt.Sprintf("%s=?", filed)
 	_, err = DB.GetMysqlConn().Where(sql, req.Ukey).Get(e)
 	if err != nil {
-		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN, 0, 0
 	}
 
@@ -285,13 +298,11 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
-			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 
 		_, err = DB.GetMysqlConn().Where("uid=?", d.Uid).Cols("invites").Incr("invites", 1).Update(d)
 		if err != nil {
-			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 	} else {
@@ -303,7 +314,6 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 
 		_, err = DB.GetMysqlConn().Insert(m)
 		if err != nil {
-			log.Errorln(err.Error())
 			return ERRCODE_UNKNOWN, 0, 0
 		}
 	}
@@ -311,7 +321,6 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 	return ERRCODE_SUCCESS, e.Uid, d.Uid
 
 }
-
 
 //检查用户注册过没
 func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
@@ -475,6 +484,7 @@ func (s *User) DelGoogleCode(input uint32) (ret int32, err error) {
 		_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("google_verify_id").Update(s)
 		if err != nil {
 			ret = ERRCODE_UNKNOWN
+			log.Errorln(err.Error())
 			return
 		}
 	}

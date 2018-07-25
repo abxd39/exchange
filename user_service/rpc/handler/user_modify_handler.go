@@ -6,8 +6,8 @@ import (
 	"digicon/user_service/model"
 
 	"github.com/liudng/godump"
-	"golang.org/x/net/context"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
 )
 
 func (s *RPCServer) ModifyUserLoginPwd(ctx context.Context, req *proto.UserModifyLoginPwdRequest, rsp *proto.UserModifyLoginPwdResponse) (err error) {

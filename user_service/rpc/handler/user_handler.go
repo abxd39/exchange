@@ -10,9 +10,9 @@ import (
 	"digicon/common/constant"
 	"digicon/common/convert"
 	"digicon/user_service/conf"
-	log "github.com/sirupsen/logrus"
 	"digicon/user_service/model"
 	"digicon/user_service/rpc/client"
+	log "github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -24,6 +24,7 @@ import (
 	"github.com/gin-gonic/gin/json"
 	"github.com/sirupsen/logrus"
 
+	"digicon/common/encryption"
 )
 
 type RPCServer struct{}
@@ -156,10 +157,11 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 	u := &model.User{}
 	var token string
 	var ret int32
+	pwd := encryption.GenMd5AndReverse(req.Pwd)
 	if req.Type == 1 { //手机登陆
-		token, ret = u.LoginByPhone(req.Ukey, req.Pwd)
+		token, ret = u.LoginByPhone(req.Ukey, pwd)
 	} else if req.Type == 2 { //邮箱登陆
-		token, ret = u.LoginByEmail(req.Ukey, req.Pwd)
+		token, ret = u.LoginByEmail(req.Ukey, pwd)
 	}
 
 	if ret == ERRCODE_SUCCESS {
@@ -204,6 +206,15 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 	var ret int32
 	var err error
 
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"ukey": req.Ukey,
+				"type": req.Type,
+				"code": req.Code,
+			}).Errorf("ForgetPwd error %s", err.Error())
+		}
+	}()
 	u := &model.User{}
 	if req.Type == 1 { //电话找回
 		ret, err = u.GetUserByPhone(req.Ukey)
@@ -265,7 +276,18 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 
 //发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
-	ret, err := model.ProcessSmsLogic(req.Type, req.Phone, req.Region)
+	var ret int32
+	var err error
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"phone":  req.Phone,
+				"type":   req.Type,
+				"region": req.Region,
+			}).Errorf("SendSms error %s", err.Error())
+		}
+	}()
+	ret, err = model.ProcessSmsLogic(req.Type, req.Phone, req.Region)
 	if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
@@ -278,7 +300,17 @@ func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *pro
 
 //发送邮箱验证码
 func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp *proto.CommonErrResponse) error {
-	ret, err := model.ProcessEmailLogic(req.Type, req.Email)
+	var ret int32
+	var err error
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"email": req.Email,
+				"type":  req.Type,
+			}).Errorf("SendEmail error %s", err.Error())
+		}
+	}()
+	ret, err = model.ProcessEmailLogic(req.Type, req.Email)
 	if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
@@ -532,10 +564,10 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 	securityCode := u.SecurityAuth
 
 	type AuthInfo struct {
-		EmailAuth    int32 `json:"email_auth"`     //
-		PhoneAuth    int32 `json:"phone_auth"`     //
-		RealName     int32 `json:"real_name"`      //
-		TwoLevelAuth int32 `json:"two_level_auth"` //
+		EmailAuth    int32  `json:"email_auth"`     //
+		PhoneAuth    int32  `json:"phone_auth"`     //
+		RealName     int32  `json:"real_name"`      //
+		TwoLevelAuth int32  `json:"two_level_auth"` //
 		NickName     string `json:"nick_name"`
 		CreatedTime  string `json:"created_time"`
 	}
@@ -554,7 +586,7 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 	}
 	timeLayout := "2006-01-02 15:04:05"
 	authInfo.NickName = extu.NickName
-	authInfo.CreatedTime =  time.Unix(extu.RegisterTime, 0).Format(timeLayout)
+	authInfo.CreatedTime = time.Unix(extu.RegisterTime, 0).Format(timeLayout)
 	data, err := json.Marshal(authInfo)
 	if err != nil {
 		fmt.Println(err.Error())

@@ -2,8 +2,8 @@ package dao
 
 import (
 	cf "digicon/user_service/conf"
-	log "github.com/sirupsen/logrus"
 	"github.com/go-redis/redis"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 

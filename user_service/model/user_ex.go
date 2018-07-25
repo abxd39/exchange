@@ -4,8 +4,8 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
-	log "github.com/sirupsen/logrus"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserEx struct {

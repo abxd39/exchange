@@ -315,6 +315,19 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 
 //开始交易加入举例买入USDT-》BTC  ，卖出USDT-》BTC  ,deal_num 卖方实际消耗BTC数量
 func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price int64, buy_num, deal_num int64) (err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"buy_id":    buyer.Uid,
+				"buy_entrust":    buyer.EntrustId,
+				"sell_id":     seller.Uid,
+				"sell_entrust":    seller.EntrustId,
+				"price":   price,
+				"buy_num":     buy_num,
+				"deal_num": deal_num,
+			}).Errorf("MakeDeal error %s", err.Error())
+		}
+	}()
 	//var ret int32
 	if buyer.Opt != proto.ENTRUST_OPT_BUY {
 		return errors.New("wrong type")
@@ -323,28 +336,24 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
 	buy_trade_token_account := &UserToken{} //买方交易账户余额 BTC
 	err = buy_trade_token_account.GetUserToken(buyer.Uid, s.TokenTradeId)
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
 	sell_token_account := &UserToken{} //卖方主账户余额  BTC
 	err = sell_token_account.GetUserToken(seller.Uid, s.TokenTradeId)
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
 	sell_trade_token_account := &UserToken{} //卖方交易账户余额 USDT
 	err = sell_trade_token_account.GetUserToken(seller.Uid, s.TokenId)
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -416,7 +425,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	ret, err = buy_token_account.NotifyDelFronzen(session, buy_num, t.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 	if ret != ERRCODE_SUCCESS {
@@ -427,7 +435,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	err = buy_trade_token_account.AddMoney(session, t.Num)
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -443,7 +450,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -455,14 +461,12 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	ret, err = sell_token_account.NotifyDelFronzen(session, deal_num, o.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
 	if err != nil || ret != ERRCODE_SUCCESS {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 
 	err = sell_trade_token_account.AddMoney(session, o.Num)
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -484,26 +488,22 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	err = new(Trade).Insert(session, t, o)
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 
 	err = new(EntrustDetail).UpdateStates(session, buyer.EntrustId, t.States, buy_surplus)
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 
 	err = new(EntrustDetail).UpdateStates(session, seller.EntrustId, o.States, sell_surplus)
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 	err = session.Commit()
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -513,13 +513,11 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Num:        deal_num,
 	})
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
 	err = DB.GetRedisConn().LPush(s.TradeQuene, b).Err()
 	if err != nil {
-		log.Fatalln(err.Error())
 		return
 	}
 
@@ -553,7 +551,6 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 				})
 
 				if err != nil {
-					log.Errorln(err.Error())
 					return
 				}
 
@@ -571,7 +568,7 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 			if len(others) == 0 {
 				log.WithFields(logrus.Fields{
 					"entrust_id": p.EntrustId,
-				}).Info("print data")
+				}).Info("match get other data")
 				s.joinSellQuene(p)
 				return
 			} else {

@@ -123,26 +123,22 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 	params["msg"] = content
 	bytesData, err := json.Marshal(params)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 	reader := bytes.NewReader(bytesData)
 	url := "http://intapi.253.com/send/json"
 	request, err := http.NewRequest("POST", url, reader)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	client := http.Client{}
 	resp, err := client.Do(request)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 
@@ -173,9 +169,11 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 	case 108:
 		ret = ERRCODE_SMS_PHONE_FORMAT
 		return
-
+	default:
+		ret = ERRCODE_UNKNOWN
+		err = errors.New(fmt.Sprintf("code:%d,msg=%s", p.Code, p.ErrorMsg))
+		return
 	}
-	ret = ERRCODE_UNKNOWN
-	err = errors.New(p.ErrorMsg)
+
 	return
 }
