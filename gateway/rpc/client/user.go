@@ -213,18 +213,26 @@ type UserBaseData struct {
 	HeadSculpture  string `json:"head_scul"`
 }
 
-func replaceNickName(nickname string) (rpname string) {
+func replaceNickName(nickname string) (rpname string){
 	if nickname != "" {
-		if strings.Contains(nickname, "@") {
-			rpname = strings.Replace(nickname, nickname[3:len(nickname)-9], "****", -1)
-		} else {
-			rpname = strings.Replace(nickname, nickname[3:len(nickname)-5], "***", -1)
+		nickLen := len(nickname)
+		if nickLen <= 4 {
+			rpname = strings.Replace(nickname, nickname[1:nickLen-1], "****", -1)
+		}else if nickLen<  7 {
+			rpname = strings.Replace(nickname, nickname[2:nickLen-2], "****", -1)
+		}else {
+			if strings.Contains(nickname, "@") {
+				rpname = strings.Replace(nickname, nickname[3:nickLen-4], "****", -1)
+			} else {
+				rpname = strings.Replace(nickname, nickname[3:nickLen-4], "***", -1)
+			}
 		}
-	} else {
+	}else{
 		rpname = ""
 	}
 	return
 }
+
 
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
 	rsp, err = s.conn.GetUserInfo(context.TODO(), &proto.UserInfoRequest{
