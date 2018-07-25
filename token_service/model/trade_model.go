@@ -51,7 +51,7 @@ func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
 func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*model.ModelList, []*Trade, error) {
 	engine := DB.GetMysqlConn()
 
-	query := engine.Where("uid=?", uid).Desc("deal_time")
+	query := engine.Where("uid=?", uid).Desc("deal_time", "trade_id")
 	tempQuery := *query
 
 	count, err := tempQuery.Count(s)
