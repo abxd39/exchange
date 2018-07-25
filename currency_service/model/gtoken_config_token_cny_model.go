@@ -11,11 +11,11 @@ type TokenConfigTokenCNy struct {
 }
 
 func (this *TokenConfigTokenCNy) GetPrice(tokenid uint32) (err error) {
-	_, err = dao.DB.GetCommonMysqlConn().Table("config_token_cny").Where("token_id =?", tokenid).Get(this)
+	_, err = dao.DB.GetTokenMysqlConn().Table("config_token_cny").Where("token_id =?", tokenid).Get(this)
 	return
 }
 
 func (this *TokenConfigTokenCNy) List() (result []TokenConfigTokenCNy, err error) {
-	err = dao.DB.GetCommonMysqlConn().Table("config_token_cny").Find(&result)
+	err = dao.DB.GetTokenMysqlConn().Table("config_token_cny").Find(&result)
 	return
 }
