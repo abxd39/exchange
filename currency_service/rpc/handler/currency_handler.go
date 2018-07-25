@@ -334,8 +334,9 @@ func (s *RPCServer) GetUserCurrencyDetail(ctx context.Context, req *proto.UserCu
 }
 
 func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.OtherResponse) error {
-	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid)
-	fmt.Println("data:", data)
+	//fmt.Println(req.TokenId, req.NoZero)
+	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid, req.NoZero)
+	//fmt.Println("data:", data)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_USER_BALANCE
 		return err
@@ -527,4 +528,5 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 
 /*
 
- */
+*/
+//func (s *RPCServer)
