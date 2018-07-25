@@ -74,12 +74,10 @@ func (this *Order) List(Page, PageNum int32,
 		query = query.Where("token_id = ?", TokenId)
 	}
 	//fmt.Println(StartTime, EndTime)
-	if StartTime != `` {
-		query = query.Where("created_time >= ?", StartTime)
+	if StartTime != "" && EndTime != "" {
+		query = query.Where("created_time >= ? AND created_time <= ?", StartTime, EndTime)
 	}
-	if EndTime != `` {
-		query = query.Where("created_time <= ?", EndTime)
-	}
+
 
 	tmpQuery := *query
 	countQuery := &tmpQuery
