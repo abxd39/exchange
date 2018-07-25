@@ -329,7 +329,7 @@ func (s *TokenGroup) TokenTradeList(c *gin.Context) {
 		Items     []*item `json:"items"`
 	}
 
-	newItems := make([]*item, rsp.Data.PageSize)
+	newItems := make([]*item, len(rsp.Data.Items))
 	for k, v := range rsp.Data.Items {
 		newItems[k] = &item{
 			TradeId:   v.TradeId,

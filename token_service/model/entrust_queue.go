@@ -183,7 +183,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
 		Type:    MONEY_UKEY_TYPE_ENTRUST,
 		Num:     p.Num,
-		Surplus: m.Balance,
+		Balance: m.Balance,
 	})
 	if err != nil {
 		log.Errorln(err.Error())
@@ -287,7 +287,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
 		Type:    MONEY_UKEY_TYPE_ENTRUST,
 		Num:     p.Num,
-		Surplus: m.Balance,
+		Balance: m.Balance,
 	})
 	if err != nil {
 		session.Rollback()
@@ -445,7 +445,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Opt:     int(proto.ENTRUST_OPT_BUY),
 		Type:    MONEY_UKEY_TYPE_TRADE,
 		Num:     deal_num,
-		Surplus: buy_trade_token_account.Balance,
+		Balance: buy_trade_token_account.Balance,
 	})
 
 	if err != nil {
@@ -477,7 +477,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		Opt:     int(proto.ENTRUST_OPT_SELL),
 		Type:    MONEY_UKEY_TYPE_TRADE,
 		Num:     buy_num,
-		Surplus: sell_trade_token_account.Balance,
+		Balance: sell_trade_token_account.Balance,
 	})
 	if err != nil {
 		session.Rollback()

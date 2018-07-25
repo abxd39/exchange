@@ -68,7 +68,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		Ukey:    string(req.Ukey),
 		Opt:     int(req.Opt),
 		Type:    int(req.Type),
-		Surplus: u.Balance,
+		Balance: u.Balance,
 		Num:     req.Num,
 	})
 
