@@ -387,7 +387,7 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 	if err != nil {
 		log.Println(err.Error())
 		price = 0.00
-	}else{
+	} else {
 		price = convert.Int64ToFloat64By8Bit(tokenConfigCny.Price)
 	}
 
@@ -399,7 +399,6 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 	data, _ := json.Marshal(dt)
 	rsp.Data = string(data)
 	rsp.Code = errdefine.ERRCODE_SUCCESS
-
 
 	return nil
 }
@@ -424,17 +423,17 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 	type AuthInfo struct {
-		EmailAuth    int32 `json:"email_auth"`     //
-		PhoneAuth    int32 `json:"phone_auth"`     //
-		RealName     int32 `json:"real_name"`      //
-		TwoLevelAuth int32 `json:"two_level_auth"` //
+		EmailAuth    int32  `json:"email_auth"`     //
+		PhoneAuth    int32  `json:"phone_auth"`     //
+		RealName     int32  `json:"real_name"`      //
+		TwoLevelAuth int32  `json:"two_level_auth"` //
 		NickName     string `json:"nick_name"`
 		CreatedTime  string `json:"created_time"`
 	}
 	type UserRateAndAuth struct {
 		model.UserCurrencyCount
 		AuthInfo
-		CompleteRate  float64 `json:"complete_rate"` //  完成率
+		CompleteRate float64 `json:"complete_rate"` //  完成率
 		MonthRate    int64   `json:"month_rate"`    // 30日成单
 		AverageTo    int64   `json:"average_to"`    // 120 分钟
 	}
@@ -447,29 +446,29 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 
 	uOrder := new(model.Order)
 	now := time.Now()
-	monthAgou , _ := time.ParseDuration("-30d")
+	monthAgou, _ := time.ParseDuration("-30d")
 	startTime := now.Add(monthAgou).Format("2006-01-02 15:04:05")
 	endTime := now.Format("2006-01-02 15:04:05")
-	Orders, err := uOrder.GetOrderByTime(req.Uid,  startTime ,endTime)
+	Orders, err := uOrder.GetOrderByTime(req.Uid, startTime, endTime)
 	var monthrate int64
 	orderLen := len(Orders)
 	if err != nil {
 		fmt.Println(err.Error())
 		monthrate = 0
-	}else{
+	} else {
 		monthrate = int64(orderLen)
 	}
 
 	var allminute int64
-	for _, od := range Orders{
+	for _, od := range Orders {
 		allminute = allminute + model.GetHourDiffer(od.CreatedTime, od.ConfirmTime.String)
 	}
 
 	rateAndAuth := new(UserRateAndAuth)
 	var averageto int64
-	if orderLen <= 0{
+	if orderLen <= 0 {
 		averageto = 0
-	}else{
+	} else {
 		averageto = allminute / int64(orderLen)
 	}
 	rateAndAuth.AverageTo = int64(averageto)
@@ -481,21 +480,19 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.Good = data.Good
 	rateAndAuth.Cancel = data.Cancel
 	rateAndAuth.Orders = data.Orders
-	if data.Orders <= 0{
+	if data.Orders <= 0 {
 		rateAndAuth.CompleteRate = 100.0
-	}else{
-		rateAndAuth.CompleteRate = float64((data.Success / data.Orders ) * 100)
+	} else {
+		rateAndAuth.CompleteRate = float64((data.Success / data.Orders) * 100)
 	}
-
 
 	rateAndAuth.RealName = authInfo.RealName
 	rateAndAuth.TwoLevelAuth = authInfo.TwoLevelAuth
 	rateAndAuth.EmailAuth = authInfo.EmailAuth
 	rateAndAuth.PhoneAuth = authInfo.PhoneAuth
-	rateAndAuth.NickName  = authInfo.NickName
+	rateAndAuth.NickName = authInfo.NickName
 	rateAndAuth.CreatedTime = authInfo.CreatedTime
 	//rateAndAuth.EmailAuth = data.
-
 
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
@@ -538,9 +535,7 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 	}
 }
 
-
-
 /*
 
-*/
+ */
 //func (s *RPCServer)

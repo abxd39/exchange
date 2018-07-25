@@ -2,8 +2,8 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	log "github.com/sirupsen/logrus"
 	"errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // 用户虚拟货币资产表
@@ -42,17 +42,15 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 	return data
 }
 
-
-func (this *UserCurrency) GetUserCurrency(uid uint64,  nozero bool) (uCurrenList []UserCurrency, err error){
+func (this *UserCurrency) GetUserCurrency(uid uint64, nozero bool) (uCurrenList []UserCurrency, err error) {
 	engine := dao.DB.GetMysqlConn()
 	if nozero {
 		err = engine.Where("uid = ?", uid).Find(&uCurrenList)
-	}else{
+	} else {
 		err = engine.Where("uid=? AND balance=?", uid, 0).Find(&uCurrenList)
 	}
 	return
 }
-
 
 func (this *UserCurrency) GetBalance(uid uint64, token_id uint32) (data UserCurrency, err error) {
 	//data := new(UserCurrency)

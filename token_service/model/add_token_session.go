@@ -46,7 +46,12 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 			return
 		}
 	} else if proto.TOKEN_OPT_TYPE_ADD == req.Opt {
-		err = u.AddMoney(session, req.Num)
+		if proto.TOKEN_OPT_TYPE_ADD_TYPE_BALANCE == req.OptAddType { //加余额
+			err = u.AddMoney(session, req.Num)
+		} else { //加冻结余额
+			err = u.AddFrozen(session, req.Num)
+		}
+
 		if err != nil {
 			log.Errorln(err.Error())
 			session.Rollback()
@@ -69,6 +74,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		Opt:     int(req.Opt),
 		Type:    int(req.Type),
 		Balance: u.Balance,
+		Frozen:  u.Frozen,
 		Num:     req.Num,
 	})
 

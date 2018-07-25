@@ -76,6 +76,13 @@ enum TOKEN_OPT_TYPE //金钱操作类型
     TOTMAX                  =3;
 }
 
+enum TOKEN_OPT_TYPE_ADD_TYPE //加钱类型，TOKEN_OPT_TYPE为ADD时
+{
+    TOAT_NONE                  = 0;
+    BALANCE                    = 1; //加余额
+    FROZEN                     = 2; //加冻结余额
+}
+
 message  EntrustOrderRequest {
     string symbol                    =2;//交易币种
     int64 on_price                    =3;//委托价格
@@ -97,6 +104,7 @@ message AddTokenNumRequest {
     TOKEN_OPT_TYPE opt = 7;
     bytes ukey  =8;
     int32 type  =9;
+    TOKEN_OPT_TYPE_ADD_TYPE opt_add_type = 10;
 }
 
 message HistoryKlineRequest{

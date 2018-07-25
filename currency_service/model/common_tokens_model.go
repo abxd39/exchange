@@ -1,20 +1,16 @@
 package model
 
-
 import (
 	"digicon/currency_service/dao"
 	log "github.com/sirupsen/logrus"
 )
 
-
 // 货币类型表
 type CommonTokens struct {
-	Id     uint32 `xorm:"not null pk autoincr INT(10)" json:"id"`
-	Name   string `xorm:"VARBINARY(20)" json:"cn_name"`             // 货币中文名
-	Mark   string `xorm:"VARBINARY(20)" json:"name"`                // 货币标识
+	Id   uint32 `xorm:"not null pk autoincr INT(10)" json:"id"`
+	Name string `xorm:"VARBINARY(20)" json:"cn_name"` // 货币中文名
+	Mark string `xorm:"VARBINARY(20)" json:"name"`    // 货币标识
 }
-
-
 
 // common 下获取货币类型
 func (this *CommonTokens) Get(id uint32, name string) *CommonTokens {

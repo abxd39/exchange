@@ -318,13 +318,13 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	defer func() {
 		if err != nil {
 			log.WithFields(log.Fields{
-				"buy_id":    buyer.Uid,
-				"buy_entrust":    buyer.EntrustId,
-				"sell_id":     seller.Uid,
-				"sell_entrust":    seller.EntrustId,
-				"price":   price,
-				"buy_num":     buy_num,
-				"deal_num": deal_num,
+				"buy_id":       buyer.Uid,
+				"buy_entrust":  buyer.EntrustId,
+				"sell_id":      seller.Uid,
+				"sell_entrust": seller.EntrustId,
+				"price":        price,
+				"buy_num":      buy_num,
+				"deal_num":     deal_num,
 			}).Errorf("MakeDeal error %s", err.Error())
 		}
 	}()

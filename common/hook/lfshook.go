@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sync"
-	"strings"
 	"runtime"
+	"strings"
+	"sync"
 )
 
 // We are logging to file, strip colors to make the output more readable.
@@ -48,9 +48,9 @@ type LfsHook struct {
 // If using io.Writer or WriterMap, user is responsible for closing the used io.Writer.
 func NewHook(output interface{}, formatter logrus.Formatter) *LfsHook {
 	hook := &LfsHook{
-		lock: new(sync.Mutex),
-		Field:  "caller",
-		Skip:   5,
+		lock:  new(sync.Mutex),
+		Field: "caller",
+		Skip:  5,
 		Formatter: func(file, function string, line int) string {
 			return fmt.Sprintf("%s:%d", file, line)
 		},
@@ -204,8 +204,6 @@ func (hook *LfsHook) fileWrite(entry *logrus.Entry) error {
 func (hook *LfsHook) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
-
-
 
 func findCaller(skip int) (string, string, int) {
 	var (

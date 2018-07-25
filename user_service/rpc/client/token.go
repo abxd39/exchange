@@ -31,13 +31,14 @@ func NewTokenRPCCli() (t *TokenRPCCli) {
 	return
 }
 
-func (s *TokenRPCCli) CallAddTokenNum(uid uint64, tokenId int32, num int64, opt proto.TOKEN_OPT_TYPE, ukey []byte, oType int32) (*proto.CommonErrResponse, error) {
+func (s *TokenRPCCli) CallAddTokenNum(uid uint64, tokenId int32, num int64, opt proto.TOKEN_OPT_TYPE, optAddType proto.TOKEN_OPT_TYPE_ADD_TYPE, ukey []byte, oType int32) (*proto.CommonErrResponse, error) {
 	return s.conn.AddTokenNum(context.Background(), &proto.AddTokenNumRequest{
-		Uid:     uid,
-		TokenId: tokenId,
-		Num:     num,
-		Opt:     opt,
-		Ukey:    ukey,
-		Type:    oType,
+		Uid:        uid,
+		TokenId:    tokenId,
+		Num:        num,
+		Opt:        opt,
+		OptAddType: optAddType,
+		Ukey:       ukey,
+		Type:       oType,
 	})
 }

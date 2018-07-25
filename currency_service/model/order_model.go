@@ -5,10 +5,9 @@ import (
 	"database/sql"
 	"digicon/currency_service/conf"
 	"digicon/currency_service/dao"
-	log "github.com/sirupsen/logrus"
-	. "digicon/proto/common"
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -77,7 +76,6 @@ func (this *Order) List(Page, PageNum int32,
 	if StartTime != "" && EndTime != "" {
 		query = query.Where("created_time >= ? AND created_time <= ?", StartTime, EndTime)
 	}
-
 
 	tmpQuery := *query
 	countQuery := &tmpQuery
@@ -168,7 +166,6 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 
-
 	rate := conf.Cfg.MustValue("rate", "fee_rate")
 	rateFloat, _ := strconv.ParseInt(rate, 10, 64)
 	freeze := this.Num * (1 + rateFloat)
@@ -216,7 +213,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	buffer.WriteString("values (?, ? ,?, ?, ?, ?,  ?, ?, ?, ? , ?)")
 	insertSql := buffer.String()
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId, this.BuyId ,this.OrderId, this.TokenId, this.Num, 0, uCurrency.Balance , 5, "", this.States, nowTime, nowTime, // 卖家记录 , 5 为冻结
+		this.SellId, this.BuyId, this.OrderId, this.TokenId, this.Num, 0, uCurrency.Balance, 5, "", this.States, nowTime, nowTime, // 卖家记录 , 5 为冻结
 	)
 
 	if err != nil {
@@ -292,7 +289,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	}
 
 	//tokenName := tokens.Name
-	tokenName := tokens.Mark    //
+	tokenName := tokens.Mark //
 
 	uCurrency := new(UserCurrency)
 	_, err = engine.Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
@@ -309,8 +306,6 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 		code = ERRCODE_USER_BALANCE
 		return
 	}
-
-
 
 	sellNum := allNum + rateFee
 	if uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
@@ -408,7 +403,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	nowCreate := time.Now().Format("2006-01-02 15:04:05")
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
 		this.SellId, this.BuyId, this.OrderId, this.TokenId, sellNum, rateFee, uCurrency.Balance, 2, "", this.States, nowCreate, updateTimeStr, // 卖家记录 , 2订单转出
-		this.BuyId, this.SellId, this.OrderId, this.TokenId, this.Num, 0,  buyCurrency.Balance  , 1, "", this.States, nowCreate, updateTimeStr, // 买家记录 , 1订单转入
+		this.BuyId, this.SellId, this.OrderId, this.TokenId, this.Num, 0, buyCurrency.Balance, 1, "", this.States, nowCreate, updateTimeStr, // 买家记录 , 1订单转入
 	)
 	if err != nil {
 		fmt.Println("insert into history error: ", err.Error())
@@ -496,8 +491,8 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 
 /*
 
-*/
-func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) ( ods []Order, err error ){
+ */
+func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
 	err = engine.Where("sell_id = ? AND created_time >= ? AND created_time <= ?", uid, startTime, endTime).Find(&ods)
 	if err != nil {
