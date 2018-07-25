@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
+	. "digicon/proto/common"
 )
 
 // 订单表

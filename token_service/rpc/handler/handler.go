@@ -286,7 +286,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 
 	// 拼接返回数据
 	for _, v := range list {
-		worthCny := convert.Int64MulInt64By8Bit(v.Balance, model.GetTokenCnyPrice(int(v.TokenId)))
+		worthCny := convert.Int64MulInt64By8Bit(v.Balance+v.Frozen, model.GetTokenCnyPrice(int(v.TokenId)))
 
 		rsp.ListData = append(rsp.ListData, &proto.TokenListBaseData{
 			TokenId:   int32(v.TokenId),

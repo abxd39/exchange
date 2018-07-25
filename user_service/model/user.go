@@ -15,6 +15,9 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
 	"github.com/pkg/errors"
+	. "digicon/proto/common"
+	. "digicon/user_service/dao"
+	. "digicon/common/constant"
 )
 
 type User struct {
