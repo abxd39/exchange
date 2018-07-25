@@ -18,10 +18,10 @@ import (
 	"fmt"
 
 	"strconv"
-
+	. "digicon/proto/common"
 	"github.com/gin-gonic/gin/json"
 	"github.com/sirupsen/logrus"
-
+	. "digicon/common/constant" 
 	"digicon/common/encryption"
 )
 
