@@ -2,6 +2,7 @@ package model
 
 import (
 	"digicon/common/model"
+	. "digicon/token_service/dao"
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
 )
