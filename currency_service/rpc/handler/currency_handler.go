@@ -199,33 +199,43 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 // 获取货币类型
 func (s *RPCServer) GetCurrencyTokens(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokens) error {
 	//fmt.Println(req.Id)
-	data := new(model.Tokens).Get(req.Id, req.Name)
+	//data := new(model.Tokens).Get(req.Id, req.Name)
+	data := new(model.CommonTokens).Get(req.Id, req.Name)
 	if data == nil {
 		return nil
 	}
 	//fmt.Println("data:", data)
 
 	rsp.Id = data.Id
-	rsp.Name = data.Name
-	rsp.CnName = data.CnName
+	rsp.CnName = data.Name
+	rsp.Name = data.Mark
+	//rsp.CnName = data.CnName
 
 	return nil
 }
 
 // 获取货币类型列表
 func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokensListResponse) error {
-	data := new(model.Tokens).List()
+
+	//data := new(model.Tokens).List()
+	data := new(model.CommonTokens).List()
+	fmt.Println("data:", data)
 	if data == nil {
 		return nil
 	}
+
+	fmt.Println("data:", data)
 
 	listLen := len(data)
 	listData := make([]*proto.CurrencyTokens, listLen)
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.CurrencyTokens{
 			Id:     data[i].Id,
-			Name:   data[i].Name,
-			CnName: data[i].CnName,
+			Name:   data[i].Mark,
+			CnName: data[i].Name,
+			//
+			//Name:   data[i].Name,
+			//CnName: data[i].CnName,
 		}
 		listData[i] = adsLists
 	}
@@ -337,6 +347,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	//fmt.Println(req.TokenId, req.NoZero)
 	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid, req.NoZero)
 	//fmt.Println("data:", data)
+
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_USER_BALANCE
 		return err
