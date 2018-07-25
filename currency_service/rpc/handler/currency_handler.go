@@ -379,25 +379,28 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 // 获取get售价
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
 	//
-	sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
-	key := req.TokenId
+	//sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
+	tokenConfigCny := new(model.TokenConfigTokenCNy)
+
+	err := tokenConfigCny.GetPrice(req.TokenId)
+	var price float64
+	if err != nil {
+		log.Println(err.Error())
+		price = 0.00
+	}else{
+		price = convert.Int64ToFloat64By8Bit(tokenConfigCny.Price)
+	}
+
 	type SellingPrice struct {
-		Price float64
+		Cny float64
 	}
-	if v, ok := sellingPriceMap[key]; ok {
-		dt := SellingPrice{Price: v}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
-		rsp.Code = errdefine.ERRCODE_SUCCESS
-	} else {
-		fmt.Println("Key Not Found")
-		dt := SellingPrice{Price: v}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
-		rsp.Code = errdefine.ERRCODE_UNKNOWN
-		rsp.Message = "not found!"
-		//rsp.Message = "not found!
-	}
+
+	dt := SellingPrice{Cny: price}
+	data, _ := json.Marshal(dt)
+	rsp.Data = string(data)
+	rsp.Code = errdefine.ERRCODE_SUCCESS
+
+
 	return nil
 }
 
