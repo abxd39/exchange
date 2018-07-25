@@ -108,6 +108,27 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64) (err error) {
 	return
 }
 
+//加冻结代币数量，如：注册赠送代币默认放到冻结代币里
+func (s *UserToken) AddFrozen(session *xorm.Session, num int64) (err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"num":      num,
+				"uid":      s.Uid,
+				"token_id": s.TokenId,
+				"balance":  s.Balance,
+			}).Errorf("add frozen money  error %s", err.Error())
+		}
+	}()
+
+	s.Frozen += num
+	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
+	if err != nil {
+		return
+	}
+	return
+}
+
 //减少代币数量
 func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err error) {
 	defer func() {
