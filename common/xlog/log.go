@@ -45,7 +45,7 @@ func InitLogger(path, name, level string) {
 		ForceColors:   true,
 		DisableColors: false,
 	}
-	
+
 	lfHook := lfshook.NewHook(lfshook.WriterMap{
 		logrus.DebugLevel: writer, // 为不同级别设置不同的输出目的
 		logrus.InfoLevel:  writer,
