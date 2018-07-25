@@ -5,15 +5,11 @@ import (
 	"digicon/common/encryption"
 	"digicon/common/google"
 	"digicon/common/random"
-	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	. "digicon/user_service/dao"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
-
-	. "digicon/common/constant"
 
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
@@ -345,7 +341,7 @@ func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 	defer func() {
 		if err != nil {
 			log.WithFields(log.Fields{
-				"phone":    phone,
+				"phone": phone,
 				"pwd":   pwd,
 			}).Errorf("LoginByPhone error %s", err.Error())
 		}
@@ -364,7 +360,7 @@ func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 				ret = ERRCODE_UNKNOWN
 				return
 			}
-			err=errors.New("test")
+			err = errors.New("test")
 			ret = ERRCODE_SUCCESS
 			return
 		}

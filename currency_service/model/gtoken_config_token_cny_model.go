@@ -10,15 +10,12 @@ type TokenConfigTokenCNy struct {
 	Price   int64 `xorm:"comment('人民币价格') BIGINT(20)"`
 }
 
-
-func (this *TokenConfigTokenCNy) GetPrice(tokenid uint32) (err error){
+func (this *TokenConfigTokenCNy) GetPrice(tokenid uint32) (err error) {
 	_, err = dao.DB.GetTokenMysqlConn().Table("config_token_cny").Where("token_id =?", tokenid).Get(this)
 	return
 }
 
-
-
-func (this *TokenConfigTokenCNy) List()  (result []TokenConfigTokenCNy, err error){
+func (this *TokenConfigTokenCNy) List() (result []TokenConfigTokenCNy, err error) {
 	err = dao.DB.GetCommonMysqlConn().Table("config_token_cny").Find(&result)
 	return
 }

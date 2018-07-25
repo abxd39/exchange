@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/micro/go-micro"
@@ -55,7 +55,6 @@ func (s *UserRPCCli) CallRegisterByEmail(email, pwd, invite_code string, country
 	}
 	return
 }
-
 
 type LoginUserBaseData struct {
 	Uid   uint64 `json:"uid"`
@@ -210,23 +209,22 @@ type UserBaseData struct {
 	NeedPwdTime    int32  `json:"need_pwd_time"`
 	Country        string `json:"country"`
 	GoogleExist    bool   `json:"google_exist"`
-	NickName       string  `json:"nick_name"`
-	HeadSculpture  string  `json:"head_scul"`
+	NickName       string `json:"nick_name"`
+	HeadSculpture  string `json:"head_scul"`
 }
 
-func replaceNickName(nickname string) (rpname string){
-	if nickname != ""{
+func replaceNickName(nickname string) (rpname string) {
+	if nickname != "" {
 		if strings.Contains(nickname, "@") {
 			rpname = strings.Replace(nickname, nickname[3:len(nickname)-9], "****", -1)
 		} else {
 			rpname = strings.Replace(nickname, nickname[3:len(nickname)-5], "***", -1)
 		}
-	}else{
+	} else {
 		rpname = ""
 	}
 	return
 }
-
 
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
 	rsp, err = s.conn.GetUserInfo(context.TODO(), &proto.UserInfoRequest{
@@ -244,9 +242,9 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		return
 	}
 	var nickname string
-	if out.NickName == ""{
+	if out.NickName == "" {
 		nickname = replaceNickName(out.Account)
-	}else{
+	} else {
 		nickname = out.NickName
 	}
 	u = &UserBaseData{
@@ -268,12 +266,6 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 
 	return
 }
-
-
-
-
-
-
 
 type UserRealData struct {
 	RealName     string `json:"real_name"`
@@ -333,11 +325,11 @@ func (s *UserRPCCli) CallGetUserInvite(uid uint64) (rsp *proto.UserInviteRespons
 	return
 }
 
-func (s *UserRPCCli) CallGetIpRecord(uid uint64,limit,page int32) (rsp *proto.IpRecordResponse, err error) {
+func (s *UserRPCCli) CallGetIpRecord(uid uint64, limit, page int32) (rsp *proto.IpRecordResponse, err error) {
 	rsp, err = s.conn.GetIpRecord(context.TODO(), &proto.CommonPageRequest{
-		Uid: uid,
-		Limit:limit,
-		Page:page,
+		Uid:   uid,
+		Limit: limit,
+		Page:  page,
 	})
 	if err != nil {
 		log.Errorln(err.Error())

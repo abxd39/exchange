@@ -2,10 +2,9 @@ package controller
 
 import (
 	"digicon/common/convert"
-	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
-	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,8 +25,6 @@ func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 		NCurrency.GET("/tokens", this.GetTokens)          // 获取货币类型
 		NCurrency.GET("/otc_list", this.AdsList)          // 法币交易列表 - (广告(买卖))
 		NCurrency.GET("/otc_user_list", this.AdsUserList) // 个人法币交易列表 - (广告(买卖))
-
-
 
 	}
 }
@@ -57,7 +54,6 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 		Currency.GET("/trade_detail", this.TradeDetail) //获取订单付款信息
 
-
 		////payment///
 		Currency.POST("/bank_pay", this.BankPay)      // 添加 bank_pay
 		Currency.GET("/bank_pay", this.GetBankPay)    // 获取 bank_pay
@@ -85,7 +81,6 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		//Currency.GET("/add_user_balance", this.AddUserBalance)
 		Currency.GET("/get_user_currency_detail", this.GetUserCurrencyDetail)
 		Currency.GET("/get_user_currency", this.GetUserCurrency) //  获取法币账户
-
 
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
 	}
@@ -988,7 +983,7 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	}
 	fmt.Println("price:", data)
 	type respPrice struct {
-		Cny     float64   `json:"cny"`
+		Cny float64 `json:"cny"`
 	}
 	var rPrce respPrice
 	err = json.Unmarshal([]byte(data.Data), &rPrce)
@@ -1012,10 +1007,10 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Id      uint64 `form:"id"         json:"id" `
-		Uid     uint64 `form:"uid"        json:"uid"       binding:"required"`
+		Id  uint64 `form:"id"         json:"id" `
+		Uid uint64 `form:"uid"        json:"uid"       binding:"required"`
 		//TokenId uint32 `form:"token_id"   json:"token_id" `
-		NoZero  bool    `form:"no_zero"   json:"no_zero"  `
+		NoZero bool `form:"no_zero"   json:"no_zero"  `
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -1191,12 +1186,12 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		return
 	}
 	type UserCurrencyCount struct {
-		Uid          uint64 `json:"uid"`
-		NickName     string `json:"nick_name"`
-		CreatedTime  string `json:"created_time"`
+		Uid         uint64 `json:"uid"`
+		NickName    string `json:"nick_name"`
+		CreatedTime string `json:"created_time"`
 
-		Cancel       uint32  `json:"cancel"` // 取消
-		Good         float64 `json:"good"`   // 好评率
+		Cancel uint32  `json:"cancel"` // 取消
+		Good   float64 `json:"good"`   // 好评率
 
 		Orders       uint32  `json:"orders"`        // 订单数
 		CompleteRate float64 `json:"complete_rate"` //  完成率
@@ -1280,22 +1275,22 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 	}
 	type OldUserCurrencyHisotry struct {
 		UserCurrencyHisotry
-		Num  int64 `json:"num"`
+		Num int64 `json:"num"`
 	}
 	type NewUserCurrencyHisotry struct {
 		UserCurrencyHisotry
-		Num         float64  `json:"num"  `
+		Num float64 `json:"num"  `
 	}
 
 	var NewList []OldUserCurrencyHisotry
-	err = json.Unmarshal([]byte(rsp.Data) , &NewList)
+	err = json.Unmarshal([]byte(rsp.Data), &NewList)
 	if err != nil {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 	var dataList []NewUserCurrencyHisotry
-	for _, ul := range NewList{
+	for _, ul := range NewList {
 		var tmp NewUserCurrencyHisotry
 		tmp.Id = ul.Id
 		tmp.Uid = ul.Uid

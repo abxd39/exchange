@@ -2,9 +2,9 @@ package dao
 
 import (
 	"digicon/currency_service/conf"
-	log "github.com/sirupsen/logrus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
+	log "github.com/sirupsen/logrus"
 )
 
 type Mysql struct {
@@ -18,7 +18,6 @@ type MysqlToken struct {
 type MysqlCommon struct {
 	cim *xorm.Engine
 }
-
 
 func NewMysql() (mysql *Mysql) {
 	dsource := conf.Cfg.MustValue("mysql", "conn")
@@ -41,11 +40,9 @@ func NewMysql() (mysql *Mysql) {
 	return mysql
 }
 
-
 func (s *Dao) GetMysqlConn() *xorm.Engine {
 	return s.mysql.im
 }
-
 
 func NewTokenMysql() (tkmysql *MysqlToken) {
 	dsource := conf.Cfg.MustValue("mysql", "token_conn")
@@ -66,7 +63,7 @@ func NewTokenMysql() (tkmysql *MysqlToken) {
 }
 
 func (s *Dao) GetTokenMysqlConn() *xorm.Engine {
-	return  s.tokenMysql.tim
+	return s.tokenMysql.tim
 }
 
 func NewCommonMysql() (tkmysql *MysqlCommon) {
@@ -88,5 +85,5 @@ func NewCommonMysql() (tkmysql *MysqlCommon) {
 }
 
 func (s *Dao) GetCommonMysqlConn() *xorm.Engine {
-	return  s.commonMysql.cim
+	return s.commonMysql.cim
 }
