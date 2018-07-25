@@ -481,7 +481,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	})
 	if err != nil {
 		session.Rollback()
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -524,6 +523,67 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	return
 }
 
+/*
+func (s *EntrustQuene) match2(p *EntrustData) (ret int32, err error) {
+	var buyer *EntrustData
+	var seller *EntrustData
+
+	var other *EntrustData
+	var others []*EntrustData
+
+	defer func() {
+		if buyer!=nil &&  buyer.SurplusNum>0 {
+			s.joinSellQuene(buyer)
+		}
+
+		if seller!=nil && seller.SurplusNum>0 {
+			s.joinSellQuene(seller)
+		}
+	}()
+	if p.Opt == proto.ENTRUST_OPT_BUY {
+		buyer=p
+
+		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1)
+		if err == redis.Nil {
+			return
+		}else if err!=nil{
+			return
+		}
+		if len(others) > 0 {
+			seller=others[0]
+		}else {
+			return
+		}
+
+	}else{
+		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 1, 1)
+		if err == redis.Nil {
+			return
+		}else if err!=nil{
+			return
+		}
+		if len(others) > 0 {
+			seller=others[0]
+		}else {
+			return
+		}
+	}
+
+	if buyer.Type == proto.ENTRUST_TYPE_MARKET_PRICE || seller.Type== proto.ENTRUST_TYPE_MARKET_PRICE {
+		s.delSource(other.Opt, other.Type, other.EntrustId)
+		var num, price int64 //BTC数量，成交价格
+		if   buyer.Type == proto.ENTRUST_TYPE_LIMIT_PRICE{
+			num = convert.Int64DivInt64By8Bit(p.SurplusNum, buyer.OnPrice)
+		}
+		if   seller.Type == proto.ENTRUST_TYPE_LIMIT_PRICE{
+			num = other.SurplusNum
+		}
+		if  {
+
+		}
+	}
+}
+*/
 //匹配交易
 func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 	var other *EntrustData

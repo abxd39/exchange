@@ -37,6 +37,16 @@ func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *pro
 
 //注册
 func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
+
+	log.WithFields(log.Fields{
+		"ukey":    req.Ukey,
+		"type":    req.Type,
+		"invite":req.InviteCode,
+		"code":req.Code,
+		"country":req.Country,
+	}).Info("Register")
+
+
 	if req.Type == 1 { //手机注册
 		ret, err := model.AuthSms(req.Ukey, model.SMS_REGISTER, req.Code)
 		if err == redis.Nil {
@@ -154,6 +164,12 @@ func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmai
 
 //登陆
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
+
+	log.WithFields(log.Fields{
+		"ukey":    req.Ukey,
+		"type":    req.Type,
+	}).Info("Login")
+
 	u := &model.User{}
 	var token string
 	var ret int32
@@ -205,6 +221,12 @@ func (s *RPCServer) TokenVerify(ctx context.Context, req *proto.TokenVerifyReque
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
 	var ret int32
 	var err error
+	log.WithFields(log.Fields{
+		"ukey":    req.Ukey,
+		"type":    req.Type,
+		"code":    req.Code,
+	}).Info("ForgetPwd")
+
 
 	defer func() {
 		if err != nil {
@@ -278,15 +300,14 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
 	var ret int32
 	var err error
-	defer func() {
-		if err != nil {
-			log.WithFields(log.Fields{
-				"phone":  req.Phone,
-				"type":   req.Type,
-				"region": req.Region,
-			}).Errorf("SendSms error %s", err.Error())
-		}
-	}()
+
+	log.WithFields(log.Fields{
+		"ukey":    req.Phone,
+		"type":    req.Type,
+		"region":    req.Region,
+	}).Info("SendSms")
+
+
 	ret, err = model.ProcessSmsLogic(req.Type, req.Phone, req.Region)
 	if err != nil {
 		rsp.Err = ret
@@ -302,14 +323,13 @@ func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *pro
 func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp *proto.CommonErrResponse) error {
 	var ret int32
 	var err error
-	defer func() {
-		if err != nil {
-			log.WithFields(log.Fields{
-				"email": req.Email,
-				"type":  req.Type,
-			}).Errorf("SendEmail error %s", err.Error())
-		}
-	}()
+
+	log.WithFields(log.Fields{
+		"ukey":    req.Email,
+		"type":    req.Type,
+	}).Info("SendEmail")
+
+
 	ret, err = model.ProcessEmailLogic(req.Type, req.Email)
 	if err != nil {
 		rsp.Err = ret

@@ -23,9 +23,17 @@ func SendEmail(email string, ty int32) (err error) {
 }
 
 func sendAliEmail(email, code string) (err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"email":  email,
+				"code":   code,
+			}).Errorf("sendAliEmail error %s", err.Error())
+		}
+	}()
+
 	d, err := dm.NewClientWithAccessKey("cn-hangzhou", cf.EmailAppKey, cf.EmailSecretKey)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 
@@ -40,7 +48,6 @@ func sendAliEmail(email, code string) (err error) {
 
 	h, err := d.SingleSendMail(r)
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -49,7 +56,7 @@ func sendAliEmail(email, code string) (err error) {
 		return
 	}
 
-	return errors.New("error send email")
+	return errors.New("error send email:["+h.String()+"]")
 }
 
 //验证邮箱

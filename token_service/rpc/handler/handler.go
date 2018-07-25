@@ -7,8 +7,9 @@ import (
 	"digicon/token_service/model"
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
-	"log"
+
 	"time"
+	log "github.com/sirupsen/logrus"
 )
 
 type RPCServer struct {
@@ -21,6 +22,15 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 }
 
 func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderRequest, rsp *proto.CommonErrResponse) error {
+
+	log.WithFields(log.Fields{
+		"type":     req.Type,
+		"uid":      req.Uid,
+		"symbol":   req.Symbol,
+		"opt":      req.Opt,
+		"on_price": req.OnPrice,
+		"num":      req.Num,
+	}).Info("EntrustOrder")
 	q, ok := model.GetQueneMgr().GetQueneByUKey(req.Symbol)
 	if !ok {
 		rsp.Err = ERR_TOKEN_QUENE_CONF
@@ -323,24 +333,6 @@ func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeLis
 	return nil
 }
 
-func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
-	d := &model.ConfigQuenes{}
-	g := d.GetQuenesByType(req.TokenId)
-	for _, v := range g {
-		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
-			Symbol: v.Name,
-			/*
-				Price:  convert.Int64ToStringBy8Bit(v.Price),
-
-				Scope:  v.Scope,
-				Low:    convert.Int64ToStringBy8Bit(v.Low),
-				High:   convert.Int64ToStringBy8Bit(v.High),
-				Amount: convert.Int64ToStringBy8Bit(v.Amount),
-			*/
-		})
-	}
-	return nil
-}
 
 func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, rsp *proto.ConfigQueneResponse) error {
 	t := new(model.ConfigQuenes).GetAllQuenes()

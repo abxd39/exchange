@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/pkg/errors"
+	"github.com/apex/log"
 )
 
 // 验证类型   1 注册 2 忘记密码 3 修改手机号码 4重置谷歌验证码 5 重置资金密码 6 修改登录密码 7 设置银行卡支付 8 设置微信支付 9 设置支付宝支付 10 设置PayPal支付
@@ -114,6 +115,15 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 
 //phone, cf.SmsAccount, cf.SmsPwd, content, cf.SmsWebUrl
 func SendInterSms(phone, code string) (ret int32, err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"phone":  phone,
+				"code":   code,
+			}).Errorf("SendSms error %s", err.Error())
+		}
+	}()
+
 	params := make(map[string]interface{})
 	params["account"] = cf.SmsAccount
 	params["password"] = cf.SmsPwd
@@ -171,7 +181,7 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 		return
 	default:
 		ret = ERRCODE_UNKNOWN
-		err = errors.New(fmt.Sprintf("code:%d,msg=%s", p.Code, p.ErrorMsg))
+		err = errors.New(fmt.Sprintf("code:%s,msg=%s", p.Code, p.ErrorMsg))
 		return
 	}
 
