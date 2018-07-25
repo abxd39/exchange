@@ -99,11 +99,11 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.TokenId = uint64(nowAds.TokenId)
 
 	if uint32(nowAds.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
-		od.BuyId  = nowAds.Uid
-		od.SellId = uint64(req.Uid)
-	}else{
 		od.SellId = nowAds.Uid
 		od.BuyId  = uint64(req.Uid)
+	}else{
+		od.BuyId  = nowAds.Uid
+		od.SellId = uint64(req.Uid)
 	}
 
 	od.PayId = nowAds.Pays

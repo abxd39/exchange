@@ -170,6 +170,7 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 
+
 	rate := conf.Cfg.MustValue("rate", "fee_rate")
 	rateFloat, _ := strconv.ParseInt(rate, 10, 64)
 	freeze := this.Num * (1 + rateFloat)
@@ -213,11 +214,11 @@ func (this *Order) Add() (id uint64, code int32) {
 	/// 2. 记录卖家冻结
 	var buffer bytes.Buffer
 	buffer.WriteString("insert into user_currency_history ")
-	buffer.WriteString("(uid, trade_uid, order_id, token_id, num, fee, operator, address, states, created_time ,updated_time )")
+	buffer.WriteString("(uid, trade_uid, order_id, token_id, num, fee, surplus, operator, address, states, created_time ,updated_time )")
 	buffer.WriteString("values (?, ? ,?, ?, ?, ?,  ?, ?, ?, ? , ?)")
 	insertSql := buffer.String()
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId, this.BuyId ,this.OrderId, this.TokenId, this.Num, 0, 5, "", this.States, nowTime, nowTime, // 卖家记录 , 5 为冻结
+		this.SellId, this.BuyId ,this.OrderId, this.TokenId, this.Num, 0, uCurrency.Balance , 5, "", this.States, nowTime, nowTime, // 卖家记录 , 5 为冻结
 	)
 
 	if err != nil {
@@ -299,6 +300,16 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 		code = ERRCODE_USER_BALANCE
 		return code, err
 	}
+
+	buyCurrency := new(UserCurrency)
+	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.BuyId, this.TokenId).Get(buyCurrency)
+	if err != nil {
+		log.Errorln("查询用户余额失败!", err.Error())
+		code = ERRCODE_USER_BALANCE
+		return
+	}
+
+
 
 	sellNum := allNum + rateFee
 	if uCurrency.Freeze < sellNum || uCurrency.Freeze < 0 {
@@ -389,14 +400,14 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	/////////////////////////////////////////////////
 	var buffer bytes.Buffer
 	buffer.WriteString("insert into user_currency_history ")
-	buffer.WriteString("(uid, trade_uid,order_id, token_id, num, fee, operator, address, states,created_time, updated_time)")
-	buffer.WriteString("values (?, ?, ?, ?, ?, ?,   ?, ?, ? ,?, ?), (?,?, ?, ?, ?, ?,   ?, ?, ? , ?, ?)")
+	buffer.WriteString("(uid, trade_uid,order_id, token_id, num, fee, surplus,  operator, address, states,created_time, updated_time)")
+	buffer.WriteString("values (?, ?, ?, ?, ?, ?,  ?, ?, ?, ? ,?, ?), (?,?, ?, ?, ?, ?,   ?, ?, ?, ? , ?, ?)")
 	insertSql := buffer.String()
 
 	nowCreate := time.Now().Format("2006-01-02 15:04:05")
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId, this.BuyId, this.OrderId, this.TokenId, sellNum, rateFee, 2, "", this.States, nowCreate, updateTimeStr, // 卖家记录 , 2订单转出
-		this.BuyId, this.SellId, this.OrderId, this.TokenId, this.Num, 0, 1, "", this.States, nowCreate, updateTimeStr, // 买家记录 , 1订单转入
+		this.SellId, this.BuyId, this.OrderId, this.TokenId, sellNum, rateFee, uCurrency.Balance, 2, "", this.States, nowCreate, updateTimeStr, // 卖家记录 , 2订单转出
+		this.BuyId, this.SellId, this.OrderId, this.TokenId, this.Num, 0,  buyCurrency.Balance  , 1, "", this.States, nowCreate, updateTimeStr, // 买家记录 , 1订单转入
 	)
 	if err != nil {
 		fmt.Println("insert into history error: ", err.Error())

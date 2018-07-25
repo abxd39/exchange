@@ -1006,7 +1006,7 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	req := struct {
 		Id      uint64 `form:"id"         json:"id" `
 		Uid     uint64 `form:"uid"        json:"uid"       binding:"required"`
-		TokenId uint32 `form:"token_id"   json:"token_id" `
+		//TokenId uint32 `form:"token_id"   json:"token_id" `
 		NoZero  bool    `form:"no_zero"   json:"no_zero"  `
 	}{}
 	err := c.ShouldBind(&req)
@@ -1017,7 +1017,8 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.CurrencyService.CallGetUserCurrency(&proto.UserCurrencyRequest{
-		Uid: req.Uid,
+		Uid:    req.Uid,
+		NoZero: req.NoZero,
 	})
 	if err != nil {
 		log.Errorln(err.Error())
