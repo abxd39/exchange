@@ -162,6 +162,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	uCurrency := new(UserCurrency)
 
 	fmt.Println(this.SellId, this.TokenId)
+
 	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 	if err != nil {
 		log.Errorln("查询用户余额失败!", err.Error())
@@ -481,6 +482,19 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 	return
 }
 
+/*
+
+*/
+func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) ( ods []Order, err error ){
+	engine := dao.DB.GetMysqlConn()
+	err = engine.Where("sell_id = ? AND created_time >= ? AND created_time <= ?", uid, startTime, endTime).Find(&ods)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 ///////////////////// func ////////////////
 /*
 
@@ -491,8 +505,8 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
 		fmt.Println(now, exiryTime)
-		fmt.Println("id: ", id, " order Exitry time(min): ", getHourDiffer(now, exiryTime))
-		if getHourDiffer(now, exiryTime) <= 0 {
+		fmt.Println("id: ", id, " order Exitry time(min): ", GetHourDiffer(now, exiryTime))
+		if GetHourDiffer(now, exiryTime) <= 0 {
 			engine := dao.DB.GetMysqlConn()
 			_, err := engine.Where("id=?", id).Get(od)
 			if err != nil {
@@ -516,7 +530,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 }
 
 //获取相差时间
-func getHourDiffer(start_time, end_time string) int64 {
+func GetHourDiffer(start_time, end_time string) int64 {
 	var minute int64
 	t1, err := time.ParseInLocation("2006-01-02 15:04:05", start_time, time.Local)
 	t2, err := time.ParseInLocation("2006-01-02 15:04:05", end_time, time.Local)

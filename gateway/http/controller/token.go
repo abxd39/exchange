@@ -2,11 +2,11 @@ package controller
 
 import (
 	"digicon/common/convert"
-	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -27,6 +27,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/balance", s.TokenBalance)
 
 		action.GET("/balance_list", s.TokenBalanceList)
+
+		action.GET("/trade_list", s.TokenTradeList)
 	}
 }
 
@@ -240,6 +242,7 @@ func (s *TokenGroup) TokenBalance(c *gin.Context) {
 	ret.SetDataSection("balance", rsp.Balance)
 }
 
+// 代币余额列表
 func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -273,4 +276,78 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("list", rsp.ListData)
+}
+
+// 代币订单明细
+func (s *TokenGroup) TokenTradeList(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type TokenTradeListParam struct {
+		Uid     uint64 `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Page    int32  `form:"page" binding:"required"`
+		PageNum int32  `form:"page_num"`
+	}
+
+	var param TokenTradeListParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallTokenTradeList(&proto.TokenTradeListRequest{
+		Uid:     param.Uid,
+		Page:    param.Page,
+		PageNum: param.PageNum,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+	ret.SetErrCode(rsp.Err, rsp.Message)
+
+	// 重组data
+	type item struct {
+		TradeId   int32  `json:"trade_id"`
+		TokenName string `json:"token_name"`
+		Opt       int32  `json:"opt"`
+		Num       string `json:"num"`
+		Fee       string `json:"fee"`
+		DealTime  int64  `json:"deal_time"`
+	}
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*item `json:"items"`
+	}
+
+	newItems := make([]*item, rsp.Data.Total)
+	for k, v := range rsp.Data.Items {
+		newItems[k] = &item{
+			TradeId:   v.TradeId,
+			TokenName: v.TokenName,
+			Opt:       v.Opt,
+			Num:       convert.Int64ToStringBy8Bit(v.Num),
+			Fee:       convert.Int64ToStringBy8Bit(v.Fee),
+			DealTime:  v.DealTime,
+		}
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     newItems,
+	}
+
+	ret.SetDataSection("list", newList)
 }

@@ -27,6 +27,9 @@ service TokenRPC {
         //代币余额列表
         rpc TokenBalanceList(TokenBalanceListRequest) returns (TokenBalanceListResponse) {};
 
+        //代币交易明细列表
+        rpc TokenTradeList(TokenTradeListRequest) returns (TokenTradeListResponse) {};
+
 
         rpc DelEntrust(DelEntrustRequest) returns (DelEntrustResponse) {}
         //########market##########//
@@ -232,6 +235,35 @@ message TokenBalanceListResponse{
     int32 err                             =1;
     string message                        =2;
     repeated TokenListBaseData list_data  =3;
+}
+
+message TokenTradeListRequest{
+    uint64 uid                      =1;
+    int32 page                      =2;
+    int32 page_num                  =3;
+}
+
+message TokenTradeListResponse{
+    message Data {
+        message Detail {
+            int32 trade_id      =1;
+            string token_name   =2;
+            int32 opt             =3;
+            int64 num           =4;
+            int64 fee           =5;
+            int64 deal_time     =6;
+        }
+
+        int32 page_index           =1;
+        int32 page_size            =2;
+        int32 total_page           =3;
+        int32 total                =4;
+        repeated Detail items      =5;
+    }
+
+    int32 err                             =1;
+    string message                        =2;
+    Data data                             =3;
 }
 
 

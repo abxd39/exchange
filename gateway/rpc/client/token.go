@@ -97,6 +97,15 @@ func (s *TokenRPCCli) CallTokenBalanceList(p *proto.TokenBalanceListRequest) (rs
 	return
 }
 
+func (s *TokenRPCCli) CallTokenTradeList(p *proto.TokenTradeListRequest) (rsp *proto.TokenTradeListResponse, err error) {
+	rsp, err = s.conn.TokenTradeList(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID
 	Open   float64 `json:"open"`   // 开盘价

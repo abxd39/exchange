@@ -299,6 +299,7 @@ message UserCurrencyRequest {
     uint64 id           = 1;
     uint64 uid          = 2;
     uint32 token_id     = 3;
+    bool   no_zero      = 4;
 }
 
 ////////////////////////// Order ////////////////////////////
@@ -334,6 +335,7 @@ message CancelOrderRequest {
 message AddOrderRequest {
     string  order       = 1;   // 添加订单 的表单
     int32    uid        = 2;   // 用户 id
+                                //int32   type_id     = 3;   // 当前用户选择的交易类型
 }
 
 

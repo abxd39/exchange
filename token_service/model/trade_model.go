@@ -1,6 +1,8 @@
 package model
 
 import (
+	"digicon/common/model"
+	. "digicon/token_service/dao"
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
 )
@@ -44,4 +46,28 @@ func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
 	}()
 	_, err = session.Insert(t)
 	return
+}
+
+func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*model.ModelList, []*Trade, error) {
+	engine := DB.GetMysqlConn()
+
+	query := engine.Where("uid=?", uid).Desc("deal_time")
+	tempQuery := *query
+
+	count, err := tempQuery.Count(s)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 获取分页
+	offset, modelList := model.Paging(pageIndex, pageSize, int(count))
+
+	var list []*Trade
+	err = query.Select("*").Limit(modelList.PageSize, offset).Find(&list)
+	if err != nil {
+		return nil, nil, err
+	}
+	modelList.Items = list
+
+	return modelList, list, nil
 }

@@ -401,8 +401,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	}
 
 	authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(req.Uid)
-	fmt.Println("authResp:", authResp)
-
+	//fmt.Println("authResp:", authResp)
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println(authResp)
@@ -421,6 +420,8 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		model.UserCurrencyCount
 		AuthInfo
 		CompleteRate  float64 `json:"complete_rate"` //  完成率
+		MonthRate    int64   `json:"month_rate"`    // 30日成单
+		AverageTo    int64   `json:"average_to"`    // 120 分钟
 	}
 	var authInfo AuthInfo
 	if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
@@ -429,14 +430,48 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 
+	uOrder := new(model.Order)
+	now := time.Now()
+	monthAgou , _ := time.ParseDuration("-30d")
+	startTime := now.Add(monthAgou).Format("2006-01-02 15:04:05")
+	endTime := now.Format("2006-01-02 15:04:05")
+	Orders, err := uOrder.GetOrderByTime(req.Uid,  startTime ,endTime)
+	var monthrate int64
+	orderLen := len(Orders)
+	if err != nil {
+		fmt.Println(err.Error())
+		monthrate = 0
+	}else{
+		monthrate = int64(orderLen)
+	}
+
+	var allminute int64
+	for _, od := range Orders{
+		allminute = allminute + model.GetHourDiffer(od.CreatedTime, od.ConfirmTime.String)
+	}
+
 	rateAndAuth := new(UserRateAndAuth)
+	var averageto int64
+	if orderLen <= 0{
+		averageto = 0
+	}else{
+		averageto = allminute / int64(orderLen)
+	}
+	rateAndAuth.AverageTo = int64(averageto)
+	rateAndAuth.MonthRate = monthrate
+
 	rateAndAuth.Uid = data.Uid
 	rateAndAuth.Success = data.Success
 	rateAndAuth.Failure = data.Failure
 	rateAndAuth.Good = data.Good
 	rateAndAuth.Cancel = data.Cancel
 	rateAndAuth.Orders = data.Orders
-	rateAndAuth.CompleteRate = float64((data.Success / data.Orders ) * 100)
+	if data.Orders <= 0{
+		rateAndAuth.CompleteRate = 100.0
+	}else{
+		rateAndAuth.CompleteRate = float64((data.Success / data.Orders ) * 100)
+	}
+
 
 	rateAndAuth.RealName = authInfo.RealName
 	rateAndAuth.TwoLevelAuth = authInfo.TwoLevelAuth

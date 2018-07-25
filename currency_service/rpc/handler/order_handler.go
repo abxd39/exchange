@@ -84,8 +84,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	}
-	//fmt.Println("req order:", req.Order)
-	//fmt.Println("od num: ", od.Num)
+
 
 	ads := new(model.Ads)
 	var nowAds *model.Ads
@@ -98,13 +97,22 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.AdType = nowAds.TypeId
 	od.Price = int64(nowAds.Price)
 	od.TokenId = uint64(nowAds.TokenId)
-	od.SellId = nowAds.Uid
-	od.BuyId = uint64(nowAds.Uid)
+
+	if uint32(nowAds.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
+		od.BuyId  = nowAds.Uid
+		od.SellId = uint64(req.Uid)
+	}else{
+		od.SellId = nowAds.Uid
+		od.BuyId  = uint64(req.Uid)
+	}
+
 	od.PayId = nowAds.Pays
 
+	fmt.Println("od.selleid:", od.SellId, od.BuyId)
 	if od.SellId == od.BuyId {
 		msg := "无法下自己订单"
 		err := errors.New(msg)
+		log.Errorln(msg)
 		rsp.Code = errdefine.ERRCODE_ORDER_ERROR
 		rsp.Message = msg
 		return err
