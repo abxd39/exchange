@@ -57,6 +57,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 		Currency.GET("/trade_detail", this.TradeDetail) //获取订单付款信息
 
+
 		////payment///
 		Currency.POST("/bank_pay", this.BankPay)      // 添加 bank_pay
 		Currency.GET("/bank_pay", this.GetBankPay)    // 获取 bank_pay
@@ -969,16 +970,14 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	err := c.ShouldBind(&req)
 	if err != nil {
 		log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	if req.TokenId == 0 {
-		//ret.SetErrCode(ERRCODE_PARAM)
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
-	// rpc get selling price
 	data, err := rpc.InnerService.CurrencyService.CallGetSellingPrice(&proto.SellingPriceRequest{
 		TokenId: req.TokenId,
 	})
@@ -987,9 +986,18 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-
-	fmt.Println(data)
-	ret.SetDataSection("price", 48999.0340)
+	fmt.Println("price:", data)
+	type respPrice struct {
+		Cny     float64   `json:"cny"`
+	}
+	var rPrce respPrice
+	err = json.Unmarshal([]byte(data.Data), &rPrce)
+	if err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetDataSection("price", rPrce.Cny)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }

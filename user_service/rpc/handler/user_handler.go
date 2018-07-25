@@ -159,7 +159,7 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 	var ret int32
 	pwd := encryption.GenMd5AndReverse(req.Pwd)
 	if req.Type == 1 { //手机登陆
-		token, ret = u.LoginByPhone(req.Ukey, pwd)
+		token, ret= u.LoginByPhone(req.Ukey, pwd)
 	} else if req.Type == 2 { //邮箱登陆
 		token, ret = u.LoginByEmail(req.Ukey, pwd)
 	}

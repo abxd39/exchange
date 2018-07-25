@@ -342,11 +342,20 @@ func (s *User) CheckUserExist(param string, col string) (ret int32, err error) {
 //通过手机登陆
 func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 	ok, err := DB.GetMysqlConn().Where("phone=?", phone).Get(s)
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"phone":    phone,
+				"pwd":   pwd,
+			}).Errorf("LoginByPhone error %s", err.Error())
+		}
+	}()
 	if err != nil {
 		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
+
 	if ok {
 		if s.Pwd == pwd {
 			token, err = s.refreshToken()
@@ -355,7 +364,7 @@ func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 				ret = ERRCODE_UNKNOWN
 				return
 			}
-
+			err=errors.New("test")
 			ret = ERRCODE_SUCCESS
 			return
 		}

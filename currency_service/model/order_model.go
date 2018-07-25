@@ -282,14 +282,17 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	allNum := this.Num
 	rateFee := allNum * rateFloat
 
-	tokens := new(Tokens)
+	//tokens := new(Tokens)
+	tokens := new(CommonTokens)
 	_, err = engine.Where("id=?", this.TokenId).Get(tokens)
 	if err != nil {
 		log.Errorln("获取币种id, token_id 失败")
 		code = ERRCODE_UNKNOWN
 		return code, err
 	}
-	tokenName := tokens.Name
+
+	//tokenName := tokens.Name
+	tokenName := tokens.Mark    //
 
 	uCurrency := new(UserCurrency)
 	_, err = engine.Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)

@@ -199,33 +199,43 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 // 获取货币类型
 func (s *RPCServer) GetCurrencyTokens(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokens) error {
 	//fmt.Println(req.Id)
-	data := new(model.Tokens).Get(req.Id, req.Name)
+	//data := new(model.Tokens).Get(req.Id, req.Name)
+	data := new(model.CommonTokens).Get(req.Id, req.Name)
 	if data == nil {
 		return nil
 	}
 	//fmt.Println("data:", data)
 
 	rsp.Id = data.Id
-	rsp.Name = data.Name
-	rsp.CnName = data.CnName
+	rsp.CnName = data.Name
+	rsp.Name = data.Mark
+	//rsp.CnName = data.CnName
 
 	return nil
 }
 
 // 获取货币类型列表
 func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokensListResponse) error {
-	data := new(model.Tokens).List()
+
+	//data := new(model.Tokens).List()
+	data := new(model.CommonTokens).List()
+	fmt.Println("data:", data)
 	if data == nil {
 		return nil
 	}
+
+	fmt.Println("data:", data)
 
 	listLen := len(data)
 	listData := make([]*proto.CurrencyTokens, listLen)
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.CurrencyTokens{
 			Id:     data[i].Id,
-			Name:   data[i].Name,
-			CnName: data[i].CnName,
+			Name:   data[i].Mark,
+			CnName: data[i].Name,
+			//
+			//Name:   data[i].Name,
+			//CnName: data[i].CnName,
 		}
 		listData[i] = adsLists
 	}
@@ -337,6 +347,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	//fmt.Println(req.TokenId, req.NoZero)
 	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid, req.NoZero)
 	//fmt.Println("data:", data)
+
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_USER_BALANCE
 		return err
@@ -368,25 +379,28 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 // 获取get售价
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
 	//
-	sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
-	key := req.TokenId
+	//sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
+	tokenConfigCny := new(model.TokenConfigTokenCNy)
+
+	err := tokenConfigCny.GetPrice(req.TokenId)
+	var price float64
+	if err != nil {
+		log.Println(err.Error())
+		price = 0.00
+	}else{
+		price = convert.Int64ToFloat64By8Bit(tokenConfigCny.Price)
+	}
+
 	type SellingPrice struct {
-		Price float64
+		Cny float64
 	}
-	if v, ok := sellingPriceMap[key]; ok {
-		dt := SellingPrice{Price: v}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
-		rsp.Code = errdefine.ERRCODE_SUCCESS
-	} else {
-		fmt.Println("Key Not Found")
-		dt := SellingPrice{Price: v}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
-		rsp.Code = errdefine.ERRCODE_UNKNOWN
-		rsp.Message = "not found!"
-		//rsp.Message = "not found!
-	}
+
+	dt := SellingPrice{Cny: price}
+	data, _ := json.Marshal(dt)
+	rsp.Data = string(data)
+	rsp.Code = errdefine.ERRCODE_SUCCESS
+
+
 	return nil
 }
 

@@ -215,10 +215,14 @@ type UserBaseData struct {
 }
 
 func replaceNickName(nickname string) (rpname string){
-	if strings.Contains(nickname, "@") {
-		rpname = strings.Replace(nickname, nickname[3:len(nickname)-9], "****", -1)
-	} else {
-		rpname = strings.Replace(nickname, nickname[3:len(nickname)-5], "***", -1)
+	if nickname != ""{
+		if strings.Contains(nickname, "@") {
+			rpname = strings.Replace(nickname, nickname[3:len(nickname)-9], "****", -1)
+		} else {
+			rpname = strings.Replace(nickname, nickname[3:len(nickname)-5], "***", -1)
+		}
+	}else{
+		rpname = ""
 	}
 	return
 }
