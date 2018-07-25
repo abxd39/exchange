@@ -15,6 +15,7 @@ import (
 	//"github.com/gorilla/websocket"
 	//"time"
 	"encoding/json"
+	. "digicon/proto/common"
 )
 
 type CurrencyGroup struct{}
