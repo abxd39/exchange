@@ -260,7 +260,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 
  func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetailRequest, rsp *proto.OtherResponse) error {
 	 uCurrencyHistory := new(model.UserCurrencyHistory)
-	 uAssetDeailList ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid))
+	 uAssetDeailList, total, page, pageNum ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid), req.Page, req.PageNum)
 	if err != nil {
 		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
@@ -280,23 +280,36 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 	}
 
 	type NewUserCurrencyHisotry struct {
-		model.UserCurrencyHistory
-		TradeName    string    `json:"trade_name"`
+		Id          int       `json:"id"                  `
+		Uid         int32      `json:"uid"               `
+		TradeUid    int32      `json:"trade_uid"         `
+		TokenId     int       `json:"token_id"            `
+		Num         float64   `json:"num"                 `
+		Operator    int       `json:"operator"            `
+		CreatedTime string    `json:"created_time"        `
+		TradeName   string    `json:"trade_name"         `
 	}
 
     var NewUAssetDetaillList []NewUserCurrencyHisotry
 	for _, ua := range uAssetDeailList{
 		var tmp NewUserCurrencyHisotry
-		tmp.TradeName = userNameMap[uint64(ua.TradeUid)]
-		tmp.Uid = ua.Uid
-		tmp.TradeUid = ua.TradeUid
-		tmp.Num  = ua.Num
-		tmp.CreatedTime  = ua.CreatedTime
-		tmp.TokenId = ua.TokenId
-		tmp.Operator = ua.Operator
+		tmp.TradeName   = userNameMap[uint64(ua.TradeUid)]
+		tmp.Uid         = ua.Uid
+		tmp.TradeUid    = ua.TradeUid
+		tmp.Num         = convert.Int64ToFloat64By8Bit(ua.Num)
+		tmp.CreatedTime = ua.CreatedTime
+		tmp.TokenId     = ua.TokenId
+		tmp.Operator    = ua.Operator
 		NewUAssetDetaillList = append(NewUAssetDetaillList, tmp)
 	}
-	data, err := json.Marshal(NewUAssetDetaillList)
+	type ResultData struct {
+		NewList   []NewUserCurrencyHisotry
+		Total       int64            `json:"total"`
+		Page        uint32           `json:"page"`
+		PageNum     uint32           `json:"page_num"`
+	}
+	resultdt := ResultData{NewList:NewUAssetDetaillList, Total:total, Page:page, PageNum:pageNum}
+	data, err := json.Marshal(resultdt)
 	rsp.Data = string(data)
  	rsp.Code = errdefine.ERRCODE_SUCCESS
  	return nil

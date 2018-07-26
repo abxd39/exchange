@@ -1245,8 +1245,9 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid uint64 `form:"uid"   json:"uid"    binding:"required"` //
-
+		Uid       uint64 `form:"uid"       json:"uid"    binding:"required"` //
+		Page      uint32 `form:"page"      json:"page"`
+		PageNum   uint32 `form:"page_num"  json:"page_num"  `
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -1259,7 +1260,9 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetAssetDetail(&proto.GetAssetDetailRequest{
-		Uid: req.Uid,
+		Uid:     req.Uid,
+		Page:    req.Page,
+		PageNum: req.PageNum,
 	})
 	if err != nil {
 		log.Errorf(err.Error())
@@ -1267,45 +1270,36 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		return
 	}
 
-	type UserCurrencyHisotry struct {
-		Id          int    `json:"id"                `
-		Uid         int32  `json:"uid"               `
-		TradeUid    int32  `json:"trade_uid"         `
-		TradeName   string `json:"trade_name"        `
-		Operator    int    `json:"operator"          `
-		CreatedTime string `json:"created_time"      `
-		TokenId     int    `json:"token_id"          `
-	}
-	type OldUserCurrencyHisotry struct {
-		UserCurrencyHisotry
-		Num int64 `json:"num"`
-	}
 	type NewUserCurrencyHisotry struct {
-		UserCurrencyHisotry
-		Num float64 `json:"num"  `
+		Id          int       `json:"id"                  `
+		Uid         int32      `json:"uid"               `
+		TradeUid    int32      `json:"trade_uid"         `
+		TokenId     int       `json:"token_id"            `
+		Num         float64   `json:"num"                 `
+		Operator    int       `json:"operator"            `
+		CreatedTime string    `json:"created_time"        `
+		TradeName   string    `json:"trade_name"         `
 	}
 
-	var NewList []OldUserCurrencyHisotry
-	err = json.Unmarshal([]byte(rsp.Data), &NewList)
+	type OldUserTotalHistory struct {
+		NewList     []NewUserCurrencyHisotry
+		Total       int64            `json:"total"`
+		Page        uint32           `json:"page"`
+		PageNum     uint32           `json:"page_num"`
+	}
+
+	var oldData OldUserTotalHistory
+	err = json.Unmarshal([]byte(rsp.Data), &oldData)
 	if err != nil {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	var dataList []NewUserCurrencyHisotry
-	for _, ul := range NewList {
-		var tmp NewUserCurrencyHisotry
-		tmp.Id = ul.Id
-		tmp.Uid = ul.Uid
-		tmp.TradeUid = ul.TradeUid
-		tmp.TradeName = ul.TradeName
-		tmp.Num = convert.Int64ToFloat64By8Bit(ul.Num)
-		tmp.Operator = ul.Operator
-		tmp.CreatedTime = ul.CreatedTime
-		tmp.TokenId = ul.TokenId
-		dataList = append(dataList, tmp)
-	}
-	ret.SetDataSection("list", dataList)
+
+	ret.SetDataSection("list",     oldData.NewList)
+	ret.SetDataSection("total",    oldData.Total)
+	ret.SetDataSection("page",     oldData.Page)
+	ret.SetDataSection("page_num", oldData.PageNum)
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }
