@@ -1275,6 +1275,7 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		Uid         int32      `json:"uid"               `
 		TradeUid    int32      `json:"trade_uid"         `
 		TokenId     int       `json:"token_id"            `
+		TokenName   string    `json:"token_name"`
 		Num         float64   `json:"num"                 `
 		Operator    int       `json:"operator"            `
 		CreatedTime string    `json:"created_time"        `

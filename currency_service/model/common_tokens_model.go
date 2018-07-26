@@ -49,3 +49,33 @@ func (this *CommonTokens) List() []CommonTokens {
 
 	return data
 }
+
+//* 根据token_id列表获取货币
+func (this *CommonTokens) GetByTokenIds(ids []int) (data []CommonTokens){
+	idsLen := len(ids)
+	pageNum := 20
+	if idsLen > pageNum{
+		var page int
+		if idsLen % pageNum == 0{
+			page = idsLen / pageNum
+		}else{
+			page = idsLen / pageNum + 1
+		}
+		for i:= 0;i< page ; i++{
+			var tmpdata []CommonTokens
+			tmpids := ids[i * pageNum: (i+1)*pageNum]
+			err := dao.DB.GetCommonMysqlConn().Table("tokens").In("id", tmpids).Find(&tmpdata)
+			if err != nil {
+				log.Error(err.Error())
+			}else{
+				data = append(data, tmpdata...)
+			}
+		}
+	}else{
+		err := dao.DB.GetCommonMysqlConn().Table("tokens").In("id", ids).Find(&data)
+		if err != nil {
+			log.Errorln(err.Error())
+		}
+	}
+	return
+}
