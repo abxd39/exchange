@@ -44,15 +44,34 @@ func (this *UserCurrencyHistory) GetHistory(startTime, endTime string) (uhistory
 
 
 
-func (this *UserCurrencyHistory) GetAssetDetail(uid int32) (uAssetDetails []UserCurrencyHistory, err error) {
+func (this *UserCurrencyHistory) GetAssetDetail(uid int32, Page uint32, PageNum uint32) (
+	uAssetDetails []UserCurrencyHistory, total int64, rPage uint32, rPageNum uint32 ,err error) {
 	if uid <= 0{
 		return
 	}
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("uid=?", uid).Find(&uAssetDetails)
+	if Page <= 1 {
+		Page = 1
+	}
+	if PageNum <= 0 {
+		PageNum = 10
+	}
+	cAssetDetail := new(UserCurrencyHistory)
+	query := engine.Desc("created_time")
+	query = query.Where("uid=?", uid)
+	tmpQuery := *query
+	countQuery := &tmpQuery
+	err = query.Limit(int(PageNum), (int(Page)-1)*int(PageNum)).Find(&uAssetDetails)
+	total, _ = countQuery.Count(cAssetDetail)
 	if err != nil {
 		log.Errorln(err.Error())
-		return
+		total = 0
+		rPage = 0
+		rPageNum = 0
+	} else {
+		total = total
+		rPage = Page
+		rPageNum = PageNum
 	}
 	return
 }

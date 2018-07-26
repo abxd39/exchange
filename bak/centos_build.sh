@@ -4,7 +4,7 @@
 remote_ip=47.106.136.96
 
 #services="currency_service user_service"
-services="currency_service"
+services="currency_service user_service"
 
 
 remote_path="/root/go/src/dig/"

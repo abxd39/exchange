@@ -98,6 +98,8 @@ service CurrencyRPC {
 ////////////////////////
 message GetAssetDetailRequest {
     uint64  uid          = 1;
+    uint32  page         = 2;  // 指定第几页
+    uint32  page_num     = 3;  // 指定每页的记录数
 }
 
 
