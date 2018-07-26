@@ -281,8 +281,11 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	rateFee := allNum * rateFloat
 
 	//tokens := new(Tokens)
-	tokens := new(CommonTokens)
-	_, err = engine.Where("id=?", this.TokenId).Get(tokens)
+
+	//_, err = engine.Where("id=?", this.TokenId).Get(tokens)
+	tokenModel := new(CommonTokens)
+	tokens := tokenModel.Get(uint32(this.TokenId), "")
+	
 	if err != nil {
 		log.Errorln("获取币种id, token_id 失败")
 		code = ERRCODE_UNKNOWN
