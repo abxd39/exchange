@@ -550,7 +550,7 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 		rsp.Message = msg
 		return nil
 	}
-	u.RefreshCache(req.Uid)
+	u.ForceRefreshCache(req.Uid)
 	rsp.Code = ERRCODE_SUCCESS
 	return nil
 }

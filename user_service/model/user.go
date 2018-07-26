@@ -179,6 +179,34 @@ func (s *User) SerialJsonData() (data string, err error) {
 }
 
 //刷新用户缓存
+func (s *User) ForceRefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err error) {
+	var d string
+	u := &User{}
+	r := RedisOp{}
+	ret, err = u.GetUser(uid)
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	if ret != ERRCODE_SUCCESS {
+		return
+	}
+
+	d, err = u.SerialJsonData()
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	err = r.SetUserBaseInfo(uid, d)
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	return
+}
+
+//刷新用户缓存
 func (s *User) RefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err error) {
 	r := RedisOp{}
 	d, err := r.GetUserBaseInfo(uid)
