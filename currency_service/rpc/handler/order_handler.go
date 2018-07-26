@@ -118,8 +118,6 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		return err
 	}
 
-	//fmt.Println(od.SellId, od.BuyId)
-
 	var uids []uint64
 	uids = append(uids, od.SellId)
 	uids = append(uids, od.BuyId)
@@ -131,12 +129,9 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		}
 	}
 
-	//fmt.Println("nickNames:", nickNames)
 	if err != nil {
 		fmt.Println(err)
 		log.Errorln(err.Error())
-		//rsp.Code = errdefine.ERRCODE_UNKNOWN
-		//return nil
 	} else {
 		nickUsers := nickNames.User
 		for i := 0; i < len(nickUsers); i++ {
@@ -239,7 +234,7 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 
 func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
 	uCurrencyHistory := new(model.UserCurrencyHistory)
-	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime)
+	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime, req.Limit)
 	if err != nil {
 		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN

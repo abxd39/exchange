@@ -387,6 +387,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	req := struct {
 		StartTime string `form:"start_time"    json:"start_time"`
 		EndTime   string `form:"end_time"      json:"end_time"`
+		Limit     int32     `form:"limit"        json:"limit"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -397,6 +398,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallGetTradeHistory(&proto.GetTradeHistoryRequest{
 		StartTime: req.StartTime,
 		EndTime:   req.EndTime,
+		Limit:     req.Limit,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))

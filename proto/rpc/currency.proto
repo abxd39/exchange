@@ -106,6 +106,7 @@ message GetAssetDetailRequest {
 message GetTradeHistoryRequest {
     string start_time    = 1;
     string end_time      = 2;
+    int32    limit         = 3;
 }
 
 

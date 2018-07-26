@@ -24,7 +24,7 @@ type UserCurrencyHistory struct {
 
 
 
-func (this *UserCurrencyHistory) GetHistory(startTime, endTime string) (uhistory []UserCurrencyHistory,err error){
+func (this *UserCurrencyHistory) GetHistory(startTime, endTime string, limit int32) (uhistory []UserCurrencyHistory,err error){
 	now := time.Now()
 	if startTime == "" {
 		startTime = now.Format("2006-01-02")
@@ -33,7 +33,11 @@ func (this *UserCurrencyHistory) GetHistory(startTime, endTime string) (uhistory
 		endTime = now.Format("2006-01-02")
 	}
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
+	if limit != 0{
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Limit(int(limit)).Find(&uhistory)
+	}else{
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
+	}
 	if err != nil {
 		log.Errorln(err.Error())
 		return

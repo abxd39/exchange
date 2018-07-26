@@ -495,7 +495,6 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.PhoneAuth = authInfo.PhoneAuth
 	rateAndAuth.NickName = authInfo.NickName
 	rateAndAuth.CreatedTime = authInfo.CreatedTime
-	//rateAndAuth.EmailAuth = data.
 
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
