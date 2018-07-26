@@ -267,8 +267,12 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		return err
 	}
 	var uids []uint64
+	//var tokenids []int
+	tokenids := []int{1,2,3,4,5,6,7,8,9,10}
+
 	for _, ua := range uAssetDeailList{
 		uids = append(uids, uint64(ua.TradeUid))
+		tokenids = append(tokenids, ua.TokenId)
 	}
 	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids) // rpc 获取用户信息
 	fmt.Println("nickNames:", nickNames)
@@ -279,15 +283,24 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		userNameMap[nickUsers[i].Uid] = nickUsers[i].NickName
 	}
 
+	tokenIdsMap := map[uint32]string{}
+	comtoken := new(model.CommonTokens)
+	tokenNames := comtoken.GetByTokenIds(tokenids)
+	for _, tn := range tokenNames{
+		tokenIdsMap[tn.Id] = tn.Mark
+	}
+
 	type NewUserCurrencyHisotry struct {
 		Id          int       `json:"id"                  `
 		Uid         int32      `json:"uid"               `
 		TradeUid    int32      `json:"trade_uid"         `
 		TokenId     int       `json:"token_id"            `
+		TokenName   string    `json:"token_name"`
 		Num         float64   `json:"num"                 `
 		Operator    int       `json:"operator"            `
 		CreatedTime string    `json:"created_time"        `
 		TradeName   string    `json:"trade_name"         `
+
 	}
 
     var NewUAssetDetaillList []NewUserCurrencyHisotry
@@ -299,6 +312,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		tmp.Num         = convert.Int64ToFloat64By8Bit(ua.Num)
 		tmp.CreatedTime = ua.CreatedTime
 		tmp.TokenId     = ua.TokenId
+		tmp.TokenName   = tokenIdsMap[uint32(ua.TokenId)]
 		tmp.Operator    = ua.Operator
 		NewUAssetDetaillList = append(NewUAssetDetaillList, tmp)
 	}
