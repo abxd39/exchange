@@ -38,6 +38,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 	defer session.Close()
 	err = session.Begin()
 
+	isAddFrozen := false
 	if proto.TOKEN_OPT_TYPE_DEL == req.Opt {
 		ret, err = u.SubMoney(session, req.Num)
 		if err != nil {
@@ -49,6 +50,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		if proto.TOKEN_OPT_TYPE_ADD_TYPE_BALANCE == req.OptAddType { //加余额
 			err = u.AddMoney(session, req.Num)
 		} else { //加冻结余额
+			isAddFrozen = true
 			err = u.AddFrozen(session, req.Num)
 		}
 
@@ -67,16 +69,26 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		return
 	}
 
-	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
-		Uid:     req.Uid,
-		TokenId: int(req.TokenId),
-		Ukey:    string(req.Ukey),
-		Opt:     int(req.Opt),
-		Type:    int(req.Type),
-		Balance: u.Balance,
-		Frozen:  u.Frozen,
-		Num:     req.Num,
-	})
+	if isAddFrozen {
+		err = new(Frozen).InsertRecord(session, &Frozen{
+			Uid:     req.Uid,
+			Ukey:    string(req.Ukey),
+			Num:     req.Num,
+			TokenId: int(req.TokenId),
+			Type:    int(req.Type),
+			Opt:     int(req.Opt),
+		})
+	} else {
+		err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+			Uid:     req.Uid,
+			TokenId: int(req.TokenId),
+			Ukey:    string(req.Ukey),
+			Opt:     int(req.Opt),
+			Type:    int(req.Type),
+			Balance: u.Balance,
+			Num:     req.Num,
+		})
+	}
 
 	if err != nil {
 		log.Errorln(err.Error())
