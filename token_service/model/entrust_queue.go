@@ -16,6 +16,8 @@ import (
 	"github.com/liudng/godump"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -50,6 +52,7 @@ type EntrustQuene struct {
 	//当前队列自增ID
 	UUID int64
 
+	lock sync.Mutex
 	//sourceId string
 	//key 是委托ID，委托数据源
 	//sourceData map[string]*EntrustData
@@ -523,67 +526,195 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	return
 }
 
-/*
-func (s *EntrustQuene) match2(p *EntrustData) (ret int32, err error) {
+func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 	var buyer *EntrustData
 	var seller *EntrustData
-
-	var other *EntrustData
 	var others []*EntrustData
 
-	defer func() {
-		if buyer!=nil &&  buyer.SurplusNum>0 {
-			s.joinSellQuene(buyer)
-		}
+	defer func() (err2 error) {
+		if err == redis.Nil {
+			if buyer != nil && buyer.SurplusNum > 0 {
+				log.WithFields(logrus.Fields{
+					"buyer_id":         buyer.Uid,
+					"buyer_entrust_id": buyer.EntrustId,
+					"sulplus":          buyer.SurplusNum,
+					"os_id":            os.Getpid(),
+				}).Info("NULL quene match")
+				s.joinSellQuene(buyer)
+			}
 
-		if seller!=nil && seller.SurplusNum>0 {
-			s.joinSellQuene(seller)
+			if seller != nil && seller.SurplusNum > 0 {
+				log.WithFields(logrus.Fields{
+					"seller_id":         seller.Uid,
+					"seller_entrust_id": seller.EntrustId,
+					"sulplus":           seller.SurplusNum,
+					"os_id":             os.Getpid(),
+				}).Info("NULL quene match")
+				s.joinSellQuene(seller)
+			}
+		} else if err != nil {
+
+			if buyer != nil && buyer.SurplusNum > 0 {
+				log.WithFields(logrus.Fields{
+					"buy_uid":        buyer.Uid,
+					"buy_entrust_id": buyer.EntrustId,
+					"sulplus":        buyer.SurplusNum,
+					"os_id":          os.Getpid(),
+				}).Errorln(err.Error())
+				s.joinSellQuene(buyer)
+			}
+
+			if seller != nil && seller.SurplusNum > 0 {
+				log.WithFields(logrus.Fields{
+					"sell_uid":        seller.Uid,
+					"sell_entrust_id": seller.EntrustId,
+					"sulplus":         seller.SurplusNum,
+					"os_id":           os.Getpid(),
+				}).Errorln(err.Error())
+				s.joinSellQuene(seller)
+			}
+
+		} else {
+			if buyer != nil && buyer.SurplusNum > 0 {
+				return s.match2(buyer)
+			}
+
+			if seller != nil && seller.SurplusNum > 0 {
+				return s.match2(seller)
+			}
 		}
+		return
 	}()
+
 	if p.Opt == proto.ENTRUST_OPT_BUY {
-		buyer=p
+		buyer = p
 
 		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1)
-		if err == redis.Nil {
-			return
-		}else if err!=nil{
+		if err != nil {
 			return
 		}
 		if len(others) > 0 {
-			seller=others[0]
-		}else {
+			seller = others[0]
+		} else {
 			return
 		}
 
-	}else{
+	} else {
+		seller = p
 		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 1, 1)
-		if err == redis.Nil {
-			return
-		}else if err!=nil{
+		if err != nil {
 			return
 		}
 		if len(others) > 0 {
-			seller=others[0]
-		}else {
+			buyer = others[0]
+		} else {
 			return
 		}
 	}
 
-	if buyer.Type == proto.ENTRUST_TYPE_MARKET_PRICE || seller.Type== proto.ENTRUST_TYPE_MARKET_PRICE {
-		s.delSource(other.Opt, other.Type, other.EntrustId)
-		var num, price int64 //BTC数量，成交价格
-		if   buyer.Type == proto.ENTRUST_TYPE_LIMIT_PRICE{
-			num = convert.Int64DivInt64By8Bit(p.SurplusNum, buyer.OnPrice)
+	var buy_num, sell_num, g_num, price int64 //BTC数量，成交价格
+
+	if buyer.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+		if seller.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+			price = s.price
+			g_num = convert.Int64DivInt64By8Bit(buyer.SurplusNum, price)
+		} else {
+			price = seller.OnPrice
+			g_num = convert.Int64DivInt64By8Bit(buyer.SurplusNum, seller.OnPrice)
 		}
-		if   seller.Type == proto.ENTRUST_TYPE_LIMIT_PRICE{
-			num = other.SurplusNum
-		}
-		if  {
+	} else {
+		if seller.Type == proto.ENTRUST_TYPE_MARKET_PRICE {
+			price = buyer.OnPrice
+			g_num = convert.Int64DivInt64By8Bit(buyer.SurplusNum, buyer.OnPrice)
+		} else {
+			//检查价格匹配规则
+			if buyer.OnPrice >= seller.OnPrice {
+				if buyer.OnPrice <= s.price {
+					price = p.OnPrice
+				} else if seller.OnPrice >= s.price {
+					price = seller.OnPrice
+				} else if s.price > buyer.OnPrice && s.price < seller.OnPrice {
+					price = s.price
+				}
+				g_num = convert.Int64DivInt64By8Bit(buyer.SurplusNum, price)
+			} else {
+				return
+			}
 
 		}
 	}
+
+	//计算交易数量
+	if g_num > seller.SurplusNum {
+		buy_num = convert.Int64MulInt64By8Bit(seller.SurplusNum, price)
+		sell_num = seller.SurplusNum
+	} else if g_num == seller.SurplusNum {
+		buy_num = convert.Int64MulInt64By8Bit(seller.SurplusNum, price)
+		sell_num = seller.SurplusNum
+	} else {
+		buy_num = convert.Int64MulInt64By8Bit(g_num, price)
+		sell_num = g_num
+	}
+
+	log.WithFields(logrus.Fields{
+		"buyer_id":         buyer.Uid,
+		"seller_id":        seller.Uid,
+		"buyer_entrust_id": buyer.EntrustId,
+		"sell_entrust_id":  seller.EntrustId,
+		"sell_num":         sell_num,
+		"buy_num":          buy_num,
+		"price":            price,
+		"g_num":            g_num,
+		"buy_surplus_num":  buyer.SurplusNum,
+		"sell_surplus_num": seller.SurplusNum,
+		"os_id":            os.Getpid(),
+	}).Info("record match trade")
+
+	if buy_num == 0 || sell_num == 0 || price == 0 {
+
+		log.WithFields(logrus.Fields{
+			"symbol":           s.TokenQueueId,
+			"buyer_id":         buyer.Uid,
+			"seller_id":        seller.Uid,
+			"buyer_entrust_id": buyer.EntrustId,
+			"sell_entrust_id":  seller.EntrustId,
+			"sell_num":         sell_num,
+			"buy_num":          buy_num,
+			"price":            price,
+			"g_num":            g_num,
+			"buyer_type":       buyer.Type,
+			"seller_type":      seller.Type,
+		}).Info("please check logic")
+		err = errors.New("please check logic")
+		return
+	}
+	err = s.delSource(others[0].Opt, others[0].Type, others[0].EntrustId)
+	if err != nil {
+		return
+	}
+
+	err = s.MakeDeal(buyer, seller, price, buy_num, sell_num)
+	if err != nil {
+		return
+	}
+
+	s.SetTradeInfo(price, sell_num)
+
+	buyer.SurplusNum -= buy_num
+	seller.SurplusNum -= sell_num
+
+	log.WithFields(logrus.Fields{
+		"buyer_id":         buyer.Uid,
+		"seller_id":        seller.Uid,
+		"buyer_entrust_id": buyer.EntrustId,
+		"sell_entrust_id":  seller.EntrustId,
+		"buy_surplus_num":  buyer.SurplusNum,
+		"sell_surplus_num": seller.SurplusNum,
+		"os_id":            os.Getpid(),
+	}).Info("finish match trade")
+	return
 }
-*/
+
 //匹配交易
 func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 	var other *EntrustData
@@ -1007,38 +1138,12 @@ func (s *EntrustQuene) match(p *EntrustData) (ret int32, err error) {
 	return
 }
 
-/*
-//获取订单详情
-func (s *EntrustQuene) GetOrderData(order_id string) (d *EntrustData, ok bool) {
-	d, ok = s.sourceData[order_id]
-	if !ok {
-		return
-	}
-	return
-}
-
-
-//保存订单详情
-func (s *EntrustQuene) insertOrderDetail(d *EntrustData) bool {
-	if _, ok := s.GetOrderData(d.EntrustId); ok {
-		return false
-	}
-	s.sourceData[d.EntrustId] = d
-	return true
-}
-
-//删除队列数据源模拟弹出操作
-func (s *EntrustQuene) delOrderDetail(order_id string) bool {
-	delete(s.sourceData, order_id)
-	return true
-}
-*/
 //处理请求数据
 func (s *EntrustQuene) process() {
 	for {
 		select {
 		case w := <-s.waitOrderDetail:
-			s.match(w)
+			s.match2(w)
 		case d := <-s.marketOrderDetail:
 			go func(data *EntrustData) {
 				time.Sleep(10 * time.Second)
@@ -1295,44 +1400,39 @@ func (s *EntrustQuene) GetCnyPrice(price int64) string {
 }
 
 //撤销委托
-func (s *EntrustQuene) DelEntrust(entrust_id string) error {
-	e := EntrustDetail{}
-	ok, err := DB.GetMysqlConn().Where("entrust_id=?", entrust_id).Get(e)
-	if err != nil {
-		log.Errorln(err.Error())
-		return err
-	}
-
-	if !ok {
-		return errors.New("please check entrust_id")
-	}
-
-	err = s.delSource(proto.ENTRUST_OPT(e.Opt), proto.ENTRUST_TYPE(e.Type), e.EntrustId)
-	if err != nil {
-		log.Errorln(err.Error())
-		return err
-	}
+func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 	u := &UserToken{}
 	err = u.GetUserToken(e.Uid, e.TokenId)
 	if err != nil {
-		log.Errorln(err.Error())
 		return err
 	}
 
 	sess := DB.GetMysqlConn().NewSession()
 
 	e.States = TRADE_STATES_DEL
-	_, err = sess.Where("entrust_id=?", entrust_id).Update(e)
+	_, err = sess.Where("entrust_id=?", e.EntrustId).Update(e)
 	if err != nil {
-		log.Errorln(err.Error())
+		sess.Rollback()
+		return err
+	}
+	var ret int32
+	ret, err = u.ReturnFronzen(sess, e.SurplusNum, e.EntrustId, 4)
+	if err != nil {
 		sess.Rollback()
 		return err
 	}
 
-	err = u.ReturnFronzen(sess, e.SurplusNum, entrust_id)
-	if err != nil {
-		log.Errorln(err.Error())
+	if ret != ERRCODE_SUCCESS {
 		sess.Rollback()
+		return nil
+	}
+	err = sess.Commit()
+	if err != nil {
+		return err
+	}
+
+	err = s.delSource(proto.ENTRUST_OPT(e.Opt), proto.ENTRUST_TYPE(e.Type), e.EntrustId)
+	if err != nil {
 		return err
 	}
 	return nil

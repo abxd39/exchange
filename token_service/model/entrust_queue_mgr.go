@@ -29,9 +29,6 @@ type EntrustQueneMgr struct {
 //获取一个币币交易
 func (s *EntrustQueneMgr) GetQueneByUKey(ukey string) (d *EntrustQuene, ok bool) {
 	d, ok = s.dataMgr[ukey]
-	if !ok {
-		return
-	}
 	return
 }
 

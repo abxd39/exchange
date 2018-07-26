@@ -64,6 +64,8 @@ const (
 	ERR_TOKEN_LESS       = 402
 	ERR_TOKEN_REPEAT     = 403
 	ERR_TOKEN_QUENE_CONF = 404
+	ERR_TOKEN_ENTRUST_STATES = 405
+	ERR_TOKEN_ENTRUST_EXIST = 406
 
 	ERRCODE_ORDER_FREEZE = 420
 	ERRCODE_SELLER_LESS  = 421
@@ -137,6 +139,9 @@ func init() {
 	message[ERR_TOKEN_LESS] = "币的余额不够"
 	message[ERR_TOKEN_REPEAT] = "重复请求"
 	message[ERR_TOKEN_QUENE_CONF] = "队列未配置"
+	message[ERR_TOKEN_ENTRUST_STATES] = "委托状态错误"
+	message[ERR_TOKEN_ENTRUST_EXIST] = "委托不存在"
+
 
 	message[ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH] = "两次输入的银行卡号码不相同"
 	message[ERRCODE_ARTICLE_NOT_EXIST] = "文章不存在"

@@ -339,7 +339,38 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 }
 
 //返还冻结资金
-func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string) (err error) {
+func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string, ty int32) (ret int32, err error) {
+	if s.Frozen < num {
+		ret = ERR_TOKEN_LESS
+		return
+	}
+	var aff int64
+	s.Balance += num
+	s.Frozen -= num
+	aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen", "balance").Update(s)
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	if aff == 0 {
+		err = errors.New("update balance err version is wrong")
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	f := Frozen{
+		Uid:     s.Uid,
+		Ukey:    entrust_id,
+		Num:     num,
+		TokenId: s.TokenId,
+		Type:    int(ty),
+		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+	}
+
+	_, err = sess.Insert(f)
+	if err != nil {
+		return
+	}
 
 	return
 }

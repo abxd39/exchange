@@ -8,8 +8,8 @@ import (
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 
-	"time"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type RPCServer struct {
@@ -31,6 +31,11 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 		"on_price": req.OnPrice,
 		"num":      req.Num,
 	}).Info("EntrustOrder")
+
+	if req.Num == 0 {
+		rsp.Err = ERRCODE_PARAM
+		return nil
+	}
 	q, ok := model.GetQueneMgr().GetQueneByUKey(req.Symbol)
 	if !ok {
 		rsp.Err = ERR_TOKEN_QUENE_CONF
@@ -333,7 +338,6 @@ func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeLis
 	return nil
 }
 
-
 func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, rsp *proto.ConfigQueneResponse) error {
 	t := new(model.ConfigQuenes).GetAllQuenes()
 
@@ -357,6 +361,25 @@ func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, 
 }
 
 func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest, rsp *proto.DelEntrustResponse) error {
+	e := model.GetEntrust(req.EntrustId)
+	if e == nil {
+		rsp.Err = ERR_TOKEN_ENTRUST_EXIST
+		return nil
+	}
+	if e.States > 1 {
+		rsp.Err = ERR_TOKEN_ENTRUST_STATES
+		return nil
+	}
+	q, ok := model.GetQueneMgr().GetQueneByUKey(e.Symbol)
+	if !ok {
+		rsp.Err = ERR_TOKEN_QUENE_CONF
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
 
+	err := q.DelEntrust(e)
+	if err != nil {
+		return nil
+	}
 	return nil
 }

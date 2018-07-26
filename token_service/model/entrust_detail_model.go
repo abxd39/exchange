@@ -90,3 +90,16 @@ func (s *EntrustDetail) UpdateStates(sess *xorm.Session, entrust_id string, stat
 	}
 	return nil
 }
+
+func GetEntrust(entrust_id string) *EntrustDetail {
+	e := &EntrustDetail{}
+	ok, err := DB.GetMysqlConn().Where("entrust_id=?", entrust_id).Get(e)
+	if err != nil {
+		log.Errorln(err.Error())
+		return nil
+	}
+	if ok {
+		return e
+	}
+	return nil
+}
