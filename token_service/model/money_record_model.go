@@ -23,7 +23,6 @@ type MoneyRecord struct {
 	Opt         int    `xorm:"comment('操作方向1加2减') unique(hash_index) TINYINT(4)"`
 	Num         int64  `xorm:"comment('数量') BIGINT(20)"`
 	Balance     int64  `xorm:"comment('余额') BIGINT(20)"`
-	Frozen      int64  `xorm:"comment('冻结余额') BIGINT(20)"`
 	CreatedTime int64  `xorm:"comment('操作时间')  created BIGINT(20)"`
 }
 

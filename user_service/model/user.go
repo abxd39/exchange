@@ -309,6 +309,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 			Uid:          e.Uid,
 			RegisterTime: time.Now().Unix(),
 			InviteCode:   str_code,
+			NickName:     e.Account,             //  注册的时候，昵称直接等与账户名
 		}
 
 		_, err = DB.GetMysqlConn().Insert(m)

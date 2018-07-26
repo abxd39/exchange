@@ -43,8 +43,8 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 	err := query.
 		Table(s).
 		Alias("ut").
-		Select("ut.*, t.name token_name").
-		Join("LEFT", []string{new(Tokens).TableName(), "t"}, "t.id=ut.token_id").
+		Select("ut.*, t.mark token_name").
+		Join("LEFT", []string{new(CommonTokens).TableName(), "t"}, "t.id=ut.token_id").
 		Find(&list)
 	if err != nil {
 		return nil, err

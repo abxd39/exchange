@@ -33,7 +33,6 @@ func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency", TokenVerify)
 	{
-
 		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)
 		Currency.POST("/created_otc", this.AddAds)                  // 新增广告(买卖)
 		Currency.POST("/updated_otc", this.UpdatedAds)              // 修改广告(买卖)
@@ -602,8 +601,8 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 				Pays:        data.Data[i].Pays,
 				CreatedTime: data.Data[i].CreatedTime,
 				UpdatedTime: data.Data[i].UpdatedTime,
-				//UserName:    data.Data[i].UserName,
-				//UserFace:    data.Data[i].UserFace,
+				UserName:    data.Data[i].UserName,
+				UserFace:    data.Data[i].UserFace,
 				UserVolume: data.Data[i].UserVolume,
 				TypeId:     data.Data[i].TypeId,
 				TokenId:    data.Data[i].TokenId,
@@ -617,7 +616,9 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		}
 
 		// 调用 rpc 用户头像和昵称
+		fmt.Println(userList)
 		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameRequest{Uid: userList})
+		fmt.Println("ulist:", ulist.User)
 		if err != nil {
 			fmt.Println("get user name error!", err.Error())
 			log.Errorf(err.Error())
@@ -632,6 +633,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		// 添加 用户头像和昵称
 		for l := 0; l < dataLen; l++ {
 			for _, u := range ulist.User {
+				fmt.Println(u.Uid, u.NickName, u.HeadSculpture)
 				if reaList.List[l].Uid == u.Uid {
 					reaList.List[l].UserName = u.NickName
 					reaList.List[l].UserFace = u.HeadSculpture
@@ -1243,8 +1245,9 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid uint64 `form:"uid"   json:"uid"    binding:"required"` //
-
+		Uid       uint64 `form:"uid"       json:"uid"    binding:"required"` //
+		Page      uint32 `form:"page"      json:"page"`
+		PageNum   uint32 `form:"page_num"  json:"page_num"  `
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -1257,7 +1260,9 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetAssetDetail(&proto.GetAssetDetailRequest{
-		Uid: req.Uid,
+		Uid:     req.Uid,
+		Page:    req.Page,
+		PageNum: req.PageNum,
 	})
 	if err != nil {
 		log.Errorf(err.Error())
@@ -1265,45 +1270,36 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		return
 	}
 
-	type UserCurrencyHisotry struct {
-		Id          int    `json:"id"                `
-		Uid         int32  `json:"uid"               `
-		TradeUid    int32  `json:"trade_uid"         `
-		TradeName   string `json:"trade_name"        `
-		Operator    int    `json:"operator"          `
-		CreatedTime string `json:"created_time"      `
-		TokenId     int    `json:"token_id"          `
-	}
-	type OldUserCurrencyHisotry struct {
-		UserCurrencyHisotry
-		Num int64 `json:"num"`
-	}
 	type NewUserCurrencyHisotry struct {
-		UserCurrencyHisotry
-		Num float64 `json:"num"  `
+		Id          int       `json:"id"                  `
+		Uid         int32      `json:"uid"               `
+		TradeUid    int32      `json:"trade_uid"         `
+		TokenId     int       `json:"token_id"            `
+		Num         float64   `json:"num"                 `
+		Operator    int       `json:"operator"            `
+		CreatedTime string    `json:"created_time"        `
+		TradeName   string    `json:"trade_name"         `
 	}
 
-	var NewList []OldUserCurrencyHisotry
-	err = json.Unmarshal([]byte(rsp.Data), &NewList)
+	type OldUserTotalHistory struct {
+		NewList     []NewUserCurrencyHisotry
+		Total       int64            `json:"total"`
+		Page        uint32           `json:"page"`
+		PageNum     uint32           `json:"page_num"`
+	}
+
+	var oldData OldUserTotalHistory
+	err = json.Unmarshal([]byte(rsp.Data), &oldData)
 	if err != nil {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	var dataList []NewUserCurrencyHisotry
-	for _, ul := range NewList {
-		var tmp NewUserCurrencyHisotry
-		tmp.Id = ul.Id
-		tmp.Uid = ul.Uid
-		tmp.TradeUid = ul.TradeUid
-		tmp.TradeName = ul.TradeName
-		tmp.Num = convert.Int64ToFloat64By8Bit(ul.Num)
-		tmp.Operator = ul.Operator
-		tmp.CreatedTime = ul.CreatedTime
-		tmp.TokenId = ul.TokenId
-		dataList = append(dataList, tmp)
-	}
-	ret.SetDataSection("list", dataList)
+
+	ret.SetDataSection("list",     oldData.NewList)
+	ret.SetDataSection("total",    oldData.Total)
+	ret.SetDataSection("page",     oldData.Page)
+	ret.SetDataSection("page_num", oldData.PageNum)
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }

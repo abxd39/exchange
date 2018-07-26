@@ -47,7 +47,7 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		// bind user email
 		user.POST("/bind_email", TokenVerify, s.BindUserEmail)
 		user.POST("/bind_phone", TokenVerify, s.BindUserPhone)
-		user.POST("/set_nickname", s.SetNickName)
+		user.POST("/set_nickname", TokenVerify, s.SetNickName)
 		//
 		//user.POST("/unbind_email", s.UnBindUserEmail)
 		//user.POST("/unbind_phone", s.UnBindUserPhone)

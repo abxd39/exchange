@@ -58,12 +58,14 @@ func (*RPCServer) GetNickName(ctx context.Context, req *proto.UserGetNickNameReq
 	return nil
 }
 
-func (*RPCServer) SetNickName(ctx context.Context, req *proto.UserSetNickNameRequest, rsp *proto.UserSetNickNameResponse) (err error) {
+func (s *RPCServer) SetNickName(ctx context.Context, req *proto.UserSetNickNameRequest, rsp *proto.UserSetNickNameResponse) (err error) {
 	u := model.UserEx{}
 	rsp.Err, err = u.SetNickName(req, rsp)
 	if err != nil {
 		log.Errorf(err.Error())
 	}
+	user := new(model.User)
+	user.RefreshCache(req.Uid)    // 设置用户昵称时候，刷新缓存
 	return nil
 }
 
