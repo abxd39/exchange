@@ -211,7 +211,7 @@ func (this *Order) Add() (id uint64, code int32) {
 	var buffer bytes.Buffer
 	buffer.WriteString("insert into user_currency_history ")
 	buffer.WriteString("(uid, trade_uid, order_id, token_id, num, fee, surplus, operator, address, states, created_time ,updated_time )")
-	buffer.WriteString("values (?, ? ,?, ?, ?, ?,  ?, ?, ?, ? , ?)")
+	buffer.WriteString("values (?, ? ,?, ?, ?, ?,   ?, ?, ?, ?, ? , ?)")
 	insertSql := buffer.String()
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
 		this.SellId, this.BuyId, this.OrderId, this.TokenId, this.Num, 0, uCurrency.Balance, 5, "", this.States, nowTime, nowTime, // 卖家记录 , 5 为冻结
