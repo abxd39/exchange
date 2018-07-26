@@ -267,9 +267,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		return err
 	}
 	var uids []uint64
-	//var tokenids []int
-	tokenids := []int{1,2,3,4,5,6,7,8,9,10}
-
+	var tokenids []int
 	for _, ua := range uAssetDeailList{
 		uids = append(uids, uint64(ua.TradeUid))
 		tokenids = append(tokenids, ua.TokenId)
