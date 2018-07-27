@@ -161,7 +161,8 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurren
 		limit = int((Page - 1) * PageNum)
 	}
 
-	data := make([]AdsUserCurrencyCountList, int(PageNum))
+	
+	data := []AdsUserCurrencyCountList{}
 	//data := []Ads{}
 	//sql := "SELECT * FROM `ads` INNER JOIN user_currency ON ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id
 	// LEFT JOIN user_currency_count ON ads.uid=user_currency_count.uid WHERE (ads.type_id=2 AND ads.token_id=1) ORDER BY `updated_time` DESC LIMIT 9 ;
