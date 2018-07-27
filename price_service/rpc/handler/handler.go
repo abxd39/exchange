@@ -209,7 +209,15 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 				continue
 			}
 			newSymbol := fmt.Sprintf("%s/%s",tmpSym[1], tmpSym[0])
-			data[symbol],_ = getSymbolRate(newSymbol)
+			tmpdata,_ := getSymbolRate(newSymbol)
+			tmpPrice, _ := convert.StringToInt64By8Bit(tmpdata.Price)
+			newPrice  := convert.Int64DivInt64By8Bit(100000000,tmpPrice)
+			tmpdata.Price = convert.Int64ToStringBy8Bit(newPrice)
+			int64CnyPrice, _ := convert.StringToInt64By8Bit(tmpdata.CnyPrice)
+			tmpCnyPrice := convert.Int64MulInt64By8Bit(100000000, tmpPrice)
+			newCnyPrice := convert.Int64MulInt64By8BitString(int64CnyPrice, tmpCnyPrice)
+			tmpdata.CnyPrice = newCnyPrice
+			data[symbol] = tmpdata
 		}
 
 	}
@@ -220,7 +228,7 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool){
 	q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
 	if !ok {
-		fmt.Println(ok)
+		//fmt.Println(ok)
 		return getOtherSymbolRage(symbol)
 	}else{
 		e := q.GetEntry()
@@ -233,6 +241,9 @@ func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool){
 	return
 }
 
+/*
+   如果没有找到币对
+*/
 func getOtherSymbolRage(symbol string)(data *proto.RateBaseData, ok bool){
 
 	return
