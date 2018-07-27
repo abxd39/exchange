@@ -108,7 +108,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 	secReferNum := float64(conf.Cfg.MustInt("register_reward", "sec_refer_num"))
 
 	// 1. 注册送20UNT
-	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, convert.Float64ToInt64By8Bit(myNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d", uid)), 3)
+	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, convert.Float64ToInt64By8Bit(myNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d", uid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER)
 	if err != nil { // !!!不中断流程，只记录错误
 		log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
 	} else if resp.Err != ERRCODE_SUCCESS { // !!!不中断流程，只记录错误
@@ -117,7 +117,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 
 	if referUid != 0 {
 		// 2. 推荐一级注册送20UNT
-		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, convert.Float64ToInt64By8Bit(referNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d", uid, referUid)), 4)
+		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, convert.Float64ToInt64By8Bit(referNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d", uid, referUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
 		if err != nil { // !!!不中断流程，只记录错误
 			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
 		} else if resp.Err != ERRCODE_SUCCESS { // !!!不中断流程，只记录错误
@@ -141,7 +141,7 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 				return
 			}
 
-			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
+			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
 			if err != nil {
 				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
 				return
