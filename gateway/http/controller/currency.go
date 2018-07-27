@@ -26,6 +26,7 @@ func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 		NCurrency.GET("/tokens", this.GetTokens)          // 获取货币类型
 		NCurrency.GET("/otc_list", this.AdsList)          // 法币交易列表 - (广告(买卖))
 		NCurrency.GET("/otc_user_list", this.AdsUserList) // 个人法币交易列表 - (广告(买卖))
+		NCurrency.POST("/user_currency_rating", this.GetUserRating) // 获取用戶评级
 
 	}
 }
@@ -74,7 +75,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		// 追加
 		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
 		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
-		Currency.POST("/user_currency_rating", this.GetUserRating) // 获取用戶评级
+
 		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
 
 		//
@@ -1018,6 +1019,7 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	err := c.ShouldBind(&req)
 	if err != nil {
 		log.Errorf(err.Error())
+		fmt.Println(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -1028,63 +1030,44 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	})
 	if err != nil {
 		log.Errorln(err.Error())
+		fmt.Println(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	type UCurrency struct {
+
+	type RespBalance struct {
 		Id        uint64 `json:"id"`
 		Uid       uint64 `json:"uid"`
 		TokenId   uint32 `json:"token_id"`
 		TokenName string `json:"token_name"`
 		Address   string `json:"address"`
-	}
-	type UCint struct {
-		Freeze    int64 `json:"freeze"`
-		Balance   int64 `json:"balance"`
-		Valuation int64 `json:"valuation"`
-	}
-
-	type UCfloat struct {
 		Freeze    float64 `json:"freeze"`
 		Balance   float64 `json:"balance"`
 		Valuation float64 `json:"valuation"`
 	}
-	type RespIntCurrency struct {
-		UCurrency
-		UCint
+	type RespData struct {
+		UCurrencyList    []RespBalance
+		Sum              float64  `json:"sum"`
+		SumCNY   		 float64  `json:"sum_cny"`
 	}
-	type RespFloatCurrency struct {
-		UCurrency
-		UCfloat
-	}
-	var uCurrencyList []RespIntCurrency
-	if err = json.Unmarshal([]byte(rsp.Data), &uCurrencyList); err != nil {
+
+	var respdata RespData
+	if err = json.Unmarshal([]byte(rsp.Data), &respdata); err != nil {
 		log.Errorln(err.Error())
+		fmt.Println(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	var RespUCurrencyList []RespFloatCurrency
-	var sum float64
-	var sumCNY float64
-	for _, ucurrency := range uCurrencyList {
-		var uc RespFloatCurrency
-		uc.Id = ucurrency.Id
-		uc.Uid = ucurrency.Uid
-		uc.TokenId = ucurrency.TokenId
-		uc.TokenName = ucurrency.TokenName
-		uc.Address = ucurrency.Address
-		uc.Balance = convert.Int64ToFloat64By8Bit(ucurrency.Balance)
-		uc.Freeze = convert.Int64ToFloat64By8Bit(ucurrency.Freeze)
-		uc.Valuation = convert.Int64ToFloat64By8Bit(ucurrency.Valuation)
-		sum = sum + uc.Balance
-		sumCNY = sumCNY + uc.Valuation
-		RespUCurrencyList = append(RespUCurrencyList, uc)
-	}
-	ret.SetDataSection("list", RespUCurrencyList)
-	ret.SetDataSection("sum", sum)
-	ret.SetDataSection("sum_cny", sumCNY)
+	//fmt.Println("respdata:", respdata)
+	ret.SetDataSection("list", respdata.UCurrencyList)
+	ret.SetDataSection("sum", respdata.Sum)
+	ret.SetDataSection("sum_cny", respdata.SumCNY)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+
 }
+
+
+
 
 func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
 	ret := NewPublciError()
@@ -1191,6 +1174,7 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	type UserCurrencyCount struct {
 		Uid         uint64 `json:"uid"`
 		NickName    string `json:"nick_name"`
+		HeadSculpture    string `json:"head_scul"`
 		CreatedTime string `json:"created_time"`
 
 		Cancel uint32  `json:"cancel"` // 取消
@@ -1216,10 +1200,10 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("uCurrencyCount:", uCurrencyCount)
-
+	//fmt.Println("uCurrencyCount:", uCurrencyCount)
 	ret.SetErrCode(rsp.Code, rsp.Message)
 	ret.SetDataSection("nick_name", uCurrencyCount.NickName)
+	ret.SetDataSection("head_scul", uCurrencyCount.HeadSculpture)
 	ret.SetDataSection("created_time", uCurrencyCount.CreatedTime)
 	ret.SetDataSection("orders", uCurrencyCount.Orders)
 

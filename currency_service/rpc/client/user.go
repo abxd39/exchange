@@ -13,7 +13,11 @@ import (
 type UserRPCCli struct {
 	conn     proto.Gateway2WallerService
 	userconn proto.UserRPCService
+	priceconn proto.PriceRPCService
 }
+
+
+
 
 //func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
 //	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{})
@@ -48,9 +52,15 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	fmt.Println("service_name,", service_name, " user_client_name: ", user_client_name)
 	greeter := proto.NewGateway2WallerService(service_name, service.Client())
 	userGreeter := proto.NewUserRPCService(user_client_name, service.Client())
+
+
+		price_client_name := cf.Cfg.MustValue("base", "service_price")
+		fmt.Println("service_name,", price_client_name)
+		priceGreeter := proto.NewPriceRPCService(price_client_name, service.Client())
 	u = &UserRPCCli{
 		conn:     greeter,
 		userconn: userGreeter,
+		priceconn:priceGreeter,
 	}
 	return
 }

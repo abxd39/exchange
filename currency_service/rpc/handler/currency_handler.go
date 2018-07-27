@@ -349,15 +349,96 @@ func (s *RPCServer) GetUserCurrencyDetail(ctx context.Context, req *proto.UserCu
 func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.OtherResponse) error {
 	//fmt.Println(req.TokenId, req.NoZero)
 	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid, req.NoZero)
-	//fmt.Println("data:", data)
+	fmt.Println("data:", data)
 
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_USER_BALANCE
 		return err
 	}
-	result, err := json.Marshal(data)
+
+	tkconfig := new(model.TokenConfigTokenCNy)
+
+	var symbols []string
+	for _,dt := range data{
+		if dt.TokenName != "BTC"{
+			symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
+			symbols = append(symbols, symbol)
+		}
+	}
+
+	fmt.Println("symbols:", symbols)
+	type RespBalance struct {
+		Id        uint64 `json:"id"`
+		Uid       uint64 `json:"uid"`
+		TokenId   uint32 `json:"token_id"`
+		TokenName string `json:"token_name"`
+		Address   string `json:"address"`
+		Freeze    float64 `json:"freeze"`
+		Balance   float64 `json:"balance"`
+		Valuation float64 `json:"valuation"`
+	}
+	var RespUCurrencyList []RespBalance
+	type RespData struct {
+		UCurrencyList    []RespBalance
+		Sum              float64  `json:"sum"`
+		SumCNY   		 float64  `json:"sum_cny"`
+	}
+
+	var sum int64
+	var sumcny int64
+
+	symbolData, err := client.InnerService.UserSevice.CallGetSymbolsRate(symbols)
+
 	if err != nil {
-		rsp.Data = "[]"
+		log.Println(err.Error())
+		rsp.Data = "{}"
+		return err
+	}else{
+		for _, dt :=range data{
+			var tmp RespBalance
+			var valuation float64
+			if dt.TokenName == "BTC"{
+				err = tkconfig.GetPrice(dt.TokenId)
+				if err != nil {
+					sumcny += 0
+				}else{
+					sumcny += tkconfig.Price
+				}
+				sum += dt.Balance
+				valuation = convert.Int64ToFloat64By8Bit(tkconfig.Price)
+			}else{
+				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
+				symPrice := symbolData.Data[symbol]
+				int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
+				if int64price <= 0 {
+					sum += 0
+				}else{
+					sum += convert.Int64DivInt64By8Bit(dt.Balance, int64price)
+				}
+				int64cynPrice, _ := convert.StringToInt64By8Bit(symPrice.CnyPrice)
+				int64Valueation := convert.Int64DivInt64By8Bit(dt.Balance, int64cynPrice)
+				valuation = convert.Int64ToFloat64By8Bit(int64Valueation)
+				sumcny += int64Valueation
+			}
+			tmp.TokenName = dt.TokenName
+			tmp.TokenId   = dt.TokenId
+			tmp.Id        = dt.Id
+			tmp.Uid       = dt.Uid
+			tmp.Address   = dt.Address
+			tmp.Freeze    = convert.Int64ToFloat64By8Bit(dt.Freeze)
+			tmp.Balance   = convert.Int64ToFloat64By8Bit(dt.Balance)
+			tmp.Valuation = valuation
+			RespUCurrencyList = append(RespUCurrencyList, tmp)
+		}
+	}
+
+	var respdata RespData
+	respdata.UCurrencyList = RespUCurrencyList
+	respdata.Sum = convert.Int64ToFloat64By8Bit(sum)
+	respdata.SumCNY =  convert.Int64ToFloat64By8Bit(sumcny)
+	result, err := json.Marshal(respdata)
+	if err != nil {
+		rsp.Data = "{}"
 		rsp.Message = err.Error()
 		return err
 	}
@@ -419,6 +500,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 
 	authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(req.Uid)
 	//fmt.Println("authResp:", authResp)
+
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println(authResp)
@@ -431,6 +513,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		RealName     int32  `json:"real_name"`      //
 		TwoLevelAuth int32  `json:"two_level_auth"` //
 		NickName     string `json:"nick_name"`
+		HeadSculpture     string `json:"head_scul"`
 		CreatedTime  string `json:"created_time"`
 	}
 	type UserRateAndAuth struct {
@@ -494,6 +577,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.EmailAuth = authInfo.EmailAuth
 	rateAndAuth.PhoneAuth = authInfo.PhoneAuth
 	rateAndAuth.NickName = authInfo.NickName
+	rateAndAuth.HeadSculpture = authInfo.HeadSculpture
 	rateAndAuth.CreatedTime = authInfo.CreatedTime
 
 	rData, err := json.Marshal(rateAndAuth)
