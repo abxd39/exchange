@@ -18,7 +18,7 @@ func NewRedisCli() *RedisCli {
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: pass, // no password set
-		DB:       num,   // use default DB
+		DB:       num,  // use default DB
 	})
 
 	pong, err := client.Ping().Result()

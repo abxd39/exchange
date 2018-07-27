@@ -83,6 +83,37 @@ enum TOKEN_OPT_TYPE_ADD_TYPE //加钱类型，TOKEN_OPT_TYPE为ADD时
     FROZEN                     = 2; //加冻结余额
 }
 
+
+//冻结操作类型
+/*
+enum FRONZE_TYPE
+{
+    ENTRUST                         =0;
+    BACK_SURPLUS                     = 3; //交易后剩余数量退款
+}
+*/
+//交易类型
+enum TRADE_STATES //
+{
+    TRADE_NONE                             = 0;//未成交
+    TRADE_PART                    = 1; //部分成交
+    TRADE_ALL                     = 2; //加冻结余额
+    TRADE_DEL                    = 3; //撤单
+}
+
+//资金流水操作类型
+enum TOKEN_TYPE_OPERATOR
+{
+    NONE                                    =0;
+    HISTORY_HASH                            =1;
+    HISTORY_ENTRUST                         =2;
+    HISTORY_ENTRUST_DEL                    =3;
+    HISTORY_TRADE                           =4;
+    HISTORY_FRONZE_BACK                     =5;
+    HISTORY_FRONZE_SYS_SURPLUS              =6;
+
+}
+
 message  EntrustOrderRequest {
     string symbol                    =2;//交易币种
     int64 on_price                    =3;//委托价格

@@ -7,12 +7,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+/*
 const (
 	TRADE_STATES_PART = 1 //部分成交
 	TRADE_STATES_ALL  = 2 //全部成交
 	TRADE_STATES_DEL  = 3 //撤单
 )
-
+*/
 type Trade struct {
 	TradeId      int    `xorm:"not null pk autoincr comment('交易表的id') INT(11)"`
 	TradeNo      string `xorm:"comment('订单号') unique(uni_reade_no) VARCHAR(32)"`

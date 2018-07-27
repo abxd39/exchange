@@ -78,6 +78,7 @@ func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) {
 		CreatedTime: k.CreatedTime,
 		Count:       k.Count,
 		Symbol:      k.Symbol,
+		CnyVol:      k.CnyVol,
 	})
 
 	s.entry = k
@@ -118,18 +119,17 @@ func (s *PriceWorkQuene) Publish() {
 				s.save(FourHourPrice, k)
 			}
 
-			if h==0 {
+			if h == 0 {
 				s.save(OneDayPrice, k)
-				w:=t.Weekday()
-				if w==1 {
+				w := t.Weekday()
+				if w == 1 {
 					s.save(OneWeekPrice, k)
 				}
 
-				if t.Day()==1{
+				if t.Day() == 1 {
 					s.save(OneMonthPrice, k)
 				}
 			}
-
 
 		}
 

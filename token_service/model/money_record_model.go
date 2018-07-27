@@ -37,7 +37,7 @@ func (s *MoneyRecord) CheckExist(ukey string, ty int32) (ok bool, err error) {
 }
 
 //新增一条流水
-func (s *MoneyRecord) InsertRecord(session *xorm.Session, p *MoneyRecord) (err error) {
+func InsertRecord(session *xorm.Session, p *MoneyRecord) (err error) {
 	_, err = session.InsertOne(p)
 	if err != nil {
 		log.Errorln(err.Error())

@@ -178,7 +178,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 	return
 }
 
-//刷新用户缓存
+//强制刷新用户缓存
 func (s *User) ForceRefreshCache(uid uint64) (out *proto.UserAllData, ret int32, err error) {
 	var d string
 	u := &User{}

@@ -79,7 +79,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 			Opt:     int(req.Opt),
 		})
 	} else {
-		err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+		err = InsertRecord(session, &MoneyRecord{
 			Uid:     req.Uid,
 			TokenId: int(req.TokenId),
 			Ukey:    string(req.Ukey),

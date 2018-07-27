@@ -339,9 +339,9 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 }
 
 //返还冻结资金
-func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string, ty int32) (ret int32, err error) {
+func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string, ty proto.TOKEN_TYPE_OPERATOR) (err error) {
 	if s.Frozen < num {
-		ret = ERR_TOKEN_LESS
+		err = errors.New("please check fronze data because fronzn num is not enough")
 		return
 	}
 	var aff int64
@@ -349,12 +349,10 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 	s.Frozen -= num
 	aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen", "balance").Update(s)
 	if err != nil {
-		ret = ERRCODE_UNKNOWN
 		return
 	}
 	if aff == 0 {
 		err = errors.New("update balance err version is wrong")
-		ret = ERRCODE_UNKNOWN
 		return
 	}
 
@@ -372,6 +370,19 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 		return
 	}
 
+	err = InsertRecord(sess, &MoneyRecord{
+		Uid:     s.Uid,
+		TokenId: int(s.TokenId),
+		Ukey:    entrust_id,
+		Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
+		Type:    int(ty),
+		Balance: s.Balance,
+		Num:     num,
+	})
+	_, err = sess.Insert(f)
+	if err != nil {
+		return
+	}
 	return
 }
 

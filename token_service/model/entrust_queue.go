@@ -80,6 +80,8 @@ type EntrustQuene struct {
 	count int64
 	//主币兑人民币价格
 	cny int64
+	//人民币成交额
+	cny_vol int64
 }
 
 type TradeInfo struct {
@@ -135,7 +137,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 		SurplusNum: p.Num,
 		Opt:        int(p.Opt),
 		OnPrice:    p.OnPrice,
-		States:     0,
+		States:     int(proto.TRADE_STATES_TRADE_NONE),
 		Type:       int(p.Type),
 		Mount:      convert.Int64MulInt64By8Bit(p.Num, p.OnPrice),
 	}
@@ -179,7 +181,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	}
 
 	//交易流水
-	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+	err = InsertRecord(session, &MoneyRecord{
 		Uid:     p.Uid,
 		TokenId: token_id,
 		Ukey:    g.EntrustId,
@@ -216,6 +218,8 @@ func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 	s.count += 1
 	s.vol += convert.Int64MulInt64By8Bit(price, deal_num)
 	s.amount += deal_num
+
+	s.cny_vol = convert.Int64MulInt64By8Bit(s.vol, s.cny)
 }
 
 //委托请求检查
@@ -240,7 +244,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		SurplusNum: p.Num,
 		Opt:        int(p.Opt),
 		OnPrice:    p.OnPrice,
-		States:     0,
+		States:     int(proto.TRADE_STATES_TRADE_NONE),
 		Type:       int(p.Type),
 		Symbol:     p.Symbol,
 	}
@@ -283,7 +287,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	}
 
 	//交易流水
-	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+	err = InsertRecord(session, &MoneyRecord{
 		Uid:     p.Uid,
 		TokenId: token_id,
 		Ukey:    g.EntrustId,
@@ -396,29 +400,20 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 
 	var buy_surplus, sell_surplus int64
 	if seller.SurplusNum < deal_num { //卖方部分成交
-		t.States = TRADE_STATES_PART
-		o.States = TRADE_STATES_ALL
-		buy_surplus = buyer.SurplusNum - buy_num
-		sell_surplus = seller.SurplusNum - deal_num
-		/*
-			buyer.SurplusNum -= num
-			seller.SurplusNum -= deal_num
-		*/
+		t.States = int(proto.TRADE_STATES_TRADE_PART)
+		o.States = int(proto.TRADE_STATES_TRADE_ALL)
+
 	} else if seller.SurplusNum == deal_num && buyer.SurplusNum == buy_num {
-		t.States = TRADE_STATES_ALL
-		o.States = TRADE_STATES_ALL
+		t.States = int(proto.TRADE_STATES_TRADE_ALL)
+		o.States = int(proto.TRADE_STATES_TRADE_ALL)
+
 	} else {
-		t.States = TRADE_STATES_ALL
-		o.States = TRADE_STATES_PART
+		t.States = int(proto.TRADE_STATES_TRADE_ALL)
+		o.States = int(proto.TRADE_STATES_TRADE_PART)
 
-		buy_surplus = buyer.SurplusNum - buy_num
-		sell_surplus = seller.SurplusNum - deal_num
-		/*
-			seller.SurplusNum -= deal_num
-			buyer.SurplusNum -= num
-		*/
 	}
-
+	buy_surplus = buyer.SurplusNum - buy_num
+	sell_surplus = seller.SurplusNum - deal_num
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
@@ -441,7 +436,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+	err = InsertRecord(session, &MoneyRecord{
 		Uid:     buyer.Uid,
 		TokenId: buy_trade_token_account.TokenId,
 		Ukey:    t.TradeNo,
@@ -473,7 +468,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	err = new(MoneyRecord).InsertRecord(session, &MoneyRecord{
+	err = InsertRecord(session, &MoneyRecord{
 		Uid:     seller.Uid,
 		TokenId: sell_trade_token_account.TokenId,
 		Ukey:    o.TradeNo,
@@ -630,7 +625,7 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 			//检查价格匹配规则
 			if buyer.OnPrice >= seller.OnPrice {
 				if buyer.OnPrice <= s.price {
-					price = p.OnPrice
+					price = buyer.OnPrice
 				} else if seller.OnPrice >= s.price {
 					price = seller.OnPrice
 				} else if s.price > buyer.OnPrice && s.price < seller.OnPrice {
@@ -648,6 +643,7 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 	if g_num > seller.SurplusNum {
 		buy_num = convert.Int64MulInt64By8Bit(seller.SurplusNum, price)
 		sell_num = seller.SurplusNum
+
 	} else if g_num == seller.SurplusNum {
 		buy_num = convert.Int64MulInt64By8Bit(seller.SurplusNum, price)
 		sell_num = seller.SurplusNum
@@ -713,6 +709,31 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 		"os_id":            os.Getpid(),
 	}).Info("finish match trade")
 	return
+}
+
+func (s *EntrustQuene) SurplusBack(e *EntrustData) (err error) {
+	u := &UserToken{}
+	entry := GetEntrust(e.EntrustId)
+	if entry != nil {
+		err = u.GetUserToken(e.Uid, entry.TokenId)
+		if err != nil {
+			return nil
+		}
+
+		session := DB.GetMysqlConn().NewSession()
+		defer session.Close()
+		err = session.Begin()
+		if err != nil {
+			return nil
+		}
+		err = u.ReturnFronzen(session, e.SurplusNum, e.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_FRONZE_SYS_SURPLUS)
+		if err != nil {
+			session.Rollback()
+			return nil
+		}
+
+	}
+	return nil
 }
 
 //匹配交易
@@ -1167,6 +1188,7 @@ func (s *EntrustQuene) Clock() {
 			Amount:      s.amount,
 			Count:       s.count,
 			Vol:         s.vol,
+			CnyVol:      s.cny_vol,
 		}
 
 		t := jsonpb.Marshaler{EmitDefaults: true}
@@ -1409,14 +1431,14 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 
 	sess := DB.GetMysqlConn().NewSession()
 
-	e.States = TRADE_STATES_DEL
+	e.States = int(proto.TRADE_STATES_TRADE_DEL)
 	_, err = sess.Where("entrust_id=?", e.EntrustId).Update(e)
 	if err != nil {
 		sess.Rollback()
 		return err
 	}
 	var ret int32
-	ret, err = u.ReturnFronzen(sess, e.SurplusNum, e.EntrustId, 4)
+	err = u.ReturnFronzen(sess, e.SurplusNum, e.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST)
 	if err != nil {
 		sess.Rollback()
 		return err

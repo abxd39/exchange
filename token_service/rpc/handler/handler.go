@@ -366,7 +366,7 @@ func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest
 		rsp.Err = ERR_TOKEN_ENTRUST_EXIST
 		return nil
 	}
-	if e.States > 1 {
+	if proto.TRADE_STATES(e.States) == proto.TRADE_STATES_TRADE_DEL || proto.TRADE_STATES(e.States) == proto.TRADE_STATES_TRADE_ALL {
 		rsp.Err = ERR_TOKEN_ENTRUST_STATES
 		return nil
 	}
