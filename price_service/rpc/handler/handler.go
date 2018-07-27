@@ -7,6 +7,8 @@ import (
 	proto "digicon/proto/rpc"
 	"golang.org/x/net/context"
 	"log"
+	"fmt"
+	"strings"
 )
 
 type RPCServer struct{}
@@ -198,19 +200,41 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 	}
 	data := map[string]*proto.RateBaseData{}
 	for _, symbol := range req.Symbols{
-		q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
+		var ok bool
+		data[symbol], ok = getSymbolRate(symbol)
 		if !ok {
-			data[symbol] = new(proto.RateBaseData)
-		}else{
-			e := q.GetEntry()
-			bdata :=  &proto.RateBaseData{
-				Symbol:   q.Symbol,
-				Price:    convert.Int64ToStringBy8Bit(e.Price),
-				CnyPrice: convert.Int64MulInt64By8BitString( q.CnyPrice, e.Price),
+			tmpSym := strings.Split(symbol, "/")
+			if len(tmpSym) < 2{
+				data[symbol] = new(proto.RateBaseData)
+				continue
 			}
-			data[symbol] = bdata
+			newSymbol := fmt.Sprintf("%s/%s",tmpSym[1], tmpSym[0])
+			data[symbol],_ = getSymbolRate(newSymbol)
 		}
+
 	}
 	rsp.Data = data
 	return nil
 }
+
+func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool){
+	q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
+	if !ok {
+		fmt.Println(ok)
+		return getOtherSymbolRage(symbol)
+	}else{
+		e := q.GetEntry()
+		data = &proto.RateBaseData{
+			Symbol: q.Symbol,
+			Price: convert.Int64ToStringBy8Bit(e.Price),
+			CnyPrice: convert.Int64ToStringBy8Bit(q.CnyPrice),
+		}
+	}
+	return
+}
+
+func getOtherSymbolRage(symbol string)(data *proto.RateBaseData, ok bool){
+
+	return
+}
+

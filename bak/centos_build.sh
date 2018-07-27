@@ -3,9 +3,9 @@
 
 remote_ip=47.106.136.96
 
-services="currency_service" 
-#services="currency_service user_service"
-#services="currency_service user_service gateway"
+#services="currency_service" 
+services="currency_service user_service gateway"
+#services="currency_service user_service price_service gateway"
 
 
 remote_path="/root/go/src/dig/"
@@ -26,8 +26,6 @@ function push_to_remote(){
     do
         scp ../$service/$service root@$remote_ip:$remote_path$service.nw
         result=`ssh root@$remote_ip "cd $remote_path && ls $service.nw"`
-        echo "push result:$result"
-        result=`ssh root@$remote_ip "cd $remote_path  && ls $service.nw"`
         echo "push result:$result"
     done
 }
