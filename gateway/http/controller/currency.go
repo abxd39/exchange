@@ -1200,8 +1200,7 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("uCurrencyCount:", uCurrencyCount)
-
+	//fmt.Println("uCurrencyCount:", uCurrencyCount)
 	ret.SetErrCode(rsp.Code, rsp.Message)
 	ret.SetDataSection("nick_name", uCurrencyCount.NickName)
 	ret.SetDataSection("head_scul", uCurrencyCount.HeadSculpture)

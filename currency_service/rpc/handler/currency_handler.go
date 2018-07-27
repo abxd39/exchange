@@ -500,7 +500,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 
 	authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(req.Uid)
 	//fmt.Println("authResp:", authResp)
-	
+
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println(authResp)
