@@ -349,8 +349,6 @@ func (s *RPCServer) GetUserCurrencyDetail(ctx context.Context, req *proto.UserCu
 func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.OtherResponse) error {
 	//fmt.Println(req.TokenId, req.NoZero)
 	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid, req.NoZero)
-	fmt.Println("data:", data)
-
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_USER_BALANCE
 		return err
@@ -366,7 +364,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		}
 	}
 
-	fmt.Println("symbols:", symbols)
+	//fmt.Println("symbols:", symbols)
 	type RespBalance struct {
 		Id        uint64 `json:"id"`
 		Uid       uint64 `json:"uid"`
@@ -409,16 +407,19 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			}else{
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symPrice := symbolData.Data[symbol]
-				int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
-				if int64price <= 0 {
-					sum += 0
-				}else{
-					sum += convert.Int64DivInt64By8Bit(dt.Balance, int64price)
+				if symPrice != nil {
+					fmt.Println(symPrice.CnyPrice)
+					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
+					if int64price > 0 {
+						sum += convert.Int64DivInt64By8Bit(dt.Balance, int64price)
+					}
+					int64cynPrice, _ := convert.StringToInt64By8Bit(symPrice.CnyPrice)
+					if int64cynPrice > 0 {
+						int64Valueation := convert.Int64MulInt64By8Bit(dt.Balance, int64cynPrice)
+						valuation = convert.Int64ToFloat64By8Bit(int64Valueation)
+						sumcny += int64Valueation
+					}
 				}
-				int64cynPrice, _ := convert.StringToInt64By8Bit(symPrice.CnyPrice)
-				int64Valueation := convert.Int64DivInt64By8Bit(dt.Balance, int64cynPrice)
-				valuation = convert.Int64ToFloat64By8Bit(int64Valueation)
-				sumcny += int64Valueation
 			}
 			tmp.TokenName = dt.TokenName
 			tmp.TokenId   = dt.TokenId
@@ -445,6 +446,8 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	rsp.Data = string(result)
 	return nil
 }
+
+
 
 // 获取当前法币账户余额
 func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
