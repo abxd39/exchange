@@ -144,8 +144,8 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 }
 
 // 法币交易列表 - (广告(买卖))
-//func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurrencyCount, int64) {
-func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
+func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurrencyCountList, int64) {
+//func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
 	total, err := dao.DB.GetMysqlConn().Where("type_id=? AND token_id=?", TypeId, TokenId).Count(new(Ads))
 	fmt.Println("total:", total)
 	if err != nil {
@@ -161,11 +161,13 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
 		limit = int((Page - 1) * PageNum)
 	}
 
-	//data := make([]AdsUserCurrencyCount, int(PageNum))
-	data := []Ads{}
-	err = dao.DB.GetMysqlConn().
+	data := make([]AdsUserCurrencyCountList, int(PageNum))
+	//data := []Ads{}
+	//sql := "SELECT * FROM `ads` INNER JOIN user_currency ON ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id
+	// LEFT JOIN user_currency_count ON ads.uid=user_currency_count.uid WHERE (ads.type_id=2 AND ads.token_id=1) ORDER BY `updated_time` DESC LIMIT 9 ;
+	err = dao.DB.GetMysqlConn().Table("ads").
 		//Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
-		//Join("LEFT", "user_currency_count", "ads.uid=user_currency_count.uid").
+		Join("LEFT", "user_currency_count", "ads.uid=user_currency_count.uid").
 		Where("ads.type_id=? AND ads.token_id=?", TypeId, TokenId).
 		Desc("updated_time").
 		Limit(int(PageNum), limit).
@@ -175,7 +177,7 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
 		log.Errorln(err.Error())
 		return nil, 0
 	}
-	//fmt.Println(data)
+	//fmt.Println("total:", total)
 	return data, total
 }
 

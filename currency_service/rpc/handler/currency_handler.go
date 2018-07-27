@@ -138,7 +138,7 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 			Pays:        data[i].Pays,
 			CreatedTime: data[i].CreatedTime,
 			UpdatedTime: data[i].UpdatedTime,
-			//UserVolume:  data[i].Success,
+			UserVolume:  data[i].Success,
 			TypeId:    data[i].TypeId,
 			TokenId:   data[i].TokenId,
 			TokenName: data[i].TokenName,
