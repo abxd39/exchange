@@ -35,7 +35,7 @@ type EntrustDetail struct {
 	Opt         int    `xorm:"not null comment('类型 买入单1 卖出单2 ') TINYINT(4)"`
 	Type        int    `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
 	OnPrice     int64  `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
-	Fee         int64  `xorm:"not null comment('手续费比例') BIGINT(20)"`
+	Fee         string  `xorm:"not null comment('手续费比例') BIGINT(20)"`
 	States      int    `xorm:"not null comment('0是挂单，1是部分成交,2成交， 3撤销') TINYINT(4)"`
 	CreatedTime int64  `xorm:"not null comment('添加时间') created BIGINT(20)"`
 }

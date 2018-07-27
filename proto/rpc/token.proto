@@ -105,13 +105,15 @@ enum TRADE_STATES //
 enum TOKEN_TYPE_OPERATOR
 {
     NONE                                    =0;
-    HISTORY_HASH                            =1;
-    HISTORY_ENTRUST                         =2;
-    HISTORY_ENTRUST_DEL                    =3;
-    HISTORY_TRADE                           =4;
-    HISTORY_FRONZE_BACK                     =5;
-    HISTORY_FRONZE_SYS_SURPLUS              =6;
-
+    HISTORY_HASH                            =1;//区块入账
+    HISTORY_ENTRUST                         =2;//委托
+    HISTORY_REGISTER                        =3;//注册奖励
+    HISTORY_IVITE                           =4;//邀请奖励
+    HISTORY_ENTRUST_DEL                     =5;//撤销委托
+    HISTORY_TRADE                           =6;//交易入账
+    HISTORY_FRONZE_BACK                     =7;//
+    HISTORY_FRONZE_SYS_SURPLUS              =8;//系统自动退小额余额
+    FROZEN_COMFIRM_DEL                      =9;//交易确认扣减冻结数量
 }
 
 message  EntrustOrderRequest {
@@ -134,7 +136,7 @@ message AddTokenNumRequest {
     int64 num = 6;
     TOKEN_OPT_TYPE opt = 7;
     bytes ukey  =8;
-    int32 type  =9;
+    TOKEN_TYPE_OPERATOR type  =9;
     TOKEN_OPT_TYPE_ADD_TYPE opt_add_type = 10;
 }
 

@@ -38,7 +38,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 	defer session.Close()
 	err = session.Begin()
 
-	isAddFrozen := false
+	//isAddFrozen := false
 	if proto.TOKEN_OPT_TYPE_DEL == req.Opt {
 		ret, err = u.SubMoney(session, req.Num)
 		if err != nil {
@@ -48,10 +48,10 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		}
 	} else if proto.TOKEN_OPT_TYPE_ADD == req.Opt {
 		if proto.TOKEN_OPT_TYPE_ADD_TYPE_BALANCE == req.OptAddType { //加余额
-			err = u.AddMoney(session, req.Num)
+			err = u.AddMoney(session, req.Num, string(req.Ukey), req.Type)
 		} else { //加冻结余额
-			isAddFrozen = true
-			err = u.AddFrozen(session, req.Num)
+			//isAddFrozen = true
+			err = u.AddFrozen(session, req.Num, string(req.Ukey), req.Type)
 		}
 
 		if err != nil {
@@ -68,34 +68,34 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 		session.Rollback()
 		return
 	}
+	/*
+		if isAddFrozen {
+			err = new(Frozen).InsertRecord(session, &Frozen{
+				Uid:     req.Uid,
+				Ukey:    string(req.Ukey),
+				Num:     req.Num,
+				TokenId: int(req.TokenId),
+				Type:    int(req.Type),
+				Opt:     int(req.Opt),
+			})
+		} else {
+			err = InsertRecord(session, &MoneyRecord{
+				Uid:     req.Uid,
+				TokenId: int(req.TokenId),
+				Ukey:    string(req.Ukey),
+				Opt:     int(req.Opt),
+				Type:    int(req.Type),
+				Balance: u.Balance,
+				Num:     req.Num,
+			})
+		}
 
-	if isAddFrozen {
-		err = new(Frozen).InsertRecord(session, &Frozen{
-			Uid:     req.Uid,
-			Ukey:    string(req.Ukey),
-			Num:     req.Num,
-			TokenId: int(req.TokenId),
-			Type:    int(req.Type),
-			Opt:     int(req.Opt),
-		})
-	} else {
-		err = InsertRecord(session, &MoneyRecord{
-			Uid:     req.Uid,
-			TokenId: int(req.TokenId),
-			Ukey:    string(req.Ukey),
-			Opt:     int(req.Opt),
-			Type:    int(req.Type),
-			Balance: u.Balance,
-			Num:     req.Num,
-		})
-	}
-
-	if err != nil {
-		log.Errorln(err.Error())
-		session.Rollback()
-		return
-	}
-
+		if err != nil {
+			log.Errorln(err.Error())
+			session.Rollback()
+			return
+		}
+	*/
 	err = session.Commit()
 	if err != nil {
 		log.Errorln(err.Error())

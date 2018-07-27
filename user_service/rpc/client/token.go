@@ -39,6 +39,6 @@ func (s *TokenRPCCli) CallAddTokenNum(uid uint64, tokenId int32, num int64, opt 
 		Opt:        opt,
 		OptAddType: optAddType,
 		Ukey:       ukey,
-		Type:       oType,
+		Type:       proto.TOKEN_TYPE_OPERATOR( oType),
 	})
 }

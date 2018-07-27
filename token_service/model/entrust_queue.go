@@ -108,11 +108,7 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny
 		TradeQuene:        fmt.Sprintf("%s:trade", quene_id),
 		TokenTradeId:      token_trade_id,
 		UUID:              1,
-		//sourceData:   make(map[string]*EntrustData),
-		//newOrderDetail:    make(chan *EntrustData, 1000),
 		waitOrderDetail: make(chan *EntrustData, 1000),
-		//sellMarketOrderDetail: make(chan *EntrustData, 1000),
-		//updateOrderDetail: make(chan *EntrustData, 1000),
 		marketOrderDetail: make(chan *EntrustData, 1000),
 		price:             price,
 		cny:               cny,
@@ -129,6 +125,7 @@ func (s *EntrustQuene) GetUUID() int64 {
 
 //平台自动委托
 func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, ret int32, err error) {
+	return
 	g := &EntrustDetail{
 		EntrustId:  genkey.GetTimeUnionKey(s.GetUUID()),
 		TokenId:    s.TokenTradeId,
@@ -166,7 +163,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	err = session.Begin()
 
 	//冻结资金
-	ret, err = m.SubMoneyWithFronzen(session, p.Num, g.EntrustId, FROZEN_LOGIC_TYPE_ENTRUST)
+	ret, err = m.SubMoneyWithFronzen(session, p.Num, g.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST)
 	if err != nil || ret != ERRCODE_SUCCESS {
 		session.Rollback()
 		return
@@ -181,26 +178,27 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	}
 
 	//交易流水
-	err = InsertRecord(session, &MoneyRecord{
-		Uid:     p.Uid,
-		TokenId: token_id,
-		Ukey:    g.EntrustId,
-		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
-		Type:    MONEY_UKEY_TYPE_ENTRUST,
-		Num:     p.Num,
-		Balance: m.Balance,
-	})
-	if err != nil {
-		log.Errorln(err.Error())
-		session.Rollback()
-		return
-	}
+	/*
+		err = InsertRecord(session, &MoneyRecord{
+			Uid:     p.Uid,
+			TokenId: token_id,
+			Ukey:    g.EntrustId,
+			Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+			Type:    MONEY_UKEY_TYPE_ENTRUST,
+			Num:     p.Num,
+			Balance: m.Balance,
+		})
+		if err != nil {
+			log.Errorln(err.Error())
+			session.Rollback()
+			return
+		}
 
-	err = session.Commit()
-	if err != nil {
-		log.Errorln(err.Error())
-		return
-	}
+		err = session.Commit()
+		if err != nil {
+			log.Errorln(err.Error())
+			return
+		}*/
 
 	e = &EntrustData{
 		EntrustId:  g.EntrustId,
@@ -213,6 +211,8 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	}
 	return
 }
+
+//实时更新交易数据
 func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 	s.price = price
 	s.count += 1
@@ -259,7 +259,6 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 
 	err = m.GetUserToken(p.Uid, token_id)
 	if err != nil {
-		log.Errorln(err.Error())
 		return
 	}
 
@@ -273,7 +272,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	err = session.Begin()
 
 	//冻结资金
-	ret, err = m.SubMoneyWithFronzen(session, p.Num, g.EntrustId, FROZEN_LOGIC_TYPE_ENTRUST)
+	ret, err = m.SubMoneyWithFronzen(session, p.Num, g.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST)
 	if err != nil || ret != ERRCODE_SUCCESS {
 		session.Rollback()
 		return
@@ -281,21 +280,6 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 
 	//记录委托
 	err = g.Insert(session)
-	if err != nil {
-		session.Rollback()
-		return
-	}
-
-	//交易流水
-	err = InsertRecord(session, &MoneyRecord{
-		Uid:     p.Uid,
-		TokenId: token_id,
-		Ukey:    g.EntrustId,
-		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
-		Type:    MONEY_UKEY_TYPE_ENTRUST,
-		Num:     p.Num,
-		Balance: m.Balance,
-	})
 	if err != nil {
 		session.Rollback()
 		return
@@ -420,7 +404,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	var ret int32
 	//USDT left num
 
-	ret, err = buy_token_account.NotifyDelFronzen(session, buy_num, t.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
+	err = buy_token_account.NotifyDelFronzen(session, buy_num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_FROZEN_COMFIRM_DEL)
 	if err != nil {
 		session.Rollback()
 		return
@@ -430,58 +414,59 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		return
 	}
 
-	err = buy_trade_token_account.AddMoney(session, t.Num)
+	err = buy_trade_token_account.AddMoney(session, t.Num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE)
 	if err != nil {
 		session.Rollback()
 		return
 	}
 
-	err = InsertRecord(session, &MoneyRecord{
-		Uid:     buyer.Uid,
-		TokenId: buy_trade_token_account.TokenId,
-		Ukey:    t.TradeNo,
-		Opt:     int(proto.ENTRUST_OPT_BUY),
-		Type:    MONEY_UKEY_TYPE_TRADE,
-		Num:     deal_num,
-		Balance: buy_trade_token_account.Balance,
-	})
+	/*
+		err = InsertRecord(session, &MoneyRecord{
+			Uid:     buyer.Uid,
+			TokenId: buy_trade_token_account.TokenId,
+			Ukey:    t.TradeNo,
+			Opt:     int(proto.ENTRUST_OPT_BUY),
+			Type:    MONEY_UKEY_TYPE_TRADE,
+			Num:     deal_num,
+			Balance: buy_trade_token_account.Balance,
+		})
 
-	if err != nil {
-		session.Rollback()
-		return
-	}
-
+		if err != nil {
+			session.Rollback()
+			return
+		}
+	*/
 	if buyer.Uid == seller.Uid { //还没处理
 		sell_trade_token_account = buy_token_account
 		sell_token_account = buy_trade_token_account
 
 	}
-	ret, err = sell_token_account.NotifyDelFronzen(session, deal_num, o.TradeNo, FROZEN_LOGIC_TYPE_DEAL)
-	if err != nil || ret != ERRCODE_SUCCESS {
-		session.Rollback()
-		return
-	}
-
-	err = sell_trade_token_account.AddMoney(session, o.Num)
+	err = sell_token_account.NotifyDelFronzen(session, deal_num, o.TradeNo, proto.TOKEN_TYPE_OPERATOR_FROZEN_COMFIRM_DEL)
 	if err != nil {
 		session.Rollback()
 		return
 	}
 
-	err = InsertRecord(session, &MoneyRecord{
-		Uid:     seller.Uid,
-		TokenId: sell_trade_token_account.TokenId,
-		Ukey:    o.TradeNo,
-		Opt:     int(proto.ENTRUST_OPT_SELL),
-		Type:    MONEY_UKEY_TYPE_TRADE,
-		Num:     buy_num,
-		Balance: sell_trade_token_account.Balance,
-	})
+	err = sell_trade_token_account.AddMoney(session, o.Num, o.TradeNo, proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE)
 	if err != nil {
 		session.Rollback()
 		return
 	}
-
+	/*
+		err = InsertRecord(session, &MoneyRecord{
+			Uid:     seller.Uid,
+			TokenId: sell_trade_token_account.TokenId,
+			Ukey:    o.TradeNo,
+			Opt:     int(proto.ENTRUST_OPT_SELL),
+			Type:    MONEY_UKEY_TYPE_TRADE,
+			Num:     buy_num,
+			Balance: sell_trade_token_account.Balance,
+		})
+		if err != nil {
+			session.Rollback()
+			return
+		}
+	*/
 	err = new(Trade).Insert(session, t, o)
 	if err != nil {
 		session.Rollback()
@@ -635,7 +620,6 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 			} else {
 				return
 			}
-
 		}
 	}
 
@@ -666,8 +650,51 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 		"os_id":            os.Getpid(),
 	}).Info("record match trade")
 
-	if buy_num == 0 || sell_num == 0 || price == 0 {
+	if buy_num == 0 {
+		log.WithFields(logrus.Fields{
+			"symbol":           s.TokenQueueId,
+			"buyer_id":         buyer.Uid,
+			"seller_id":        seller.Uid,
+			"buyer_entrust_id": buyer.EntrustId,
+			"sell_entrust_id":  seller.EntrustId,
+			"sell_num":         sell_num,
+			"buy_num":          buy_num,
+			"price":            price,
+			"g_num":            g_num,
+			"buyer_type":       buyer.Type,
+			"seller_type":      seller.Type,
+		}).Info("please check logic")
+		err = s.SurplusBack(buyer)
+		if err!=nil {
+			return
+		}
 
+		return
+	}
+
+	if sell_num == 0 {
+		log.WithFields(logrus.Fields{
+			"symbol":           s.TokenQueueId,
+			"buyer_id":         buyer.Uid,
+			"seller_id":        seller.Uid,
+			"buyer_entrust_id": buyer.EntrustId,
+			"sell_entrust_id":  seller.EntrustId,
+			"sell_num":         sell_num,
+			"buy_num":          buy_num,
+			"price":            price,
+			"g_num":            g_num,
+			"buyer_type":       buyer.Type,
+			"seller_type":      seller.Type,
+		}).Info("please check logic")
+		err = s.SurplusBack(seller)
+		if err!=nil {
+			return
+		}
+		//err = errors.New("please check logic")
+		return
+	}
+
+	if price == 0 {
 		log.WithFields(logrus.Fields{
 			"symbol":           s.TokenQueueId,
 			"buyer_id":         buyer.Uid,
@@ -684,6 +711,7 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 		err = errors.New("please check logic")
 		return
 	}
+
 	err = s.delSource(others[0].Opt, others[0].Type, others[0].EntrustId)
 	if err != nil {
 		return
@@ -711,29 +739,30 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 	return
 }
 
+//剩余小额退回
 func (s *EntrustQuene) SurplusBack(e *EntrustData) (err error) {
 	u := &UserToken{}
 	entry := GetEntrust(e.EntrustId)
 	if entry != nil {
 		err = u.GetUserToken(e.Uid, entry.TokenId)
 		if err != nil {
-			return nil
+			return
 		}
 
 		session := DB.GetMysqlConn().NewSession()
 		defer session.Close()
 		err = session.Begin()
 		if err != nil {
-			return nil
+			return
 		}
 		err = u.ReturnFronzen(session, e.SurplusNum, e.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_FRONZE_SYS_SURPLUS)
 		if err != nil {
 			session.Rollback()
-			return nil
+			return
 		}
 
 	}
-	return nil
+	return
 }
 
 //匹配交易

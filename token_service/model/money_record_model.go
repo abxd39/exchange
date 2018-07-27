@@ -1,11 +1,13 @@
 package model
 
 import (
+	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
 )
 
+/*
 const (
 	MONEY_UKEY_TYPE_HASH     = 1
 	MONEY_UKEY_TYPE_ENTRUST  = 2
@@ -13,7 +15,7 @@ const (
 	MONEY_UKEY_TYPE_REGISTER = 4
 	MONEY_UKEY_TYPE_TRADE    = 5
 )
-
+*/
 type MoneyRecord struct {
 	Id          uint64 `xorm:"pk autoincr BIGINT(20)"`
 	Uid         uint64 `xorm:"comment('用户ID') unique(hash_index)  INT(11)"`
@@ -27,7 +29,7 @@ type MoneyRecord struct {
 }
 
 //检查流水记录是否存在
-func (s *MoneyRecord) CheckExist(ukey string, ty int32) (ok bool, err error) {
+func (s *MoneyRecord) CheckExist(ukey string, ty proto.TOKEN_TYPE_OPERATOR) (ok bool, err error) {
 	ok, err = DB.GetMysqlConn().Where("ukey=? and type=?", ukey, ty).Exist(&MoneyRecord{})
 	if err != nil {
 		log.Errorln(err.Error())
