@@ -185,3 +185,32 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 	}
 	return nil
 }
+
+
+/*
+	获取一个币对的价格比
+*/
+func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRateRequest, rsp *proto.GetSymbolsRateResponse) error {
+	type BaseData struct {
+		Symbol   string  `json:"symbol"`
+		Price    string  `json:"price"`
+		CnyPrice string  `json:"cny_price"`
+	}
+	data := map[string]*proto.RateBaseData{}
+	for _, symbol := range req.Symbols{
+		q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
+		if !ok {
+			data[symbol] = new(proto.RateBaseData)
+		}else{
+			e := q.GetEntry()
+			bdata :=  &proto.RateBaseData{
+				Symbol:   q.Symbol,
+				Price:    convert.Int64ToStringBy8Bit(e.Price),
+				CnyPrice: convert.Int64MulInt64By8BitString( q.CnyPrice, e.Price),
+			}
+			data[symbol] = bdata
+		}
+	}
+	rsp.Data = data
+	return nil
+}

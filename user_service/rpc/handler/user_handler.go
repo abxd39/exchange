@@ -587,6 +587,7 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 		RealName     int32  `json:"real_name"`      //
 		TwoLevelAuth int32  `json:"two_level_auth"` //
 		NickName     string `json:"nick_name"`
+		HeadSculpture string `json:"head_scul"`    //
 		CreatedTime  string `json:"created_time"`
 	}
 	authInfo := new(AuthInfo)
@@ -604,6 +605,7 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 	}
 	timeLayout := "2006-01-02 15:04:05"
 	authInfo.NickName = extu.NickName
+	authInfo.HeadSculpture = extu.HeadSculpture
 	authInfo.CreatedTime = time.Unix(extu.RegisterTime, 0).Format(timeLayout)
 	data, err := json.Marshal(authInfo)
 	if err != nil {
