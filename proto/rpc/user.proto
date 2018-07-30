@@ -73,6 +73,10 @@ service UserRPC {
     //获取认证信息
     rpc GetAuthInfo(GetAuthInfoRequest) returns (GetAuthInfoResponse) {};
 
+
+    rpc Api1(Api1Request) returns (Api1Response) {}
+
+    rpc Api2(Api2Request) returns (Api2Response) {}
 }
 
 
@@ -434,3 +438,31 @@ message CheckSecurityResponse{
     string region    =4;
 }
 
+message Api1Request{
+     string phone  =1;
+}
+
+message Api1BaseData{
+    string challenge        =1;
+    string gt               =2;
+    int32 success            =3;
+
+}
+message Api1Response{
+    int32 err       =1;
+    string message  =2;
+    Api1BaseData data     =3;
+}
+
+message Api2Request{
+    string challenge             =1;
+    string validate              =2;
+    string seccode               =3;
+    int32 status                 =4;
+    string phone                 =5;
+}
+
+message Api2Response{
+    int32 err       =1;
+    string message  =2;
+}

@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -118,9 +118,9 @@ func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*p
 	rsp, err := s.conn.GetUserCurrency(context.TODO(), req)
 	return rsp, err
 }
-func (s *CurrencyRPCCli) CallGetUserCurrencyDetail(req *proto.UserCurrencyRequest) (*proto.UserCurrency, error){
+func (s *CurrencyRPCCli) CallGetUserCurrencyDetail(req *proto.UserCurrencyRequest) (*proto.UserCurrency, error) {
 	rsp, err := s.conn.GetUserCurrencyDetail(context.TODO(), req)
-	return  rsp, err
+	return rsp, err
 }
 
 // get 售价
@@ -147,9 +147,8 @@ func (s *CurrencyRPCCli) CallAddUserBalance(req *proto.AddUserBalanceRequest) (*
 	return rsp, err
 }
 
-
 //
-func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*proto.OtherResponse, error){
+func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.GetAssetDetail(context.TODO(), req)
 	return rsp, err
 }

@@ -1,18 +1,18 @@
 package controller
 
 import (
-	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 type ActionGroup struct{}
 
 func (s *ActionGroup) Router(r *gin.Engine) {
-	action := r.Group("/action",TokenVerify)
+	action := r.Group("/action", TokenVerify)
 	//action := r.Group("/action")
 
 	{
@@ -238,7 +238,7 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 		param.Page = 1
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid,param.Limit,param.Page)
+	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid, param.Limit, param.Page)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return

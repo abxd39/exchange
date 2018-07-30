@@ -26,8 +26,8 @@ func sendAliEmail(email, code string) (err error) {
 	defer func() {
 		if err != nil {
 			log.WithFields(log.Fields{
-				"email":  email,
-				"code":   code,
+				"email": email,
+				"code":  code,
 			}).Errorf("sendAliEmail error %s", err.Error())
 		}
 	}()
@@ -56,7 +56,7 @@ func sendAliEmail(email, code string) (err error) {
 		return
 	}
 
-	return errors.New("error send email:["+h.String()+"]")
+	return errors.New("error send email:[" + h.String() + "]")
 }
 
 //验证邮箱

@@ -3,11 +3,11 @@ package controller
 
 import (
 	"digicon/common/check"
-	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"bytes"
@@ -51,7 +51,77 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		//
 		//user.POST("/unbind_email", s.UnBindUserEmail)
 		//user.POST("/unbind_phone", s.UnBindUserPhone)
+
+		user.GET("/api1", Geeteam)
+		user.POST("/api2", Geeteam2)
 	}
+}
+
+func Geeteam(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	param := struct {
+		Phone string `form:"phone" json:"phone" binding:"required"` // 用户ID
+	}{}
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallApi1(param.Phone)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("data", rsp.Data)
+}
+
+func Geeteam2(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	/*
+		param := struct {
+			Phone   	string `form:"phone" json:"phone" binding:"required"`     // 用户ID
+			Challenge   string `form:"geetest_challenge" json:"uid" binding:"required"`     // 用户ID
+			Validate   string `form:"geetest_validate" json:"uid" binding:"required"`     // 用户ID
+			SecCode   string `form:"geetest_seccode" json:"uid" binding:"required"`     // 用户ID
+			Status   int32 `form:"gt_server_status" json:"uid" binding:"required"`     // 用户ID
+		}{}
+	*/
+
+	param := struct {
+		Phone     string `form:"phone" json:"phone" binding:"required"`   // 用户ID
+		Challenge string `form:"challenge" json:"uid" binding:"required"` // 用户ID
+		Validate  string `form:"validate" json:"uid" binding:"required"`  // 用户ID
+		SecCode   string `form:"seccode" json:"uid" binding:"required"`   // 用户ID
+		Status    int32  `form:"status" json:"uid" binding:"required"`    // 用户ID
+	}{}
+	if err := c.ShouldBind(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallApi2(&proto.Api2Request{
+		Challenge: param.Challenge,
+		Validate:  param.Validate,
+		Seccode:   param.SecCode,
+		Phone:     param.Phone,
+		Status:    param.Status,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+
 }
 
 func TokenVerify(c *gin.Context) {
@@ -571,13 +641,13 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	url,err:=s.upload_picture(req.Url)
-	if err!=nil{
+	url, err := s.upload_picture(req.Url)
+	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
 		return
 	}
-	if url==``{
+	if url == `` {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
 		return

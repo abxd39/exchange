@@ -18,6 +18,24 @@ type UserRPCCli struct {
 	conn proto.UserRPCService
 }
 
+func (s *UserRPCCli) CallApi1(phone string) (rsp *proto.Api1Response, err error) {
+	rsp, err = s.conn.Api1(context.TODO(), &proto.Api1Request{Phone: phone})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *UserRPCCli) CallApi2(req *proto.Api2Request) (rsp *proto.Api2Response, err error) {
+	rsp, err = s.conn.Api2(context.TODO(), req)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse, err error) {
 	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest{Name: name})
 	if err != nil {
@@ -213,26 +231,25 @@ type UserBaseData struct {
 	HeadSculpture  string `json:"head_scul"`
 }
 
-func replaceNickName(nickname string) (rpname string){
+func replaceNickName(nickname string) (rpname string) {
 	if nickname != "" {
 		nickLen := len(nickname)
 		if nickLen <= 4 {
 			rpname = strings.Replace(nickname, nickname[1:nickLen-1], "****", -1)
-		}else if nickLen<  7 {
+		} else if nickLen < 7 {
 			rpname = strings.Replace(nickname, nickname[2:nickLen-2], "****", -1)
-		}else {
+		} else {
 			if strings.Contains(nickname, "@") {
 				rpname = strings.Replace(nickname, nickname[3:nickLen-4], "****", -1)
 			} else {
 				rpname = strings.Replace(nickname, nickname[3:nickLen-4], "***", -1)
 			}
 		}
-	}else{
+	} else {
 		rpname = ""
 	}
 	return
 }
-
 
 func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoResponse, u *UserBaseData, err error) {
 	rsp, err = s.conn.GetUserInfo(context.TODO(), &proto.UserInfoRequest{

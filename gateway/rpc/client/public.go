@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"

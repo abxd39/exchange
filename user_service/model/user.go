@@ -11,13 +11,13 @@ import (
 	"strconv"
 	"time"
 
+	. "digicon/common/constant"
+	. "digicon/proto/common"
+	. "digicon/user_service/dao"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
 	"github.com/pkg/errors"
-	. "digicon/proto/common"
-	. "digicon/user_service/dao"
-	. "digicon/common/constant"
 )
 
 type User struct {
@@ -337,7 +337,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 			Uid:          e.Uid,
 			RegisterTime: time.Now().Unix(),
 			InviteCode:   str_code,
-			NickName:     e.Account,             //  注册的时候，昵称直接等与账户名
+			NickName:     e.Account, //  注册的时候，昵称直接等与账户名
 		}
 
 		_, err = DB.GetMysqlConn().Insert(m)
