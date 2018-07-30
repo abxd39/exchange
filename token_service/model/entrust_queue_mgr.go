@@ -62,18 +62,22 @@ func (s *EntrustQueneMgr) Init() bool {
 
 	for _, v := range d {
 		cny := GetTokenCnyPrice(v.TokenId)
-
+		usd := GetTokenUsdPrice(v.TokenId)
+		if cny==0 {
+			panic("err cny config")
+		}
+		if usd==0 {
+			panic("err usd config")
+		}
+	
 		p, ok := GetPrice(v.Name)
 		if ok {
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny, p.Amount, p.Vol, p.Count)
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny,usd, p.Amount, p.Vol, p.Count,p.UsdVol)
 			s.AddQuene(e)
 		} else {
-
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny, 0, 0, 0)
-
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny,usd, 0, 0, 0,0)
 			s.AddQuene(e)
 		}
-
 	}
 
 	return true

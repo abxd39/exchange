@@ -78,18 +78,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 			}
 
 			price := q.GetEntry().Price
-			/*
-				if price==1200000000 {
-					price= 111111111
-					p.Price=155555555
-					h:=convert.Int64DivInt64StringPercent(price-p.Price, p.Price)
-					price= 1
-					p.Price=10000005
-					k:=convert.Int64DivInt64StringPercent(price-p.Price, p.Price)
-					fmt.Println(h)
-					fmt.Println(k)
-				}
-			*/
+
 			rsp.Usdt.Data = append(rsp.Usdt.Data, &proto.SymbolBaseData{
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),

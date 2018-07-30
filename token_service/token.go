@@ -30,7 +30,7 @@ func main() {
 	//client.InitInnerService()
 	model.GetQueneMgr().Init()
 	//model.GetKLine("BTC/USDT","1min",10)
-
+	//model.Test()
 	//go exchange.InitExchange()
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

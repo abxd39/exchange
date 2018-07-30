@@ -7,8 +7,26 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func Test() {
+	AddTokenSess(&proto.AddTokenNumRequest{
+		Uid:        1,
+		TokenId:    1,
+		Num:        2000000000,
+		Opt:        proto.TOKEN_OPT_TYPE_ADD,
+		Ukey:       []byte("test2"),
+		Type:       proto.TOKEN_TYPE_OPERATOR_NONE,
+		OptAddType: proto.TOKEN_OPT_TYPE_ADD_TYPE_BALANCE,
+	})
+}
+
 //处理请求代币增加减少事务处理过程
 func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
+	defer func() {
+		if err != nil {
+			log.Errorln(err.Error())
+		}
+	}()
+
 	u := &UserToken{}
 	err = u.GetUserToken(req.Uid, int(req.TokenId))
 	if err != nil {

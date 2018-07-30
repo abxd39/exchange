@@ -17,7 +17,7 @@ type Price struct {
 	Amount      int64  `xorm:"BIGINT(20)"`
 	Vol         int64  `xorm:"BIGINT(20)"`
 	Count       int64  `xorm:"BIGINT(20)"`
-	CnyVol      int64  `xorm:"BIGINT(20)"`
+	UsdVol      int64  `xorm:"BIGINT(20)"`
 }
 
 /*

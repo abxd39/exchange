@@ -39,7 +39,7 @@ message PriceCache {
     int64 amount         =5;
     int64 vol              =6;
     int64 count         =7;
-    int64 cny_vol     =8;
+    int64 usd_vol     =8;
 }
 
 

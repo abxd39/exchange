@@ -16,7 +16,7 @@ type PriceInfo struct {
 	Key      string
 	PreData  *proto.PriceCache
 	MinPrice int64
-	CnyPrice int64
+	UsdPrice int64
 }
 
 const (
@@ -78,7 +78,7 @@ func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) {
 		CreatedTime: k.CreatedTime,
 		Count:       k.Count,
 		Symbol:      k.Symbol,
-		CnyVol:      k.CnyVol,
+		UsdVol:      k.UsdVol,
 	})
 
 	s.entry = k
