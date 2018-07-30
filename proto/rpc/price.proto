@@ -22,6 +22,9 @@ service PriceRPC {
 
     // 获取一个币对的价格比
     rpc GetSymbolsRate(GetSymbolsRateRequest) returns (GetSymbolsRateResponse) {};
+
+    //成交量
+    rpc Volume(VolumeRequest) returns (VolumeResponse) {};
 }
 
 //
@@ -146,4 +149,14 @@ message RateBaseData{
 
 message GetSymbolsRateResponse {
     map<string, RateBaseData> data = 1; // 定义Map对象
+}
+
+message VolumeRequest{
+
+}
+
+message VolumeResponse{
+    int64 dayVolume      =1;
+    int64 weekVolume     =2;
+    int64 monthVolume    =3;
 }
