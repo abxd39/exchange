@@ -1,12 +1,13 @@
 package controller
 
 import (
-	log "github.com/sirupsen/logrus"
+	"digicon/common/convert"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -29,6 +30,9 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	//btc signtx
 	r.POST("/signtx_btc", this.BtcSigntx) // btc 签名
 	r.POST("/biti_btc", this.BtcTiBi)     // btc
+
+	r.GET("in_list", this.InList)
+	r.GET("out_list", this.OutList)
 }
 
 ///////////////////////// start btc ///////////////////////////
@@ -340,5 +344,157 @@ func (this *WalletGroup) AddressDelete(ctx *gin.Context) {
 	ret.SetDataSection("data", rsp.Data)
 	ret.SetDataSection("msg", rsp.Msg)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
+}
+
+// 提币列表
+func (this *WalletGroup) InList(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param := &struct {
+		Uid     int32  `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Page    int32  `form:"page" binding:"required"`
+		PageNum int32  `form:"page_num"`
+	}{}
+
+	if err := ctx.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallInList(&proto.InListRequest{
+		Uid:     param.Uid,
+		Page:    param.Page,
+		PageNum: param.PageNum,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Msg)
+
+	// 重组data
+	type item struct {
+		Id          int32  `json:"id"`
+		TokenId     int32  `json:"token_id"`
+		TokenName   string `json:"token_name"`
+		Amount      string `json:"amount"`
+		Address     string `json:"address"`
+		States      int32  `json:"states"`
+		CreatedTime int64  `json:"create_time"`
+	}
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*item `json:"items"`
+	}
+
+	newItems := make([]*item, len(rsp.Data.Items))
+	for k, v := range rsp.Data.Items {
+		newItems[k] = &item{
+			Id:          v.Id,
+			TokenId:     v.TokenId,
+			TokenName:   v.TokenName,
+			Amount:      convert.Int64ToStringBy8Bit(v.Amount),
+			Address:     v.Address,
+			States:      v.States,
+			CreatedTime: v.CreatedTime,
+		}
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     newItems,
+	}
+
+	ret.SetDataSection("list", newList)
+	return
+}
+
+// 充币列表
+func (this *WalletGroup) OutList(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param := &struct {
+		Uid     int32  `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Page    int32  `form:"page" binding:"required"`
+		PageNum int32  `form:"page_num"`
+	}{}
+
+	if err := ctx.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallOutList(&proto.OutListRequest{
+		Uid:     param.Uid,
+		Page:    param.Page,
+		PageNum: param.PageNum,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Msg)
+
+	// 重组data
+	type item struct {
+		Id          int32  `json:"id"`
+		TokenId     int32  `json:"token_id"`
+		TokenName   string `json:"token_name"`
+		Amount      string `json:"amount"`
+		Fee         string `json:"fee"`
+		Address     string `json:"address"`
+		Remarks     string `json:"remarks"`
+		States      int32  `json:"states"`
+		CreatedTime int64  `json:"create_time"`
+	}
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*item `json:"items"`
+	}
+
+	newItems := make([]*item, len(rsp.Data.Items))
+	for k, v := range rsp.Data.Items {
+		newItems[k] = &item{
+			Id:          v.Id,
+			TokenId:     v.TokenId,
+			TokenName:   v.TokenName,
+			Amount:      convert.Int64ToStringBy8Bit(v.Amount),
+			Fee:         convert.Int64ToStringBy8Bit(v.Fee),
+			Address:     v.Address,
+			Remarks:     v.Remarks,
+			States:      v.States,
+			CreatedTime: v.CreatedTime,
+		}
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     newItems,
+	}
+
+	ret.SetDataSection("list", newList)
 	return
 }

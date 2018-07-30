@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	log "github.com/sirupsen/logrus"
 )
 
 type WalletRPCCli struct {
@@ -119,6 +119,24 @@ func (this *WalletRPCCli) CallBtcSigntx(req *proto.BtcSigntxRequest) (rsp *proto
 //
 func (this *WalletRPCCli) CallBtcTibi(req *proto.BtcTibiRequest) (rsp *proto.BtcResponse, err error) {
 	rsp, err = this.conn.BtcTibi(context.TODO(), req)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	return
+}
+
+func (this *WalletRPCCli) CallInList(req *proto.InListRequest) (rsp *proto.InListResponse, err error) {
+	rsp, err = this.conn.InList(context.TODO(), req)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	return
+}
+
+func (this *WalletRPCCli) CallOutList(req *proto.OutListRequest) (rsp *proto.OutListResponse, err error) {
+	rsp, err = this.conn.OutList(context.TODO(), req)
 	if err != nil {
 		log.Error(err.Error())
 		return

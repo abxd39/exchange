@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	proto "digicon/proto/rpc"
-	. "digicon/wallet_service/model"
 	"digicon/wallet_service/utils"
 	"encoding/hex"
 	"errors"
@@ -217,5 +216,83 @@ func (this *WalletHandler) AddressDelete(ctx context.Context, req *proto.Address
 	rsp.Code = "0"
 	rsp.Msg = "操作成功"
 	rsp.Data = new(proto.NilPos)
+	return nil
+}
+
+func (this *WalletHandler) InList(ctx context.Context, req *proto.InListRequest, rsp *proto.InListResponse) error {
+	filter := map[string]interface{}{
+		"uid": req.Uid,
+		"opt": 1,
+	}
+
+	tokenInoutMD := new(TokenInout)
+	modelList, list, err := tokenInoutMD.GetInOutList(int(req.Page), int(req.PageNum), filter)
+	if err != nil {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
+
+	// 拼接返回数据
+	rsp.Data = new(proto.InListResponse_Data)
+	rsp.Data.Items = make([]*proto.InListResponse_Data_Item, 0)
+
+	rsp.Data.PageIndex = int32(modelList.PageIndex)
+	rsp.Data.PageSize = int32(modelList.PageSize)
+	rsp.Data.TotalPage = int32(modelList.PageCount)
+	rsp.Data.Total = int32(modelList.Total)
+
+	for _, v := range list {
+		rsp.Data.Items = append(rsp.Data.Items, &proto.InListResponse_Data_Item{
+			Id:          int32(v.Id),
+			TokenId:     int32(v.Tokenid),
+			TokenName:   v.TokenName,
+			Amount:      v.Amount,
+			Address:     v.To,
+			States:      int32(v.States),
+			CreatedTime: v.CreatedTime.Unix(),
+		})
+	}
+
+	return nil
+}
+
+func (this *WalletHandler) OutList(ctx context.Context, req *proto.OutListRequest, rsp *proto.OutListResponse) error {
+	filter := map[string]interface{}{
+		"uid": req.Uid,
+		"opt": 2,
+	}
+
+	tokenInoutMD := new(TokenInout)
+	modelList, list, err := tokenInoutMD.GetInOutList(int(req.Page), int(req.PageNum), filter)
+	if err != nil {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
+
+	// 拼接返回数据
+	rsp.Data = new(proto.OutListResponse_Data)
+	rsp.Data.Items = make([]*proto.OutListResponse_Data_Item, 0)
+
+	rsp.Data.PageIndex = int32(modelList.PageIndex)
+	rsp.Data.PageSize = int32(modelList.PageSize)
+	rsp.Data.TotalPage = int32(modelList.PageCount)
+	rsp.Data.Total = int32(modelList.Total)
+
+	for _, v := range list {
+		rsp.Data.Items = append(rsp.Data.Items, &proto.OutListResponse_Data_Item{
+			Id:          int32(v.Id),
+			TokenId:     int32(v.Tokenid),
+			TokenName:   v.TokenName,
+			Amount:      v.Amount,
+			Fee:         v.Fee,
+			Remarks:     v.Remarks,
+			Address:     v.To,
+			States:      int32(v.States),
+			CreatedTime: v.CreatedTime.Unix(),
+		})
+	}
+
 	return nil
 }
