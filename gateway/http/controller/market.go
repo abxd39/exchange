@@ -23,6 +23,8 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 		action.GET("/quotation", s.Quotation)
 
 		action.GET("/price", s.CurrentPrice)
+
+		action.GET("/volume", s.Volume)
 	}
 }
 
@@ -187,4 +189,20 @@ func (s *MarketGroup) CurrentPrice(c *gin.Context) {
 	}
 	ret.SetErrCode(ERRCODE_SUCCESS)
 	ret.SetDataSection("list", rsp.Data)
+}
+
+func (s *MarketGroup) Volume(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	rsp, err := rpc.InnerService.PriceService.CallVolume(&proto.VolumeRequest{})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(ERRCODE_SUCCESS)
+	ret.SetDataSection("day", rsp.DayVolume)
+	ret.SetDataSection("week", rsp.WeekVolume)
+	ret.SetDataSection("month", rsp.MonthVolume)
 }

@@ -57,3 +57,12 @@ func NewPriceRPCCli() (u *PriceRPCCli) {
 	}
 	return
 }
+
+func (s *PriceRPCCli) CallVolume(p *proto.VolumeRequest) (rsp *proto.VolumeResponse, err error) {
+	rsp, err = s.conn.Volume(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

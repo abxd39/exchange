@@ -32,6 +32,12 @@ type Price struct {
 	Count  int64 `xorm:"BIGINT(20)"`
 }
 */
+
+type Volume struct {
+	Sum int64 `xorm:"BIGINT(20)"`
+	Amount int64 `xorm:"BIGINT(20)"`
+}
+
 func InsertPrice(p *Price) {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
@@ -136,4 +142,48 @@ func (s *Price) SetProtoData() *proto.PriceCache {
 		Vol:         s.Vol,
 		Count:       s.Count,
 	}
+}
+
+//查询交易量
+func GetVolumeTotal() *proto.VolumeResponse {
+	t := time.Now().Local()
+	//nowUnix := time.Now().Unix()
+	dayUnix := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).Unix()
+	weekUnix := time.Date(t.Year(), t.Month(), t.Day()-int(t.Weekday()), 0, 0, 0, 0, t.Location()).Unix()
+	mondayUnix := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location()).Unix()
+
+	var nowVolume Volume
+	var dayVolume Volume
+	var weekVolume Volume
+	var monthVolume Volume
+
+	var err error
+	var res bool
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id >= (select max(id) from price) group by symbol order by id desc) as a").Get(&nowVolume)
+	if err != nil || res != true {
+		log.Warningln(err.Error())
+		return nil
+	}
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",dayUnix).Get(&dayVolume)
+	if err != nil || res != true {
+		log.Warningln(err.Error())
+		return nil
+	}
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",weekUnix).Get(&weekVolume)
+	if err != nil || res != true  {
+		log.Warningln(err.Error())
+		return nil
+	}
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",mondayUnix).Get(&monthVolume)
+	if err != nil || res != true {
+		log.Warningln(err.Error())
+		return nil
+	}
+
+	data := &proto.VolumeResponse{
+		DayVolume:nowVolume.Sum - dayVolume.Sum,
+		WeekVolume:nowVolume.Sum - weekVolume.Sum,
+		MonthVolume:nowVolume.Sum - monthVolume.Sum}
+	return data
+
 }
