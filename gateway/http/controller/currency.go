@@ -575,7 +575,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		return
 	}
 	dataLen := len(data.Data)
-	fmt.Println("dataLen:", dataLen)
+	//fmt.Println("dataLen:", dataLen)
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{
@@ -595,7 +595,8 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 				Id:       data.Data[i].Id,
 				Uid:      data.Data[i].Uid,
 				Price:    utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
-				Num:      utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
+				//Num:      utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
+				Num:      convert.Int64ToFloat64By8Bit(int64(data.Data[i].Num)),
 				MinLimit: data.Data[i].MinLimit,
 				//MaxLimit:    uint32(utils.PriceFiatMaxLimit(int64(data.Data[i].MaxLimit), data.Data[i].Balance, int32(data.Data[i].TypeId), req.FiatCurrency)),
 				MaxLimit:    data.Data[i].MaxLimit,
@@ -617,9 +618,9 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		}
 
 		// 调用 rpc 用户头像和昵称
-		fmt.Println(userList)
+		//fmt.Println(userList)
 		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameRequest{Uid: userList})
-		fmt.Println("ulist:", ulist.User)
+		//fmt.Println("ulist:", ulist.User)
 		if err != nil {
 			fmt.Println("get user name error!", err.Error())
 			log.Errorf(err.Error())
@@ -698,7 +699,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("data:", data)
+	//fmt.Println("data:", data)
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{Page: data.Page, PageNum: data.PageNum, Total: data.Total}
@@ -985,7 +986,7 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-	fmt.Println("price:", data)
+	//fmt.Println("price:", data)
 	type respPrice struct {
 		Cny float64 `json:"cny"`
 	}
