@@ -13,7 +13,7 @@ type CommonTokens struct {
 }
 
 // common 下获取货币类型
-func (this *CommonTokens) Get(id uint32, name string) *CommonTokens {
+func (this *CommonTokens) Get(id uint32, mark string) *CommonTokens {
 
 	data := new(CommonTokens)
 	var isdata bool
@@ -21,7 +21,7 @@ func (this *CommonTokens) Get(id uint32, name string) *CommonTokens {
 	if id > 0 {
 		isdata, err = dao.DB.GetCommonMysqlConn().Table("tokens").Where("id=?", id).Get(data)
 	} else {
-		isdata, err = dao.DB.GetCommonMysqlConn().Table("tokens").Where("name=?", name).Get(data)
+		isdata, err = dao.DB.GetCommonMysqlConn().Table("tokens").Where("mark=?", mark).Get(data)
 	}
 
 	if err != nil {

@@ -79,3 +79,25 @@ func (this *UserCurrencyHistory) GetAssetDetail(uid int32, Page uint32, PageNum 
 	}
 	return
 }
+
+
+/*
+
+*/
+func (this *UserCurrencyHistory) GetLastPrice() (err error, price int64){
+	type NewPrice struct {
+		Price       int64          `xorm:"not null default 0 comment('价格') BIGINT(64)"                json:"price"`
+	}
+	sql := "SELECT  id, price, num FROM g_currency.`order`  WHERE order_id = ( SELECT  order_id FROM g_currency.`user_currency_history`  ORDER BY updated_time DESC LIMIT 1);"
+	nprice := NewPrice{}
+	engine := dao.DB.GetMysqlConn()
+	ok, err := engine.SQL(sql).Get(&nprice)
+	if err !=  nil {
+		return
+	}
+	if ok {
+		price = nprice.Price
+		return
+	}
+	return
+}

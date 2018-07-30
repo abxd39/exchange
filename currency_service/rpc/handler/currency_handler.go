@@ -640,7 +640,25 @@ func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.G
 	}
 	tp := TransactionPrice{}
 	tp.LatestPrice = 50000.88
-	tp.MarketPrice = 49000.88
+	//tp.MarketPrice = 49000.88
+
+
+	ctk := new(model.CommonTokens)
+	fctk := ctk.Get(0, "BTC")
+	tokenId := fctk.Id
+	tctcy := new(model.TokenConfigTokenCNy)
+	tctcy.GetPrice(uint32(tokenId))
+	price := tctcy.Price
+
+	tp.MarketPrice = convert.Int64ToFloat64By8Bit(price)
+
+
+	chistory := new(model.UserCurrencyHistory)
+	err, price := chistory.GetLastPrice()
+	if err != nil {
+		tp.LatestPrice = convert.Int64ToFloat64By8Bit(price)
+	}
+
 	data, err  := json.Marshal(tp)
 	if err != nil {
 		fmt.Println(err)
@@ -652,6 +670,8 @@ func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.G
 		return nil
 	}
 }
+
+
 
 
 
