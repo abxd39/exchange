@@ -2,7 +2,9 @@ package handler
 
 import (
 	"context"
+	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
+	. "digicon/wallet_service/model"
 	"digicon/wallet_service/utils"
 	"encoding/hex"
 	"errors"
