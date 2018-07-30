@@ -435,3 +435,46 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 
 	return
 }
+
+
+/*
+	获取近期交易价格
+*/
+func (this *CurrencyGroup) GetRecentTransactionPrice(c *gin.Context){
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		PriceType  uint32  `form:"price_type"   json:"price_type"   binding:"required"` // 货币类型
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.CurrencyService.CallGetRecentTransactionPrice(&proto.GetRecentTransactionPriceRequest{
+		PriceType: req.PriceType,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+
+	type TransactionPrice struct {
+		MarketPrice   float64  `json:"market_price"`
+		LatestPrice   float64  `json:"latest_price"`
+	}
+	var transprice TransactionPrice
+	err = json.Unmarshal([]byte(rsp.Data), &transprice)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	ret.SetDataSection("market_price", transprice.MarketPrice)
+	ret.SetDataSection("latest_price", transprice.LatestPrice)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	return
+}

@@ -161,7 +161,7 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurren
 		limit = int((Page - 1) * PageNum)
 	}
 
-	
+
 	data := []AdsUserCurrencyCountList{}
 	//data := []Ads{}
 	//sql := "SELECT * FROM `ads` INNER JOIN user_currency ON ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id

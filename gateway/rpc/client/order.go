@@ -78,3 +78,13 @@ func (s *CurrencyRPCCli) CallGetTradeHistory(req *proto.GetTradeHistoryRequest) 
 	}
 	return
 }
+
+
+func (s *CurrencyRPCCli) CallGetRecentTransactionPrice(req *proto.GetRecentTransactionPriceRequest) ( rsp *proto.OtherResponse, err error){
+	rsp, err = s.conn.GetRecentTransactionPrice(context.TODO(), req)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

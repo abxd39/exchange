@@ -27,7 +27,8 @@ func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 		NCurrency.GET("/otc_list", this.AdsList)          // 法币交易列表 - (广告(买卖))
 		NCurrency.GET("/otc_user_list", this.AdsUserList) // 个人法币交易列表 - (广告(买卖))
 		NCurrency.POST("/user_currency_rating", this.GetUserRating) // 获取用戶评级
-
+		NCurrency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
+		NCurrency.GET("/recent_transaction_price", this.GetRecentTransactionPrice)
 	}
 }
 
@@ -76,7 +77,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
 		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
 
-		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
+
 
 		//
 		//Currency.GET("/add_user_balance", this.AddUserBalance)
@@ -84,6 +85,8 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/get_user_currency", this.GetUserCurrency) //  获取法币账户
 
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
+
+		//Currency.POST("/transfer", this.Transfer)              // 划转
 	}
 }
 
@@ -1289,6 +1292,53 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }
+
+
+
+///*
+//
+//*/
+//func (this *CurrencyGroup) Transfer (c *gin.Context){
+//	ret := NewPublciError()
+//	defer func() {
+//		c.JSON(http.StatusOK, ret.GetResult())
+//	}()
+//	req := struct {
+//		Uid     uint64 `form:"uid"       json:"uid" binding:"required"`
+//		TokenId uint32 `form:"token_id"  json:"token_id" binding:"required"`
+//		Num     uint64 `form:"num"       json:"num"`
+//
+//	}{}
+//	err := c.ShouldBind(&req)
+//	if err != nil {
+//		log.Errorf(err.Error())
+//		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+//		return
+//	}
+//	if req.Uid == 0 {
+//		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+//		return
+//	}
+//
+//
+//
+//	//ret.SetDataSection("", )
+//
+//	//ret.SetDataSection("")
+//
+//	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+//	return
+//}
+//
+
+
+
+
+
+
+
+
+
 
 /*
 	测试rpc添加用户余额
