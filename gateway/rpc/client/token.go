@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	log "github.com/sirupsen/logrus"
 )
 
 type TokenRPCCli struct {
@@ -69,7 +69,6 @@ func (s *TokenRPCCli) CallEntrustHistory(p *proto.EntrustHistoryRequest) (rsp *p
 	}
 	return
 }
-
 
 func (s *TokenRPCCli) CallDelEntrust(p *proto.DelEntrustRequest) (rsp *proto.DelEntrustResponse, err error) {
 	rsp, err = s.conn.DelEntrust(context.TODO(), p)

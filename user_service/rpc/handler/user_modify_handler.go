@@ -65,7 +65,7 @@ func (s *RPCServer) SetNickName(ctx context.Context, req *proto.UserSetNickNameR
 		log.Errorf(err.Error())
 	}
 	user := new(model.User)
-	user.ForceRefreshCache(req.Uid)    // 设置用户昵称时候，刷新缓存
+	user.ForceRefreshCache(req.Uid) // 设置用户昵称时候，刷新缓存
 	return nil
 }
 

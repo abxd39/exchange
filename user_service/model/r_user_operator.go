@@ -48,6 +48,11 @@ func getUserToken(uid uint64) string {
 	return fmt.Sprintf("uid:%d:token", uid)
 }
 
+func getGree(account string) string {
+return fmt.Sprintf("account:%s:gree:exist",account)
+}
+
+
 func (s *RedisOp) SetSmsCode(phone string, code string, ty int32) (err error) {
 	err = DB.GetRedisConn().Set(GetPhoneTagByLogic(phone, ty), code, 600*time.Second).Err()
 	if err != nil {
@@ -178,3 +183,32 @@ func (s *RedisOp) GetUserToken(uid int32) (token []byte, err error) {
 	return
 }
 */
+
+
+func SetGreeSuccess(account string) (err error) {
+	err = DB.GetRedisConn().Set(getGree(account),1, 300*time.Second).Err()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
+func  GetGreeSuccess(account string) (err error) {
+	err = DB.GetRedisConn().Set(getGree(account),1, 300*time.Second).Err()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func  DelGreeSuccess(account string) (err error) {
+	err = DB.GetRedisConn().Del(getGree(account)).Err()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

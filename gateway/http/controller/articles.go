@@ -2,11 +2,11 @@ package controller
 
 import (
 	//"digicon/gateway/log"
-	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	Err "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

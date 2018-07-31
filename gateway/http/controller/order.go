@@ -2,12 +2,12 @@ package controller
 
 import (
 	"digicon/common/convert"
-	log "github.com/sirupsen/logrus"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -67,16 +67,16 @@ type BackOrder struct {
 
 //type AddOrder
 type AddOrder struct {
-	Uid     int32   `form:"uid"       json:"uid"        binding:"required"` // 用户 id
-	AdId    uint64  `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
-	Num     float64 `form:"num"       json:"num"        binding:"required"` // 交易数量
+	Uid  int32   `form:"uid"       json:"uid"        binding:"required"` // 用户 id
+	AdId uint64  `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
+	Num  float64 `form:"num"       json:"num"        binding:"required"` // 交易数量
 	//TypeId  int32   `form:"type_id"   json:"type_id"    binding:"required"` // 当前用户交易类型
 }
 
 type BackAddOrder struct {
-	Uid     int32  `form:"uid"       json:"uid"        binding:"required"` // 用户 id
-	AdId    uint64 `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
-	Num     int64  `form:"num"       json:"num"        binding:"required"` // 交易数量
+	Uid  int32  `form:"uid"       json:"uid"        binding:"required"` // 用户 id
+	AdId uint64 `form:"ad_id"     json:"ad_id"      binding:"required"` // 广告id
+	Num  int64  `form:"num"       json:"num"        binding:"required"` // 交易数量
 	//TypeId  int32   `form:"type_id"   json:"type_id"    binding:"required"` // 当前用户交易类型
 	//PayId    uint64 `form:"pay_id"     json:"pay_id"     binding:"required"`         // 支付类型
 	//Price int64 `form:"price"      json:"price"   binding:"required"` // 货币类型
@@ -387,7 +387,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	req := struct {
 		StartTime string `form:"start_time"    json:"start_time"`
 		EndTime   string `form:"end_time"      json:"end_time"`
-		Limit     int32     `form:"limit"        json:"limit"`
+		Limit     int32  `form:"limit"        json:"limit"`
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -406,14 +406,14 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	}
 
 	type UserCurrencyHistory struct {
-		Num         int64     `json:"num"           `
-		Fee         int64     `json:"fee"           `
-		CreatedTime string    `json:"created_time"  `
+		Num         int64  `json:"num"           `
+		Fee         int64  `json:"fee"           `
+		CreatedTime string `json:"created_time"  `
 	}
 	type RespUserCurrencyHistory struct {
-		Num         float64     `json:"num"           `
-		Fee         float64     `json:"fee"           `
-		CreatedTime string      `json:"created_time"  `
+		Num         float64 `json:"num"           `
+		Fee         float64 `json:"fee"           `
+		CreatedTime string  `json:"created_time"  `
 	}
 	var uCurrencyHistoryList []UserCurrencyHistory
 	err = json.Unmarshal([]byte(rsp.Data), &uCurrencyHistoryList)
@@ -425,7 +425,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	var rspCuHistory []RespUserCurrencyHistory
 	for _, v := range uCurrencyHistoryList {
 		var tmp RespUserCurrencyHistory
-		tmp.CreatedTime =  v.CreatedTime
+		tmp.CreatedTime = v.CreatedTime
 		tmp.Num = convert.Int64ToFloat64By8Bit(v.Num)
 		tmp.Fee = convert.Int64ToFloat64By8Bit(v.Fee)
 		rspCuHistory = append(rspCuHistory, tmp)
@@ -433,5 +433,47 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	ret.SetDataSection("list", rspCuHistory)
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 
+	return
+}
+
+/*
+	获取近期交易价格
+*/
+func (this *CurrencyGroup) GetRecentTransactionPrice(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	req := struct {
+		PriceType uint32 `form:"price_type"   json:"price_type"   binding:"required"` // 货币类型
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.CurrencyService.CallGetRecentTransactionPrice(&proto.GetRecentTransactionPriceRequest{
+		PriceType: req.PriceType,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+
+	type TransactionPrice struct {
+		MarketPrice float64 `json:"market_price"`
+		LatestPrice float64 `json:"latest_price"`
+	}
+	var transprice TransactionPrice
+	err = json.Unmarshal([]byte(rsp.Data), &transprice)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	ret.SetDataSection("market_price", transprice.MarketPrice)
+	ret.SetDataSection("latest_price", transprice.LatestPrice)
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }

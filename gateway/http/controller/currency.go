@@ -14,8 +14,8 @@ import (
 	"github.com/gin-gonic/gin"
 	//"github.com/gorilla/websocket"
 	//"time"
-	"encoding/json"
 	. "digicon/proto/common"
+	"encoding/json"
 )
 
 type CurrencyGroup struct{}
@@ -23,11 +23,12 @@ type CurrencyGroup struct{}
 func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 	NCurrency := r.Group("/currency")
 	{
-		NCurrency.GET("/tokens", this.GetTokens)          // 获取货币类型
-		NCurrency.GET("/otc_list", this.AdsList)          // 法币交易列表 - (广告(买卖))
-		NCurrency.GET("/otc_user_list", this.AdsUserList) // 个人法币交易列表 - (广告(买卖))
+		NCurrency.GET("/tokens", this.GetTokens)                    // 获取货币类型
+		NCurrency.GET("/otc_list", this.AdsList)                    // 法币交易列表 - (广告(买卖))
+		NCurrency.GET("/otc_user_list", this.AdsUserList)           // 个人法币交易列表 - (广告(买卖))
 		NCurrency.POST("/user_currency_rating", this.GetUserRating) // 获取用戶评级
-
+		NCurrency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
+		NCurrency.GET("/recent_transaction_price", this.GetRecentTransactionPrice)
 	}
 }
 
@@ -76,14 +77,14 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
 		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
 
-		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
-
 		//
 		//Currency.GET("/add_user_balance", this.AddUserBalance)
 		Currency.GET("/get_user_currency_detail", this.GetUserCurrencyDetail)
 		Currency.GET("/get_user_currency", this.GetUserCurrency) //  获取法币账户
 
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
+
+		//Currency.POST("/transfer", this.Transfer)              // 划转
 	}
 }
 
@@ -592,9 +593,9 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		for i := 0; i < dataLen; i++ {
 
 			adsLists := AdsListsData{
-				Id:       data.Data[i].Id,
-				Uid:      data.Data[i].Uid,
-				Price:    utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
+				Id:    data.Data[i].Id,
+				Uid:   data.Data[i].Uid,
+				Price: utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
 				//Num:      utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
 				Num:      convert.Int64ToFloat64By8Bit(int64(data.Data[i].Num)),
 				MinLimit: data.Data[i].MinLimit,
@@ -605,10 +606,10 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 				UpdatedTime: data.Data[i].UpdatedTime,
 				UserName:    data.Data[i].UserName,
 				UserFace:    data.Data[i].UserFace,
-				UserVolume: data.Data[i].UserVolume,
-				TypeId:     data.Data[i].TypeId,
-				TokenId:    data.Data[i].TokenId,
-				TokenName:  data.Data[i].TokenName,
+				UserVolume:  data.Data[i].UserVolume,
+				TypeId:      data.Data[i].TypeId,
+				TokenId:     data.Data[i].TokenId,
+				TokenName:   data.Data[i].TokenName,
 
 				Premium: convert.Int64ToFloat64By8Bit(data.Data[i].Premium),
 				States:  data.Data[i].States,
@@ -1037,19 +1038,19 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	}
 
 	type RespBalance struct {
-		Id        uint64 `json:"id"`
-		Uid       uint64 `json:"uid"`
-		TokenId   uint32 `json:"token_id"`
-		TokenName string `json:"token_name"`
-		Address   string `json:"address"`
+		Id        uint64  `json:"id"`
+		Uid       uint64  `json:"uid"`
+		TokenId   uint32  `json:"token_id"`
+		TokenName string  `json:"token_name"`
+		Address   string  `json:"address"`
 		Freeze    float64 `json:"freeze"`
 		Balance   float64 `json:"balance"`
 		Valuation float64 `json:"valuation"`
 	}
 	type RespData struct {
-		UCurrencyList    []RespBalance
-		Sum              float64  `json:"sum"`
-		SumCNY   		 float64  `json:"sum_cny"`
+		UCurrencyList []RespBalance
+		Sum           float64 `json:"sum"`
+		SumCNY        float64 `json:"sum_cny"`
 	}
 
 	var respdata RespData
@@ -1066,9 +1067,6 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 
 }
-
-
-
 
 func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
 	ret := NewPublciError()
@@ -1173,10 +1171,10 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		return
 	}
 	type UserCurrencyCount struct {
-		Uid         uint64 `json:"uid"`
-		NickName    string `json:"nick_name"`
-		HeadSculpture    string `json:"head_scul"`
-		CreatedTime string `json:"created_time"`
+		Uid           uint64 `json:"uid"`
+		NickName      string `json:"nick_name"`
+		HeadSculpture string `json:"head_scul"`
+		CreatedTime   string `json:"created_time"`
 
 		Cancel uint32  `json:"cancel"` // 取消
 		Good   float64 `json:"good"`   // 好评率
@@ -1230,9 +1228,9 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid       uint64 `form:"uid"       json:"uid"    binding:"required"` //
-		Page      uint32 `form:"page"      json:"page"`
-		PageNum   uint32 `form:"page_num"  json:"page_num"  `
+		Uid     uint64 `form:"uid"       json:"uid"    binding:"required"` //
+		Page    uint32 `form:"page"      json:"page"`
+		PageNum uint32 `form:"page_num"  json:"page_num"  `
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -1256,22 +1254,22 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 	}
 
 	type NewUserCurrencyHisotry struct {
-		Id          int       `json:"id"                  `
-		Uid         int32      `json:"uid"               `
-		TradeUid    int32      `json:"trade_uid"         `
-		TokenId     int       `json:"token_id"            `
-		TokenName   string    `json:"token_name"`
-		Num         float64   `json:"num"                 `
-		Operator    int       `json:"operator"            `
-		CreatedTime string    `json:"created_time"        `
-		TradeName   string    `json:"trade_name"         `
+		Id          int     `json:"id"                  `
+		Uid         int32   `json:"uid"               `
+		TradeUid    int32   `json:"trade_uid"         `
+		TokenId     int     `json:"token_id"            `
+		TokenName   string  `json:"token_name"`
+		Num         float64 `json:"num"                 `
+		Operator    int     `json:"operator"            `
+		CreatedTime string  `json:"created_time"        `
+		TradeName   string  `json:"trade_name"         `
 	}
 
 	type OldUserTotalHistory struct {
-		NewList     []NewUserCurrencyHisotry
-		Total       int64            `json:"total"`
-		Page        uint32           `json:"page"`
-		PageNum     uint32           `json:"page_num"`
+		NewList []NewUserCurrencyHisotry
+		Total   int64  `json:"total"`
+		Page    uint32 `json:"page"`
+		PageNum uint32 `json:"page_num"`
 	}
 
 	var oldData OldUserTotalHistory
@@ -1282,13 +1280,49 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection("list",     oldData.NewList)
-	ret.SetDataSection("total",    oldData.Total)
-	ret.SetDataSection("page",     oldData.Page)
+	ret.SetDataSection("list", oldData.NewList)
+	ret.SetDataSection("total", oldData.Total)
+	ret.SetDataSection("page", oldData.Page)
 	ret.SetDataSection("page_num", oldData.PageNum)
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }
+
+///*
+//
+//*/
+//func (this *CurrencyGroup) Transfer (c *gin.Context){
+//	ret := NewPublciError()
+//	defer func() {
+//		c.JSON(http.StatusOK, ret.GetResult())
+//	}()
+//	req := struct {
+//		Uid     uint64 `form:"uid"       json:"uid" binding:"required"`
+//		TokenId uint32 `form:"token_id"  json:"token_id" binding:"required"`
+//		Num     uint64 `form:"num"       json:"num"`
+//
+//	}{}
+//	err := c.ShouldBind(&req)
+//	if err != nil {
+//		log.Errorf(err.Error())
+//		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+//		return
+//	}
+//	if req.Uid == 0 {
+//		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+//		return
+//	}
+//
+//
+//
+//	//ret.SetDataSection("", )
+//
+//	//ret.SetDataSection("")
+//
+//	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+//	return
+//}
+//
 
 /*
 	测试rpc添加用户余额

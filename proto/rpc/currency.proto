@@ -92,10 +92,17 @@ service CurrencyRPC {
 
         // 获取法币资产明细
         rpc GetAssetDetail(GetAssetDetailRequest) returns (OtherResponse) {};
+        //
+        rpc GetRecentTransactionPrice(GetRecentTransactionPriceRequest) returns (OtherResponse) {};
 
 }
 
 ////////////////////////
+message GetRecentTransactionPriceRequest {
+    uint32  price_type   = 1;    // 货币类型
+}
+
+
 message GetAssetDetailRequest {
     uint64  uid          = 1;
     uint32  page         = 2;  // 指定第几页

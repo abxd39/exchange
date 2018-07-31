@@ -17,7 +17,7 @@ const (
 	ERRCODE_UNKNOWN     = 1
 	ERRCODE_PARAM       = 2
 	ERRCODE_TOKENVERIFY = 3
-
+	ERRCODE_GREE= 4
 	//200-
 	ERRCODE_ACCOUNT_EXIST     = 202
 	ERRCODE_ACCOUNT_NOTEXIST  = 203
@@ -102,6 +102,8 @@ func init() {
 	message[ERRCODE_UNKNOWN] = "未知错误"
 	message[ERRCODE_PARAM] = "参数错误"
 	message[ERRCODE_TOKENVERIFY] = "令牌失效"
+	message[ERRCODE_GREE] = "智能验证失败"
+
 
 	message[ERRCODE_ACCOUNT_EXIST] = "账户已经存在"
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"

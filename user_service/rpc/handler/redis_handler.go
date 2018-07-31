@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"digicon/common/constant"
+	"github.com/GeeTeam/GtGoSdk"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"golang.org/x/net/context"
@@ -252,5 +253,45 @@ func (s *RPCServer) GetUserInvite(ctx context.Context, req *proto.UserInfoReques
 	rsp.Data = d.Invite
 	rsp.Err = ERRCODE_SUCCESS
 	rsp.Message = GetErrorMessage(ERRCODE_SUCCESS)
+	return nil
+}
+
+func (s *RPCServer) Api1(ctx context.Context, req *proto.Api1Request, rsp *proto.Api1Response) error {
+	GtPrivateKey := "668d6d27cb1186d138eb9b225436e4b9"
+	GtCaptchaID := "73909f4a67161216debdcb3de16ef6c5"
+	gt := GtGoSdk.GeetestLib(GtPrivateKey, GtCaptchaID)
+	gt.PreProcess(req.Phone)
+	responseMap := gt.GetResponseMap()
+
+	rsp.Data = &proto.Api1BaseData{}
+	r, _ := responseMap["gt"]
+	rsp.Data.Gt = r.(string)
+	r, _ = responseMap["challenge"]
+	rsp.Data.Challenge = r.(string)
+
+	r, _ = responseMap["success"]
+	rsp.Data.Success = int32(r.(int))
+
+	return nil
+}
+
+func (s *RPCServer) Api2(ctx context.Context, req *proto.Api2Request, rsp *proto.Api2Response) error {
+	GtPrivateKey := "668d6d27cb1186d138eb9b225436e4b9"
+	GtCaptchaID := "73909f4a67161216debdcb3de16ef6c5"
+	gt := GtGoSdk.GeetestLib(GtPrivateKey, GtCaptchaID)
+
+	var result bool
+	if req.Status==0 {
+		result = gt.FailbackValidate(req.Challenge, req.Validate, req.Seccode)
+	}else{
+		result = gt.SuccessValidate(req.Challenge, req.Validate, req.Seccode,req.Phone)
+	}
+
+	if result {
+		model.SetGreeSuccess(req.Phone)
+		rsp.Err = ERRCODE_SUCCESS
+	} else {
+		rsp.Err = ERRCODE_UNKNOWN
+	}
 	return nil
 }

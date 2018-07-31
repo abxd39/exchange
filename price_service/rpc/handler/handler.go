@@ -238,3 +238,13 @@ func getOtherSymbolRage(symbol string)(data *proto.RateBaseData, ok bool){
 	return
 }
 
+func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *proto.VolumeResponse) error {
+	data := model.GetVolumeTotal()
+	if data != nil {
+		rsp.DayVolume = data.DayVolume
+		rsp.WeekVolume = data.WeekVolume
+		rsp.MonthVolume = data.MonthVolume
+	}
+	return nil
+}
+

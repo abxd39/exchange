@@ -113,6 +113,7 @@ func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *pr
 
 // 修改广告(买卖)状态
 func (s *RPCServer) UpdatedAdsStatus(ctx context.Context, req *proto.AdsStatusRequest, rsp *proto.CurrencyResponse) error {
+	fmt.Println(req.StatusId)
 	code := new(model.Ads).UpdatedAdsStatus(req.Id, req.StatusId)
 	rsp.Code = int32(code)
 	return nil
@@ -403,7 +404,9 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 					sumcny += tkconfig.Price
 				}
 				sum += dt.Balance
-				valuation = convert.Int64ToFloat64By8Bit(tkconfig.Price)
+				int64valuetion := convert.Int64MulInt64By8Bit(tkconfig.Price, dt.Balance)
+				valuation = convert.Int64ToFloat64By8Bit(int64valuetion)
+				sumcny += int64valuetion
 			}else{
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symPrice := symbolData.Data[symbol]
@@ -548,6 +551,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		monthrate = int64(orderLen)
 	}
 
+	fmt.Println("monthrate:", monthrate)
 	var allminute int64
 	for _, od := range Orders {
 		allminute = allminute + model.GetHourDiffer(od.CreatedTime, od.ConfirmTime.String)
@@ -627,4 +631,44 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 /*
 
  */
-//func (s *RPCServer)
+func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.GetRecentTransactionPriceRequest, rsp *proto.OtherResponse) error {
+
+	fmt.Println(req.PriceType)
+	
+	type TransactionPrice struct {
+		MarketPrice   float64  `json:"market_price"`
+		LatestPrice   float64  `json:"latest_price"`
+	}
+	tp := TransactionPrice{}
+
+	ctk := new(model.CommonTokens)
+	fctk := ctk.Get(0, "BTC")
+	tokenId := fctk.Id
+	tctcy := new(model.TokenConfigTokenCNy)
+	tctcy.GetPrice(uint32(tokenId))
+	price := tctcy.Price
+	tp.MarketPrice = convert.Int64ToFloat64By8Bit(price)
+
+	chistory := new(model.UserCurrencyHistory)
+	err, price := chistory.GetLastPrice(tokenId)
+	fmt.Println("last price:", price)
+	if err != nil {
+		tp.LatestPrice = convert.Int64ToFloat64By8Bit(price)
+	}
+
+	data, err  := json.Marshal(tp)
+	if err != nil {
+		fmt.Println(err)
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}else{
+		rsp.Data = string(data)
+		rsp.Code = errdefine.ERRCODE_SUCCESS
+		return nil
+	}
+}
+
+
+
+
+

@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	log "github.com/sirupsen/logrus"
 )
 
 type PriceRPCCli struct {
@@ -54,6 +54,15 @@ func NewPriceRPCCli() (u *PriceRPCCli) {
 	greeter := proto.NewPriceRPCService(service_name, service.Client())
 	u = &PriceRPCCli{
 		conn: greeter,
+	}
+	return
+}
+
+func (s *PriceRPCCli) CallVolume(p *proto.VolumeRequest) (rsp *proto.VolumeResponse, err error) {
+	rsp, err = s.conn.Volume(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
 	}
 	return
 }

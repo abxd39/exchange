@@ -2,8 +2,8 @@ package client
 
 import (
 	"context"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
+	log "github.com/sirupsen/logrus"
 )
 
 func (s *CurrencyRPCCli) CallOrdersList(req *proto.OrdersListRequest) (rsp *proto.OrdersListResponse, err error) {
@@ -72,6 +72,15 @@ func (s *CurrencyRPCCli) CallGetTradeDetail(req *proto.TradeDetailRequest) (rsp 
 
 func (s *CurrencyRPCCli) CallGetTradeHistory(req *proto.GetTradeHistoryRequest) (rsp *proto.OtherResponse, err error) {
 	rsp, err = s.conn.GetTradeHistory(context.TODO(), req)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *CurrencyRPCCli) CallGetRecentTransactionPrice(req *proto.GetRecentTransactionPriceRequest) (rsp *proto.OtherResponse, err error) {
+	rsp, err = s.conn.GetRecentTransactionPrice(context.TODO(), req)
 	if err != nil {
 		log.Errorln(err.Error())
 		return

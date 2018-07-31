@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/apex/log"
 	"github.com/go-redis/redis"
 	"github.com/pkg/errors"
-	"github.com/apex/log"
 )
 
 // 验证类型   1 注册 2 忘记密码 3 修改手机号码 4重置谷歌验证码 5 重置资金密码 6 修改登录密码 7 设置银行卡支付 8 设置微信支付 9 设置支付宝支付 10 设置PayPal支付
@@ -84,7 +84,16 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 		if ret != ERRCODE_SUCCESS {
 			return
 		}
-
+		err = GetGreeSuccess(phone)
+		if err==redis.Nil {
+			ret=ERRCODE_GREE
+			return
+		}else if err!=nil{
+			ret=ERRCODE_UNKNOWN
+			return
+		}else{
+			DelGreeSuccess(phone)
+		}
 		ret, err = SendSms(phone, region, ty)
 	case SMS_FORGET:
 		ret, err = SendSms(phone, region, ty)
@@ -118,8 +127,8 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 	defer func() {
 		if err != nil {
 			log.WithFields(log.Fields{
-				"phone":  phone,
-				"code":   code,
+				"phone": phone,
+				"code":  code,
 			}).Errorf("SendSms error %s", err.Error())
 		}
 	}()
@@ -135,6 +144,7 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 	if err != nil {
 		return
 	}
+
 	reader := bytes.NewReader(bytesData)
 	url := "http://intapi.253.com/send/json"
 	request, err := http.NewRequest("POST", url, reader)
