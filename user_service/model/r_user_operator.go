@@ -196,7 +196,7 @@ func SetGreeSuccess(account string) (err error) {
 
 
 func  GetGreeSuccess(account string) (err error) {
-	err = DB.GetRedisConn().Set(getGree(account),1, 300*time.Second).Err()
+	err = DB.GetRedisConn().Get(getGree(account)).Err()
 	if err != nil {
 		log.Errorln(err.Error())
 		return

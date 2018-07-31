@@ -63,19 +63,30 @@ func (s *EntrustQueneMgr) Init() bool {
 	for _, v := range d {
 		cny := GetTokenCnyPrice(v.TokenId)
 		usd := GetTokenUsdPrice(v.TokenId)
-		if cny==0 {
+		if cny == 0 {
 			panic("err cny config")
 		}
-		if usd==0 {
+		if usd == 0 {
 			panic("err usd config")
 		}
-	
+
 		p, ok := GetPrice(v.Name)
+
+		if v.SellPoundage==0 {
+			log.Fatalf("err SellPoundage config  symbol %s",v.Name)
+		}
+		if v.BuyPoundage==0 {
+			log.Fatalf("err BuyPoundage config  symbol %s",v.Name)
+		}
 		if ok {
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny,usd, p.Amount, p.Vol, p.Count,p.UsdVol)
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny, usd, p.Amount, p.Vol, p.Count, p.UsdVol)
+			e.SellPoundage = v.SellPoundage
+			e.BuyPoundage = v.BuyPoundage
 			s.AddQuene(e)
 		} else {
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny,usd, 0, 0, 0,0)
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny, usd, 0, 0, 0, 0)
+			e.SellPoundage = v.SellPoundage
+			e.BuyPoundage = v.BuyPoundage
 			s.AddQuene(e)
 		}
 	}
