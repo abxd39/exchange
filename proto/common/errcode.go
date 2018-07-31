@@ -2,6 +2,7 @@ package errdefine
 
 import (
 	"errors"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,9 +47,13 @@ const (
 
 	ERRCODE_EMAIL_EXIST = 223
 
+<<<<<<< HEAD
+	ERRCODE_UOPLOA_FAILED = 224
+=======
 
 	ERRCODE_UOPLOA_FAILED =224
 
+>>>>>>> 7353413c533ff6a7d29d56d67497b8d397b67602
 
 	//300-
 
@@ -150,7 +155,7 @@ func init() {
 	message[ERRCODE_PHONE_EXIST] = "电话号码已经存在"
 	message[ERRCODE_PHONE_NOT_EXIST] = "电话号码不存在"
 	message[ERRCODE_EMAIL_EXIST] = "邮箱已经存在"
-	message[ERRCODE_UOPLOA_FAILED] ="上传图片到oss 失败"
+	message[ERRCODE_UOPLOA_FAILED] = "上传图片到oss 失败"
 }
 
 type PublicErrorType struct {
