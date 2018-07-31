@@ -113,6 +113,7 @@ func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *pr
 
 // 修改广告(买卖)状态
 func (s *RPCServer) UpdatedAdsStatus(ctx context.Context, req *proto.AdsStatusRequest, rsp *proto.CurrencyResponse) error {
+	fmt.Println(req.StatusId)
 	code := new(model.Ads).UpdatedAdsStatus(req.Id, req.StatusId)
 	rsp.Code = int32(code)
 	return nil
@@ -639,9 +640,6 @@ func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.G
 		LatestPrice   float64  `json:"latest_price"`
 	}
 	tp := TransactionPrice{}
-	tp.LatestPrice = 50000.88
-	//tp.MarketPrice = 49000.88
-
 
 	ctk := new(model.CommonTokens)
 	fctk := ctk.Get(0, "BTC")
@@ -649,12 +647,11 @@ func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.G
 	tctcy := new(model.TokenConfigTokenCNy)
 	tctcy.GetPrice(uint32(tokenId))
 	price := tctcy.Price
-
 	tp.MarketPrice = convert.Int64ToFloat64By8Bit(price)
 
-
 	chistory := new(model.UserCurrencyHistory)
-	err, price := chistory.GetLastPrice()
+	err, price := chistory.GetLastPrice(tokenId)
+	fmt.Println("last price:", price)
 	if err != nil {
 		tp.LatestPrice = convert.Int64ToFloat64By8Bit(price)
 	}
