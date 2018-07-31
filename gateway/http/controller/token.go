@@ -13,7 +13,7 @@ import (
 type TokenGroup struct{}
 
 func (s *TokenGroup) Router(r *gin.Engine) {
-	action := r.Group("/token",TokenVerify)
+	action := r.Group("/token", TokenVerify)
 	{
 		action.POST("/entrust_order", s.EntrustOrder)
 		//action.GET("/market/history/kline", s.HistoryKline)
@@ -277,7 +277,9 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list", rsp.ListData)
+	ret.SetDataSection("list", rsp.Data.List)
+	ret.SetDataSection("total_worth_cny", rsp.Data.TotalWorthCny)
+	ret.SetDataSection("total_worth_btc", rsp.Data.TotalWorthBtc)
 }
 
 // 代币订单明细
@@ -354,20 +356,17 @@ func (s *TokenGroup) TokenTradeList(c *gin.Context) {
 	ret.SetDataSection("list", newList)
 }
 
-
 func (s *TokenGroup) DelEntrust(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-
-	param:=&struct {
-		Uid     uint64 `form:"uid" binding:"required"`
-		Token   string `form:"token" binding:"required"`
-		EntrustId string  `form:"entrust_id" binding:"required"`
+	param := &struct {
+		Uid       uint64 `form:"uid" binding:"required"`
+		Token     string `form:"token" binding:"required"`
+		EntrustId string `form:"entrust_id" binding:"required"`
 	}{}
-
 
 	if err := c.ShouldBind(param); err != nil {
 		log.Errorf(err.Error())
@@ -376,7 +375,7 @@ func (s *TokenGroup) DelEntrust(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallDelEntrust(&proto.DelEntrustRequest{
-		Uid:     param.Uid,
+		Uid:       param.Uid,
 		EntrustId: param.EntrustId,
 	})
 

@@ -5,6 +5,7 @@ import (
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
 	"errors"
+	"fmt"
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
 )
@@ -20,7 +21,34 @@ type UserToken struct {
 
 type UserTokenWithName struct {
 	UserToken `xorm:"extends"`
+	WorthCny  string
 	TokenName string
+}
+
+type UserTokenTotalMoney struct {
+	TotalCny int64
+	TotalUsd int64
+}
+
+func (*UserToken) TableName() string {
+	return "user_token"
+}
+
+// 计算用户所有币的总金额，人民币、美元等
+func (s *UserToken) calcTotalMoney(uid uint64) (*UserTokenTotalMoney, error) {
+	userTokenTotal := &UserTokenTotalMoney{}
+
+	engine := DB.GetMysqlConn()
+	_, err := engine.SQL(fmt.Sprintf("SELECT SUM(tmp.cny) AS total_cny,SUM(tmp.usd) AS total_usd FROM"+
+		" (SELECT ROUND((ut.balance+ut.frozen)/100000000 * ctc.price/100000000) AS cny,"+
+		" ROUND((ut.balance+ut.frozen)/100000000 * ctc.usd_price/100000000) AS usd"+
+		" FROM %s ut WHERE ut.uid=%d LEFT JOIN %s ctc ON ctc.token_id=ut.token_id GROUP BY ut.token_id"+
+		") tmp", s.TableName(), uid, new(ConfigTokenCny).TableName())).Get(userTokenTotal)
+	if err != nil {
+		return nil, err
+	}
+
+	return userTokenTotal, nil
 }
 
 // 用户币币余额列表
@@ -43,8 +71,9 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 	err := query.
 		Table(s).
 		Alias("ut").
-		Select("ut.*, t.mark token_name").
+		Select("ut.*, t.mark as token_name, ROUND((ut.balance+ut.frozen)/100000000 * ctc.price/100000000) as worth_cny").
 		Join("LEFT", []string{new(CommonTokens).TableName(), "t"}, "t.id=ut.token_id").
+		Join("LEFT", []string{new(ConfigTokenCny).TableName(), "ctc"}, "ctc.token_id=ut.token_id").
 		Find(&list)
 	if err != nil {
 		return nil, err

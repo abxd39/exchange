@@ -290,17 +290,21 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	}
 
 	// 拼接返回数据
-	for _, v := range list {
-		worthCny := convert.Int64MulInt64By8Bit(v.Balance+v.Frozen, model.GetTokenCnyPrice(int(v.TokenId)))
-
-		rsp.ListData = append(rsp.ListData, &proto.TokenListBaseData{
+	rsp.Data = &proto.TokenBalanceListResponse_Data{}
+	rsp.Data.List = make([]*proto.TokenBalanceListResponse_Data_List, len(list))
+	for k, v := range list {
+		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
 			Balance:   convert.Int64ToStringBy8Bit(v.Balance),
 			Frozen:    convert.Int64ToStringBy8Bit(v.Frozen),
-			WorthCny:  convert.Int64ToStringBy8Bit(worthCny),
-		})
+			WorthCny:  v.WorthCny,
+		}
 	}
+
+	// 合计
+	rsp.Data.TotalWorthCny = "11111"
+	rsp.Data.TotalWorthBtc = "22222"
 
 	return nil
 }
