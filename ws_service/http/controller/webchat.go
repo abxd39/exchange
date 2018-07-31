@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/olahol/melody.v1"
 	"time"
+	"digicon/ws_service/rpc/client"
+	"digicon/proto/common"
 )
 
 type WebChatGroup struct {
@@ -83,7 +85,7 @@ func (this *WebChatGroup) WSChannel(c *gin.Context) {
 			switch mesg.InfoType {
 			// 认证
 			case 1:
-				if this.CheckAuth(mesg.Token) {
+				if this.CheckAuth(mesg.Token, mesg.Uid) {
 					hashChannelId := this.GenerateHashChannelId(mesg)
 					s.Set("channelId", hashChannelId)
 					message := &ErrorRspMessage{
@@ -134,14 +136,23 @@ func (this *WebChatGroup) GenerateHashChannelId(mesg Message) (hashChannelId str
 /*
 	校验token
 */
-func (this *WebChatGroup) CheckAuth(token string) bool {
-	log.Println("token:", token)
-	return true
-	//if token == "sadlfkajslkjalskjfaldks" {
-	//	return true
-	//}else{
-	//	return false
-	//}
+func (this *WebChatGroup) CheckAuth(token string, uid uint64) bool {
+	log.Println("token:", token, uid)
+	rsp, err := client.InnerService.UserService.CallTokenVerify(uid, []byte(token))
+	//fmt.Println("rsp:", rsp, err)
+	if err != nil {
+		fmt.Println(err.Error())
+		log.Errorln(err.Error())
+		return false
+	}
+	if rsp.Err == errdefine.ERRCODE_SUCCESS {
+		fmt.Println("success")
+		return true
+	}else{
+		log.Println("auth token error!")
+		log.Println(rsp.Err, rsp.Message)
+		return false
+	}
 }
 
 /*

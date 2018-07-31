@@ -4,8 +4,8 @@ import (
 	cf "digicon/ws_service/conf"
 	"digicon/ws_service/dao"
 	log "github.com/sirupsen/logrus"
-	//"digicon/ws_service/rpc"
-	//"digicon/ws_service/rpc/client"
+	"digicon/ws_service/rpc/client"
+
 	"digicon/ws_service/http"
 	"flag"
 	"os"
@@ -27,14 +27,14 @@ func main() {
 	flag.Parse()
 
 	cf.Init()
-	//InitLog()
 	log.Infof("begin run server")
 
 	dao.InitDao()
 	go http.InitHttpServer()
 	//go rpc.RPCServerInit()
 
-	//client.InitInnerService()
+	client.InitInnerService()
+
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
