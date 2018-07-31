@@ -9,6 +9,12 @@ type ConfigTokenCny struct {
 	TokenId  int   `xorm:"not null pk comment(' 币类型') INT(10)"`
 	Price    int64 `xorm:"comment('人民币价格') BIGINT(20)"`
 	UsdPrice int64 `xorm:"comment('美元价格') BIGINT(20)"`
+
+}
+
+func (*ConfigTokenCny) TableName() string {
+	return "config_token_cny"
+
 }
 
 var configTokenCnyData map[int]*ConfigTokenCny

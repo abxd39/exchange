@@ -66,7 +66,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 
 		// 注册奖励代币
 		if rsp.Err == ERRCODE_SUCCESS {
-			s.registerReward(uid, referUid)
+			s.RegisterReward(uid, referUid)
 		}
 
 		return nil
@@ -88,7 +88,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 
 		// 注册奖励代币
 		if rsp.Err == ERRCODE_SUCCESS {
-			s.registerReward(uid, referUid)
+			s.RegisterReward(uid, referUid)
 		}
 
 		return nil
@@ -100,7 +100,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 }
 
 // 注册奖励代币
-func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
+func (s *RPCServer) RegisterReward(uid uint64, referUid uint64) {
 	// 读取配置
 	tokenId := int32(conf.Cfg.MustInt("register_reward", "token_id"))
 	myNum := float64(conf.Cfg.MustInt("register_reward", "my_num"))

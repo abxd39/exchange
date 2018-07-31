@@ -106,41 +106,62 @@ func (this *Ads) Update() int {
 func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 
 	var err error
-
 	isGet := this.Get(id)
 	if isGet == nil {
 		return ERRCODE_ADS_NOTEXIST
 	}
 
+	//// 1下架
+	//fmt.Println("111111111111111111")
+	//if isGet.IsDel == 0 && isGet.States == status_id-1 {
+	//	return ERRCODE_SUCCESS
+	//}
+	//// 2上架
+	//fmt.Println("222222222222")
+	//if isGet.IsDel == 0 && isGet.States == status_id-1 {
+	//	return ERRCODE_SUCCESS
+	//}
+	//// 3正常(不删除)
+	//fmt.Println("33333333333")
+	//if isGet.IsDel == 0 && isGet.IsDel == status_id-3 {
+	//	return ERRCODE_SUCCESS
+	//}
+	//// 4删除
+	//fmt.Println("4444444444")
+	//if isGet.IsDel == 1 && isGet.IsDel == status_id-3 {
+	//	return ERRCODE_SUCCESS
+	//}
 	// 1下架
-	if isGet.IsDel == 0 && isGet.States == status_id-1 {
-		return ERRCODE_SUCCESS
-	}
-	// 2上架
-	if isGet.IsDel == 0 && isGet.States == status_id-1 {
-		return ERRCODE_SUCCESS
-	}
-	// 3正常(不删除)
-	if isGet.IsDel == 0 && isGet.IsDel == status_id-3 {
-		return ERRCODE_SUCCESS
-	}
-	// 4删除
-	if isGet.IsDel == 1 && isGet.IsDel == status_id-3 {
-		return ERRCODE_SUCCESS
-	}
+	//fmt.Println("111111111111111111")
+	//if isGet.IsDel == 0 && isGet.States == status_id {
+	//	return ERRCODE_SUCCESS
+	//}
+	//
+	//// 3正常(不删除)
+	//fmt.Println("33333333333")
+	//if isGet.IsDel == 0 && isGet.IsDel == status_id-3 {
+	//	return ERRCODE_SUCCESS
+	//}
+	//// 4删除
+	//fmt.Println("4444444444")
+	//if isGet.IsDel == 1 && isGet.IsDel == status_id-3 {
+	//	return ERRCODE_SUCCESS
+	//}
 
 	if status_id == 1 || status_id == 2 {
-		_, err = dao.DB.GetMysqlConn().Exec("UPDATE `ads` SET `states`=? WHERE `id`=?", status_id-1, id)
+		_, err = dao.DB.GetMysqlConn().Exec("UPDATE `ads` SET `states`=?,`is_del`=0  WHERE `id`=?", status_id-1, id)
 	} else if status_id == 3 || status_id == 4 {
 		_, err = dao.DB.GetMysqlConn().Exec("UPDATE `ads` SET `is_del`=? WHERE `id`=?", status_id-3, id)
 	}
 
 	if err != nil {
 		log.Errorln(err.Error())
+		fmt.Println(err.Error())
 		return ERRCODE_UNKNOWN
+	}else{
+		return ERRCODE_SUCCESS
 	}
 
-	return ERRCODE_UNKNOWN
 }
 
 // 法币交易列表 - (广告(买卖))

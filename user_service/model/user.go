@@ -40,6 +40,15 @@ type User struct {
 	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
 }
 
+type UidAndInviteID struct {
+	Uid      uint64
+	InviteId uint64
+}
+
+func (*User) TableName() string {
+	return "user"
+}
+
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {
@@ -111,6 +120,22 @@ func (s *User) GetUserByInviteCode(inviteCode string) (ret int32, err error) {
 	}
 	ret = ERRCODE_ACCOUNT_NOTEXIST
 	return
+}
+
+// 获取注册未获得奖励
+func (s *User) GetRegisterNoRewardUser() ([]*UidAndInviteID, error) {
+	var uidAndInviteID []*UidAndInviteID
+	err := DB.GetMysqlConn().SQL(fmt.Sprintf("SELECT u.uid,ue.invite_id FROM"+
+		" %s u JOIN %s ue ON ue.uid=u.uid"+
+		" WHERE u.uid NOT IN (SELECT uid FROM %s)"+
+		" ORDER BY ue.register_time ASC", s.TableName(), new(UserEx).TableName(), new(TokenFrozen).TableName())).
+		Limit(1000).
+		Find(&uidAndInviteID)
+	if err != nil {
+		return nil, err
+	}
+
+	return uidAndInviteID, nil
 }
 
 //序列化用户基础数据

@@ -264,18 +264,24 @@ message TokenBalanceListRequest{
     int32 token_id               =3;
 }
 
-message TokenListBaseData{
-    int32 token_id                    =1;
-    string token_name                 =2;
-    string balance                    =3;
-    string frozen                     =4;
-    string worth_cny                  =5;
-}
-
 message TokenBalanceListResponse{
+    message Data{
+        message List{
+            int32 token_id                    =1;
+            string token_name                 =2;
+            string balance                    =3;
+            string frozen                     =4;
+            string worth_cny                  =5;
+        }
+
+        string total_worth_cny              =1;
+        string total_worth_btc              =2;
+        repeated List list                  =3;
+    }
+
     int32 err                             =1;
     string message                        =2;
-    repeated TokenListBaseData list_data  =3;
+    Data data                             =3;
 }
 
 message TokenTradeListRequest{
