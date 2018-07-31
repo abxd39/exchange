@@ -4,10 +4,10 @@ import (
 	"context"
 	proto "digicon/proto/rpc"
 	cf "digicon/token_service/conf"
-	. "digicon/token_service/log"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserRPCCli struct {
@@ -17,7 +17,7 @@ type UserRPCCli struct {
 func (s *UserRPCCli) CallGreet(name string) (rsp *proto.AdminResponse, err error) {
 	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

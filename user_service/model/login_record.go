@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/user_service/dao"
-	. "digicon/user_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type LoginRecord struct {
@@ -20,7 +20,7 @@ func (s *LoginRecord) AddLoginRecord(uid uint64, ip string) {
 	})
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 }
@@ -29,7 +29,7 @@ func (s *LoginRecord) GetLoginRecord(uid uint64, page, limit int) []LoginRecord 
 	g := make([]LoginRecord, 0)
 	err := DB.GetMysqlConn().Where("uid=?", uid).Desc("created_time").Limit(limit, page-1).Find(&g)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return g

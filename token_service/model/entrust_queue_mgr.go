@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/common/genkey"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -29,9 +29,6 @@ type EntrustQueneMgr struct {
 //获取一个币币交易
 func (s *EntrustQueneMgr) GetQueneByUKey(ukey string) (d *EntrustQuene, ok bool) {
 	d, ok = s.dataMgr[ukey]
-	if !ok {
-		return
-	}
 	return
 }
 
@@ -44,7 +41,7 @@ func (s *EntrustQueneMgr) GetQuene(token_id, trade_token_id int) (d *EntrustQuen
 func (s *EntrustQueneMgr) AddQuene(e *EntrustQuene) bool {
 	_, ok := s.dataMgr[e.TokenQueueId]
 	if ok {
-		Log.Fatalf("insert same quene id is %s", e.TokenQueueId)
+		log.Fatalf("insert same quene id is %s", e.TokenQueueId)
 	}
 	s.dataMgr[e.TokenQueueId] = e
 	return ok
@@ -65,18 +62,22 @@ func (s *EntrustQueneMgr) Init() bool {
 
 	for _, v := range d {
 		cny := GetTokenCnyPrice(v.TokenId)
-
+		usd := GetTokenUsdPrice(v.TokenId)
+		if cny==0 {
+			panic("err cny config")
+		}
+		if usd==0 {
+			panic("err usd config")
+		}
+	
 		p, ok := GetPrice(v.Name)
 		if ok {
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny, p.Amount, p.Vol, p.Count)
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny,usd, p.Amount, p.Vol, p.Count,p.UsdVol)
 			s.AddQuene(e)
 		} else {
-
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny, 0, 0, 0)
-
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, cny,usd, 0, 0, 0,0)
 			s.AddQuene(e)
 		}
-
 	}
 
 	return true

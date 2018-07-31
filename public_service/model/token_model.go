@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/public_service/dao"
-	. "digicon/public_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type Tokens struct {
@@ -24,7 +24,7 @@ func (s *Tokens) GetTokens(ids []int32) []Tokens {
 	t := make([]Tokens, 0)
 	err := DB.GetMysqlConn().In("id", ids).Find(&t)
 	if err != nil {
-		Log.Errorf("db err %s", err.Error())
+		log.Errorf("db err %s", err.Error())
 		return nil
 	}
 	return t

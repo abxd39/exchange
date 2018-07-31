@@ -1,18 +1,20 @@
 package controller
 
 import (
-	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 type ActionGroup struct{}
 
 func (s *ActionGroup) Router(r *gin.Engine) {
-	action := r.Group("/action",TokenVerify)
+	action := r.Group("/action", TokenVerify)
+	//action := r.Group("/action")
+
 	{
 		action.POST("/get_google_key", s.GetGoogleAuthCode)
 		action.POST("/auth_google_code", s.AuthGoogleCode)
@@ -39,7 +41,7 @@ func (s *ActionGroup) GetGoogleAuthCode(c *gin.Context) {
 	var param GoogleAuthCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -67,7 +69,7 @@ func (s *ActionGroup) AuthGoogleCode(c *gin.Context) {
 	var param GoogleAuthCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -92,7 +94,7 @@ func (s *ActionGroup) DelGoogleCode(c *gin.Context) {
 	var param GoogleDelCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -121,7 +123,7 @@ func (s *ActionGroup) ResetGoogleCode(c *gin.Context) {
 	var param ResetGoogleCodeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -150,7 +152,7 @@ func (s *ActionGroup) GetUserBaseInfo(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -174,7 +176,7 @@ func (s *ActionGroup) GetUserRealName(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -198,7 +200,7 @@ func (s *ActionGroup) GetUserInvite(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -224,7 +226,7 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 	var param GetUserBaseInfoParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -236,7 +238,7 @@ func (s *ActionGroup) GetIpRecord(c *gin.Context) {
 		param.Page = 1
 	}
 
-	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid,param.Limit,param.Page)
+	rsp, err := rpc.InnerService.UserSevice.CallGetIpRecord(param.Uid, param.Limit, param.Page)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
@@ -259,7 +261,7 @@ func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
 	}{}
 
 	if err := c.ShouldBindQuery(&req); err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -268,7 +270,7 @@ func (s *ActionGroup) GetCheckAuthMethod(c *gin.Context) {
 		Type: 3,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}

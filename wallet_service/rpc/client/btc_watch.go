@@ -4,6 +4,7 @@ import (
 	"digicon/wallet_service/model"
 	"digicon/wallet_service/utils"
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 
 	"digicon/common/convert"
 	"fmt"
@@ -188,26 +189,26 @@ func (this *BTCWatch) InsertRecord(curUnspend ListUnspentResult) {
 	result, err := json.Marshal(resultInterface)
 	if err != nil {
 		fmt.Println(err.Error())
-		utils.Log.Errorln(err)
+		log.Errorln(err)
 	}
 	var tranDetail GetTransactionResult
 	err = json.Unmarshal(result, &tranDetail)
 	if err != nil {
-		utils.Log.Errorln(err)
+		log.Errorln(err)
 	}
 	tranInOutInterface, err := this.BtcDecodeRawTransaction(tranDetail.Hex)
 	if err != nil {
 		fmt.Println(err)
-		utils.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 	}
 	tranResult, err := json.Marshal(tranInOutInterface)
 	if err != nil {
-		utils.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 	}
 	var tranInOutResult TxRawResult
 	err = json.Unmarshal(tranResult, &tranInOutResult)
 	if err != nil {
-		utils.Log.Errorln(err)
+		log.Errorln(err)
 	}
 
 	voutResult := tranInOutResult.Vout
@@ -228,7 +229,7 @@ func (this *BTCWatch) InsertRecord(curUnspend ListUnspentResult) {
 	wToken := new(models.WalletToken)
 	err = wToken.GetByAddress(to)
 	if err != nil {
-		utils.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		fmt.Println(err.Error())
 		return
 	}
@@ -252,7 +253,7 @@ func (this *BTCWatch) InsertRecord(curUnspend ListUnspentResult) {
 	row, err := txmodel.InsertThis()
 	if row <= 0 || err != nil {
 		fmt.Println(err.Error())
-		utils.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 	}
 
 }
@@ -315,18 +316,18 @@ func (this *BTCWatch) BtcRpcGet(data map[string]interface{}) (result interface{}
 	rsp, err := utils.BtcRpcPost(this.Url, data)
 	if err != nil {
 		fmt.Println(err.Error())
-		utils.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	ret := make(map[string]interface{})
 	err = json.Unmarshal(rsp, &ret)
 	if err != nil {
-		utils.Log.Errorln(err)
+		log.Errorln(err)
 		return
 	}
 	result, ok := ret["result"]
 	if !ok {
-		utils.Log.Errorln("get result error!", ok)
+		log.Errorln("get result error!", ok)
 		return
 	}
 	return

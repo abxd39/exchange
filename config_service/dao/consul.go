@@ -2,7 +2,7 @@ package dao
 
 import (
 	"digicon/config_service/conf"
-	. "digicon/config_service/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/hashicorp/consul/api"
 )
 
@@ -19,7 +19,7 @@ func NewConsulCli() *ConsulCli {
 		Address: addr,
 	})
 	if err != nil {
-		Log.Fatal("new consul client error!")
+		log.Fatal("new consul client error!")
 	}
 
 	return &ConsulCli{

@@ -2,9 +2,9 @@ package dao
 
 import (
 	"digicon/price_service/conf"
-	log "github.com/sirupsen/logrus"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 

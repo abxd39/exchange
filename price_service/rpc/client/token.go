@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	cf "digicon/price_service/conf"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	log "github.com/sirupsen/logrus"
 )
 
 type TokenRPCCli struct {

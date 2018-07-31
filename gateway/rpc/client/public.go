@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -18,7 +18,7 @@ type PublciRPCCli struct {
 func (s *PublciRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err error) {
 	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

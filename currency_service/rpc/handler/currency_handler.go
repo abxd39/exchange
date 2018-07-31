@@ -57,6 +57,7 @@ func (s *RPCServer) GetAds(ctx context.Context, req *proto.AdsGetRequest, rsp *p
 func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
+	fmt.Println(req.TokenId, req.TokenName)
 
 	ads := new(model.Ads)
 	ads.Uid = req.Uid
@@ -112,6 +113,7 @@ func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *pr
 
 // 修改广告(买卖)状态
 func (s *RPCServer) UpdatedAdsStatus(ctx context.Context, req *proto.AdsStatusRequest, rsp *proto.CurrencyResponse) error {
+	fmt.Println(req.StatusId)
 	code := new(model.Ads).UpdatedAdsStatus(req.Id, req.StatusId)
 	rsp.Code = int32(code)
 	return nil
@@ -137,7 +139,7 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 			Pays:        data[i].Pays,
 			CreatedTime: data[i].CreatedTime,
 			UpdatedTime: data[i].UpdatedTime,
-			//UserVolume:  data[i].Success,
+			UserVolume:  data[i].Success,
 			TypeId:    data[i].TypeId,
 			TokenId:   data[i].TokenId,
 			TokenName: data[i].TokenName,
@@ -167,6 +169,7 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 	listLen := len(data)
 	listData := make([]*proto.AdsLists, listLen)
 	//listData := []*proto.AdsLists{}
+	
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.AdsLists{
 			Id:          data[i].Id,
@@ -181,8 +184,9 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 			TypeId:      data[i].TypeId,
 			TokenId:     data[i].TokenId,
 			TokenName:   data[i].TokenName,
-			Balance:     data[i].Balance,
-			Freeze:      data[i].Freeze,
+			States:      data[i].States,
+			//Balance:     data[i].Balance,
+			//Freeze:      data[i].Freeze,
 		}
 		listData[i] = adsLists
 	}
@@ -197,32 +201,44 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 
 // 获取货币类型
 func (s *RPCServer) GetCurrencyTokens(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokens) error {
-	data := new(model.Tokens).Get(req.Id, req.Name)
+	//fmt.Println(req.Id)
+	//data := new(model.Tokens).Get(req.Id, req.Name)
+	data := new(model.CommonTokens).Get(req.Id, req.Name)
 	if data == nil {
 		return nil
 	}
+	//fmt.Println("data:", data)
 
 	rsp.Id = data.Id
-	rsp.Name = data.Name
-	rsp.CnName = data.CnName
+	rsp.CnName = data.Name
+	rsp.Name = data.Mark
+	//rsp.CnName = data.CnName
 
 	return nil
 }
 
 // 获取货币类型列表
 func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokensListResponse) error {
-	data := new(model.Tokens).List()
+
+	//data := new(model.Tokens).List()
+	data := new(model.CommonTokens).List()
+	fmt.Println("data:", data)
 	if data == nil {
 		return nil
 	}
+
+	fmt.Println("data:", data)
 
 	listLen := len(data)
 	listData := make([]*proto.CurrencyTokens, listLen)
 	for i := 0; i < listLen; i++ {
 		adsLists := &proto.CurrencyTokens{
 			Id:     data[i].Id,
-			Name:   data[i].Name,
-			CnName: data[i].CnName,
+			Name:   data[i].Mark,
+			CnName: data[i].Name,
+			//
+			//Name:   data[i].Name,
+			//CnName: data[i].CnName,
 		}
 		listData[i] = adsLists
 	}
@@ -331,21 +347,109 @@ func (s *RPCServer) GetUserCurrencyDetail(ctx context.Context, req *proto.UserCu
 }
 
 func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrencyRequest, rsp *proto.OtherResponse) error {
-	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid)
-	fmt.Println("data:", data)
+	//fmt.Println(req.TokenId, req.NoZero)
+	data, err := new(model.UserCurrency).GetUserCurrency(req.Uid, req.NoZero)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_USER_BALANCE
 		return err
 	}
-	result, err := json.Marshal(data)
+
+	tkconfig := new(model.TokenConfigTokenCNy)
+
+	var symbols []string
+	for _,dt := range data{
+		if dt.TokenName != "BTC"{
+			symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
+			symbols = append(symbols, symbol)
+		}
+	}
+
+	//fmt.Println("symbols:", symbols)
+	type RespBalance struct {
+		Id        uint64 `json:"id"`
+		Uid       uint64 `json:"uid"`
+		TokenId   uint32 `json:"token_id"`
+		TokenName string `json:"token_name"`
+		Address   string `json:"address"`
+		Freeze    float64 `json:"freeze"`
+		Balance   float64 `json:"balance"`
+		Valuation float64 `json:"valuation"`
+	}
+	var RespUCurrencyList []RespBalance
+	type RespData struct {
+		UCurrencyList    []RespBalance
+		Sum              float64  `json:"sum"`
+		SumCNY   		 float64  `json:"sum_cny"`
+	}
+
+	var sum int64
+	var sumcny int64
+
+	symbolData, err := client.InnerService.UserSevice.CallGetSymbolsRate(symbols)
+
 	if err != nil {
-		rsp.Data = "[]"
+		log.Println(err.Error())
+		rsp.Data = "{}"
+		return err
+	}else{
+		for _, dt :=range data{
+			var tmp RespBalance
+			var valuation float64
+			if dt.TokenName == "BTC"{
+				err = tkconfig.GetPrice(dt.TokenId)
+				if err != nil {
+					sumcny += 0
+				}else{
+					sumcny += tkconfig.Price
+				}
+				sum += dt.Balance
+				int64valuetion := convert.Int64MulInt64By8Bit(tkconfig.Price, dt.Balance)
+				valuation = convert.Int64ToFloat64By8Bit(int64valuetion)
+				sumcny += int64valuetion
+			}else{
+				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
+				symPrice := symbolData.Data[symbol]
+				if symPrice != nil {
+					fmt.Println("cnyPrice: ",symPrice.Price,symPrice.CnyPrice, dt.TokenName)
+					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
+					if int64price > 0 {
+						sum += convert.Int64DivInt64By8Bit(dt.Balance, int64price)
+					}
+					int64cynPrice, _ := convert.StringToInt64By8Bit(symPrice.CnyPrice)
+					if int64cynPrice > 0 {
+						int64Valueation := convert.Int64MulInt64By8Bit(dt.Balance, int64cynPrice)
+						valuation = convert.Int64ToFloat64By8Bit(int64Valueation)
+						sumcny += int64Valueation
+					}
+				}
+			}
+			tmp.TokenName = dt.TokenName
+			tmp.TokenId   = dt.TokenId
+			tmp.Id        = dt.Id
+			tmp.Uid       = dt.Uid
+			tmp.Address   = dt.Address
+			tmp.Freeze    = convert.Int64ToFloat64By8Bit(dt.Freeze)
+			tmp.Balance   = convert.Int64ToFloat64By8Bit(dt.Balance)
+			tmp.Valuation = valuation
+			RespUCurrencyList = append(RespUCurrencyList, tmp)
+		}
+	}
+
+	var respdata RespData
+	respdata.UCurrencyList = RespUCurrencyList
+	respdata.Sum = convert.Int64ToFloat64By8Bit(sum)
+	respdata.SumCNY =  convert.Int64ToFloat64By8Bit(sumcny)
+	result, err := json.Marshal(respdata)
+	if err != nil {
+		rsp.Data = "{}"
 		rsp.Message = err.Error()
 		return err
 	}
 	rsp.Data = string(result)
 	return nil
 }
+
+
 
 // 获取当前法币账户余额
 func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
@@ -364,25 +468,27 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 // 获取get售价
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
 	//
-	sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
-	key := req.TokenId
-	type SellingPrice struct {
-		Price float64
-	}
-	if v, ok := sellingPriceMap[key]; ok {
-		dt := SellingPrice{Price: v}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
-		rsp.Code = errdefine.ERRCODE_SUCCESS
+	//sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
+	tokenConfigCny := new(model.TokenConfigTokenCNy)
+
+	err := tokenConfigCny.GetPrice(req.TokenId)
+	var price float64
+	if err != nil {
+		log.Println(err.Error())
+		price = 0.00
 	} else {
-		fmt.Println("Key Not Found")
-		dt := SellingPrice{Price: v}
-		data, _ := json.Marshal(dt)
-		rsp.Data = string(data)
-		rsp.Code = errdefine.ERRCODE_UNKNOWN
-		rsp.Message = "not found!"
-		//rsp.Message = "not found!
+		price = convert.Int64ToFloat64By8Bit(tokenConfigCny.Price)
 	}
+
+	type SellingPrice struct {
+		Cny float64
+	}
+
+	dt := SellingPrice{Cny: price}
+	data, _ := json.Marshal(dt)
+	rsp.Data = string(data)
+	rsp.Code = errdefine.ERRCODE_SUCCESS
+
 	return nil
 }
 
@@ -398,7 +504,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	}
 
 	authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(req.Uid)
-	fmt.Println("authResp:", authResp)
+	//fmt.Println("authResp:", authResp)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -407,14 +513,20 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 	type AuthInfo struct {
-		EmailAuth    int32 `json:"email_auth"`     //
-		PhoneAuth    int32 `json:"phone_auth"`     //
-		RealName     int32 `json:"real_name"`      //
-		TwoLevelAuth int32 `json:"two_level_auth"` //
+		EmailAuth    int32  `json:"email_auth"`     //
+		PhoneAuth    int32  `json:"phone_auth"`     //
+		RealName     int32  `json:"real_name"`      //
+		TwoLevelAuth int32  `json:"two_level_auth"` //
+		NickName     string `json:"nick_name"`
+		HeadSculpture     string `json:"head_scul"`
+		CreatedTime  string `json:"created_time"`
 	}
 	type UserRateAndAuth struct {
 		model.UserCurrencyCount
 		AuthInfo
+		CompleteRate float64 `json:"complete_rate"` //  完成率
+		MonthRate    int64   `json:"month_rate"`    // 30日成单
+		AverageTo    int64   `json:"average_to"`    // 120 分钟
 	}
 	var authInfo AuthInfo
 	if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
@@ -423,20 +535,56 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 
+	uOrder := new(model.Order)
+	now := time.Now()
+	monthAgou, _ := time.ParseDuration("-30d")
+	startTime := now.Add(monthAgou).Format("2006-01-02 15:04:05")
+	endTime := now.Format("2006-01-02 15:04:05")
+	Orders, err := uOrder.GetOrderByTime(req.Uid, startTime, endTime)
+	var monthrate int64
+	orderLen := len(Orders)
+	if err != nil {
+		fmt.Println(err.Error())
+		monthrate = 0
+	} else {
+		monthrate = int64(orderLen)
+	}
+
+	fmt.Println("monthrate:", monthrate)
+	var allminute int64
+	for _, od := range Orders {
+		allminute = allminute + model.GetHourDiffer(od.CreatedTime, od.ConfirmTime.String)
+	}
+
 	rateAndAuth := new(UserRateAndAuth)
+	var averageto int64
+	if orderLen <= 0 {
+		averageto = 0
+	} else {
+		averageto = allminute / int64(orderLen)
+	}
+	rateAndAuth.AverageTo = int64(averageto)
+	rateAndAuth.MonthRate = monthrate
+
 	rateAndAuth.Uid = data.Uid
 	rateAndAuth.Success = data.Success
 	rateAndAuth.Failure = data.Failure
 	rateAndAuth.Good = data.Good
 	rateAndAuth.Cancel = data.Cancel
 	rateAndAuth.Orders = data.Orders
+	if data.Orders <= 0 {
+		rateAndAuth.CompleteRate = 100.0
+	} else {
+		rateAndAuth.CompleteRate = float64((data.Success / data.Orders) * 100)
+	}
 
 	rateAndAuth.RealName = authInfo.RealName
 	rateAndAuth.TwoLevelAuth = authInfo.TwoLevelAuth
 	rateAndAuth.EmailAuth = authInfo.EmailAuth
 	rateAndAuth.PhoneAuth = authInfo.PhoneAuth
-
-	//rateAndAuth.EmailAuth = data.
+	rateAndAuth.NickName = authInfo.NickName
+	rateAndAuth.HeadSculpture = authInfo.HeadSculpture
+	rateAndAuth.CreatedTime = authInfo.CreatedTime
 
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
@@ -479,8 +627,47 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 	}
 }
 
-
-
 /*
 
  */
+func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.GetRecentTransactionPriceRequest, rsp *proto.OtherResponse) error {
+
+	fmt.Println(req.PriceType)
+	
+	type TransactionPrice struct {
+		MarketPrice   float64  `json:"market_price"`
+		LatestPrice   float64  `json:"latest_price"`
+	}
+	tp := TransactionPrice{}
+
+	ctk := new(model.CommonTokens)
+	fctk := ctk.Get(0, "BTC")
+	tokenId := fctk.Id
+	tctcy := new(model.TokenConfigTokenCNy)
+	tctcy.GetPrice(uint32(tokenId))
+	price := tctcy.Price
+	tp.MarketPrice = convert.Int64ToFloat64By8Bit(price)
+
+	chistory := new(model.UserCurrencyHistory)
+	err, price := chistory.GetLastPrice(tokenId)
+	fmt.Println("last price:", price)
+	if err != nil {
+		tp.LatestPrice = convert.Int64ToFloat64By8Bit(price)
+	}
+
+	data, err  := json.Marshal(tp)
+	if err != nil {
+		fmt.Println(err)
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return err
+	}else{
+		rsp.Data = string(data)
+		rsp.Code = errdefine.ERRCODE_SUCCESS
+		return nil
+	}
+}
+
+
+
+
+

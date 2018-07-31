@@ -19,7 +19,20 @@ service PriceRPC {
 
     //行情列表
     rpc Quotation(QuotationRequest) returns (QuotationResponse) {};
+
+    // 获取一个币对的价格比
+    rpc GetSymbolsRate(GetSymbolsRateRequest) returns (GetSymbolsRateResponse) {};
+
+    //成交量
+    rpc Volume(VolumeRequest) returns (VolumeResponse) {};
 }
+
+//
+
+
+
+
+
 
 message PriceCache {
     int64 id           =   1;
@@ -29,6 +42,7 @@ message PriceCache {
     int64 amount         =5;
     int64 vol              =6;
     int64 count         =7;
+    int64 usd_vol     =8;
 }
 
 
@@ -80,10 +94,10 @@ message SelfSymbolsResponse{
 
 message SymbolBaseData{
     string  symbol                       =1;
-    string  price                       =2;
+    string  price                        =2;
     string  cny_price                    =3;
     string  scope                        =4;
-    int32  trade_token_id                      =5;
+    int32  trade_token_id                =5;
 }
 
 message SelfSymbolsRequest{
@@ -120,4 +134,29 @@ message QutationBaseData{
 
 message QuotationResponse{
     repeated QutationBaseData data          =1;
+}
+
+
+message GetSymbolsRateRequest {
+    repeated string  symbols=1;     //
+}
+
+message RateBaseData{
+    string symbol       = 1;
+    string price        = 2;
+    string cny_price    = 3;
+}
+
+message GetSymbolsRateResponse {
+    map<string, RateBaseData> data = 1; // 定义Map对象
+}
+
+message VolumeRequest{
+
+}
+
+message VolumeResponse{
+    int64 dayVolume      =1;
+    int64 weekVolume     =2;
+    int64 monthVolume    =3;
 }

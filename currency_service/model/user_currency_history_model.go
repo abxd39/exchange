@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -24,7 +24,7 @@ type UserCurrencyHistory struct {
 
 
 
-func (this *UserCurrencyHistory) GetHistory(startTime, endTime string) (uhistory []UserCurrencyHistory,err error){
+func (this *UserCurrencyHistory) GetHistory(startTime, endTime string, limit int32) (uhistory []UserCurrencyHistory,err error){
 	now := time.Now()
 	if startTime == "" {
 		startTime = now.Format("2006-01-02")
@@ -33,9 +33,13 @@ func (this *UserCurrencyHistory) GetHistory(startTime, endTime string) (uhistory
 		endTime = now.Format("2006-01-02")
 	}
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
+	if limit != 0{
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Limit(int(limit)).Find(&uhistory)
+	}else{
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
+	}
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -44,14 +48,55 @@ func (this *UserCurrencyHistory) GetHistory(startTime, endTime string) (uhistory
 
 
 
-func (this *UserCurrencyHistory) GetAssetDetail(uid int32) (uAssetDetails []UserCurrencyHistory, err error) {
+func (this *UserCurrencyHistory) GetAssetDetail(uid int32, Page uint32, PageNum uint32) (
+	uAssetDetails []UserCurrencyHistory, total int64, rPage uint32, rPageNum uint32 ,err error) {
 	if uid <= 0{
 		return
 	}
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("uid=?", uid).Find(&uAssetDetails)
+	if Page <= 1 {
+		Page = 1
+	}
+	if PageNum <= 0 {
+		PageNum = 10
+	}
+	cAssetDetail := new(UserCurrencyHistory)
+	query := engine.Desc("created_time")
+	query = query.Where("uid=?", uid)
+	tmpQuery := *query
+	countQuery := &tmpQuery
+	err = query.Limit(int(PageNum), (int(Page)-1)*int(PageNum)).Find(&uAssetDetails)
+	total, _ = countQuery.Count(cAssetDetail)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
+		total = 0
+		rPage = 0
+		rPageNum = 0
+	} else {
+		total = total
+		rPage = Page
+		rPageNum = PageNum
+	}
+	return
+}
+
+
+/*
+
+*/
+func (this *UserCurrencyHistory) GetLastPrice(tokenId uint32) (err error, price int64){
+	type NewPrice struct {
+		Price    int64    `json:"price"`
+	}
+	sql := "SELECT  id, price, num FROM g_currency.`order`  WHERE  order_id = ( SELECT  order_id FROM g_currency.`user_currency_history`  where token_id=`?` ORDER BY updated_time DESC LIMIT 1);"
+	nprice := NewPrice{}
+	engine := dao.DB.GetMysqlConn()
+	ok, err := engine.SQL(sql, tokenId).Get(&nprice)
+	if err !=  nil {
+		return
+	}
+	if ok {
+		price = nprice.Price
 		return
 	}
 	return

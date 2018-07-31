@@ -3,9 +3,9 @@ package model
 import (
 	"digicon/common/convert"
 	. "digicon/price_service/dao"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -17,6 +17,7 @@ type Price struct {
 	Amount      int64  `xorm:"BIGINT(20)"`
 	Vol         int64  `xorm:"BIGINT(20)"`
 	Count       int64  `xorm:"BIGINT(20)"`
+	UsdVol      int64  `xorm:"BIGINT(20)"`
 }
 
 /*
@@ -31,6 +32,12 @@ type Price struct {
 	Count  int64 `xorm:"BIGINT(20)"`
 }
 */
+
+type Volume struct {
+	Sum int64 `xorm:"BIGINT(20)"`
+	Amount int64 `xorm:"BIGINT(20)"`
+}
+
 func InsertPrice(p *Price) {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
@@ -42,9 +49,9 @@ func InsertPrice(p *Price) {
 	return
 }
 
-func GetHigh(begin, end int64,symbol string) (high int64) {
+func GetHigh(begin, end int64, symbol string) (high int64) {
 	hp := &Price{}
-	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end,symbol).Desc("price").Limit(1, 0).Get(hp)
+	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end, symbol).Desc("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		log.Errorln(err.Error())
 		return 0
@@ -55,9 +62,9 @@ func GetHigh(begin, end int64,symbol string) (high int64) {
 	return 0
 }
 
-func GetLow(begin, end int64,symbol string) (low int64) {
+func GetLow(begin, end int64, symbol string) (low int64) {
 	hp := &Price{}
-	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end,symbol).Asc("price").Limit(1, 0).Get(hp)
+	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end, symbol).Asc("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		log.Errorln(err.Error())
 		return 0
@@ -75,9 +82,9 @@ func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseDa
 
 	begin := l.Unix()
 	end := t.Unix()
-	h := GetHigh(begin, end,symbol)
+	h := GetHigh(begin, end, symbol)
 
-	j := GetLow(begin, end,symbol)
+	j := GetLow(begin, end, symbol)
 
 	p := &Price{}
 	_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
@@ -135,4 +142,48 @@ func (s *Price) SetProtoData() *proto.PriceCache {
 		Vol:         s.Vol,
 		Count:       s.Count,
 	}
+}
+
+//查询交易量
+func GetVolumeTotal() *proto.VolumeResponse {
+	t := time.Now().Local()
+	//nowUnix := time.Now().Unix()
+	dayUnix := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).Unix()
+	weekUnix := time.Date(t.Year(), t.Month(), t.Day()-int(t.Weekday()), 0, 0, 0, 0, t.Location()).Unix()
+	mondayUnix := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location()).Unix()
+
+	var nowVolume Volume
+	var dayVolume Volume
+	var weekVolume Volume
+	var monthVolume Volume
+
+	var err error
+	var res bool
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id >= (select max(id) from price) group by symbol order by id desc) as a").Get(&nowVolume)
+	if err != nil || res != true {
+		log.Warningln(err.Error())
+		return nil
+	}
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",dayUnix).Get(&dayVolume)
+	if err != nil || res != true {
+		log.Warningln(err.Error())
+		return nil
+	}
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",weekUnix).Get(&weekVolume)
+	if err != nil || res != true  {
+		log.Warningln(err.Error())
+		return nil
+	}
+	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",mondayUnix).Get(&monthVolume)
+	if err != nil || res != true {
+		log.Warningln(err.Error())
+		return nil
+	}
+
+	data := &proto.VolumeResponse{
+		DayVolume:nowVolume.Sum - dayVolume.Sum,
+		WeekVolume:nowVolume.Sum - weekVolume.Sum,
+		MonthVolume:nowVolume.Sum - monthVolume.Sum}
+	return data
+
 }

@@ -3,7 +3,9 @@ package handler
 import (
 	"context"
 	"digicon/common/encryption"
-	. "digicon/currency_service/log"
+	//log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+	
 	"digicon/currency_service/model"
 	"digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -14,6 +16,8 @@ import (
 	"digicon/common/convert"
 	"digicon/currency_service/rpc/client"
 	"strconv"
+	//"github.com/micro/go-micro/errors"
+	"errors"
 )
 
 // 获取订单列表
@@ -25,7 +29,7 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 
 	orders, err := json.Marshal(result)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Orders = "[]"
 		rsp.Message = err.Error()
 		return err
@@ -75,13 +79,12 @@ func (s *RPCServer) ReadyOrder(ctx context.Context, req *proto.OrderRequest, rsp
 func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rsp *proto.OrderResponse) error {
 	od := new(model.Order)
 	if err := json.Unmarshal([]byte(req.Order), &od); err != nil {
-		Log.Println(err.Error())
+		log.Println(err.Error())
 		fmt.Println(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	}
-	//fmt.Println("req order:", req.Order)
-	//fmt.Println("od num: ", od.Num)
+
 
 	ads := new(model.Ads)
 	var nowAds *model.Ads
@@ -94,11 +97,26 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.AdType = nowAds.TypeId
 	od.Price = int64(nowAds.Price)
 	od.TokenId = uint64(nowAds.TokenId)
-	od.SellId = nowAds.Uid
-	od.BuyId = uint64(nowAds.Uid)
+
+	if uint32(nowAds.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
+		od.SellId = nowAds.Uid
+		od.BuyId  = uint64(req.Uid)
+	}else{
+		od.BuyId  = nowAds.Uid
+		od.SellId = uint64(req.Uid)
+	}
+
 	od.PayId = nowAds.Pays
 
-	//fmt.Println(od.SellId, od.BuyId)
+	fmt.Println("od.selleid:", od.SellId, od.BuyId)
+	if od.SellId == od.BuyId {
+		msg := "无法下自己订单"
+		err := errors.New(msg)
+		log.Errorln(msg)
+		rsp.Code = errdefine.ERRCODE_ORDER_ERROR
+		rsp.Message = msg
+		return err
+	}
 
 	var uids []uint64
 	uids = append(uids, od.SellId)
@@ -111,12 +129,9 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		}
 	}
 
-	//fmt.Println("nickNames:", nickNames)
 	if err != nil {
 		fmt.Println(err)
-		Log.Errorln(err.Error())
-		//rsp.Code = errdefine.ERRCODE_UNKNOWN
-		//return nil
+		log.Errorln(err.Error())
 	} else {
 		nickUsers := nickNames.User
 		for i := 0; i < len(nickUsers); i++ {
@@ -219,9 +234,9 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 
 func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
 	uCurrencyHistory := new(model.UserCurrencyHistory)
-	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime)
+	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime, req.Limit)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
@@ -240,15 +255,17 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 
  func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetailRequest, rsp *proto.OtherResponse) error {
 	 uCurrencyHistory := new(model.UserCurrencyHistory)
-	 uAssetDeailList ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid))
+	 uAssetDeailList, total, page, pageNum ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid), req.Page, req.PageNum)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
 	var uids []uint64
+	var tokenids []int
 	for _, ua := range uAssetDeailList{
 		uids = append(uids, uint64(ua.TradeUid))
+		tokenids = append(tokenids, ua.TokenId)
 	}
 	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids) // rpc 获取用户信息
 	fmt.Println("nickNames:", nickNames)
@@ -259,24 +276,47 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		userNameMap[nickUsers[i].Uid] = nickUsers[i].NickName
 	}
 
+	tokenIdsMap := map[uint32]string{}
+	comtoken := new(model.CommonTokens)
+	tokenNames := comtoken.GetByTokenIds(tokenids)
+	for _, tn := range tokenNames{
+		tokenIdsMap[tn.Id] = tn.Mark
+	}
+
 	type NewUserCurrencyHisotry struct {
-		model.UserCurrencyHistory
-		TradeName    string    `json:"trade_name"`
+		Id          int       `json:"id"                  `
+		Uid         int32      `json:"uid"               `
+		TradeUid    int32      `json:"trade_uid"         `
+		TokenId     int       `json:"token_id"            `
+		TokenName   string    `json:"token_name"`
+		Num         float64   `json:"num"                 `
+		Operator    int       `json:"operator"            `
+		CreatedTime string    `json:"created_time"        `
+		TradeName   string    `json:"trade_name"         `
+
 	}
 
     var NewUAssetDetaillList []NewUserCurrencyHisotry
 	for _, ua := range uAssetDeailList{
 		var tmp NewUserCurrencyHisotry
-		tmp.TradeName = userNameMap[uint64(ua.TradeUid)]
-		tmp.Uid = ua.Uid
-		tmp.TradeUid = ua.TradeUid
-		tmp.Num  = ua.Num
-		tmp.CreatedTime  = ua.CreatedTime
-		tmp.TokenId = ua.TokenId
-		tmp.Operator = ua.Operator
+		tmp.TradeName   = userNameMap[uint64(ua.TradeUid)]
+		tmp.Uid         = ua.Uid
+		tmp.TradeUid    = ua.TradeUid
+		tmp.Num         = convert.Int64ToFloat64By8Bit(ua.Num)
+		tmp.CreatedTime = ua.CreatedTime
+		tmp.TokenId     = ua.TokenId
+		tmp.TokenName   = tokenIdsMap[uint32(ua.TokenId)]
+		tmp.Operator    = ua.Operator
 		NewUAssetDetaillList = append(NewUAssetDetaillList, tmp)
 	}
-	data, err := json.Marshal(uAssetDeailList)
+	type ResultData struct {
+		NewList   []NewUserCurrencyHisotry
+		Total       int64            `json:"total"`
+		Page        uint32           `json:"page"`
+		PageNum     uint32           `json:"page_num"`
+	}
+	resultdt := ResultData{NewList:NewUAssetDetaillList, Total:total, Page:page, PageNum:pageNum}
+	data, err := json.Marshal(resultdt)
 	rsp.Data = string(data)
  	rsp.Code = errdefine.ERRCODE_SUCCESS
  	return nil

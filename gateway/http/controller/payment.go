@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"digicon/gateway/log"
+	//"digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"encoding/json"
@@ -68,7 +69,7 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 	var req BankPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -85,7 +86,7 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 	})
 
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -104,7 +105,7 @@ func (this *CurrencyGroup) GetBankPay(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -112,7 +113,7 @@ func (this *CurrencyGroup) GetBankPay(c *gin.Context) {
 		Uid: req.Uid,
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -132,7 +133,7 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 	var req BankPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -147,7 +148,7 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 		Verify:    req.Verify,
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -168,7 +169,7 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 	var req AliPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -180,7 +181,7 @@ func (py *CurrencyGroup) Alipay(c *gin.Context) {
 		ReceiptCode: req.Receipt_code,
 	})
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 		return
 	}
@@ -198,7 +199,7 @@ func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -208,7 +209,7 @@ func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 	var alipay RspAliPay
 	err = json.Unmarshal([]byte(rsp.Data), &alipay)
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -228,7 +229,7 @@ func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 	var req AliPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -241,7 +242,7 @@ func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 		Verify:      req.Verify,
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -262,7 +263,7 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 	var req PaypalPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -273,7 +274,7 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		Verify: req.Verify,
 	})
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -291,7 +292,7 @@ func (this *CurrencyGroup) GetPaypal(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -301,7 +302,7 @@ func (this *CurrencyGroup) GetPaypal(c *gin.Context) {
 	var paypay RspPaypalPay
 	err = json.Unmarshal([]byte(rsp.Data), &paypay)
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
 		ret.SetDataSection("paypal_pay", paypay)
@@ -318,7 +319,7 @@ func (this *CurrencyGroup) UpdatePaypal(c *gin.Context) {
 	var req PaypalPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -329,7 +330,7 @@ func (this *CurrencyGroup) UpdatePaypal(c *gin.Context) {
 		//Verify: req.Verify,
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
@@ -348,7 +349,7 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 	var req WeChatPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -359,7 +360,7 @@ func (py *CurrencyGroup) WeChatPay(c *gin.Context) {
 		ReceiptCode: req.Receipt_code,
 	})
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -378,7 +379,7 @@ func (this *CurrencyGroup) GetWeChatPay(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -388,7 +389,7 @@ func (this *CurrencyGroup) GetWeChatPay(c *gin.Context) {
 	var wechatPay RspWeChatPay
 	err = json.Unmarshal([]byte(rsp.Data), &wechatPay)
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -406,7 +407,7 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 	var req WeChatPay
 	err := c.ShouldBind(&req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -417,7 +418,7 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 		ReceiptCode: req.Receipt_code,
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {

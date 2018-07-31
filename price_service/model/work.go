@@ -8,21 +8,25 @@ import (
 	proto "digicon/proto/rpc"
 	"fmt"
 	"github.com/golang/protobuf/jsonpb"
-	"time"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type PriceInfo struct {
 	Key      string
 	PreData  *proto.PriceCache
 	MinPrice int64
-	CnyPrice int64
+	UsdPrice int64
 }
 
 const (
 	OneMinPrice = iota
 	FiveMinPrice
 	FivteenMinPrice
+	FourHourPrice
+	OneDayPrice
+	OneWeekPrice
+	OneMonthPrice
 	MaxPrice
 )
 
@@ -74,6 +78,7 @@ func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) {
 		CreatedTime: k.CreatedTime,
 		Count:       k.Count,
 		Symbol:      k.Symbol,
+		UsdVol:      k.UsdVol,
 	})
 
 	s.entry = k
@@ -100,12 +105,30 @@ func (s *PriceWorkQuene) Publish() {
 			s.updatePrice2(k)
 			s.save(OneMinPrice, k)
 			min := t.Minute()
-			if min%5 == 0 {
-				s.save(FiveMinPrice, k)
-			}
-
+			/*
+				if min%5 == 0 {
+					s.save(FiveMinPrice, k)
+				}
+			*/
 			if min%15 == 0 {
 				s.save(FivteenMinPrice, k)
+			}
+
+			h := t.Hour()
+			if h%4 == 0 {
+				s.save(FourHourPrice, k)
+			}
+
+			if h == 0 {
+				s.save(OneDayPrice, k)
+				w := t.Weekday()
+				if w == 1 {
+					s.save(OneWeekPrice, k)
+				}
+
+				if t.Day() == 1 {
+					s.save(OneMonthPrice, k)
+				}
 			}
 
 		}
@@ -137,9 +160,9 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		high = data.Price
 	} else {
 
-		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime,data.Symbol)
+		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
 
-		low = GetLow(p.PreData.CreatedTime, data.CreatedTime,data.Symbol)
+		low = GetLow(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
 		h = &proto.PeriodPrice{
 			Id:     data.Id,
 			Open:   convert.Int64ToFloat64By8Bit(p.PreData.Price),

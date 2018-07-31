@@ -2,8 +2,8 @@ package dao
 
 import (
 	cf "digicon/user_service/conf"
-	. "digicon/user_service/log"
 	"github.com/go-redis/redis"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -24,9 +24,9 @@ func NewRedisCli() *RedisCli {
 
 	pong, err := client.Ping().Result()
 	if err != nil {
-		Log.Fatalf("redis connect faild ")
+		log.Fatalf("redis connect faild ")
 	}
-	Log.Infoln(pong)
+	log.Infoln(pong)
 
 	ct, err := cf.Cfg.Int64("redis", "ttl")
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *Dao) GenSecurityKey(phone string) (security_key []byte, err error) {
 	security_key = encryption.Gensha256(phone, time.Now().Unix(), s.redis.salt)
 	err = s.redis.rcon.Set(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SECURITY), security_key, s.redis.KeyTtl).Err()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -57,7 +57,7 @@ func (s *Dao) GenSecurityKey(phone string) (security_key []byte, err error) {
 func (s *Dao) GetSecurityKeyByPhone(phone string) (security_key []byte, err error) {
 	security_key, err = s.redis.rcon.Get(tools.GetPhoneTagByLogic(phone, tools.LOGIC_SECURITY)).Bytes()
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

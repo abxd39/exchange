@@ -3,13 +3,14 @@ package model
 import (
 	proto "digicon/proto/rpc"
 	///. "digicon/token_service/dao"
-	. "digicon/token_service/log"
 	"github.com/go-xorm/xorm"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 import (
 	. "digicon/token_service/dao"
+	"github.com/pkg/errors"
 )
 
 type EntrustData struct {
@@ -38,12 +39,13 @@ type EntrustDetail struct {
 	Fee         int64  `xorm:"not null comment('手续费比例') BIGINT(20)"`
 	States      int    `xorm:"not null comment('0是挂单，1是部分成交,2成交， 3撤销') TINYINT(4)"`
 	CreatedTime int64  `xorm:"not null comment('添加时间') created BIGINT(20)"`
+	Version     int    `xorm:"version"`
 }
 
-func (s *EntrustDetail) Insert(sess *xorm.Session) error {
+func Insert(sess *xorm.Session, s *EntrustDetail) error {
 	_, err := sess.Insert(s)
 	if err != nil {
-		Log.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"entrust_id":  s.EntrustId,
 			"uid":         s.Uid,
 			"all_num":     s.AllNum,
@@ -54,7 +56,6 @@ func (s *EntrustDetail) Insert(sess *xorm.Session) error {
 			"create_time": s.CreatedTime,
 			"fee":         s.Fee,
 		}).Errorf("%s", err.Error())
-		sess.Rollback()
 		return err
 	}
 	return nil
@@ -64,7 +65,7 @@ func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail 
 	m := make([]EntrustDetail, 0)
 	err := DB.GetMysqlConn().Where("uid=?", uid).Limit(limit, page-1).Find(&m)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return m
@@ -75,18 +76,40 @@ func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	i := []int{0, 1}
 	err := DB.GetMysqlConn().Where("uid=?", uid).In("states", i).Limit(limit, page-1).Find(&m)
 	if err != nil {
-		Log.Fatalln(err.Error())
+		log.Fatalln(err.Error())
 		return nil
 	}
 	return m
 }
 
-func (s *EntrustDetail) UpdateStates(sess *xorm.Session, entrust_id string, states int, deal_num int64) error {
+func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 
-	_, err := sess.Where("entrust_id=?", entrust_id).Cols("states", "surplus_num").Decr("surplus_num", deal_num).Update(&EntrustDetail{States: states})
+	if s.SurplusNum > deal_num {
+		s.States = int(proto.TRADE_STATES_TRADE_PART)
+	} else if s.SurplusNum == deal_num {
+		s.States = int(proto.TRADE_STATES_TRADE_ALL)
+	} else {
+		return errors.New("decr entrust_detail surplus is less")
+	}
+
+	s.SurplusNum -= deal_num
+	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num").Update(s)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
+	}
+	return nil
+}
+
+func GetEntrust(entrust_id string) *EntrustDetail {
+	e := &EntrustDetail{}
+	ok, err := DB.GetMysqlConn().Where("entrust_id=?", entrust_id).Get(e)
+	if err != nil {
+		log.Errorln(err.Error())
+		return nil
+	}
+	if ok {
+		return e
 	}
 	return nil
 }

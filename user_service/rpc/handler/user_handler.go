@@ -1,8 +1,6 @@
 package handler
 
 import (
-	. "digicon/common/constant"
-	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	//. "digicon/user_service/dao"
 	"golang.org/x/net/context"
@@ -10,32 +8,42 @@ import (
 	"digicon/common/constant"
 	"digicon/common/convert"
 	"digicon/user_service/conf"
-	. "digicon/user_service/log"
 	"digicon/user_service/model"
 	"digicon/user_service/rpc/client"
+	log "github.com/sirupsen/logrus"
 	"time"
 
 	"github.com/go-redis/redis"
 
 	"fmt"
 
-	"strconv"
-
+	. "digicon/common/constant"
+	"digicon/common/encryption"
+	. "digicon/proto/common"
 	"github.com/gin-gonic/gin/json"
 	"github.com/sirupsen/logrus"
-
+	"strconv"
 )
 
 type RPCServer struct{}
 
 func (s *RPCServer) Hello(ctx context.Context, req *proto.HelloRequest, rsp *proto.HelloResponse) error {
-	Log.Print("Received Say.Hello request")
+	log.Print("Received Say.Hello request")
 	rsp.Greeting = "Hello " + req.Name
 	return nil
 }
 
 //注册
 func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rsp *proto.CommonErrResponse) error {
+
+	log.WithFields(log.Fields{
+		"ukey":    req.Ukey,
+		"type":    req.Type,
+		"invite":  req.InviteCode,
+		"code":    req.Code,
+		"country": req.Country,
+	}).Info("Register")
+
 	if req.Type == 1 { //手机注册
 		ret, err := model.AuthSms(req.Ukey, model.SMS_REGISTER, req.Code)
 		if err == redis.Nil {
@@ -58,7 +66,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 
 		// 注册奖励代币
 		if rsp.Err == ERRCODE_SUCCESS {
-			s.registerReward(uid, referUid)
+			s.RegisterReward(uid, referUid)
 		}
 
 		return nil
@@ -80,7 +88,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 
 		// 注册奖励代币
 		if rsp.Err == ERRCODE_SUCCESS {
-			s.registerReward(uid, referUid)
+			s.RegisterReward(uid, referUid)
 		}
 
 		return nil
@@ -92,7 +100,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 }
 
 // 注册奖励代币
-func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
+func (s *RPCServer) RegisterReward(uid uint64, referUid uint64) {
 	// 读取配置
 	tokenId := int32(conf.Cfg.MustInt("register_reward", "token_id"))
 	myNum := float64(conf.Cfg.MustInt("register_reward", "my_num"))
@@ -100,29 +108,27 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 	secReferNum := float64(conf.Cfg.MustInt("register_reward", "sec_refer_num"))
 
 	// 1. 注册送20UNT
-	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, convert.Float64ToInt64By8Bit(myNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d", uid)), 3)
-	if err != nil {
-		Log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
-	}
-	if resp.Err != ERRCODE_SUCCESS {
-		Log.WithFields(logrus.Fields{"uid": uid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励代币出错")
+	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, convert.Float64ToInt64By8Bit(myNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d", uid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER)
+	if err != nil { // !!!不中断流程，只记录错误
+		log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
+	} else if resp.Err != ERRCODE_SUCCESS { // !!!不中断流程，只记录错误
+		log.WithFields(logrus.Fields{"uid": uid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励代币出错")
 	}
 
 	if referUid != 0 {
 		// 2. 推荐一级注册送20UNT
-		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, convert.Float64ToInt64By8Bit(referNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d", uid, referUid)), 4)
-		if err != nil {
-			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
-		}
-		if resp.Err != ERRCODE_SUCCESS {
-			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励一级推荐人代币出错")
+		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, convert.Float64ToInt64By8Bit(referNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d", uid, referUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
+		if err != nil { // !!!不中断流程，只记录错误
+			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
+		} else if resp.Err != ERRCODE_SUCCESS { // !!!不中断流程，只记录错误
+			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励一级推荐人代币出错")
 		}
 
 		// 判断一级推荐人是否有推荐人，即二级推荐
 		referUserEx := &model.UserEx{}
 		_, err := referUserEx.GetUserEx(referUid)
 		if err != nil {
-			Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取一级推荐人的邀请UID出错")
+			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取一级推荐人的邀请UID出错")
 			return
 		}
 
@@ -131,16 +137,18 @@ func (s *RPCServer) registerReward(uid uint64, referUid uint64) {
 			secReferUser := &model.User{}
 			_, err := secReferUser.GetUser(referUserEx.InviteId)
 			if err != nil {
-				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取二级推荐人出错")
+				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取二级推荐人出错")
 				return
 			}
 
-			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), 4)
+			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
 			if err != nil {
-				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
+				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
+				return
 			}
 			if resp.Err != ERRCODE_SUCCESS {
-				Log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励二级推荐人代币出错")
+				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励二级推荐人代币出错")
+				return
 			}
 		}
 	}
@@ -153,13 +161,20 @@ func (s *RPCServer) RegisterByEmail(ctx context.Context, req *proto.RegisterEmai
 
 //登陆
 func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *proto.LoginResponse) error {
+
+	log.WithFields(log.Fields{
+		"ukey": req.Ukey,
+		"type": req.Type,
+	}).Info("Login")
+
 	u := &model.User{}
 	var token string
 	var ret int32
+	pwd := encryption.GenMd5AndReverse(req.Pwd)
 	if req.Type == 1 { //手机登陆
-		token, ret = u.LoginByPhone(req.Ukey, req.Pwd)
+		token, ret = u.LoginByPhone(req.Ukey, pwd)
 	} else if req.Type == 2 { //邮箱登陆
-		token, ret = u.LoginByEmail(req.Ukey, req.Pwd)
+		token, ret = u.LoginByEmail(req.Ukey, pwd)
 	}
 
 	if ret == ERRCODE_SUCCESS {
@@ -203,7 +218,21 @@ func (s *RPCServer) TokenVerify(ctx context.Context, req *proto.TokenVerifyReque
 func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp *proto.ForgetResponse) error {
 	var ret int32
 	var err error
+	log.WithFields(log.Fields{
+		"ukey": req.Ukey,
+		"type": req.Type,
+		"code": req.Code,
+	}).Info("ForgetPwd")
 
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"ukey": req.Ukey,
+				"type": req.Type,
+				"code": req.Code,
+			}).Errorf("ForgetPwd error %s", err.Error())
+		}
+	}()
 	u := &model.User{}
 	if req.Type == 1 { //电话找回
 		ret, err = u.GetUserByPhone(req.Ukey)
@@ -265,7 +294,16 @@ func (s *RPCServer) AuthSecurity(ctx context.Context, req *proto.SecurityRequest
 
 //发生短信验证码
 func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *proto.CommonErrResponse) error {
-	ret, err := model.ProcessSmsLogic(req.Type, req.Phone, req.Region)
+	var ret int32
+	var err error
+
+	log.WithFields(log.Fields{
+		"ukey":   req.Phone,
+		"type":   req.Type,
+		"region": req.Region,
+	}).Info("SendSms")
+
+	ret, err = model.ProcessSmsLogic(req.Type, req.Phone, req.Region)
 	if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
@@ -278,7 +316,15 @@ func (s *RPCServer) SendSms(ctx context.Context, req *proto.SmsRequest, rsp *pro
 
 //发送邮箱验证码
 func (s *RPCServer) SendEmail(ctx context.Context, req *proto.EmailRequest, rsp *proto.CommonErrResponse) error {
-	ret, err := model.ProcessEmailLogic(req.Type, req.Email)
+	var ret int32
+	var err error
+
+	log.WithFields(log.Fields{
+		"ukey": req.Email,
+		"type": req.Type,
+	}).Info("SendEmail")
+
+	ret, err = model.ProcessEmailLogic(req.Type, req.Email)
 	if err != nil {
 		rsp.Err = ret
 		rsp.Message = err.Error()
@@ -403,7 +449,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	fmt.Println("code:", code, err)
 
 	if err != nil {
-		Log.Errorln("auth code by email error!")
+		log.Errorln("auth code by email error!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return err
 	}
@@ -421,14 +467,14 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 			return err
 		}
 	} else {
-		Log.Errorln(" not found verifyType!")
+		log.Errorln(" not found verifyType!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
 	has, err := u.BindUserEmail(req.Email, req.Uid)
 
 	if err != nil {
-		Log.Errorln("bind user email err!", err.Error())
+		log.Errorln("bind user email err!", err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
@@ -442,7 +488,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	fmt.Println("security chmod :", err)
 	if err != nil {
 		msg := "after bind user email, security chmod error!"
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Message = msg
 	}
@@ -477,13 +523,13 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 			return err
 		}
 	} else {
-		Log.Errorln(" not found verifyType!")
+		log.Errorln(" not found verifyType!")
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
 	has, err := u.BindUserPhone(req.Phone, req.Uid)
 	if err != nil {
-		Log.Errorln("bind user phone err!", err.Error())
+		log.Errorln("bind user phone err!", err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
@@ -495,12 +541,12 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 	err = u.SecurityChmod(AUTH_PHONE)
 	if err != nil {
 		msg := "after bind user phone, security chmod error!"
-		Log.Errorln(msg)
+		log.Errorln(msg)
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Message = msg
 		return nil
 	}
-	u.RefreshCache(req.Uid)
+	u.ForceRefreshCache(req.Uid)
 	rsp.Code = ERRCODE_SUCCESS
 	return nil
 }
@@ -519,14 +565,26 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 		rsp.Code = code
 		return err
 	}
+
+	extu := new(model.UserEx)
+	excode, err := extu.GetUserEx(req.Uid)
+	if err != nil {
+		rsp.Code = excode
+		rsp.Data = ""
+		return err
+	}
+
 	//fmt.Println("uid:", req.Uid)
 	securityCode := u.SecurityAuth
 
 	type AuthInfo struct {
-		EmailAuth    int32 `json:"email_auth"`     //
-		PhoneAuth    int32 `json:"phone_auth"`     //
-		RealName     int32 `json:"real_name"`      //
-		TwoLevelAuth int32 `json:"two_level_auth"` //
+		EmailAuth     int32  `json:"email_auth"`     //
+		PhoneAuth     int32  `json:"phone_auth"`     //
+		RealName      int32  `json:"real_name"`      //
+		TwoLevelAuth  int32  `json:"two_level_auth"` //
+		NickName      string `json:"nick_name"`
+		HeadSculpture string `json:"head_scul"` //
+		CreatedTime   string `json:"created_time"`
 	}
 	authInfo := new(AuthInfo)
 	if securityCode-(securityCode^constant.AUTH_PHONE) == constant.AUTH_PHONE {
@@ -541,10 +599,14 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 	if securityCode-(securityCode^constant.AUTH_FIRST) == constant.AUTH_FIRST {
 		authInfo.RealName = 1
 	}
+	timeLayout := "2006-01-02 15:04:05"
+	authInfo.NickName = extu.NickName
+	authInfo.HeadSculpture = extu.HeadSculpture
+	authInfo.CreatedTime = time.Unix(extu.RegisterTime, 0).Format(timeLayout)
 	data, err := json.Marshal(authInfo)
 	if err != nil {
 		fmt.Println(err.Error())
-		Log.Errorln(err)
+		log.Errorln(err)
 		rsp.Code = ERRCODE_UNKNOWN
 		return err
 	}

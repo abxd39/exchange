@@ -1,26 +1,43 @@
 package main
 
 import (
+	"digicon/common/xlog"
 	cf "digicon/user_service/conf"
+	"digicon/user_service/cron"
 	"digicon/user_service/dao"
-	. "digicon/user_service/log"
 	"digicon/user_service/rpc"
 	"digicon/user_service/rpc/client"
 	"flag"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
+
+func init() {
+	cf.Init()
+	path := cf.Cfg.MustValue("log", "log_dir")
+	name := cf.Cfg.MustValue("log", "log_name")
+	level := cf.Cfg.MustValue("log", "log_level")
+	xlog.InitLogger(path, name, level)
+}
 
 func main() {
 	flag.Parse()
-	cf.Init()
-	//InitLogger()
-	InitLog()
-	Log.Infof("begin run server")
+
+	log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
 	client.InitInnerService()
+
+	// 定时脚本
+	cron.InitCron()
+
+	// todo 2018-07-31临时处理，待删除
+	if time.Now().Unix() < 1533063600 {
+		cron.RegisterNoReward()
+	}
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
@@ -28,5 +45,5 @@ func main() {
 		syscall.SIGTERM,
 	)
 	sig := <-quitChan
-	Log.Infof("server close by sig %s", sig.String())
+	log.Infof("server close by sig %s", sig.String())
 }

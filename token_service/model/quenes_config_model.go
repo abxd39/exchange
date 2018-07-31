@@ -2,7 +2,7 @@ package model
 
 import (
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type ConfigQuenes struct {
@@ -12,6 +12,8 @@ type ConfigQuenes struct {
 	Switch       int    `xorm:"comment('开关0关1开') TINYINT(4)"`
 	Name         string `xorm:"comment('USDT/BTC') VARCHAR(32)"`
 	Price        int64  `xorm:"BIGINT(20)"`
+	SellPoundage         int64  `xorm:"comment('卖出手续费') BIGINT(20)"`
+	BuyPoundage          int64  `xorm:"comment('买入手续费') BIGINT(20)"`
 }
 
 func (s *ConfigQuenes) GetQuenes(uid uint64) []ConfigQuenes {
@@ -22,7 +24,7 @@ func (s *ConfigQuenes) GetAllQuenes() []ConfigQuenes {
 	t := make([]ConfigQuenes, 0)
 	err := DB.GetMysqlConn().Where("switch=1").Find(&t)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return t
@@ -32,7 +34,7 @@ func (s *ConfigQuenes) GetQuenesByType(token_id int32) []ConfigQuenes {
 	t := make([]ConfigQuenes, 0)
 	err := DB.GetMysqlConn().Where("switch=1 and token_id=?", token_id).Find(&t)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 	return t

@@ -2,9 +2,9 @@ package dao
 
 import (
 	"digicon/token_service/conf"
-	. "digicon/token_service/log"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func NewMysql2() (mysql *Mysql2) {
 
 	engine, err := xorm.NewEngine("mysql", dsource)
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 	engine.ShowSQL(false)
 	cacher := xorm.NewLRUCacher2(xorm.NewMemoryStore(), time.Hour, 1000)
@@ -25,7 +25,7 @@ func NewMysql2() (mysql *Mysql2) {
 
 	err = engine.Ping()
 	if err != nil {
-		Log.Fatalf("db err is %s", err)
+		log.Fatalf("db err is %s", err)
 	}
 
 	mysql = &Mysql2{

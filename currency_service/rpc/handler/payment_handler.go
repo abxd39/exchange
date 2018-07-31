@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/model"
 	proto "digicon/proto/rpc"
 	"fmt"
@@ -22,7 +22,7 @@ func (*RPCServer) Alipay(ctx context.Context, req *proto.AlipayRequest, rsp *pro
 	rsp.Code, err = p.SetAlipay(req)
 	fmt.Println(rsp.Code)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return nil
 }
@@ -32,7 +32,7 @@ func (*RPCServer) GetAliPay(ctx context.Context, req *proto.PayRequest, rsp *pro
 	err = amd.GetByUid(req.Uid)
 	data, err := json.Marshal(amd)
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 	} else {
 		rsp.Code = errdefine.ERRCODE_SUCCESS
@@ -51,7 +51,7 @@ func (*RPCServer) UpdateAliPay(ctx context.Context, req *proto.AlipayRequest, rs
 	rsp.Code, err = p.SetAlipay(req)
 	fmt.Println(rsp.Code)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return nil
 }
@@ -67,7 +67,7 @@ func (*RPCServer) BankPay(ctx context.Context, req *proto.BankPayRequest, rsp *p
 	}
 	rsp.Code, err = p.SetBankPay(req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func (*RPCServer) UpdateBankPay(ctx context.Context, req *proto.BankPayRequest, 
 	p.Name = req.Name
 	rsp.Code, err = p.SetBankPay(req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return nil
 }
@@ -104,7 +104,7 @@ func (*RPCServer) Paypal(ctx context.Context, req *proto.PaypalRequest, rsp *pro
 	p.Paypal = req.Paypal
 	rsp.Code, err = p.SetPaypal(req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return nil
 }
@@ -127,7 +127,7 @@ func (*RPCServer) UpdatePaypal(ctx context.Context, req *proto.PaypalRequest, rs
 	p.Paypal = req.Paypal
 	rsp.Code, err = p.SetPaypal(req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return nil
 }
@@ -144,7 +144,7 @@ func (*RPCServer) WeChatPay(ctx context.Context, req *proto.WeChatPayRequest, rs
 	rsp.Code, err = p.SetWechatPay(req)
 	if err != nil {
 		fmt.Println(err.Error())
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 
 	return nil
@@ -172,7 +172,7 @@ func (*RPCServer) UpdateWeChatPay(ctx context.Context, req *proto.WeChatPayReque
 	}
 	rsp.Code, err = p.SetWechatPay(req)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 	}
 	return nil
 }

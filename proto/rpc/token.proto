@@ -27,6 +27,9 @@ service TokenRPC {
         //代币余额列表
         rpc TokenBalanceList(TokenBalanceListRequest) returns (TokenBalanceListResponse) {};
 
+        //代币交易明细列表
+        rpc TokenTradeList(TokenTradeListRequest) returns (TokenTradeListResponse) {};
+
 
         rpc DelEntrust(DelEntrustRequest) returns (DelEntrustResponse) {}
         //########market##########//
@@ -73,6 +76,46 @@ enum TOKEN_OPT_TYPE //金钱操作类型
     TOTMAX                  =3;
 }
 
+enum TOKEN_OPT_TYPE_ADD_TYPE //加钱类型，TOKEN_OPT_TYPE为ADD时
+{
+    TOAT_NONE                  = 0;
+    BALANCE                    = 1; //加余额
+    FROZEN                     = 2; //加冻结余额
+}
+
+
+//冻结操作类型
+/*
+enum FRONZE_TYPE
+{
+    ENTRUST                         =0;
+    BACK_SURPLUS                     = 3; //交易后剩余数量退款
+}
+*/
+//交易类型
+enum TRADE_STATES //
+{
+    TRADE_NONE                             = 0;//未成交
+    TRADE_PART                    = 1; //部分成交
+    TRADE_ALL                     = 2; //加冻结余额
+    TRADE_DEL                    = 3; //撤单
+}
+
+//资金流水操作类型
+enum TOKEN_TYPE_OPERATOR
+{
+    NONE                                    =0;
+    HISTORY_HASH                            =1;//区块入账
+    HISTORY_ENTRUST                         =2;//委托
+    HISTORY_REGISTER                        =3;//注册奖励
+    HISTORY_IVITE                           =4;//邀请奖励
+    HISTORY_ENTRUST_DEL                     =5;//撤销委托
+    HISTORY_TRADE                           =6;//交易入账
+    HISTORY_FRONZE_BACK                     =7;//
+    HISTORY_FRONZE_SYS_SURPLUS              =8;//系统自动退小额余额
+    FROZEN_COMFIRM_DEL                      =9;//交易确认扣减冻结数量
+}
+
 message  EntrustOrderRequest {
     string symbol                    =2;//交易币种
     int64 on_price                    =3;//委托价格
@@ -93,7 +136,8 @@ message AddTokenNumRequest {
     int64 num = 6;
     TOKEN_OPT_TYPE opt = 7;
     bytes ukey  =8;
-    int32 type  =9;
+    TOKEN_TYPE_OPERATOR type  =9;
+    TOKEN_OPT_TYPE_ADD_TYPE opt_add_type = 10;
 }
 
 message HistoryKlineRequest{
@@ -217,20 +261,56 @@ message TokenBalanceResponse{
 message TokenBalanceListRequest{
     uint64 uid                      =1;
     bool no_zero                 =2;
-}
-
-message TokenListBaseData{
-    int32 token_id                    =1;
-    string token_name                 =2;
-    string balance                    =3;
-    string frozen                     =4;
-    string worth_cny                  =5;
+    int32 token_id               =3;
 }
 
 message TokenBalanceListResponse{
+    message Data{
+        message List{
+            int32 token_id                    =1;
+            string token_name                 =2;
+            string balance                    =3;
+            string frozen                     =4;
+            string worth_cny                  =5;
+        }
+
+        string total_worth_cny              =1;
+        string total_worth_btc              =2;
+        repeated List list                  =3;
+    }
+
     int32 err                             =1;
     string message                        =2;
-    repeated TokenListBaseData list_data  =3;
+    Data data                             =3;
+}
+
+message TokenTradeListRequest{
+    uint64 uid                      =1;
+    int32 page                      =2;
+    int32 page_num                  =3;
+}
+
+message TokenTradeListResponse{
+    message Data {
+        message Detail {
+            int32 trade_id      =1;
+            string token_name   =2;
+            int32 opt             =3;
+            int64 num           =4;
+            int64 fee           =5;
+            int64 deal_time     =6;
+        }
+
+        int32 page_index           =1;
+        int32 page_size            =2;
+        int32 total_page           =3;
+        int32 total                =4;
+        repeated Detail items      =5;
+    }
+
+    int32 err                             =1;
+    string message                        =2;
+    Data data                             =3;
 }
 
 

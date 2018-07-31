@@ -47,7 +47,7 @@ func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, erro
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
-	s.RefreshCache(req.Uid)
+	s.ForceRefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil
 
 }
@@ -111,7 +111,7 @@ func (s *User) ModifyUserPhone2(req *proto.UserSetNewPhoneRequest) (int32, error
 		fmt.Println("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv", err)
 		return ERRCODE_UNKNOWN, err
 	}
-	s.RefreshCache(req.Uid)
+	s.ForceRefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil
 }
 
@@ -148,6 +148,6 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (int32, erro
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
-	s.RefreshCache(req.Uid)
+	s.ForceRefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil
 }

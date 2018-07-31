@@ -92,18 +92,28 @@ service CurrencyRPC {
 
         // 获取法币资产明细
         rpc GetAssetDetail(GetAssetDetailRequest) returns (OtherResponse) {};
+        //
+        rpc GetRecentTransactionPrice(GetRecentTransactionPriceRequest) returns (OtherResponse) {};
 
 }
 
 ////////////////////////
+message GetRecentTransactionPriceRequest {
+    uint32  price_type   = 1;    // 货币类型
+}
+
+
 message GetAssetDetailRequest {
     uint64  uid          = 1;
+    uint32  page         = 2;  // 指定第几页
+    uint32  page_num     = 3;  // 指定每页的记录数
 }
 
 
 message GetTradeHistoryRequest {
     string start_time    = 1;
     string end_time      = 2;
+    int32    limit         = 3;
 }
 
 
@@ -299,6 +309,7 @@ message UserCurrencyRequest {
     uint64 id           = 1;
     uint64 uid          = 2;
     uint32 token_id     = 3;
+    bool   no_zero      = 4;
 }
 
 ////////////////////////// Order ////////////////////////////
@@ -334,6 +345,7 @@ message CancelOrderRequest {
 message AddOrderRequest {
     string  order       = 1;   // 添加订单 的表单
     int32    uid        = 2;   // 用户 id
+                                //int32   type_id     = 3;   // 当前用户选择的交易类型
 }
 
 

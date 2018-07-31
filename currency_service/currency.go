@@ -3,20 +3,29 @@ package main
 import (
 	cf "digicon/currency_service/conf"
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
+	//log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc"
 	"digicon/currency_service/rpc/client"
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
+	"digicon/common/xlog"
 )
+
+
+func init()  {
+	cf.Init()
+	path := cf.Cfg.MustValue("log", "log_dir")
+	name := cf.Cfg.MustValue("log", "log_name")
+	level := cf.Cfg.MustValue("log", "log_level")
+	xlog.InitLogger(path,name,level)
+}
 
 func main() {
 	flag.Parse()
-	cf.Init()
-	InitLog()
-	Log.Infof("begin run server")
+	log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
 
@@ -30,5 +39,5 @@ func main() {
 	)
 
 	sig := <-quitChan
-	Log.Infof("server close by sig %s", sig.String())
+	log.Infof("server close by sig %s", sig.String())
 }

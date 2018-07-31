@@ -2,10 +2,9 @@ package controller
 
 import (
 	"digicon/common/convert"
-	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
-	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	//"github.com/gorilla/websocket"
 	//"time"
+	. "digicon/proto/common"
 	"encoding/json"
 )
 
@@ -23,21 +23,18 @@ type CurrencyGroup struct{}
 func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 	NCurrency := r.Group("/currency")
 	{
-		NCurrency.GET("/tokens", this.GetTokens)          // 获取货币类型
-		NCurrency.GET("/otc_list", this.AdsList)          // 法币交易列表 - (广告(买卖))
-		NCurrency.GET("/otc_user_list", this.AdsUserList) // 个人法币交易列表 - (广告(买卖))
-
-
-
+		NCurrency.GET("/tokens", this.GetTokens)                    // 获取货币类型
+		NCurrency.GET("/otc_list", this.AdsList)                    // 法币交易列表 - (广告(买卖))
+		NCurrency.GET("/otc_user_list", this.AdsUserList)           // 个人法币交易列表 - (广告(买卖))
+		NCurrency.POST("/user_currency_rating", this.GetUserRating) // 获取用戶评级
+		NCurrency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
+		NCurrency.GET("/recent_transaction_price", this.GetRecentTransactionPrice)
 	}
 }
 
 func (this *CurrencyGroup) Router(r *gin.Engine) {
 	Currency := r.Group("/currency", TokenVerify)
-
-	//Currency := r.Group("/currency")
 	{
-
 		Currency.GET("/otc", this.GetAds)                           // 获取广告(买卖)
 		Currency.POST("/created_otc", this.AddAds)                  // 新增广告(买卖)
 		Currency.POST("/updated_otc", this.UpdatedAds)              // 修改广告(买卖)
@@ -79,16 +76,15 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		// 追加
 		Currency.GET("/selling_price", this.GetSellingPrice)       // 售价
 		Currency.GET("/currency_balance", this.GetCurrencyBalance) // 余额
-		Currency.POST("/user_currency_rating", this.GetUserRating) // 获取用戶评级
-		Currency.GET("/trade_history", this.GetTradeHistory)       // 获取历史交易
 
 		//
 		//Currency.GET("/add_user_balance", this.AddUserBalance)
 		Currency.GET("/get_user_currency_detail", this.GetUserCurrencyDetail)
 		Currency.GET("/get_user_currency", this.GetUserCurrency) //  获取法币账户
 
-
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
+
+		Currency.POST("/transfer", this.Transfer)              // 划转
 	}
 }
 
@@ -134,7 +130,7 @@ func (this *CurrencyGroup) GetAds(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -211,7 +207,7 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -354,7 +350,7 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -428,7 +424,7 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -457,7 +453,7 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -468,23 +464,26 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 	}
 
 	// 调用 rpc 修改广告(买卖)状态
-	code, err := rpc.InnerService.CurrencyService.CallUpdatedAdsStatus(&proto.AdsStatusRequest{
+	rsp, err := rpc.InnerService.CurrencyService.CallUpdatedAdsStatus(&proto.AdsStatusRequest{
 		Id:       uint64(req.Id),
 		StatusId: uint32(req.StatusId),
 	})
+	fmt.Println("code:", rsp, err)
 
 	if err != nil {
-		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 
-	if code != 0 {
-		ret.SetErrCode(int32(code))
+
+	if rsp.Code != 0 {
+		ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
 		return
+	}else{
+		ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	}
 
-	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
@@ -536,7 +535,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -575,12 +574,12 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 
 	if err != nil {
 		fmt.Println("rpc error:", err)
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	dataLen := len(data.Data)
-	fmt.Println("dataLen:", dataLen)
+	//fmt.Println("dataLen:", dataLen)
 
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{
@@ -597,22 +596,23 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		for i := 0; i < dataLen; i++ {
 
 			adsLists := AdsListsData{
-				Id:       data.Data[i].Id,
-				Uid:      data.Data[i].Uid,
-				Price:    utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
-				Num:      utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
+				Id:    data.Data[i].Id,
+				Uid:   data.Data[i].Uid,
+				Price: utils.PriceFiat(int64(data.Data[i].Price), req.FiatCurrency),
+				//Num:      utils.NumFiat(int64(data.Data[i].Num), data.Data[i].Balance),
+				Num:      convert.Int64ToFloat64By8Bit(int64(data.Data[i].Num)),
 				MinLimit: data.Data[i].MinLimit,
 				//MaxLimit:    uint32(utils.PriceFiatMaxLimit(int64(data.Data[i].MaxLimit), data.Data[i].Balance, int32(data.Data[i].TypeId), req.FiatCurrency)),
 				MaxLimit:    data.Data[i].MaxLimit,
 				Pays:        data.Data[i].Pays,
 				CreatedTime: data.Data[i].CreatedTime,
 				UpdatedTime: data.Data[i].UpdatedTime,
-				//UserName:    data.Data[i].UserName,
-				//UserFace:    data.Data[i].UserFace,
-				UserVolume: data.Data[i].UserVolume,
-				TypeId:     data.Data[i].TypeId,
-				TokenId:    data.Data[i].TokenId,
-				TokenName:  data.Data[i].TokenName,
+				UserName:    data.Data[i].UserName,
+				UserFace:    data.Data[i].UserFace,
+				UserVolume:  data.Data[i].UserVolume,
+				TypeId:      data.Data[i].TypeId,
+				TokenId:     data.Data[i].TokenId,
+				TokenName:   data.Data[i].TokenName,
 
 				Premium: convert.Int64ToFloat64By8Bit(data.Data[i].Premium),
 				States:  data.Data[i].States,
@@ -622,10 +622,12 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		}
 
 		// 调用 rpc 用户头像和昵称
+		//fmt.Println(userList)
 		ulist, err := rpc.InnerService.UserSevice.CallGetNickName(&proto.UserGetNickNameRequest{Uid: userList})
+		//fmt.Println("ulist:", ulist.User)
 		if err != nil {
 			fmt.Println("get user name error!", err.Error())
-			Log.Errorf(err.Error())
+			log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 			return
 		}
@@ -637,6 +639,7 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		// 添加 用户头像和昵称
 		for l := 0; l < dataLen; l++ {
 			for _, u := range ulist.User {
+				fmt.Println(u.Uid, u.NickName, u.HeadSculpture)
 				if reaList.List[l].Uid == u.Uid {
 					reaList.List[l].UserName = u.NickName
 					reaList.List[l].UserFace = u.HeadSculpture
@@ -669,7 +672,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -695,17 +698,15 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
-	fmt.Println("data:", data)
-
+	//fmt.Println("data:", data)
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{Page: data.Page, PageNum: data.PageNum, Total: data.Total}
 	for _, v := range data.Data {
-
 		adsLists := AdsListsData{
 			Id:          v.Id,
 			Uid:         v.Uid,
@@ -719,6 +720,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 			TypeId:      v.TypeId,
 			TokenId:     v.TokenId,
 			TokenName:   v.TokenName,
+			States:      v.States,
 		}
 
 		reaList.List = append(reaList.List, adsLists)
@@ -744,7 +746,7 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -760,7 +762,7 @@ func (this *CurrencyGroup) GetTokens(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -787,7 +789,7 @@ func (this *CurrencyGroup) GetTokensList(c *gin.Context) {
 	data, err := rpc.InnerService.CurrencyService.CallCurrencyTokensList(&proto.CurrencyTokensRequest{})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -811,7 +813,7 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -827,7 +829,7 @@ func (this *CurrencyGroup) GetPays(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -854,7 +856,7 @@ func (this *CurrencyGroup) GetPaysList(c *gin.Context) {
 	data, err := rpc.InnerService.CurrencyService.CallCurrencyPaysList(&proto.CurrencyPaysRequest{})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -881,7 +883,7 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -902,7 +904,7 @@ func (this *CurrencyGroup) AddChats(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -931,7 +933,7 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -947,7 +949,7 @@ func (this *CurrencyGroup) GetChatsList(c *gin.Context) {
 	})
 
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -970,28 +972,35 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	if req.TokenId == 0 {
-		//ret.SetErrCode(ERRCODE_PARAM)
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
-	// rpc get selling price
 	data, err := rpc.InnerService.CurrencyService.CallGetSellingPrice(&proto.SellingPriceRequest{
 		TokenId: req.TokenId,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
-
-	fmt.Println(data)
-	ret.SetDataSection("price", 48999.0340)
+	//fmt.Println("price:", data)
+	type respPrice struct {
+		Cny float64 `json:"cny"`
+	}
+	var rPrce respPrice
+	err = json.Unmarshal([]byte(data.Data), &rPrce)
+	if err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetDataSection("price", rPrce.Cny)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
@@ -1006,78 +1015,59 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Id      uint64 `form:"id"      json:"id" `
-		Uid     uint64 `form:"uid"     json:"uid"       binding:"required"`
-		TokenId uint32 `form:"token_id" json:"token_id" `
+		Id  uint64 `form:"id"         json:"id" `
+		Uid uint64 `form:"uid"        json:"uid"       binding:"required"`
+		//TokenId uint32 `form:"token_id"   json:"token_id" `
+		NoZero bool `form:"no_zero"   json:"no_zero"  `
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
+		fmt.Println(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.CurrencyService.CallGetUserCurrency(&proto.UserCurrencyRequest{
-		Uid: req.Uid,
+		Uid:    req.Uid,
+		NoZero: req.NoZero,
 	})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
+		fmt.Println(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	type UCurrency struct {
-		Id        uint64 `json:"id"`
-		Uid       uint64 `json:"uid"`
-		TokenId   uint32 `json:"token_id"`
-		TokenName string `json:"token_name"`
-		Address   string `json:"address"`
-	}
-	type UCint struct {
-		Freeze    int64 `json:"freeze"`
-		Balance   int64 `json:"balance"`
-		Valuation int64 `json:"valuation"`
-	}
 
-	type UCfloat struct {
+	type RespBalance struct {
+		Id        uint64  `json:"id"`
+		Uid       uint64  `json:"uid"`
+		TokenId   uint32  `json:"token_id"`
+		TokenName string  `json:"token_name"`
+		Address   string  `json:"address"`
 		Freeze    float64 `json:"freeze"`
 		Balance   float64 `json:"balance"`
 		Valuation float64 `json:"valuation"`
 	}
-	type RespIntCurrency struct {
-		UCurrency
-		UCint
+	type RespData struct {
+		UCurrencyList []RespBalance
+		Sum           float64 `json:"sum"`
+		SumCNY        float64 `json:"sum_cny"`
 	}
-	type RespFloatCurrency struct {
-		UCurrency
-		UCfloat
-	}
-	var uCurrencyList []RespIntCurrency
-	if err = json.Unmarshal([]byte(rsp.Data), &uCurrencyList); err != nil {
-		Log.Errorln(err.Error())
+
+	var respdata RespData
+	if err = json.Unmarshal([]byte(rsp.Data), &respdata); err != nil {
+		log.Errorln(err.Error())
+		fmt.Println(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	var RespUCurrencyList []RespFloatCurrency
-	var sum float64
-	var sumCNY float64
-	for _, ucurrency := range uCurrencyList {
-		var uc RespFloatCurrency
-		uc.Id = ucurrency.Id
-		uc.Uid = ucurrency.Uid
-		uc.TokenId = ucurrency.TokenId
-		uc.TokenName = ucurrency.TokenName
-		uc.Address = ucurrency.Address
-		uc.Balance = convert.Int64ToFloat64By8Bit(ucurrency.Balance)
-		uc.Freeze = convert.Int64ToFloat64By8Bit(ucurrency.Freeze)
-		uc.Valuation = convert.Int64ToFloat64By8Bit(ucurrency.Valuation)
-		sum = sum + uc.Balance
-		sumCNY = sumCNY + uc.Valuation
-		RespUCurrencyList = append(RespUCurrencyList, uc)
-	}
-	ret.SetDataSection("list", RespUCurrencyList)
-	ret.SetDataSection("sum", sum)
-	ret.SetDataSection("sum_cny", sumCNY)
+	//fmt.Println("respdata:", respdata)
+	ret.SetDataSection("list", respdata.UCurrencyList)
+	ret.SetDataSection("sum", respdata.Sum)
+	ret.SetDataSection("sum_cny", respdata.SumCNY)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+
 }
 
 func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
@@ -1092,7 +1082,7 @@ func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -1127,7 +1117,7 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -1142,7 +1132,7 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 		TokenId: req.TokenId,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -1165,7 +1155,7 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -1178,12 +1168,15 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		Uid: req.Uid,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	type UserCurrencyCount struct {
-		Uid uint64 `json:"uid"`
+		Uid           uint64 `json:"uid"`
+		NickName      string `json:"nick_name"`
+		HeadSculpture string `json:"head_scul"`
+		CreatedTime   string `json:"created_time"`
 
 		Cancel uint32  `json:"cancel"` // 取消
 		Good   float64 `json:"good"`   // 好评率
@@ -1208,15 +1201,19 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("uCurrencyCount:", uCurrencyCount)
-
+	//fmt.Println("uCurrencyCount:", uCurrencyCount)
 	ret.SetErrCode(rsp.Code, rsp.Message)
+	ret.SetDataSection("nick_name", uCurrencyCount.NickName)
+	ret.SetDataSection("head_scul", uCurrencyCount.HeadSculpture)
+	ret.SetDataSection("created_time", uCurrencyCount.CreatedTime)
 	ret.SetDataSection("orders", uCurrencyCount.Orders)
+
 	ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
 	ret.SetDataSection("success", uCurrencyCount.Success)
 	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
 	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
+
 	ret.SetDataSection("email_auth", uCurrencyCount.EmailAuth)
 	ret.SetDataSection("phone_auth", uCurrencyCount.PhoneAuth)
 	ret.SetDataSection("real_name", uCurrencyCount.RealName)
@@ -1233,12 +1230,13 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid uint64 `form:"uid"   json:"uid"    binding:"required"` //
-
+		Uid     uint64 `form:"uid"       json:"uid"    binding:"required"` //
+		Page    uint32 `form:"page"      json:"page"`
+		PageNum uint32 `form:"page_num"  json:"page_num"  `
 	}{}
 	err := c.ShouldBind(&req)
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -1247,68 +1245,98 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetAssetDetail(&proto.GetAssetDetailRequest{
-		Uid: req.Uid,
+		Uid:     req.Uid,
+		Page:    req.Page,
+		PageNum: req.PageNum,
 	})
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 
-	type UserCurrencyHisotry struct {
-		Id          int    `json:"id"                `
-		Uid         int32  `json:"uid"               `
-		TradeUid    int32  `json:"trade_uid"         `
-		TradeName   string `json:"trade_name"        `
-		Operator    int    `json:"operator"          `
-		CreatedTime string `json:"created_time"      `
-		TokenId     int    `json:"token_id"          `
-	}
-	type OldUserCurrencyHisotry struct {
-		UserCurrencyHisotry
-		Num  int64 `json:"num"`
-	}
 	type NewUserCurrencyHisotry struct {
-		UserCurrencyHisotry
-		Num         float64  `json:"num"  `
+		Id          int     `json:"id"                  `
+		Uid         int32   `json:"uid"               `
+		TradeUid    int32   `json:"trade_uid"         `
+		TokenId     int     `json:"token_id"            `
+		TokenName   string  `json:"token_name"`
+		Num         float64 `json:"num"                 `
+		Operator    int     `json:"operator"            `
+		CreatedTime string  `json:"created_time"        `
+		TradeName   string  `json:"trade_name"         `
 	}
 
-	var NewList []OldUserCurrencyHisotry
-	err = json.Unmarshal([]byte(rsp.Data) , &NewList)
+	type OldUserTotalHistory struct {
+		NewList []NewUserCurrencyHisotry
+		Total   int64  `json:"total"`
+		Page    uint32 `json:"page"`
+		PageNum uint32 `json:"page_num"`
+	}
+
+	var oldData OldUserTotalHistory
+	err = json.Unmarshal([]byte(rsp.Data), &oldData)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	var dataList []NewUserCurrencyHisotry
-	for _, ul := range NewList{
-		var tmp NewUserCurrencyHisotry
-		tmp.Id = ul.Id
-		tmp.Uid = ul.Uid
-		tmp.TradeUid = ul.TradeUid
-		tmp.TradeName = ul.TradeName
-		tmp.Num = convert.Int64ToFloat64By8Bit(ul.Num)
-		tmp.Operator = ul.Operator
-		tmp.CreatedTime = ul.CreatedTime
-		tmp.TokenId = ul.TokenId
-		dataList = append(dataList, tmp)
-	}
-	ret.SetDataSection("list", dataList)
+
+	ret.SetDataSection("list", oldData.NewList)
+	ret.SetDataSection("total", oldData.Total)
+	ret.SetDataSection("page", oldData.Page)
+	ret.SetDataSection("page_num", oldData.PageNum)
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }
 
 /*
-	测试rpc添加用户余额
+	划转
 */
-func (this *CurrencyGroup) AddUserBalance(ctx *gin.Context) {
-	rsp, err := rpc.InnerService.CurrencyService.CallAddUserBalance(&proto.AddUserBalanceRequest{
-		Uid:     2,
-		TokenId: 2,
-		Amount:  "3.33",
-	})
+func (this *CurrencyGroup) Transfer (c *gin.Context){
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid        uint64 `form:"uid"        json:"uid"           binding:"required"`
+		TokenId    uint32 `form:"token_id"   json:"token_id"      binding:"required"`
+		TransType  uint32 `form:"trans_type" json:"trans_type"    binding:"required"`  // 1: 法币转到币币, 2: 币币转到法币
+		Num        uint64 `form:"num"        json:"num"           binding:"required"`
+	}{}
+	err := c.ShouldBind(&req)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
 	}
-	fmt.Println("rsp:", rsp.Data, rsp.Code, rsp.Message)
+	if req.Uid == 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+
+
+	//ret.SetDataSection("")
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
 }
+
+
+
+
+
+///*
+//	测试rpc添加用户余额
+//*/
+//func (this *CurrencyGroup) AddUserBalance(ctx *gin.Context) {
+//	rsp, err := rpc.InnerService.CurrencyService.CallAddUserBalance(&proto.AddUserBalanceRequest{
+//		Uid:     2,
+//		TokenId: 2,
+//		Amount:  "3.33",
+//	})
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//	fmt.Println("rsp:", rsp.Data, rsp.Code, rsp.Message)
+//}

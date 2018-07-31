@@ -1,12 +1,13 @@
 package controller
 
 import (
-	. "digicon/gateway/log"
+	"digicon/common/convert"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
@@ -29,6 +30,9 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	//btc signtx
 	r.POST("/signtx_btc", this.BtcSigntx) // btc 签名
 	r.POST("/biti_btc", this.BtcTiBi)     // btc
+
+	r.GET("in_list", this.InList)
+	r.GET("out_list", this.OutList)
 }
 
 ///////////////////////// start btc ///////////////////////////
@@ -47,7 +51,7 @@ func (this *WalletGroup) BtcSigntx(ctx *gin.Context) {
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
 		fmt.Println(err.Error())
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -58,6 +62,7 @@ func (this *WalletGroup) BtcSigntx(ctx *gin.Context) {
 		Amount:  param.Amount,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -84,6 +89,7 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
 		fmt.Println(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -94,14 +100,11 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 		Amount:  param.Amount,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 
-	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-		return
-	}
 	ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
 	ret.SetDataSection("txhash", rsp.Data)
 	return
@@ -123,6 +126,7 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(userid, tokenid)
 	if err != nil {
 		//ret.SetDataSection("msg", rsp.Msg)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -153,6 +157,7 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
 		//ret.SetDataSection("msg", rsp.Msg)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -169,6 +174,7 @@ func (this *WalletGroup) Update(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.Callhello("eth")
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		//ctx.String(http.StatusOK, "err 0000 rsp")
 		return
@@ -189,6 +195,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -219,12 +226,14 @@ func (this *WalletGroup) Tibi(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	rsp, err := rpc.InnerService.WalletSevice.CallTibi(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount)
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -246,12 +255,14 @@ func (this *WalletGroup) GetValue(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallGetValue(param.Uid, param.Token_id)
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -274,12 +285,14 @@ func (this *WalletGroup) AddressSave(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressSave(param.Uid, param.Token_id, param.Address, param.Mark)
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -298,6 +311,7 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -306,6 +320,7 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 
 	if err != nil {
 		fmt.Println("ERRCODE_UNKNOWN:", ERRCODE_UNKNOWN)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -328,17 +343,172 @@ func (this *WalletGroup) AddressDelete(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressDelete(param.Uid, param.Id)
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 	ret.SetDataSection("data", rsp.Data)
 	ret.SetDataSection("msg", rsp.Msg)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
+}
+
+// 提币列表
+func (this *WalletGroup) InList(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param := &struct {
+		Uid     int32  `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Page    int32  `form:"page" binding:"required"`
+		PageNum int32  `form:"page_num"`
+	}{}
+
+	if err := ctx.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallInList(&proto.InListRequest{
+		Uid:     param.Uid,
+		Page:    param.Page,
+		PageNum: param.PageNum,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Msg)
+
+	// 重组data
+	type item struct {
+		Id          int32  `json:"id"`
+		TokenId     int32  `json:"token_id"`
+		TokenName   string `json:"token_name"`
+		Amount      string `json:"amount"`
+		Address     string `json:"address"`
+		States      int32  `json:"states"`
+		CreatedTime int64  `json:"create_time"`
+	}
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*item `json:"items"`
+	}
+
+	newItems := make([]*item, len(rsp.Data.Items))
+	for k, v := range rsp.Data.Items {
+		newItems[k] = &item{
+			Id:          v.Id,
+			TokenId:     v.TokenId,
+			TokenName:   v.TokenName,
+			Amount:      convert.Int64ToStringBy8Bit(v.Amount),
+			Address:     v.Address,
+			States:      v.States,
+			CreatedTime: v.CreatedTime,
+		}
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     newItems,
+	}
+
+	ret.SetDataSection("list", newList)
+	return
+}
+
+// 充币列表
+func (this *WalletGroup) OutList(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param := &struct {
+		Uid     int32  `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Page    int32  `form:"page" binding:"required"`
+		PageNum int32  `form:"page_num"`
+	}{}
+
+	if err := ctx.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallOutList(&proto.OutListRequest{
+		Uid:     param.Uid,
+		Page:    param.Page,
+		PageNum: param.PageNum,
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Msg)
+
+	// 重组data
+	type item struct {
+		Id          int32  `json:"id"`
+		TokenId     int32  `json:"token_id"`
+		TokenName   string `json:"token_name"`
+		Amount      string `json:"amount"`
+		Fee         string `json:"fee"`
+		Address     string `json:"address"`
+		Remarks     string `json:"remarks"`
+		States      int32  `json:"states"`
+		CreatedTime int64  `json:"create_time"`
+	}
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*item `json:"items"`
+	}
+
+	newItems := make([]*item, len(rsp.Data.Items))
+	for k, v := range rsp.Data.Items {
+		newItems[k] = &item{
+			Id:          v.Id,
+			TokenId:     v.TokenId,
+			TokenName:   v.TokenName,
+			Amount:      convert.Int64ToStringBy8Bit(v.Amount),
+			Fee:         convert.Int64ToStringBy8Bit(v.Fee),
+			Address:     v.Address,
+			Remarks:     v.Remarks,
+			States:      v.States,
+			CreatedTime: v.CreatedTime,
+		}
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     newItems,
+	}
+
+	ret.SetDataSection("list", newList)
 	return
 }

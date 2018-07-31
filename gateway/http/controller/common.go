@@ -1,9 +1,9 @@
 package controller
 
 import (
-	. "digicon/gateway/log"
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +26,7 @@ func (s *CommonGroup) GetToknesList(c *gin.Context) {
 
 	rsp, err := rpc.InnerService.UserSevice.CallTokensList()
 	if err != nil {
-		Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}

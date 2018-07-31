@@ -2,12 +2,17 @@ package model
 
 import (
 	. "digicon/token_service/dao"
-	. "digicon/token_service/log"
+	log "github.com/sirupsen/logrus"
 )
 
 type ConfigTokenCny struct {
-	TokenId int   `xorm:"not null pk comment(' 币类型') INT(10)"`
-	Price   int64 `xorm:"comment('人民币价格') BIGINT(20)"`
+	TokenId  int   `xorm:"not null pk comment(' 币类型') INT(10)"`
+	Price    int64 `xorm:"comment('人民币价格') BIGINT(20)"`
+	UsdPrice int64 `xorm:"comment('美元价格') BIGINT(20)"`
+}
+
+func (*ConfigTokenCny) TableName() string {
+	return "config_token_cny"
 }
 
 var configTokenCnyData map[int]*ConfigTokenCny
@@ -16,7 +21,7 @@ func InitConfigTokenCny() {
 	configTokenCnyData = make(map[int]*ConfigTokenCny, 0)
 	err := DB.GetMysqlConn().Find(&configTokenCnyData)
 	if err != nil {
-		Log.Fatalln(err.Error())
+		log.Fatalln(err.Error())
 	}
 }
 
@@ -30,4 +35,12 @@ func GetTokenCnyPrice(token_id int) int64 {
 
 func GetCnyData() map[int]*ConfigTokenCny {
 	return configTokenCnyData
+}
+
+func GetTokenUsdPrice(token_id int) int64 {
+	g, ok := configTokenCnyData[token_id]
+	if ok {
+		return g.UsdPrice
+	}
+	return 0
 }

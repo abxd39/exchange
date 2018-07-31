@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"digicon/gateway/log"
+	//"digicon/gateway/log"
 	"digicon/gateway/rpc"
 	Err "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ type ArticleGroup struct{}
 func (this *ArticleGroup) Router(r *gin.Engine) {
 	article := r.Group("/article")
 	{
-		log.Log.Printf("Router func")
+		log.Printf("Router func")
 		article.GET("/des", this.Article)
 		article.GET("/list", this.ArticleList)
 		article.GET("type_list", this.ArticleTypeList)
@@ -30,7 +31,7 @@ func (this *ArticleGroup) ArticleTypeList(c *gin.Context) {
 	}()
 	rsp, err := rpc.InnerService.PublicService.CallGetArticleTypeList(&proto.ArticleTypeRequest{})
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -50,7 +51,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 	}
 	var param ArticleParam
 	if err := c.ShouldBindQuery(&param); err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
@@ -58,7 +59,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 	rsp, err := rpc.InnerService.PublicService.CallArticle(param.Id)
 
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -84,7 +85,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 	}
 	arti := &Article{}
 	if err = json.Unmarshal([]byte(rsp.Data), arti); err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}
@@ -107,14 +108,14 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 	var param ArticleListParam
 	//fmt.Println("param1:", param)
 	if err := c.ShouldBindQuery(&param); err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
 	//fmt.Println("param2:", param)
 	rsp, err := rpc.InnerService.PublicService.CallArticleList(param.ArticleType, param.Page, param.PageNum)
 	if err != nil {
-		log.Log.Errorf(err.Error())
+		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
 		return
 	}

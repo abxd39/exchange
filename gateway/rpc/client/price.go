@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
+	log "github.com/sirupsen/logrus"
 )
 
 type PriceRPCCli struct {
@@ -17,7 +17,7 @@ type PriceRPCCli struct {
 func (s *PriceRPCCli) CallCurrentPrice(p *proto.CurrentPriceRequest) (rsp *proto.CurrentPriceResponse, err error) {
 	rsp, err = s.conn.CurrentPrice(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -26,7 +26,7 @@ func (s *PriceRPCCli) CallCurrentPrice(p *proto.CurrentPriceRequest) (rsp *proto
 func (s *PriceRPCCli) CallSymbols(p *proto.NullRequest) (rsp *proto.SymbolsResponse, err error) {
 	rsp, err = s.conn.Symbols(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -35,7 +35,7 @@ func (s *PriceRPCCli) CallSymbols(p *proto.NullRequest) (rsp *proto.SymbolsRespo
 func (s *PriceRPCCli) CallQuotation(p *proto.QuotationRequest) (rsp *proto.QuotationResponse, err error) {
 	rsp, err = s.conn.Quotation(context.TODO(), p)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -54,6 +54,15 @@ func NewPriceRPCCli() (u *PriceRPCCli) {
 	greeter := proto.NewPriceRPCService(service_name, service.Client())
 	u = &PriceRPCCli{
 		conn: greeter,
+	}
+	return
+}
+
+func (s *PriceRPCCli) CallVolume(p *proto.VolumeRequest) (rsp *proto.VolumeResponse, err error) {
+	rsp, err = s.conn.Volume(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
 	}
 	return
 }

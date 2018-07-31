@@ -2,9 +2,9 @@ package model
 
 import (
 	. "digicon/price_service/dao"
-	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 type ConfigQuenes struct {

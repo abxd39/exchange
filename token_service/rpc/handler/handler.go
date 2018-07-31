@@ -5,10 +5,10 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/token_service/model"
-	"fmt"
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -22,6 +22,20 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 }
 
 func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderRequest, rsp *proto.CommonErrResponse) error {
+
+	log.WithFields(log.Fields{
+		"type":     req.Type,
+		"uid":      req.Uid,
+		"symbol":   req.Symbol,
+		"opt":      req.Opt,
+		"on_price": req.OnPrice,
+		"num":      req.Num,
+	}).Info("EntrustOrder")
+
+	if req.Num == 0 {
+		rsp.Err = ERRCODE_PARAM
+		return nil
+	}
 	q, ok := model.GetQueneMgr().GetQueneByUKey(req.Symbol)
 	if !ok {
 		rsp.Err = ERR_TOKEN_QUENE_CONF
@@ -125,7 +139,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, 5)
+	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, 4)
 	if err == redis.Nil {
 
 	} else if err != nil {
@@ -144,7 +158,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		}
 	}
 
-	others, err = q.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 2, 5)
+	others, err = q.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 2, 4)
 	if err == redis.Nil {
 
 	} else if err != nil {
@@ -255,13 +269,18 @@ func (s *RPCServer) TokenBalance(ctx context.Context, req *proto.TokenBalanceReq
 }
 
 func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanceListRequest, rsp *proto.TokenBalanceListResponse) error {
-	filter := map[string]string{
-		"uid": fmt.Sprintf("%d", req.Uid),
+	// 组装筛选
+	filter := map[string]interface{}{
+		"uid": req.Uid,
 	}
 	if req.NoZero {
-		filter["no_zero"] = "no_zero"
+		filter["no_zero"] = req.NoZero
+	}
+	if req.TokenId > 0 {
+		filter["token_id"] = req.TokenId
 	}
 
+	// 查询model
 	d := &model.UserToken{}
 	list, err := d.GetUserTokenList(filter)
 	if err != nil {
@@ -270,37 +289,56 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		return nil
 	}
 
-	for _, v := range list {
-		worthCny := convert.Int64MulInt64By8Bit(v.Balance, model.GetTokenCnyPrice(int(v.TokenId)))
-
-		rsp.ListData = append(rsp.ListData, &proto.TokenListBaseData{
+	// 拼接返回数据
+	rsp.Data = &proto.TokenBalanceListResponse_Data{}
+	rsp.Data.List = make([]*proto.TokenBalanceListResponse_Data_List, len(list))
+	for k, v := range list {
+		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
 			Balance:   convert.Int64ToStringBy8Bit(v.Balance),
 			Frozen:    convert.Int64ToStringBy8Bit(v.Frozen),
-			WorthCny:  convert.Int64ToStringBy8Bit(worthCny),
-		})
+			WorthCny:  v.WorthCny,
+		}
 	}
+
+	// 合计
+	rsp.Data.TotalWorthCny = "11111"
+	rsp.Data.TotalWorthBtc = "22222"
 
 	return nil
 }
 
-func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
-	d := &model.ConfigQuenes{}
-	g := d.GetQuenesByType(req.TokenId)
-	for _, v := range g {
-		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
-			Symbol: v.Name,
-			/*
-				Price:  convert.Int64ToStringBy8Bit(v.Price),
+func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeListRequest, rsp *proto.TokenTradeListResponse) error {
+	// 查询model
+	tradeMD := &model.Trade{}
+	modelList, list, err := tradeMD.GetUserTradeList(int(req.Page), int(req.PageNum), req.Uid)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
 
-				Scope:  v.Scope,
-				Low:    convert.Int64ToStringBy8Bit(v.Low),
-				High:   convert.Int64ToStringBy8Bit(v.High),
-				Amount: convert.Int64ToStringBy8Bit(v.Amount),
-			*/
+	// 拼接返回数据
+	rsp.Data = new(proto.TokenTradeListResponse_Data)
+	rsp.Data.Items = make([]*proto.TokenTradeListResponse_Data_Detail, 0)
+
+	rsp.Data.PageIndex = int32(modelList.PageIndex)
+	rsp.Data.PageSize = int32(modelList.PageSize)
+	rsp.Data.TotalPage = int32(modelList.PageCount)
+	rsp.Data.Total = int32(modelList.Total)
+
+	for _, v := range list {
+		rsp.Data.Items = append(rsp.Data.Items, &proto.TokenTradeListResponse_Data_Detail{
+			TradeId:   int32(v.TradeId),
+			TokenName: v.TokenName,
+			Opt:       int32(v.Opt),
+			Num:       v.Num,
+			Fee:       v.Fee,
+			DealTime:  v.DealTime,
 		})
 	}
+
 	return nil
 }
 
@@ -327,6 +365,25 @@ func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, 
 }
 
 func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest, rsp *proto.DelEntrustResponse) error {
+	e := model.GetEntrust(req.EntrustId)
+	if e == nil {
+		rsp.Err = ERR_TOKEN_ENTRUST_EXIST
+		return nil
+	}
+	if proto.TRADE_STATES(e.States) == proto.TRADE_STATES_TRADE_DEL || proto.TRADE_STATES(e.States) == proto.TRADE_STATES_TRADE_ALL {
+		rsp.Err = ERR_TOKEN_ENTRUST_STATES
+		return nil
+	}
+	q, ok := model.GetQueneMgr().GetQueneByUKey(e.Symbol)
+	if !ok {
+		rsp.Err = ERR_TOKEN_QUENE_CONF
+		rsp.Message = GetErrorMessage(rsp.Err)
+		return nil
+	}
 
+	err := q.DelEntrust(e)
+	if err != nil {
+		return nil
+	}
 	return nil
 }

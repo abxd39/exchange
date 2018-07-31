@@ -2,7 +2,7 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	"digicon/currency_service/log"
+	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc/client"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -27,11 +27,11 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 		AuthType: 10, // 设置银行卡支付 10
 	})
 	if err != nil {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	if rsp.Code != ERRCODE_SUCCESS {
-		log.Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 

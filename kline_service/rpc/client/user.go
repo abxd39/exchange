@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	cf "digicon/kline_service/conf"
-	. "digicon/kline_service/log"
+	log "github.com/sirupsen/logrus"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -17,7 +17,7 @@ type UserRPCCli struct {
 func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
 	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return

@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 	cf "digicon/gateway/conf"
-	. "digicon/gateway/log"
 	proto "digicon/proto/rpc"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
@@ -18,7 +18,7 @@ type CurrencyRPCCli struct {
 func (s *CurrencyRPCCli) CallAdmin(name string) (rsp *proto.AdminResponse, err error) {
 	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return
 	}
 	return
@@ -60,9 +60,9 @@ func (s *CurrencyRPCCli) CallUpdatedAds(req *proto.AdsModel) (int, error) {
 }
 
 // 调用 rpc 修改广告(买卖)状态
-func (s *CurrencyRPCCli) CallUpdatedAdsStatus(req *proto.AdsStatusRequest) (int, error) {
+func (s *CurrencyRPCCli) CallUpdatedAdsStatus(req *proto.AdsStatusRequest) (*proto.CurrencyResponse, error) {
 	rsp, err := s.conn.UpdatedAdsStatus(context.TODO(), req)
-	return int(rsp.Code), err
+	return rsp, err
 }
 
 // 调用 rpc 法币交易列表 - (广告(买卖))
@@ -118,9 +118,9 @@ func (s *CurrencyRPCCli) CallGetUserCurrency(req *proto.UserCurrencyRequest) (*p
 	rsp, err := s.conn.GetUserCurrency(context.TODO(), req)
 	return rsp, err
 }
-func (s *CurrencyRPCCli) CallGetUserCurrencyDetail(req *proto.UserCurrencyRequest) (*proto.UserCurrency, error){
+func (s *CurrencyRPCCli) CallGetUserCurrencyDetail(req *proto.UserCurrencyRequest) (*proto.UserCurrency, error) {
 	rsp, err := s.conn.GetUserCurrencyDetail(context.TODO(), req)
-	return  rsp, err
+	return rsp, err
 }
 
 // get 售价
@@ -147,9 +147,8 @@ func (s *CurrencyRPCCli) CallAddUserBalance(req *proto.AddUserBalanceRequest) (*
 	return rsp, err
 }
 
-
 //
-func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*proto.OtherResponse, error){
+func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.GetAssetDetail(context.TODO(), req)
 	return rsp, err
 }

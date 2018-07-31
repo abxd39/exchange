@@ -9,6 +9,23 @@ import (
 	"time"
 )
 
+func GenMd5AndReverse(pwd string) string  {
+	h := sha256.New()
+	h.Write([]byte(pwd))
+	bs := h.Sum(nil)
+	s:= fmt.Sprintf("%x", bs)
+	return ReverseString(s)
+}
+
+func ReverseString(s string) string {
+	runes := []rune(s)
+	for from, to := 0, len(runes)-1; from < to; from, to = from+1, to-1 {
+		runes[from], runes[to] = runes[to], runes[from]
+	}
+	return string(runes)
+}
+
+
 func Gensha256(phone string, nowtime int64, salt string) string {
 	s := fmt.Sprintf("%s%d%s", phone, nowtime, salt)
 	h := sha256.New()

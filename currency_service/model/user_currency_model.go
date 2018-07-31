@@ -2,8 +2,8 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	. "digicon/currency_service/log"
 	"errors"
+	log "github.com/sirupsen/logrus"
 )
 
 // 用户虚拟货币资产表
@@ -31,7 +31,7 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 	}
 
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return nil
 	}
 
@@ -42,13 +42,15 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 	return data
 }
 
-
-func (this *UserCurrency) GetUserCurrency(uid uint64) (uCurrenList []UserCurrency, err error){
+func (this *UserCurrency) GetUserCurrency(uid uint64, nozero bool) (uCurrenList []UserCurrency, err error) {
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("uid = ?", uid).Find(&uCurrenList)
+	if nozero {
+		err = engine.Where("uid = ? AND balance > 0 ", uid).Find(&uCurrenList)
+	} else {
+		err = engine.Where("uid=?", uid).Find(&uCurrenList)
+	}
 	return
 }
-
 
 func (this *UserCurrency) GetBalance(uid uint64, token_id uint32) (data UserCurrency, err error) {
 	//data := new(UserCurrency)
@@ -62,11 +64,11 @@ func (this *UserCurrency) SetBalance(uid uint64, token_id uint32, amount int64) 
 	sql := "UPDATE user_currency SET   balance= balance + ?, version = version + 1 WHERE uid = ? AND token_id = ? AND version = ?"
 	sqlRest, err := engine.Exec(sql, amount, uid, token_id, this.Version)
 	if err != nil {
-		Log.Errorln(err.Error())
+		log.Errorln(err.Error())
 		return err
 	}
 	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
-		Log.Errorln("添加余额失败")
+		log.Errorln("添加余额失败")
 		err = errors.New("添加余额失败!")
 		return err
 	}
