@@ -11,13 +11,13 @@ import (
 	"strconv"
 	"time"
 
+	. "digicon/common/constant"
+	. "digicon/proto/common"
+	. "digicon/user_service/dao"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
 	"github.com/pkg/errors"
-	. "digicon/proto/common"
-	. "digicon/user_service/dao"
-	. "digicon/common/constant"
 )
 
 type User struct {
@@ -38,6 +38,15 @@ type User struct {
 	Status           int    `xorm:"default 0 comment('用户状态，1正常，2冻结') INT(11)"`
 	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
 	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
+}
+
+type UidAndInviteID struct {
+	Uid      uint64
+	InviteId uint64
+}
+
+func (*User) TableName() string {
+	return "user"
 }
 
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
@@ -111,6 +120,22 @@ func (s *User) GetUserByInviteCode(inviteCode string) (ret int32, err error) {
 	}
 	ret = ERRCODE_ACCOUNT_NOTEXIST
 	return
+}
+
+// 获取注册未获得奖励
+func (s *User) GetRegisterNoRewardUser() ([]*UidAndInviteID, error) {
+	var uidAndInviteID []*UidAndInviteID
+	err := DB.GetMysqlConn().SQL(fmt.Sprintf("SELECT u.uid,ue.invite_id FROM"+
+		" %s u JOIN %s ue ON ue.uid=u.uid"+
+		" WHERE u.uid NOT IN (SELECT uid FROM %s)"+
+		" ORDER BY ue.register_time ASC", s.TableName(), new(UserEx).TableName(), new(TokenFrozen).TableName())).
+		Limit(1000).
+		Find(&uidAndInviteID)
+	if err != nil {
+		return nil, err
+	}
+
+	return uidAndInviteID, nil
 }
 
 //序列化用户基础数据
@@ -337,7 +362,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 			Uid:          e.Uid,
 			RegisterTime: time.Now().Unix(),
 			InviteCode:   str_code,
-			NickName:     e.Account,             //  注册的时候，昵称直接等与账户名
+			NickName:     e.Account, //  注册的时候，昵称直接等与账户名
 		}
 
 		_, err = DB.GetMysqlConn().Insert(m)
