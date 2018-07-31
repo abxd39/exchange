@@ -191,6 +191,7 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurren
 		//Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
 		Join("LEFT", "user_currency_count", "ads.uid=user_currency_count.uid").
 		Where("ads.type_id=? AND ads.token_id=?", TypeId, TokenId).
+		Where("ads.is_del != 1").
 		Desc("updated_time").
 		Limit(int(PageNum), limit).
 		Find(&data)
