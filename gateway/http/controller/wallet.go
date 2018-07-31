@@ -62,6 +62,7 @@ func (this *WalletGroup) BtcSigntx(ctx *gin.Context) {
 		Amount:  param.Amount,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -88,6 +89,7 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
 		fmt.Println(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -98,14 +100,11 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 		Amount:  param.Amount,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 
-	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-		return
-	}
 	ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
 	ret.SetDataSection("txhash", rsp.Data)
 	return
@@ -127,6 +126,7 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(userid, tokenid)
 	if err != nil {
 		//ret.SetDataSection("msg", rsp.Msg)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -157,6 +157,7 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
 		//ret.SetDataSection("msg", rsp.Msg)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -173,6 +174,7 @@ func (this *WalletGroup) Update(ctx *gin.Context) {
 
 	rsp, err := rpc.InnerService.WalletSevice.Callhello("eth")
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		//ctx.String(http.StatusOK, "err 0000 rsp")
 		return
@@ -193,6 +195,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -223,12 +226,14 @@ func (this *WalletGroup) Tibi(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 	rsp, err := rpc.InnerService.WalletSevice.CallTibi(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount)
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -250,12 +255,14 @@ func (this *WalletGroup) GetValue(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallGetValue(param.Uid, param.Token_id)
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -278,12 +285,14 @@ func (this *WalletGroup) AddressSave(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressSave(param.Uid, param.Token_id, param.Address, param.Mark)
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -302,6 +311,7 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -310,6 +320,7 @@ func (this *WalletGroup) AddressList(ctx *gin.Context) {
 
 	if err != nil {
 		fmt.Println("ERRCODE_UNKNOWN:", ERRCODE_UNKNOWN)
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
@@ -332,12 +343,14 @@ func (this *WalletGroup) AddressDelete(ctx *gin.Context) {
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
 
 	rsp, err := rpc.InnerService.WalletSevice.CallAddressDelete(param.Uid, param.Id)
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -447,6 +460,7 @@ func (this *WalletGroup) OutList(ctx *gin.Context) {
 		PageNum: param.PageNum,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}

@@ -84,7 +84,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
 
-		//Currency.POST("/transfer", this.Transfer)              // 划转
+		Currency.POST("/transfer", this.Transfer)              // 划转
 	}
 }
 
@@ -464,23 +464,26 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 	}
 
 	// 调用 rpc 修改广告(买卖)状态
-	code, err := rpc.InnerService.CurrencyService.CallUpdatedAdsStatus(&proto.AdsStatusRequest{
+	rsp, err := rpc.InnerService.CurrencyService.CallUpdatedAdsStatus(&proto.AdsStatusRequest{
 		Id:       uint64(req.Id),
 		StatusId: uint32(req.StatusId),
 	})
+	fmt.Println("code:", rsp, err)
 
 	if err != nil {
 		log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 
-	if code != 0 {
-		ret.SetErrCode(int32(code))
+
+	if rsp.Code != 0 {
+		ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
 		return
+	}else{
+		ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	}
 
-	ret.SetErrCode(ERRCODE_SUCCESS)
 
 }
 
@@ -701,11 +704,9 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 	}
 
 	//fmt.Println("data:", data)
-
 	// 法币交易列表 - 响应数据结构
 	reaList := AdsListResponse{Page: data.Page, PageNum: data.PageNum, Total: data.Total}
 	for _, v := range data.Data {
-
 		adsLists := AdsListsData{
 			Id:          v.Id,
 			Uid:         v.Uid,
@@ -719,6 +720,7 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 			TypeId:      v.TypeId,
 			TokenId:     v.TokenId,
 			TokenName:   v.TokenName,
+			States:      v.States,
 		}
 
 		reaList.List = append(reaList.List, adsLists)
@@ -1288,53 +1290,53 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 	return
 }
 
-///*
-//
-//*/
-//func (this *CurrencyGroup) Transfer (c *gin.Context){
-//	ret := NewPublciError()
-//	defer func() {
-//		c.JSON(http.StatusOK, ret.GetResult())
-//	}()
-//	req := struct {
-//		Uid     uint64 `form:"uid"       json:"uid" binding:"required"`
-//		TokenId uint32 `form:"token_id"  json:"token_id" binding:"required"`
-//		Num     uint64 `form:"num"       json:"num"`
-//
-//	}{}
-//	err := c.ShouldBind(&req)
-//	if err != nil {
-//		log.Errorf(err.Error())
-//		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-//		return
-//	}
-//	if req.Uid == 0 {
-//		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
-//		return
-//	}
-//
-//
-//
-//	//ret.SetDataSection("", )
-//
-//	//ret.SetDataSection("")
-//
-//	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
-//	return
-//}
-//
-
 /*
-	测试rpc添加用户余额
+	划转
 */
-func (this *CurrencyGroup) AddUserBalance(ctx *gin.Context) {
-	rsp, err := rpc.InnerService.CurrencyService.CallAddUserBalance(&proto.AddUserBalanceRequest{
-		Uid:     2,
-		TokenId: 2,
-		Amount:  "3.33",
-	})
+func (this *CurrencyGroup) Transfer (c *gin.Context){
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid        uint64 `form:"uid"        json:"uid"           binding:"required"`
+		TokenId    uint32 `form:"token_id"   json:"token_id"      binding:"required"`
+		TransType  uint32 `form:"trans_type" json:"trans_type"    binding:"required"`  // 1: 法币转到币币, 2: 币币转到法币
+		Num        uint64 `form:"num"        json:"num"           binding:"required"`
+	}{}
+	err := c.ShouldBind(&req)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
 	}
-	fmt.Println("rsp:", rsp.Data, rsp.Code, rsp.Message)
+	if req.Uid == 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+
+
+	//ret.SetDataSection("")
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
 }
+
+
+
+
+
+///*
+//	测试rpc添加用户余额
+//*/
+//func (this *CurrencyGroup) AddUserBalance(ctx *gin.Context) {
+//	rsp, err := rpc.InnerService.CurrencyService.CallAddUserBalance(&proto.AddUserBalanceRequest{
+//		Uid:     2,
+//		TokenId: 2,
+//		Amount:  "3.33",
+//	})
+//	if err != nil {
+//		fmt.Println(err.Error())
+//	}
+//	fmt.Println("rsp:", rsp.Data, rsp.Code, rsp.Message)
+//}

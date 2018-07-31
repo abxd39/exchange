@@ -60,9 +60,9 @@ func (s *CurrencyRPCCli) CallUpdatedAds(req *proto.AdsModel) (int, error) {
 }
 
 // 调用 rpc 修改广告(买卖)状态
-func (s *CurrencyRPCCli) CallUpdatedAdsStatus(req *proto.AdsStatusRequest) (int, error) {
+func (s *CurrencyRPCCli) CallUpdatedAdsStatus(req *proto.AdsStatusRequest) (*proto.CurrencyResponse, error) {
 	rsp, err := s.conn.UpdatedAdsStatus(context.TODO(), req)
-	return int(rsp.Code), err
+	return rsp, err
 }
 
 // 调用 rpc 法币交易列表 - (广告(买卖))
