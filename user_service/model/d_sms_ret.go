@@ -17,7 +17,7 @@ import (
 )
 
 // 验证类型   1 注册 2 忘记密码 3 修改手机号码 4重置谷歌验证码 5 重置资金密码 6 修改登录密码 7 设置银行卡支付 8 设置微信支付 9 设置支付宝支付 10 设置PayPal支付
-//           11 绑定手机  12 绑定邮箱
+//           11 绑定手机  12 绑定邮箱, 13 提币
 const (
 	SMS_REGISTER         = 1 //注册业务
 	SMS_FORGET           = 2
@@ -31,7 +31,8 @@ const (
 	SMS_PAYPAL_PAY       = 10
 	SMS_BIND_PHONE       = 11
 	SMS_BIND_EMAIL       = 12
-	SMS_MAX              = 13
+	SMS_CARRY_COIN       = 13
+	SMS_MAX              = 14
 )
 
 //发送短信
