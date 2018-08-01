@@ -9,7 +9,6 @@ import (
 	"golang.org/x/net/context"
 
 	"digicon/token_service/rpc/client"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
@@ -301,7 +300,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			TokenName: v.TokenName,
 			Balance:   convert.Int64ToStringBy8Bit(v.Balance),
 			Frozen:    convert.Int64ToStringBy8Bit(v.Frozen),
-			WorthCny:  strconv.FormatFloat(v.WorthCny, 'f', -1, 64),
+			WorthCny:  convert.Int64ToStringBy8Bit(int64(v.WorthCny * 100000000)),
 		}
 	}
 
@@ -323,8 +322,8 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 
 	price, _ := strconv.ParseFloat(priceRsp.Data[symbol].Price, 64)
 
-	rsp.Data.TotalWorthCny = fmt.Sprint(totalMoney.TotalCny)
-	rsp.Data.TotalWorthBtc = fmt.Sprintf("%.8f", totalMoney.TotalUsd/price)
+	rsp.Data.TotalWorthCny = convert.Int64ToStringBy8Bit(int64(totalMoney.TotalCny * 100000000))
+	rsp.Data.TotalWorthBtc = convert.Int64ToStringBy8Bit(int64(totalMoney.TotalUsd / price * 100000000))
 
 	return nil
 }
