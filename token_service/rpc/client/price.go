@@ -22,6 +22,10 @@ func (s *PriceRPCCli) CallLastPrice(symbol string) (*proto.LastPriceResponse, er
 
 }
 
+func (p *PriceRPCCli) CallGetSymbolsRate(symbols []string) (rsp *proto.GetSymbolsRateResponse, err error) {
+	return p.conn.GetSymbolsRate(context.TODO(), &proto.GetSymbolsRateRequest{Symbols: symbols})
+}
+
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

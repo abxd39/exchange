@@ -125,10 +125,9 @@ func (s *User) GetUserByInviteCode(inviteCode string) (ret int32, err error) {
 // 获取注册未获得奖励
 func (s *User) GetRegisterNoRewardUser() ([]*UidAndInviteID, error) {
 	var uidAndInviteID []*UidAndInviteID
-	err := DB.GetMysqlConn().SQL(fmt.Sprintf("SELECT u.uid,ue.invite_id FROM"+
-		" %s u JOIN %s ue ON ue.uid=u.uid"+
-		" WHERE u.uid NOT IN (SELECT uid FROM %s WHERE type=%d)"+
-		" ORDER BY ue.register_time ASC", s.TableName(), new(UserEx).TableName(), new(TokenFrozen).TableName(), proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER)).
+	err := DB.GetMysqlConn().SQL(fmt.Sprintf("SELECT uid,invite_id FROM %s"+
+		" WHERE uid NOT IN (SELECT uid FROM %s WHERE type=%d)"+
+		" ORDER BY register_time ASC", new(UserEx).TableName(), new(TokenFrozen).TableName(), proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER)).
 		Limit(1000).
 		Find(&uidAndInviteID)
 	if err != nil {

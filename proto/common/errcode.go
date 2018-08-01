@@ -17,7 +17,7 @@ const (
 	ERRCODE_UNKNOWN     = 1
 	ERRCODE_PARAM       = 2
 	ERRCODE_TOKENVERIFY = 3
-	ERRCODE_GREE= 4
+	ERRCODE_GREE        = 4
 	//200-
 	ERRCODE_ACCOUNT_EXIST     = 202
 	ERRCODE_ACCOUNT_NOTEXIST  = 203
@@ -44,11 +44,9 @@ const (
 	ERRCODE_PHONE_NOT_EXIST = 221
 	ERRCODE_INVITE          = 222
 
-	ERRCODE_EMAIL_EXIST = 223
 
-
-	ERRCODE_UOPLOA_FAILED =224
-
+	ERRCODE_EMAIL_EXIST   = 223
+	ERRCODE_UOPLOA_FAILED = 224
 
 	//300-
 
@@ -60,12 +58,12 @@ const (
 	ERRCODE_ADS_EXISTS        = 306
 
 	//400-
-	ERR_TOKEN_QUENE_NIL  = 401
-	ERR_TOKEN_LESS       = 402
-	ERR_TOKEN_REPEAT     = 403
-	ERR_TOKEN_QUENE_CONF = 404
+	ERR_TOKEN_QUENE_NIL      = 401
+	ERR_TOKEN_LESS           = 402
+	ERR_TOKEN_REPEAT         = 403
+	ERR_TOKEN_QUENE_CONF     = 404
 	ERR_TOKEN_ENTRUST_STATES = 405
-	ERR_TOKEN_ENTRUST_EXIST = 406
+	ERR_TOKEN_ENTRUST_EXIST  = 406
 
 	ERRCODE_ORDER_FREEZE = 420
 	ERRCODE_SELLER_LESS  = 421
@@ -103,7 +101,6 @@ func init() {
 	message[ERRCODE_PARAM] = "参数错误"
 	message[ERRCODE_TOKENVERIFY] = "令牌失效"
 	message[ERRCODE_GREE] = "智能验证失败"
-
 
 	message[ERRCODE_ACCOUNT_EXIST] = "账户已经存在"
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"
@@ -144,13 +141,12 @@ func init() {
 	message[ERR_TOKEN_ENTRUST_STATES] = "委托状态错误"
 	message[ERR_TOKEN_ENTRUST_EXIST] = "委托不存在"
 
-
 	message[ERRCODE_ACCOUNT_BANK_CARD_NUMBER_MISMATCH] = "两次输入的银行卡号码不相同"
 	message[ERRCODE_ARTICLE_NOT_EXIST] = "文章不存在"
 	message[ERRCODE_PHONE_EXIST] = "电话号码已经存在"
 	message[ERRCODE_PHONE_NOT_EXIST] = "电话号码不存在"
 	message[ERRCODE_EMAIL_EXIST] = "邮箱已经存在"
-	message[ERRCODE_UOPLOA_FAILED] ="上传图片到oss 失败"
+	message[ERRCODE_UOPLOA_FAILED] = "上传图片到oss 失败"
 }
 
 type PublicErrorType struct {

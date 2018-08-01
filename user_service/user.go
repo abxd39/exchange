@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 func init() {
@@ -33,11 +32,6 @@ func main() {
 
 	// 定时脚本
 	cron.InitCron()
-
-	// todo 2018-07-31临时处理，待删除
-	if time.Now().Unix() < 1533063600 {
-		cron.RegisterNoReward()
-	}
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

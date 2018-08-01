@@ -8,7 +8,10 @@ import (
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 
+	"digicon/token_service/rpc/client"
+	"fmt"
 	log "github.com/sirupsen/logrus"
+	"strconv"
 	"time"
 )
 
@@ -281,8 +284,8 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	}
 
 	// 查询model
-	d := &model.UserToken{}
-	list, err := d.GetUserTokenList(filter)
+	userTokenMD := &model.UserToken{}
+	list, err := userTokenMD.GetUserTokenList(filter)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
 		rsp.Message = err.Error()
@@ -302,9 +305,26 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		}
 	}
 
-	// 合计
-	rsp.Data.TotalWorthCny = "11111"
-	rsp.Data.TotalWorthBtc = "22222"
+	// 折合人民币、Btc
+	totalMoney, err := userTokenMD.CalcTotalMoney(req.Uid)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	symbol := "BTC/USDT"
+	priceRsp, err := client.InnerService.PriceService.CallGetSymbolsRate([]string{symbol})
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	price, _ := strconv.ParseFloat(priceRsp.Data[symbol].Price, 64)
+
+	rsp.Data.TotalWorthCny = fmt.Sprint(totalMoney.TotalCny)
+	rsp.Data.TotalWorthBtc = fmt.Sprintf("%.8f", totalMoney.TotalUsd/price)
 
 	return nil
 }
