@@ -69,6 +69,13 @@ func Int64MulInt64By8BitString(a int64, b int64) string {
 	return r.String()
 }
 
+func Int64MulFloat64(a int64, b float64) int64 {
+	dd := decimal.New(a, 0)
+	dp := decimal.NewFromFloat(b)
+	m := dd.Mul(dp)
+	return m.IntPart()
+}
+
 //两数相除保持8位
 func Int64DivInt64By8Bit(a int64, b int64) int64 {
 	dd := decimal.New(a, 0)

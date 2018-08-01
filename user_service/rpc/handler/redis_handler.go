@@ -9,10 +9,12 @@ import (
 	"fmt"
 
 	"digicon/common/constant"
-	"github.com/GeeTeam/GtGoSdk"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"golang.org/x/net/context"
+	log "github.com/sirupsen/logrus"
+	"github.com/GeeTeam/GtGoSdk"
+	cf "digicon/user_service/conf"
 )
 
 //获取谷歌验密钥
@@ -257,36 +259,57 @@ func (s *RPCServer) GetUserInvite(ctx context.Context, req *proto.UserInfoReques
 }
 
 func (s *RPCServer) Api1(ctx context.Context, req *proto.Api1Request, rsp *proto.Api1Response) error {
-	GtPrivateKey := "668d6d27cb1186d138eb9b225436e4b9"
-	GtCaptchaID := "73909f4a67161216debdcb3de16ef6c5"
-	gt := GtGoSdk.GeetestLib(GtPrivateKey, GtCaptchaID)
-	gt.PreProcess(req.Phone)
-	responseMap := gt.GetResponseMap()
+	Gt := GtGoSdk.GeetestLib(cf.GtPrivateKey, cf.GtCaptchaID)
+	Gt.PreProcess(req.Phone)
+	responseMap := Gt.GetResponseMap()
 
 	rsp.Data = &proto.Api1BaseData{}
-	r, _ := responseMap["gt"]
+	r, ok := responseMap["gt"]
+	if !ok {
+		rsp.Err=ERRCODE_UNKNOWN
+		return nil
+	}
 	rsp.Data.Gt = r.(string)
-	r, _ = responseMap["challenge"]
+	r, ok = responseMap["challenge"]
+	if !ok {
+		rsp.Err=ERRCODE_UNKNOWN
+		return nil
+	}
 	rsp.Data.Challenge = r.(string)
 
-	r, _ = responseMap["success"]
+	r, ok = responseMap["success"]
+	if !ok {
+		rsp.Err=ERRCODE_UNKNOWN
+		return nil
+	}
 	rsp.Data.Success = int32(r.(int))
 
+	log.WithFields(log.Fields{
+		"Challenge":   rsp.Data.Challenge,
+		"Gt":    rsp.Data.Gt,
+		"Phone":req.Phone,
+	}).Info("Api1")
 	return nil
 }
 
 func (s *RPCServer) Api2(ctx context.Context, req *proto.Api2Request, rsp *proto.Api2Response) error {
-	GtPrivateKey := "668d6d27cb1186d138eb9b225436e4b9"
-	GtCaptchaID := "73909f4a67161216debdcb3de16ef6c5"
-	gt := GtGoSdk.GeetestLib(GtPrivateKey, GtCaptchaID)
 
+	Gt := GtGoSdk.GeetestLib(cf.GtPrivateKey, cf.GtCaptchaID)
 	var result bool
 	if req.Status==0 {
-		result = gt.FailbackValidate(req.Challenge, req.Validate, req.Seccode)
+		result = Gt.FailbackValidate(req.Challenge, req.Validate, req.Seccode)
 	}else{
-		result = gt.SuccessValidate(req.Challenge, req.Validate, req.Seccode,req.Phone)
+		result = Gt.SuccessValidate(req.Challenge, req.Validate, req.Seccode,req.Phone)
 	}
 
+	log.WithFields(log.Fields{
+		"Challenge":    req.Challenge,
+		"Validate":    req.Validate,
+		"Seccode":  req.Seccode,
+		"Status":    req.Status,
+		"Phone": req.Phone,
+		"result":result,
+	}).Info("Api2")
 	if result {
 		model.SetGreeSuccess(req.Phone)
 		rsp.Err = ERRCODE_SUCCESS

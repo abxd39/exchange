@@ -85,6 +85,11 @@ type EntrustQuene struct {
 	usd int64
 	//人民币成交额
 	usd_vol int64
+
+	//买入手续费
+	BuyPoundage float64
+	//卖出手续费
+	SellPoundage float64
 }
 
 type TradeInfo struct {
@@ -97,9 +102,9 @@ func GenSourceKey(en string) string {
 	return fmt.Sprintf("source:%s", en)
 }
 
-func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny ,usd int64, amount, vol, count ,usd_vol int64) *EntrustQuene {
+func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny, usd int64, amount, vol, count, usd_vol int64) *EntrustQuene {
 	quene_id := name
-
+	log.Infof("load config symbol %s",name)
 	m := &EntrustQuene{
 		TokenQueueId:      quene_id,
 		PriceChannel:      genkey.GetPulishKey(quene_id),
@@ -115,8 +120,11 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny
 		marketOrderDetail: make(chan *EntrustData, 1000),
 		price:             price,
 		cny:               cny,
-		usd:usd,
-		usd_vol:usd_vol,
+		usd:               usd,
+		usd_vol:           usd_vol,
+		amount:            amount,
+		vol:               vol,
+		count:             count,
 	}
 	go m.process()
 	go m.Clock()
@@ -129,6 +137,7 @@ func (s *EntrustQuene) GetUUID() int64 {
 }
 
 //平台自动委托
+/*
 func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, ret int32, err error) {
 	return
 	g := &EntrustDetail{
@@ -182,28 +191,6 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 		return
 	}
 
-	//交易流水
-	/*
-		err = InsertRecord(session, &MoneyRecord{
-			Uid:     p.Uid,
-			TokenId: token_id,
-			Ukey:    g.EntrustId,
-			Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
-			Type:    MONEY_UKEY_TYPE_ENTRUST,
-			Num:     p.Num,
-			Balance: m.Balance,
-		})
-		if err != nil {
-			log.Errorln(err.Error())
-			session.Rollback()
-			return
-		}
-
-		err = session.Commit()
-		if err != nil {
-			log.Errorln(err.Error())
-			return
-		}*/
 
 	e = &EntrustData{
 		EntrustId:  g.EntrustId,
@@ -216,7 +203,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	}
 	return
 }
-
+*/
 //实时更新交易数据
 func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 	s.price = price
@@ -302,7 +289,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		SurplusNum: g.SurplusNum,
 		Opt:        p.Opt,
 		OnPrice:    g.OnPrice,
-		States:     0,
+		States:     int(proto.TRADE_STATES_TRADE_NONE),
 		Type:       p.Type,
 	}
 
@@ -365,7 +352,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 	//num := convert.Int64MulInt64By8Bit(deal_num, price) //买家消耗USDT数量
 	//fmt.Printf("price =%d,deal_num=%d ,num =%d \n", price, deal_num, num)
 
-	fee := buy_num * 5 / 1000 //买家消耗手续费0.005个USDT
+	fee := convert.Int64MulFloat64(buy_num, s.BuyPoundage) //买家消耗手续费0.005个USDT
 
 	no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
 	trade_time := time.Now().Unix()
@@ -382,7 +369,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		TokenName:    s.TokenQueueId,
 	}
 
-	sell_fee := deal_num * 5 / 1000
+	sell_fee := convert.Int64MulFloat64(deal_num, s.SellPoundage)
 	o := &Trade{
 		TradeNo:      no,
 		Uid:          seller.Uid,
@@ -396,25 +383,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		TokenName:    s.TokenQueueId,
 	}
 
-	/*
-		var buy_surplus, sell_surplus int64
-		if seller.SurplusNum < deal_num { //卖方部分成交
-			t.States = int(proto.TRADE_STATES_TRADE_PART)
-			o.States = int(proto.TRADE_STATES_TRADE_ALL)
-
-		} else if seller.SurplusNum == deal_num && buyer.SurplusNum == buy_num {
-			t.States = int(proto.TRADE_STATES_TRADE_ALL)
-			o.States = int(proto.TRADE_STATES_TRADE_ALL)
-
-		} else {
-			t.States = int(proto.TRADE_STATES_TRADE_ALL)
-			o.States = int(proto.TRADE_STATES_TRADE_PART)
-		}
-
-		buy_surplus = buyer.SurplusNum - buy_num
-		sell_surplus = seller.SurplusNum - deal_num
-
-	*/
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
@@ -493,6 +461,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 
 	return
 }
+
 
 func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 	var buyer *EntrustData
@@ -654,8 +623,10 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 		}).Warn("please check logic")
 		err = s.SurplusBack(buyer)
 		if err != nil {
+
 			return
 		}
+		buyer.SurplusNum =0
 
 		return
 	}
@@ -678,6 +649,7 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 		if err != nil {
 			return
 		}
+		seller.SurplusNum =0
 		//err = errors.New("please check logic")
 		return
 	}
@@ -1200,7 +1172,6 @@ func (s *EntrustQuene) process() {
 
 //定时器
 func (s *EntrustQuene) Clock() {
-	godump.Dump(s.PriceChannel)
 	c := clock.NewClock()
 	job := func() {
 		m := &proto.PriceCache{
@@ -1446,6 +1417,24 @@ func (s *EntrustQuene) GetCnyPrice(price int64) string {
 
 //撤销委托
 func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
+
+	defer func() {
+		if err!=nil {
+			log.WithFields(logrus.Fields{
+				"buyer_id":         e.EntrustId,
+				"seller_id":        e.Uid,
+				"buyer_entrust_id": e.SurplusNum,
+				"os_id":            os.Getpid(),
+			}).Errorf("DelEntrust err %s",err.Error())
+		}
+	}()
+	log.WithFields(logrus.Fields{
+		"buyer_id":         e.EntrustId,
+		"seller_id":        e.Uid,
+		"buyer_entrust_id": e.SurplusNum,
+		"os_id":            os.Getpid(),
+	}).Info("DelEntrust")
+
 	u := &UserToken{}
 	err = u.GetUserToken(e.Uid, e.TokenId)
 	if err != nil {
@@ -1461,7 +1450,7 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 		return err
 	}
 	var ret int32
-	err = u.ReturnFronzen(sess, e.SurplusNum, e.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST)
+	err = u.ReturnFronzen(sess, e.SurplusNum, e.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST_DEL)
 	if err != nil {
 		sess.Rollback()
 		return err

@@ -423,16 +423,16 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 		return
 	}
 
-	f := Frozen{
+
+
+	_, err = sess.Insert(&Frozen{
 		Uid:     s.Uid,
 		Ukey:    entrust_id,
 		Num:     num,
 		TokenId: s.TokenId,
 		Type:    int(ty),
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
-	}
-
-	_, err = sess.Insert(f)
+	})
 	if err != nil {
 		return
 	}
@@ -446,10 +446,7 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 		Balance: s.Balance,
 		Num:     num,
 	})
-	_, err = sess.Insert(f)
-	if err != nil {
-		return
-	}
+
 	return
 }
 

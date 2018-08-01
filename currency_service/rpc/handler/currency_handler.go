@@ -185,6 +185,7 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 			TokenId:     data[i].TokenId,
 			TokenName:   data[i].TokenName,
 			States:      data[i].States,
+			Premium:     data[i].Premium,
 			//Balance:     data[i].Balance,
 			//Freeze:      data[i].Freeze,
 		}

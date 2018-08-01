@@ -6,14 +6,14 @@ import (
 )
 
 type ConfigQuenes struct {
-	Id           int64  `xorm:"pk autoincr BIGINT(20)"`
-	TokenId      int    `xorm:"comment('交易币') unique(union_quene_id) INT(11)"`
-	TokenTradeId int    `xorm:"comment('实际交易币') unique(union_quene_id) INT(11)"`
-	Switch       int    `xorm:"comment('开关0关1开') TINYINT(4)"`
-	Name         string `xorm:"comment('USDT/BTC') VARCHAR(32)"`
-	Price        int64  `xorm:"BIGINT(20)"`
-	SellPoundage         int64  `xorm:"comment('卖出手续费') BIGINT(20)"`
-	BuyPoundage          int64  `xorm:"comment('买入手续费') BIGINT(20)"`
+	Id           int64   `xorm:"pk autoincr BIGINT(20)"`
+	TokenId      int     `xorm:"comment('交易币') unique(union_quene_id) INT(11)"`
+	TokenTradeId int     `xorm:"comment('实际交易币') unique(union_quene_id) INT(11)"`
+	Switch       int     `xorm:"comment('开关0关1开') TINYINT(4)"`
+	Name         string  `xorm:"comment('USDT/BTC') VARCHAR(32)"`
+	Price        int64   `xorm:"BIGINT(20)"`
+	SellPoundage float64 `xorm:"comment('卖出手续费') BIGINT(20)"`
+	BuyPoundage  float64 `xorm:"comment('买入手续费') BIGINT(20)"`
 }
 
 func (s *ConfigQuenes) GetQuenes(uid uint64) []ConfigQuenes {

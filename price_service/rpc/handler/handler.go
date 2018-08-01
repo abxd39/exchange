@@ -183,9 +183,9 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 */
 func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRateRequest, rsp *proto.GetSymbolsRateResponse) error {
 	type BaseData struct {
-		Symbol   string  `json:"symbol"`
-		Price    string  `json:"price"`
-		CnyPrice string  `json:"cny_price"`
+		Symbol   string  `json:"symbol"`    //  btc/usdt
+		Price    string  `json:"price"`     //  1btc = xxx usdt
+		CnyPrice string  `json:"cny_price"` //  cny
 	}
 	data := map[string]*proto.RateBaseData{}
 	for _, symbol := range req.Symbols{

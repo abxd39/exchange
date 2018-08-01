@@ -481,7 +481,8 @@ func (s *User) GetLoginUser(p *proto.LoginUserBaseData) (err error) {
 
 //修改密码
 func (s *User) ModifyPwd(newpwd string) (err error) {
-	s.Pwd = newpwd
+
+	s.Pwd = encryption.GenMd5AndReverse(newpwd)
 	_, err = DB.GetMysqlConn().Where("uid=?", s.Uid).Cols("pwd").Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
@@ -500,8 +501,8 @@ func (s *User) SetGoogleSecertKey(uid uint64, secert_key string) (ret int32) {
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-	s.authSecurityCode(AUTH_GOOGLE)
-	s.refreshToken()
+	s.SecurityChmod(AUTH_GOOGLE)
+	s.ForceRefreshCache(s.Uid)
 	return ERRCODE_SUCCESS
 }
 
@@ -525,7 +526,6 @@ func (s *User) AuthGoogleCode(key string, input uint32) (ret int32, err error) {
 	}
 
 	if input == uint32(r) {
-		err = s.SecurityChmod(AUTH_GOOGLE)
 		ret = ERRCODE_SUCCESS
 		return
 	}
