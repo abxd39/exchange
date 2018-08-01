@@ -104,7 +104,7 @@ func GenSourceKey(en string) string {
 
 func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny, usd int64, amount, vol, count, usd_vol int64) *EntrustQuene {
 	quene_id := name
-
+	log.Infof("load config symbol %s",name)
 	m := &EntrustQuene{
 		TokenQueueId:      quene_id,
 		PriceChannel:      genkey.GetPulishKey(quene_id),
@@ -137,6 +137,7 @@ func (s *EntrustQuene) GetUUID() int64 {
 }
 
 //平台自动委托
+/*
 func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, ret int32, err error) {
 	return
 	g := &EntrustDetail{
@@ -190,28 +191,6 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 		return
 	}
 
-	//交易流水
-	/*
-		err = InsertRecord(session, &MoneyRecord{
-			Uid:     p.Uid,
-			TokenId: token_id,
-			Ukey:    g.EntrustId,
-			Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
-			Type:    MONEY_UKEY_TYPE_ENTRUST,
-			Num:     p.Num,
-			Balance: m.Balance,
-		})
-		if err != nil {
-			log.Errorln(err.Error())
-			session.Rollback()
-			return
-		}
-
-		err = session.Commit()
-		if err != nil {
-			log.Errorln(err.Error())
-			return
-		}*/
 
 	e = &EntrustData{
 		EntrustId:  g.EntrustId,
@@ -224,7 +203,7 @@ func (s *EntrustQuene) EntrustAl(p *proto.EntrustOrderRequest) (e *EntrustData, 
 	}
 	return
 }
-
+*/
 //实时更新交易数据
 func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 	s.price = price
@@ -310,7 +289,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		SurplusNum: g.SurplusNum,
 		Opt:        p.Opt,
 		OnPrice:    g.OnPrice,
-		States:     0,
+		States:     int(proto.TRADE_STATES_TRADE_NONE),
 		Type:       p.Type,
 	}
 
@@ -404,25 +383,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 		TokenName:    s.TokenQueueId,
 	}
 
-	/*
-		var buy_surplus, sell_surplus int64
-		if seller.SurplusNum < deal_num { //卖方部分成交
-			t.States = int(proto.TRADE_STATES_TRADE_PART)
-			o.States = int(proto.TRADE_STATES_TRADE_ALL)
-
-		} else if seller.SurplusNum == deal_num && buyer.SurplusNum == buy_num {
-			t.States = int(proto.TRADE_STATES_TRADE_ALL)
-			o.States = int(proto.TRADE_STATES_TRADE_ALL)
-
-		} else {
-			t.States = int(proto.TRADE_STATES_TRADE_ALL)
-			o.States = int(proto.TRADE_STATES_TRADE_PART)
-		}
-
-		buy_surplus = buyer.SurplusNum - buy_num
-		sell_surplus = seller.SurplusNum - deal_num
-
-	*/
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
@@ -501,6 +461,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustData, seller *EntrustData, price i
 
 	return
 }
+
 
 func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 	var buyer *EntrustData
@@ -662,6 +623,7 @@ func (s *EntrustQuene) match2(p *EntrustData) (err error) {
 		}).Warn("please check logic")
 		err = s.SurplusBack(buyer)
 		if err != nil {
+
 			return
 		}
 		buyer.SurplusNum =0
