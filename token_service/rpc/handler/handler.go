@@ -301,7 +301,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			TokenName: v.TokenName,
 			Balance:   convert.Int64ToStringBy8Bit(v.Balance),
 			Frozen:    convert.Int64ToStringBy8Bit(v.Frozen),
-			WorthCny:  v.WorthCny,
+			WorthCny:  strconv.FormatFloat(v.WorthCny, 'f', -1, 64),
 		}
 	}
 
