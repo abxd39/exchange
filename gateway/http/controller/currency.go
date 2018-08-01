@@ -1317,10 +1317,20 @@ func (this *CurrencyGroup) Transfer (c *gin.Context){
 		return
 	}
 
-	fmt.Println(req)
+	//fmt.Println(req)
+	rsp, err := rpc.InnerService.CurrencyService.CallTransfer(&proto.TransferRequest{
+		Uid:       req.Uid,
+		TokenId:   req.TokenId,
+		TransType: req.TransType,
+		Num:       uint64(convert.Float64ToInt64By8Bit(req.Num)),
+	})
+	if err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 
-	//ret.SetDataSection("")
-	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }
 

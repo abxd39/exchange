@@ -103,10 +103,10 @@ service CurrencyRPC {
 ////////////////////////
 
 message TransferRequest {
-    uint64      uid        = 1;
-    uint32      token_id   = 2;    // 币种id
-    uint32      trans_typ  = 3;    // 1: 法币转到币币, 2: 币币转到法币
-    uint64      num        = 4;    // 数量
+    uint64      uid         = 1;
+    uint32      token_id    = 2;    // 币种id
+    uint32      trans_type  = 3;    // 1: 法币转到币币, 2: 币币转到法币
+    uint64      num         = 4;    // 数量
 
 }
 
@@ -129,7 +129,6 @@ message GetTradeHistoryRequest {
     string end_time      = 2;
     int32    limit         = 3;
 }
-
 
 message GetUserRatingRequest {
     uint64  uid   =1;         //  用户id
@@ -347,12 +346,14 @@ message OrderResponse {
 
 
 message OrderRequest {
-    uint64  id  = 1;       // 交易订单
+    uint64  id    = 1;       // 交易订单
+    int32   uid   = 2;       // uid
 }
 
 message CancelOrderRequest {
     uint64  id              = 1;
     uint32  cancel_type     = 2;
+    int32   uid             = 3;
 }
 
 

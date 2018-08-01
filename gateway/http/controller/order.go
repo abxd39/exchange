@@ -18,6 +18,7 @@ type OrderRequest struct {
 type CancelOrderRequest struct {
 	OrderRequest
 	CancelType uint32 `form:"id" json:"cancel_type" binding:"required"` //取消类型: 1卖方 2 买方
+	Uid        int32  `form:"id" json:"uid"  binding:"required"`        //
 }
 
 type OtherType struct {
@@ -187,6 +188,7 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallCancelOrder(&proto.CancelOrderRequest{
 		Id:         param.Id,
 		CancelType: param.CancelType,
+		Uid:        param.Uid,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -251,7 +253,11 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-	var param OrderRequest
+	//var param OrderRequest
+	param := struct {
+		Id      uint64 `form:"id" json:"id"   binding:"required"` //order 表Id
+		Uid     int32  `form:"id" json:"uid"  binding:"required"`        //
+	}{}
 	err := c.ShouldBind(&param)
 	if err != nil {
 		log.Errorln(err.Error())
@@ -260,6 +266,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.OrderRequest{
 		Id: param.Id,
+		Uid:param.Uid,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))

@@ -41,7 +41,7 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 // 取消订单
 func (s *RPCServer) CancelOrder(ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
-	code, msg := new(model.Order).Cancel(req.Id, req.CancelType, updateTimeStr)
+	code, msg := new(model.Order).Cancel(req.Id, req.CancelType, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg
 	return nil
@@ -60,7 +60,7 @@ func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rs
 // 确认放行
 func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
-	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr)
+	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg
 	return nil
