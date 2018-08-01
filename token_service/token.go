@@ -6,6 +6,7 @@ import (
 	"digicon/token_service/dao"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
+	"digicon/token_service/rpc/client"
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -27,7 +28,7 @@ func main() {
 	log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
-	//client.InitInnerService()
+	client.InitInnerService()
 	model.GetQueneMgr().Init()
 	//model.GetKLine("BTC/USDT","1min",10)
 	//model.Test()

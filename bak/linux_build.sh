@@ -3,11 +3,13 @@
 
 remote_ip=47.106.136.96
 
-#services="currency_service price_service gateway"
+#services="wallet_service" 
+#services="ws_service" 
+#services="currency_service" 
 #services="currency_service user_service gateway"
+services="currency_service gateway"
 #services="currency_service user_service price_service gateway"
-#services="price_service"
-services="token_service"
+
 
 remote_path="/root/go/src/dig/"
 

@@ -14,6 +14,9 @@ var (
 
 	EmailAppKey    string
 	EmailSecretKey string
+
+	GtPrivateKey  string
+	GtCaptchaID  string
 )
 
 func NewConfig(path string) *goconfig.ConfigFile {
@@ -38,4 +41,7 @@ func Init() {
 
 	EmailAppKey = Cfg.MustValue("email", "app_key", "LTAIcJgRedhxruPq")
 	EmailSecretKey = Cfg.MustValue("email", "secret_key", "d7p6tWRfy0B2QaRXk7q4mb5seLROtb")
+
+	GtPrivateKey = Cfg.MustValue("gree", "key", "668d6d27cb1186d138eb9b225436e4b9")
+	GtCaptchaID = Cfg.MustValue("gree", "id", "73909f4a67161216debdcb3de16ef6c5")
 }

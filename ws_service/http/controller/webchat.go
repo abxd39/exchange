@@ -121,6 +121,7 @@ func (this *WebChatGroup) WSChannel(c *gin.Context) {
 	})
 }
 
+
 /*
 	generate hash channelid
 */

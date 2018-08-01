@@ -185,6 +185,7 @@ func (s *RPCServer) AdsUserList(ctx context.Context, req *proto.AdsListRequest, 
 			TokenId:     data[i].TokenId,
 			TokenName:   data[i].TokenName,
 			States:      data[i].States,
+			Premium:     data[i].Premium,
 			//Balance:     data[i].Balance,
 			//Freeze:      data[i].Freeze,
 		}
@@ -598,6 +599,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	return nil
 }
 
+
 /*
 	AddUserBalance
 */
@@ -628,7 +630,7 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 }
 
 /*
-
+	获取最新交易价格
  */
 func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.GetRecentTransactionPriceRequest, rsp *proto.OtherResponse) error {
 
@@ -669,5 +671,13 @@ func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.G
 
 
 
+/*
+	交易划转
+*/
+func (s *RPCServer)Transfer(ctx context.Context, req *proto.TransferRequest, rsp *proto.OtherResponse) error {
+	fmt.Println(req)
+
+	return nil
+}
 
 

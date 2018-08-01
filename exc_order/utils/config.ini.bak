@@ -1,0 +1,25 @@
+[huobi]
+trade=https://api.hadax.com/market/trade?symbol=%s
+symbol_price=https://api.hadax.com/market/detail?symbol=%s
+[api]
+regist=http://www.sdun.io/user/register
+login=http://47.106.136.96:8069/user/login
+entrust_order=http://47.106.136.96:8069/token/entrust_order
+balance=http://47.106.136.96:8069/token/balance
+balancelist=http://47.106.136.96:8069/token/balance_list
+symbols=http://47.106.136.96:8069/market/symbols
+[sell_user]
+ukey=18665967060
+pwd=byuwang@2016
+utype=1
+[buy_user]
+ukey=18682180124
+pwd=byuwang@2016
+utype=1
+[default]
+#价格比例
+price_rate = 1
+#比特币初始价格
+bit_price = 8888
+#SDC初始价格
+sdc_price = 1

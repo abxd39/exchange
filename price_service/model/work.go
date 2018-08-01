@@ -20,8 +20,8 @@ type PriceInfo struct {
 }
 
 const (
-	OneMinPrice = iota
-	FiveMinPrice
+	//OneMinPrice
+	FiveMinPrice= iota
 	FivteenMinPrice
 	FourHourPrice
 	OneDayPrice
@@ -42,9 +42,12 @@ type PriceWorkQuene struct {
 
 func NewPriceWorkQuene(name string, token_id int32, cny int64, d *proto.PriceCache) *PriceWorkQuene {
 	var period_key = [MaxPrice]string{
-		"1min",
 		"5min",
 		"15min",
+		"4hour",
+		"1day",
+		"1week",
+		"1month",
 	}
 	m := &PriceWorkQuene{
 		Symbol:       name,
@@ -103,13 +106,7 @@ func (s *PriceWorkQuene) Publish() {
 		t := time.Unix(k.Id, 0)
 		if t.Second() == 0 {
 			s.updatePrice2(k)
-			s.save(OneMinPrice, k)
 			min := t.Minute()
-			/*
-				if min%5 == 0 {
-					s.save(FiveMinPrice, k)
-				}
-			*/
 			if min%15 == 0 {
 				s.save(FivteenMinPrice, k)
 			}
