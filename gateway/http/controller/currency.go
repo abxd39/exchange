@@ -594,7 +594,6 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		// 收集用户id 和 移动数据
 		userList := make([]uint64, 0, dataLen)
 		for i := 0; i < dataLen; i++ {
-
 			adsLists := AdsListsData{
 				Id:    data.Data[i].Id,
 				Uid:   data.Data[i].Uid,
@@ -721,8 +720,8 @@ func (this *CurrencyGroup) AdsUserList(c *gin.Context) {
 			TokenId:     v.TokenId,
 			TokenName:   v.TokenName,
 			States:      v.States,
+			Premium:     convert.Int64ToFloat64By8Bit(v.Premium),
 		}
-
 		reaList.List = append(reaList.List, adsLists)
 	}
 
@@ -1298,13 +1297,16 @@ func (this *CurrencyGroup) Transfer (c *gin.Context){
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
+
 	req := struct {
-		Uid        uint64 `form:"uid"        json:"uid"           binding:"required"`
-		TokenId    uint32 `form:"token_id"   json:"token_id"      binding:"required"`
-		TransType  uint32 `form:"trans_type" json:"trans_type"    binding:"required"`  // 1: 法币转到币币, 2: 币币转到法币
-		Num        uint64 `form:"num"        json:"num"           binding:"required"`
+		Uid        uint64  `form:"uid"        json:"uid"           binding:"required"`
+		TokenId    uint32  `form:"token_id"   json:"token_id"      binding:"required"`
+		TransType  uint32  `form:"trans_type" json:"trans_type"    binding:"required"`  // 1: 法币转到币币, 2: 币币转到法币
+		Num        float64 `form:"num"        json:"num"           binding:"required"`
 	}{}
+
 	err := c.ShouldBind(&req)
+
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
@@ -1315,7 +1317,7 @@ func (this *CurrencyGroup) Transfer (c *gin.Context){
 		return
 	}
 
-
+	fmt.Println(req)
 
 	//ret.SetDataSection("")
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
