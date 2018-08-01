@@ -26,8 +26,8 @@ type UserTokenWithName struct {
 }
 
 type UserTokenTotalMoney struct {
-	TotalCny int64
-	TotalUsd int64
+	TotalCny float64
+	TotalUsd float64
 }
 
 func (*UserToken) TableName() string {
@@ -35,15 +35,15 @@ func (*UserToken) TableName() string {
 }
 
 // 计算用户所有币的总金额，人民币、美元等
-func (s *UserToken) calcTotalMoney(uid uint64) (*UserTokenTotalMoney, error) {
+func (s *UserToken) CalcTotalMoney(uid uint64) (*UserTokenTotalMoney, error) {
 	userTokenTotal := &UserTokenTotalMoney{}
 
 	engine := DB.GetMysqlConn()
 	_, err := engine.SQL(fmt.Sprintf("SELECT SUM(tmp.cny) AS total_cny,SUM(tmp.usd) AS total_usd FROM"+
 		" (SELECT ROUND((ut.balance+ut.frozen)/100000000 * ctc.price/100000000) AS cny,"+
 		" ROUND((ut.balance+ut.frozen)/100000000 * ctc.usd_price/100000000) AS usd"+
-		" FROM %s ut WHERE ut.uid=%d LEFT JOIN %s ctc ON ctc.token_id=ut.token_id GROUP BY ut.token_id"+
-		") tmp", s.TableName(), uid, new(ConfigTokenCny).TableName())).Get(userTokenTotal)
+		" FROM %s ut LEFT JOIN %s ctc ON ctc.token_id=ut.token_id WHERE ut.uid=%d GROUP BY ut.token_id"+
+		") tmp", s.TableName(), new(ConfigTokenCny).TableName(), uid)).Get(userTokenTotal)
 	if err != nil {
 		return nil, err
 	}
