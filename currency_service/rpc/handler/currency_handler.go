@@ -599,6 +599,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	return nil
 }
 
+
 /*
 	AddUserBalance
 */
@@ -629,7 +630,7 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 }
 
 /*
-
+	获取最新交易价格
  */
 func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.GetRecentTransactionPriceRequest, rsp *proto.OtherResponse) error {
 
@@ -670,5 +671,13 @@ func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.G
 
 
 
+/*
+	交易划转
+*/
+func (s *RPCServer)Transfer(ctx context.Context, req *proto.TransferRequest, rsp *proto.OtherResponse) error {
+	fmt.Println(req)
+
+	return nil
+}
 
 

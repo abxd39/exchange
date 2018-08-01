@@ -427,6 +427,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	////////////////////////////////////////////////////////
 	// 3. 统计表 加 1
 	////////////////////////////////////////////////////////
+
 	//countAddOneSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?,?) ON DUPLICATE KEY UPDATE `success` = `success`+1"
 	//_, err = session.Exec(countAddOneSql, this.SellId, 1, 1, 100.0)
 	countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1  where uid=? "
