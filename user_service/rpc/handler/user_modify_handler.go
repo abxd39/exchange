@@ -82,3 +82,33 @@ func (*RPCServer) AuthVerify(ctx context.Context, req *proto.AuthVerifyRequest, 
 	}
 	return nil
 }
+
+func (*RPCServer) FirstRealNameVerify(c context.Context, req *proto.FirstVerifyRequest, rsp *proto.FirstVerifyResponse) (err error) {
+	u := model.UserEx{}
+	rsp.Code, err = u.SetFirstVerify(req, rsp)
+	if err != nil {
+		log.Errorln(err.Error())
+		return err
+	}
+	return nil
+}
+
+func (*RPCServer) SecondVerify(c context.Context, req *proto.SecondRequest, rsp *proto.SecondResponse) (err error) {
+	u := model.UserSecondaryCertification{}
+	rsp.Code, err = u.SetSecondVerify(req, rsp)
+	if err != nil {
+		log.Errorln(err.Error())
+		return nil
+	}
+	return nil
+}
+
+func (*RPCServer) GetVerifyCount(c context.Context, req *proto.VerifyCountRequest, rsp *proto.VerifyCountResponse) (err error) {
+	u := model.UserEx{}
+	rsp.Code, err = u.GetVerifyCount(req, rsp)
+	if err != nil {
+		log.Errorln(err.Error())
+		return nil
+	}
+	return nil
+}

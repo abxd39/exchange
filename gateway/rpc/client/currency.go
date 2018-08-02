@@ -135,20 +135,34 @@ func (s *CurrencyRPCCli) CallGetCurrencyBalance(req *proto.GetCurrencyBalanceReq
 	return rsp, err
 }
 
-//
+/*
+	获取用户好评率
+*/
 func (s *CurrencyRPCCli) CallGetUserRating(req *proto.GetUserRatingRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.GetUserRating(context.TODO(), req)
 	return rsp, err
 }
 
-//
+/*
+	rpc添加用户余额
+*/
 func (s *CurrencyRPCCli) CallAddUserBalance(req *proto.AddUserBalanceRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.AddUserBalance(context.TODO(), req)
 	return rsp, err
 }
 
-//
+/*
+	获取资金明细
+*/
 func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.GetAssetDetail(context.TODO(), req)
+	return rsp, err
+}
+
+/*
+	交易
+*/
+func (s *CurrencyRPCCli) CallTransfer(req *proto.TransferRequest) (*proto.OtherResponse, error) {
+	rsp, err := s.conn.Transfer(context.TODO(), req)
 	return rsp, err
 }

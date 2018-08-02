@@ -156,11 +156,6 @@ message HistoryKlineResponse{
     string message                  =2;
 }
 
-
-
-
-
-
 message EntrustBaseData{
     string price                        =1;
     string surplus_num                  =2;
@@ -170,6 +165,7 @@ message EntrustBaseData{
 
 message EntrustQueneRequest {
     string symbol       =3;
+    int64 num           =2;
 }
 
 message EntrustQueneResponse {

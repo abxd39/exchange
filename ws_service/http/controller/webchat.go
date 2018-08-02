@@ -2,15 +2,15 @@ package controller
 
 import (
 	"crypto/sha1"
-	log "github.com/sirupsen/logrus"
+	"digicon/proto/common"
 	"digicon/ws_service/model"
+	"digicon/ws_service/rpc/client"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 	"time"
-	"digicon/ws_service/rpc/client"
-	"digicon/proto/common"
 )
 
 type WebChatGroup struct {
@@ -47,11 +47,12 @@ type ErrorRspMessage struct {
 }
 
 type RespMessage struct {
-	InfoType int32  `form:"info_type"   json:"info_type"  binding:"required"`  // 消息类型   ,1 认证消息，2，内容消息
-	OrderId  string `form:"order_id"    json:"order_id"    binding:"required"` // 订单ID
-	Uid      uint64 `form:"uid"         json:"uid"  `                          // 用户ID
-	UserName string `form:"username"   json:"username" `
-	Content  string `form:"content"     json:"content"` // neirong
+	InfoType    int32  `form:"info_type"   json:"info_type"  binding:"required"`  // 消息类型   ,1 认证消息，2，内容消息
+	OrderId     string `form:"order_id"    json:"order_id"    binding:"required"` // 订单ID
+	Uid         uint64 `form:"uid"         json:"uid"  `                          // 用户ID
+	UserName    string `form:"username"   json:"username" `
+	Content     string `form:"content"     json:"content"` // neirong
+	CreatedTime string `xorm:"DATETIME" json:"created_time"`
 }
 
 type ResponseMessage struct {
@@ -121,7 +122,6 @@ func (this *WebChatGroup) WSChannel(c *gin.Context) {
 	})
 }
 
-
 /*
 	generate hash channelid
 */
@@ -149,7 +149,7 @@ func (this *WebChatGroup) CheckAuth(token string, uid uint64) bool {
 	if rsp.Err == errdefine.ERRCODE_SUCCESS {
 		fmt.Println("success")
 		return true
-	}else{
+	} else {
 		log.Println("auth token error!")
 		log.Println(rsp.Err, rsp.Message)
 		return false
@@ -189,11 +189,12 @@ func (this *WebChatGroup) CloseSession(s *melody.Session, code int32, msg string
 */
 func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []byte) {
 	rmsg := RespMessage{
-		Content:  mesg.Content,
-		UserName: mesg.UserName,
-		Uid:      mesg.Uid,
-		OrderId:  mesg.OrderId,
-		InfoType: mesg.InfoType,
+		Content:     mesg.Content,
+		UserName:    mesg.UserName,
+		Uid:         mesg.Uid,
+		OrderId:     mesg.OrderId,
+		InfoType:    mesg.InfoType,
+		CreatedTime: time.Now().Format("2006-01-02 15:04:05"),
 	}
 	message := &ResponseMessage{
 		Code:     0,
@@ -202,8 +203,8 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 		Msg:      "成功",
 	}
 	data, _ := json.Marshal(message)
+	go SaveChatMsg(mesg)
 	this.m.BroadcastFilter(data, func(q *melody.Session) bool {
-		go SaveChatMsg(mesg)
 		qv, _ := q.Get("channelId")
 		sv, _ := s.Get("channelId")
 		if qv == sv {

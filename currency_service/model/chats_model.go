@@ -50,7 +50,8 @@ func (this *Chats) Add() int {
 func (this *Chats) List(order_id string) []Chats {
 
 	data := make([]Chats, 0)
-	err := dao.DB.GetMysqlConn().Where("order_id=? AND states=1", order_id).Desc("created_time").Find(&data)
+	//err := dao.DB.GetMysqlConn().Where("order_id=? AND states=1", order_id).Desc("created_time").Find(&data)
+	err := dao.DB.GetMysqlConn().Where("order_id=? AND states=1", order_id).Find(&data)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil

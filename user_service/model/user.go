@@ -162,7 +162,12 @@ func (s *User) SerialJsonData() (data string, err error) {
 		log.Errorln("db err when find user_ex,uid=?", s.Uid)
 		return
 	}
-
+	var mark int32
+	if s.SecurityAuth^AUTH_TWO == AUTH_TWO {
+		mark = 1
+	} else {
+		mark = 0
+	}
 	r := &proto.UserAllData{
 		Base: &proto.UserBaseData{
 			Uid:            s.Uid,
@@ -184,6 +189,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 		Real: &proto.UserRealData{
 			RealName:     ex.RealName,
 			IdentifyCard: ex.IdentifyCard,
+			SecondMark:   mark,
 		},
 
 		Invite: &proto.UserInviteData{
@@ -341,7 +347,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 
 	if req.InviteCode != "" {
 		m := &UserEx{
-			Uid:          e.Uid,
+			Uid:          int64(e.Uid),
 			RegisterTime: time.Now().Unix(),
 			InviteCode:   str_code,
 			InviteId:     d.Uid,
@@ -358,7 +364,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 		}
 	} else {
 		m := &UserEx{
-			Uid:          e.Uid,
+			Uid:          int64(e.Uid),
 			RegisterTime: time.Now().Unix(),
 			InviteCode:   str_code,
 			NickName:     e.Account, //  注册的时候，昵称直接等与账户名
@@ -370,7 +376,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 		}
 	}
 
-	return ERRCODE_SUCCESS, e.Uid, d.Uid
+	return ERRCODE_SUCCESS, e.Uid, uint64(e.Uid)
 
 }
 

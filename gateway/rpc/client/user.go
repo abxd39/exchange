@@ -18,6 +18,20 @@ type UserRPCCli struct {
 	conn proto.UserRPCService
 }
 
+func (s *UserRPCCli) CallFirstVerify(req *proto.FirstVerifyRequest) (rsp *proto.FirstVerifyResponse, err error) {
+	return s.conn.FirstRealNameVerify(context.TODO(), req)
+}
+
+func (s *UserRPCCli) CallSecondVerify(req *proto.SecondRequest) (rsp *proto.SecondResponse, err error) {
+	return s.conn.SecondVerify(context.TODO(), req)
+}
+
+func (s *UserRPCCli) CallGetVerifyCount(uid uint64) (rsp *proto.VerifyCountResponse, err error) {
+	return s.conn.GetVerifyCount(context.TODO(), &proto.VerifyCountRequest{
+		Uid: uid,
+	})
+}
+
 func (s *UserRPCCli) CallApi1(phone string) (rsp *proto.Api1Response, err error) {
 	rsp, err = s.conn.Api1(context.TODO(), &proto.Api1Request{Phone: phone})
 	if err != nil {
@@ -295,6 +309,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 type UserRealData struct {
 	RealName     string `json:"real_name"`
 	IdentifyCard string `json:"identify_card"`
+	SecondMark   int32  `json:"second_mark"`
 }
 
 func (s *UserRPCCli) CallGetUserRealName(uid uint64) (rsp *proto.UserRealNameResponse, u *UserRealData, err error) {
@@ -316,6 +331,7 @@ func (s *UserRPCCli) CallGetUserRealName(uid uint64) (rsp *proto.UserRealNameRes
 	u = &UserRealData{
 		RealName:     out.RealName,
 		IdentifyCard: out.IdentifyCard,
+		SecondMark:   out.SecondMark,
 	}
 
 	return

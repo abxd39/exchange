@@ -5,7 +5,7 @@ import (
 	"digicon/common/encryption"
 	//log "github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	
+
 	"digicon/currency_service/model"
 	"digicon/proto/common"
 	proto "digicon/proto/rpc"
@@ -41,7 +41,7 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 // 取消订单
 func (s *RPCServer) CancelOrder(ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
-	code, msg := new(model.Order).Cancel(req.Id, req.CancelType, updateTimeStr)
+	code, msg := new(model.Order).Cancel(req.Id, req.CancelType, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg
 	return nil
@@ -60,7 +60,7 @@ func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rs
 // 确认放行
 func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
-	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr)
+	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg
 	return nil
@@ -85,7 +85,6 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		return nil
 	}
 
-
 	ads := new(model.Ads)
 	var nowAds *model.Ads
 	nowAds = ads.Get(od.AdId)
@@ -98,11 +97,11 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.Price = int64(nowAds.Price)
 	od.TokenId = uint64(nowAds.TokenId)
 
-	if uint32(nowAds.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
+	if uint32(nowAds.TypeId) == 2 { //   广告状态为2(购买),那么当前用户肯定为出售
 		od.SellId = nowAds.Uid
-		od.BuyId  = uint64(req.Uid)
-	}else{
-		od.BuyId  = nowAds.Uid
+		od.BuyId = uint64(req.Uid)
+	} else {
+		od.BuyId = nowAds.Uid
 		od.SellId = uint64(req.Uid)
 	}
 
@@ -169,6 +168,8 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	paypalPay := new(model.UserCurrencyPaypalPay)
 	wechatPay := new(model.UserCurrencyWechatPay)
 
+	ctoken := new(model.CommonTokens)
+
 	order.GetOrder(req.Id)
 	sellid := order.SellId
 	aliPay.GetByUid(sellid)
@@ -176,11 +177,16 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	paypalPay.GetByUid(sellid)
 	wechatPay.GetByUid(sellid)
 
+	tkname := ctoken.Get(uint32(order.TokenId), "")
+	tokenName := tkname.Mark
+
 	type Data struct {
 		SellId     uint64 `form:"sell_id"                json:"sell_id"`
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
+		TokenId    uint64 `form:"token_id"              json:"token_id"`
+		TokenName  string `form:"token_name"            json:"token_name"`
 
 		OrderId        string `form:"order_id"               json:"order_id"`
 		PayPrice       int64  `form:"pay_price"              json:"pay_price"`
@@ -205,6 +211,8 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	dt.BuyId = order.BuyId
 	dt.States = order.States
 	dt.ExpiryTime = order.ExpiryTime
+	dt.TokenId = order.TokenId
+	dt.TokenName = tokenName
 
 	dt.OrderId = order.OrderId
 	dt.Price = order.Price
@@ -234,7 +242,7 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 
 func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
 	uCurrencyHistory := new(model.UserCurrencyHistory)
-	uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime, req.Limit)
+	uCurrencyHistoryList, err := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime, req.Limit)
 	if err != nil {
 		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
@@ -247,15 +255,13 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 	return nil
 }
 
-
-
 /*
 	获取用户资产明细
- */
+*/
 
- func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetailRequest, rsp *proto.OtherResponse) error {
-	 uCurrencyHistory := new(model.UserCurrencyHistory)
-	 uAssetDeailList, total, page, pageNum ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid), req.Page, req.PageNum)
+func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetailRequest, rsp *proto.OtherResponse) error {
+	uCurrencyHistory := new(model.UserCurrencyHistory)
+	uAssetDeailList, total, page, pageNum, err := uCurrencyHistory.GetAssetDetail(int32(req.Uid), req.Page, req.PageNum)
 	if err != nil {
 		log.Errorln(err.Error())
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
@@ -263,7 +269,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 	}
 	var uids []uint64
 	var tokenids []int
-	for _, ua := range uAssetDeailList{
+	for _, ua := range uAssetDeailList {
 		uids = append(uids, uint64(ua.TradeUid))
 		tokenids = append(tokenids, ua.TokenId)
 	}
@@ -279,45 +285,45 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 	tokenIdsMap := map[uint32]string{}
 	comtoken := new(model.CommonTokens)
 	tokenNames := comtoken.GetByTokenIds(tokenids)
-	for _, tn := range tokenNames{
+	for _, tn := range tokenNames {
 		tokenIdsMap[tn.Id] = tn.Mark
 	}
 
 	type NewUserCurrencyHisotry struct {
-		Id          int       `json:"id"                  `
-		Uid         int32      `json:"uid"               `
-		TradeUid    int32      `json:"trade_uid"         `
-		TokenId     int       `json:"token_id"            `
-		TokenName   string    `json:"token_name"`
-		Num         float64   `json:"num"                 `
-		Operator    int       `json:"operator"            `
-		CreatedTime string    `json:"created_time"        `
-		TradeName   string    `json:"trade_name"         `
-
+		Id          int     `json:"id"                  `
+		Uid         int32   `json:"uid"               `
+		TradeUid    int32   `json:"trade_uid"         `
+		TokenId     int     `json:"token_id"            `
+		TokenName   string  `json:"token_name"`
+		Num         float64 `json:"num"                 `
+		Operator    int     `json:"operator"            `
+		CreatedTime string  `json:"created_time"        `
+		TradeName   string  `json:"trade_name"         `
 	}
 
-    var NewUAssetDetaillList []NewUserCurrencyHisotry
-	for _, ua := range uAssetDeailList{
+	var NewUAssetDetaillList []NewUserCurrencyHisotry
+	for _, ua := range uAssetDeailList {
+		fmt.Println(ua.CreatedTime)
 		var tmp NewUserCurrencyHisotry
-		tmp.TradeName   = userNameMap[uint64(ua.TradeUid)]
-		tmp.Uid         = ua.Uid
-		tmp.TradeUid    = ua.TradeUid
-		tmp.Num         = convert.Int64ToFloat64By8Bit(ua.Num)
+		tmp.TradeName = userNameMap[uint64(ua.TradeUid)]
+		tmp.Uid = ua.Uid
+		tmp.TradeUid = ua.TradeUid
+		tmp.Num = convert.Int64ToFloat64By8Bit(ua.Num)
 		tmp.CreatedTime = ua.CreatedTime
-		tmp.TokenId     = ua.TokenId
-		tmp.TokenName   = tokenIdsMap[uint32(ua.TokenId)]
-		tmp.Operator    = ua.Operator
+		tmp.TokenId = ua.TokenId
+		tmp.TokenName = tokenIdsMap[uint32(ua.TokenId)]
+		tmp.Operator = ua.Operator
 		NewUAssetDetaillList = append(NewUAssetDetaillList, tmp)
 	}
 	type ResultData struct {
-		NewList   []NewUserCurrencyHisotry
-		Total       int64            `json:"total"`
-		Page        uint32           `json:"page"`
-		PageNum     uint32           `json:"page_num"`
+		NewList []NewUserCurrencyHisotry
+		Total   int64  `json:"total"`
+		Page    uint32 `json:"page"`
+		PageNum uint32 `json:"page_num"`
 	}
-	resultdt := ResultData{NewList:NewUAssetDetaillList, Total:total, Page:page, PageNum:pageNum}
+	resultdt := ResultData{NewList: NewUAssetDetaillList, Total: total, Page: page, PageNum: pageNum}
 	data, err := json.Marshal(resultdt)
 	rsp.Data = string(data)
- 	rsp.Code = errdefine.ERRCODE_SUCCESS
- 	return nil
- }
+	rsp.Code = errdefine.ERRCODE_SUCCESS
+	return nil
+}

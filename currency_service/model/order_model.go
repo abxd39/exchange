@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"digicon/currency_service/conf"
 	"digicon/currency_service/dao"
+	. "digicon/proto/common"
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
-	. "digicon/proto/common"
 )
 
 // 订单表
@@ -115,7 +115,7 @@ func (this *Order) Delete(Id uint64, updateTimeStr string) (int32, string) {
 // 取消订单
 // set state == 4
 // params: id userid, CancelType: 取消类型: 1卖方 2 买方
-func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string) (code int32, msg string) {
+func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, uid int32) (code int32, msg string) {
 	var err error
 	sql := "UPDATE   `order`   SET   `states`=? , `cancel_type`=?, `updated_time`=?  WHERE  `id`=?"
 	_, err = dao.DB.GetMysqlConn().Exec(sql, 4, CancelType, updateTimeStr, Id)
@@ -125,6 +125,19 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string) (c
 		code = ERRCODE_UNKNOWN
 		msg = "cancel Error!"
 		//return ERRCODE_UNKNOWN,
+	}
+
+	uCurrencyCount := new(UserCurrencyCount)
+	has, err := uCurrencyCount.CheckUserCurrencyCountExists(uint64(uid))
+	if err != nil {
+		log.Error(err.Error())
+	}
+	if has {
+		cancelSql := "UPDATE  `user_currency_count` set `cancel` = `cancel` + 1, `orders`=`orders`+1  where uid=? "
+		_, err = dao.DB.GetMysqlConn().Exec(cancelSql, uid)
+	} else {
+		insertSql := "INSERT INTO `user_currency_count` (uid,orders, cancel, good) values(?,?,?, ?)"
+		_, err = dao.DB.GetMysqlConn().Exec(insertSql, uid, 1, 1, 100)
 	}
 	code = ERRCODE_SUCCESS
 	msg = ""
@@ -253,8 +266,8 @@ func (this *Order) Add() (id uint64, code int32) {
 
 // 确认放行(支付完成)
 // set state = 3
-func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string) {
-	code, err := this.ConfirmSession(Id, updateTimeStr)
+func (this *Order) Confirm(Id uint64, updateTimeStr string, uid int32) (int32, string) {
+	code, err := this.ConfirmSession(Id, updateTimeStr, uid)
 	if err != nil {
 		log.Errorln(err.Error())
 		return code, "confirm Error!"
@@ -264,7 +277,7 @@ func (this *Order) Confirm(Id uint64, updateTimeStr string) (int32, string) {
 }
 
 // 确认放行事务
-func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, err error) {
+func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (code int32, err error) {
 	engine := dao.DB.GetMysqlConn()
 
 	_, err = engine.Table(`order`).Where("id=?", Id).Get(this)
@@ -427,16 +440,33 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string) (code int32, 
 	////////////////////////////////////////////////////////
 	// 3. 统计表 加 1
 	////////////////////////////////////////////////////////
-	//countAddOneSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?,?) ON DUPLICATE KEY UPDATE `success` = `success`+1"
-	//_, err = session.Exec(countAddOneSql, this.SellId, 1, 1, 100.0)
-	countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1  where uid=? "
-	_, err = session.Exec(countAddOneSql, this.SellId)
+
+	has, err = session.Exist(&UserCurrencyCount{Uid: this.SellId})
 	if err != nil {
 		log.Println(err.Error())
-		session.Rollback()
-		code = ERRCODE_TRADE_ERROR
-		return code, err
 	}
+	if has {
+		//countAddOneSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?,?) ON DUPLICATE KEY UPDATE `success` = `success`+1"
+		//_, err = session.Exec(countAddOneSql, this.SellId, 1, 1, 100.0)
+		countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1, `orders`=`orders`+1  where uid=? "
+		_, err = session.Exec(countAddOneSql, this.SellId)
+		if err != nil {
+			log.Println(err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			return code, err
+		}
+	} else {
+		insertSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?, ?)"
+		_, err = session.Exec(insertSql, this.SellId, 1, 1, 100)
+		if err != nil {
+			log.Println(err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			return code, err
+		}
+	}
+
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
 		log.Errorln(err.Error())
@@ -498,7 +528,7 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
  */
 func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("sell_id = ? AND created_time >= ? AND created_time <= ?", uid, startTime, endTime).Find(&ods)
+	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ?", uid, uid, startTime, endTime).Find(&ods)
 	if err != nil {
 		log.Errorln(err.Error())
 		return
