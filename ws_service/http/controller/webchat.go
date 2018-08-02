@@ -217,7 +217,7 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 }
 
 /*
-	
+
  */
 func SaveChatMsg(mesg Message) {
 	log.Errorln("go run to save msg :", mesg)
