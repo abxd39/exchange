@@ -341,7 +341,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 
 	if req.InviteCode != "" {
 		m := &UserEx{
-			Uid:          e.Uid,
+			Uid:          int64(e.Uid),
 			RegisterTime: time.Now().Unix(),
 			InviteCode:   str_code,
 			InviteId:     d.Uid,
@@ -358,7 +358,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 		}
 	} else {
 		m := &UserEx{
-			Uid:          e.Uid,
+			Uid:          int64(e.Uid),
 			RegisterTime: time.Now().Unix(),
 			InviteCode:   str_code,
 			NickName:     e.Account, //  注册的时候，昵称直接等与账户名
@@ -370,7 +370,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 		}
 	}
 
-	return ERRCODE_SUCCESS, e.Uid, d.Uid
+	return ERRCODE_SUCCESS, e.Uid, uint64(e.Uid)
 
 }
 

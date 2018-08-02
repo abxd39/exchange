@@ -18,6 +18,20 @@ type UserRPCCli struct {
 	conn proto.UserRPCService
 }
 
+func (s *UserRPCCli)CallFirstVerify(req *proto.FirstVerifyRequest)(rsp*proto.FirstVerifyResponse,err error)  {
+	return s.conn.FirstRealNameVerify(context.TODO(),req)
+}
+
+func (s *UserRPCCli)CallSecondVerify(req *proto.SecondRequest)(rsp*proto.SecondResponse,err error)  {
+	return s.conn.SecondVerify(context.TODO(),req)
+}
+
+func (s*UserRPCCli)CallGetVerifyCount(uid uint64 )(rsp*proto.VerifyCountResponse,err error)  {
+	return s.conn.GetVerifyCount(context.TODO(),&proto.VerifyCountRequest{
+		Uid:uid,
+	})
+}
+
 func (s *UserRPCCli) CallApi1(phone string) (rsp *proto.Api1Response, err error) {
 	rsp, err = s.conn.Api1(context.TODO(), &proto.Api1Request{Phone: phone})
 	if err != nil {

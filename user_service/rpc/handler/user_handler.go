@@ -10,8 +10,9 @@ import (
 	"digicon/user_service/conf"
 	"digicon/user_service/model"
 	"digicon/user_service/rpc/client"
-	log "github.com/sirupsen/logrus"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/go-redis/redis"
 
@@ -20,9 +21,10 @@ import (
 	. "digicon/common/constant"
 	"digicon/common/encryption"
 	. "digicon/proto/common"
+	"strconv"
+
 	"github.com/gin-gonic/gin/json"
 	"github.com/sirupsen/logrus"
-	"strconv"
 )
 
 type RPCServer struct{}
@@ -135,13 +137,13 @@ func (s *RPCServer) RegisterReward(uid uint64, referUid uint64) {
 		if secReferUid := referUserEx.InviteId; secReferUid != 0 {
 			// 3. 推荐二级注册送20UNT
 			secReferUser := &model.User{}
-			_, err := secReferUser.GetUser(referUserEx.InviteId)
+			_, err := secReferUser.GetUser(uint64(referUserEx.InviteId))
 			if err != nil {
 				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取二级推荐人出错")
 				return
 			}
 
-			resp, err = client.InnerService.TokenService.CallAddTokenNum(secReferUid, tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
+			resp, err = client.InnerService.TokenService.CallAddTokenNum(uint64(secReferUid), tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
 			if err != nil {
 				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
 				return

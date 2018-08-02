@@ -32,7 +32,8 @@ const (
 	SMS_BIND_PHONE       = 11
 	SMS_BIND_EMAIL       = 12
 	SMS_CARRY_COIN       = 13
-	SMS_MAX              = 14
+	SMS_REAL_NAME		 = 14
+	SMS_MAX              = 15
 )
 
 //发送短信

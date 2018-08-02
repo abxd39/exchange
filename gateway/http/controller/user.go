@@ -54,7 +54,108 @@ func (s *UserGroup) Router(r *gin.Engine) {
 
 		user.GET("/api1", Geeteam)
 		user.POST("/api2", Geeteam2)
+		//一级实名认证
+		user.POST("/first_verify",TokenVerify,s.FirstVerify)
+		//二级认证
+		user.POST("/second_verify",TokenVerify,s.SecondVerify)
+		//获取认证的次数
+		user.GET("/verify_count",s.GetVerifyCount)
 	}
+}
+
+func (s *UserGroup)GetVerifyCount(c*gin.Context)  {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	p:= &struct {
+		Uid uint64 `form:"uid" json:"uid" binding:"required"`
+	}{}
+	if err := c.ShouldBind(p); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp,err:=rpc.InnerService.UserSevice.CallGetVerifyCount(p.Uid)
+	if err!=nil{
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Errorf(err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code)
+	ret.SetDataSection("first", rsp.FirstCount)
+	ret.SetDataSection("second", rsp.SecondCount)
+	return
+}
+
+func (s *UserGroup)SecondVerify(c*gin.Context)  {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	p:= &struct {
+		Uid int32 `form:"uid" json:"uid" binding:"required"`
+		Fp string `form:"front_path" json:"front_path" binding:"required"`
+		Rp string `form:"reverse_path" json:"front_path" binding:"required"`
+		Hp string `form:"head_path" json:"front_path" binding:"required"`
+		Number string `form:"number" json:"number" binding:"required"`
+		VPath string `form:"video_path" json:"video_path" binding:"required"`
+	}{}
+	if err := c.ShouldBind(p); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	fmt.Println("---------------------->123")
+	rsp,err:=rpc.InnerService.UserSevice.CallSecondVerify(&proto.SecondRequest{
+		Uid:p.Uid,
+		FrontPath:p.Fp,
+		ReversePath:p.Rp,
+		HeadPath:p.Hp,
+		Number:p.Number,
+		VideoPath:p.VPath,
+		})
+	if err!=nil{
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Errorf(err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code)
+	return
+}
+
+func (s *UserGroup)FirstVerify(c*gin.Context)  {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	param := &struct {
+		Uid int32 `form:"uid" json:"uid" binding:"required"`
+		Code string `form:"code" json:"code" binding:"required"` // 电话验证码
+		Id string `form:"id" json:"id" binding:"required"`//身份证号码
+		RealName string `form:"name" json:"name" binding:"required"`
+		Gcode uint32 `form:"gcode" json:"gcode"`
+	}{}
+	if err := c.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp,err:=rpc.InnerService.UserSevice.CallFirstVerify(&proto.FirstVerifyRequest{
+		Uid:uint64(param.Uid),
+		RealName:param.RealName,
+		GoogleCode:param.Gcode,
+		PhoneCode:param.Code,
+		IdCode:param.Id,
+
+	})
+	if err!=nil{
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Errorf(err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code)
+	return
 }
 
 func Geeteam(c *gin.Context) {

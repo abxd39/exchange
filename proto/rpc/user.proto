@@ -77,8 +77,56 @@ service UserRPC {
     rpc Api1(Api1Request) returns (Api1Response) {}
 
     rpc Api2(Api2Request) returns (Api2Response) {}
+    //一级实名认证
+    rpc FirstRealNameVerify(FirstVerifyRequest)returns(FirstVerifyResponse){};
+    //二级实名认证
+    rpc SecondVerify(SecondRequest)returns(SecondResponse){};
+    //获取实名认证的次数 二级认证次数
+    rpc GetVerifyCount(VerifyCountRequest) returns(VerifyCountResponse){};
 }
 
+message VerifyCountRequest{
+    uint64 uid=1; 
+}
+
+message VerifyCountResponse{
+    int32 code =1;
+    string date =2; //返回单日可用实名认证次数
+    string msg =3;
+    int32 first_count=4;
+    int32 second_count=5;
+}
+
+message SecondRequest{
+    int32 uid=1;
+    string front_path=2;
+    string reverse_path=3;
+    string head_path =4;
+    string number=5;//视频录制是说的数字
+    string video_path=6;
+}
+
+message SecondResponse{
+    int32 code =1;
+    string date =2; //返回单日可用实名认证次数
+    string msg =3;
+}
+
+//一级实名认证
+message FirstVerifyRequest{
+    uint64 uid =1;
+    uint32 google_code =2;
+    string real_name =3;
+    string id_code =4;
+    string phone_code=5;
+}
+
+message FirstVerifyResponse{
+    int32 code =1;
+    string date =2; //返回单日可用实名认证次数
+    string msg =3;
+}
+//二级实名认证
 
 ///////////////////////////////////////
 
