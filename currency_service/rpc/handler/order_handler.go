@@ -307,6 +307,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 
     var NewUAssetDetaillList []NewUserCurrencyHisotry
 	for _, ua := range uAssetDeailList{
+		fmt.Println(ua.CreatedTime)
 		var tmp NewUserCurrencyHisotry
 		tmp.TradeName   = userNameMap[uint64(ua.TradeUid)]
 		tmp.Uid         = ua.Uid
