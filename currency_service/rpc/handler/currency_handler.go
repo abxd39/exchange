@@ -538,9 +538,12 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 
 	uOrder := new(model.Order)
 	now := time.Now()
-	monthAgou, _ := time.ParseDuration("-30d")
-	startTime := now.Add(monthAgou).Format("2006-01-02 15:04:05")
+
+	startTime := now.Add(-30 * 24 * time.Hour).Format("2006-01-02 15:04:05")
 	endTime := now.Format("2006-01-02 15:04:05")
+
+	//fmt.Println("startTime:", startTime, " endTime:",endTime)
+
 	Orders, err := uOrder.GetOrderByTime(req.Uid, startTime, endTime)
 	var monthrate int64
 	orderLen := len(Orders)
@@ -551,7 +554,6 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		monthrate = int64(orderLen)
 	}
 
-	fmt.Println("monthrate:", monthrate)
 	var allminute int64
 	for _, od := range Orders {
 		allminute = allminute + model.GetHourDiffer(od.CreatedTime, od.ConfirmTime.String)

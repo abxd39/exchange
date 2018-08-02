@@ -160,7 +160,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		o.CancelType = bod.CancelType
 		o.CreatedTime = bod.CreatedTime
 		o.UpdatedTime = bod.UpdatedTime
-		o.TotalPrice = convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(bod.Num, bod.Price))
+		o.TotalPrice = convert.Int64ToFloat64By8Bit(convert.Int64MulInt64By8Bit(bod.Num, bod.Price))
 		orders = append(orders, o)
 	}
 
@@ -332,6 +332,9 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
+		TokenId     uint64  `form:"token_id"              json:"token_id"`
+		TokenName   string  `form:"token_name"            json:"token_name"`
+
 
 		OrderId           string `form:"order_id"               json:"order_id"`
 		PayPrice          int64  `form:"pay_price"              json:"pay_price"`
@@ -354,11 +357,12 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
-
 		ret.SetDataSection("sell_id", dt.SellId)
 		ret.SetDataSection("buy_id", dt.BuyId)
 		ret.SetDataSection("status", dt.States)
 		ret.SetDataSection("expiry_time", dt.ExpiryTime)
+		ret.SetDataSection("token_id", dt.TokenId)
+		ret.SetDataSection("token_name", dt.TokenName)
 
 		ret.SetDataSection("order_id", dt.OrderId)
 		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
