@@ -1207,8 +1207,11 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 	ret.SetDataSection("created_time", uCurrencyCount.CreatedTime)
 	ret.SetDataSection("orders", uCurrencyCount.Orders)
 
-	ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
-	ret.SetDataSection("success", uCurrencyCount.Success)
+	//ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
+	//ret.SetDataSection("success", uCurrencyCount.Success)
+	ret.SetDataSection("appeal", 0) // 申诉
+	ret.SetDataSection("success", 0)  //
+
 	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
 	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
 	ret.SetDataSection("complete_rate", uCurrencyCount.CompleteRate)
@@ -1317,10 +1320,20 @@ func (this *CurrencyGroup) Transfer (c *gin.Context){
 		return
 	}
 
-	fmt.Println(req)
+	//fmt.Println(req)
+	rsp, err := rpc.InnerService.CurrencyService.CallTransfer(&proto.TransferRequest{
+		Uid:       req.Uid,
+		TokenId:   req.TokenId,
+		TransType: req.TransType,
+		Num:       uint64(convert.Float64ToInt64By8Bit(req.Num)),
+	})
+	if err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
 
-	//ret.SetDataSection("")
-	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }
 

@@ -52,6 +52,7 @@ type RespMessage struct {
 	Uid      uint64 `form:"uid"         json:"uid"  `                          // 用户ID
 	UserName string `form:"username"   json:"username" `
 	Content  string `form:"content"     json:"content"` // neirong
+	CreatedTime string `xorm:"DATETIME" json:"created_time"`
 }
 
 type ResponseMessage struct {
@@ -194,6 +195,7 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 		Uid:      mesg.Uid,
 		OrderId:  mesg.OrderId,
 		InfoType: mesg.InfoType,
+		CreatedTime:  time.Now().Format("2006-01-02 15:04:05"),
 	}
 	message := &ResponseMessage{
 		Code:     0,

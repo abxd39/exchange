@@ -41,7 +41,7 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 // 取消订单
 func (s *RPCServer) CancelOrder(ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
-	code, msg := new(model.Order).Cancel(req.Id, req.CancelType, updateTimeStr)
+	code, msg := new(model.Order).Cancel(req.Id, req.CancelType, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg
 	return nil
@@ -60,7 +60,7 @@ func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rs
 // 确认放行
 func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
-	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr)
+	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg
 	return nil
@@ -169,6 +169,8 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	paypalPay := new(model.UserCurrencyPaypalPay)
 	wechatPay := new(model.UserCurrencyWechatPay)
 
+	ctoken := new(model.CommonTokens)
+
 	order.GetOrder(req.Id)
 	sellid := order.SellId
 	aliPay.GetByUid(sellid)
@@ -176,11 +178,16 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	paypalPay.GetByUid(sellid)
 	wechatPay.GetByUid(sellid)
 
+	tkname := ctoken.Get(uint32(order.TokenId), "")
+	tokenName := tkname.Mark
+
 	type Data struct {
 		SellId     uint64 `form:"sell_id"                json:"sell_id"`
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
+		TokenId     uint64  `form:"token_id"              json:"token_id"`
+		TokenName   string  `form:"token_name"            json:"token_name"`
 
 		OrderId        string `form:"order_id"               json:"order_id"`
 		PayPrice       int64  `form:"pay_price"              json:"pay_price"`
@@ -201,25 +208,27 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 		PaypalNum         string `form:"paypal_num"             json:"paypal_num"`
 	}
 	var dt Data
-	dt.SellId = order.SellId
-	dt.BuyId = order.BuyId
-	dt.States = order.States
+	dt.SellId     = order.SellId
+	dt.BuyId      = order.BuyId
+	dt.States     = order.States
 	dt.ExpiryTime = order.ExpiryTime
+	dt.TokenId    = order.TokenId
+	dt.TokenName  = tokenName
 
-	dt.OrderId = order.OrderId
-	dt.Price = order.Price
-	dt.Num = order.Num
-	dt.PayPrice = convert.Int64MulInt64By8Bit(dt.Price, dt.Num)
+	dt.OrderId    = order.OrderId
+	dt.Price      = order.Price
+	dt.Num        = order.Num
+	dt.PayPrice   = convert.Int64MulInt64By8Bit(dt.Price, dt.Num)
 	dt.AliPayName = aliPay.Name
-	dt.Alipay = aliPay.Alipay
+	dt.Alipay     = aliPay.Alipay
 	dt.AliReceiptCode = aliPay.ReceiptCode
 	dt.BankpayName = bankPay.Name
-	dt.BankInfo = bankPay.BankInfo
-	dt.CardNum = bankPay.CardNum
-	dt.WechatName = wechatPay.Name
-	dt.Wechat = wechatPay.Wechat
+	dt.BankInfo    = bankPay.BankInfo
+	dt.CardNum     = bankPay.CardNum
+	dt.WechatName  = wechatPay.Name
+	dt.Wechat      = wechatPay.Wechat
 	dt.WechatReceiptCode = wechatPay.ReceiptCode
-	dt.PaypalNum = paypalPay.Paypal
+	dt.PaypalNum   = paypalPay.Paypal
 
 	resultdt, err := json.Marshal(dt)
 	if err != nil {

@@ -18,6 +18,7 @@ type OrderRequest struct {
 type CancelOrderRequest struct {
 	OrderRequest
 	CancelType uint32 `form:"id" json:"cancel_type" binding:"required"` //取消类型: 1卖方 2 买方
+	Uid        int32  `form:"id" json:"uid"  binding:"required"`        //
 }
 
 type OtherType struct {
@@ -159,7 +160,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		o.CancelType = bod.CancelType
 		o.CreatedTime = bod.CreatedTime
 		o.UpdatedTime = bod.UpdatedTime
-		o.TotalPrice = convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(bod.Num, bod.Price))
+		o.TotalPrice = convert.Int64ToFloat64By8Bit(convert.Int64MulInt64By8Bit(bod.Num, bod.Price))
 		orders = append(orders, o)
 	}
 
@@ -187,6 +188,7 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 	rsp, err := rpc.InnerService.CurrencyService.CallCancelOrder(&proto.CancelOrderRequest{
 		Id:         param.Id,
 		CancelType: param.CancelType,
+		Uid:        param.Uid,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -251,7 +253,11 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-	var param OrderRequest
+	//var param OrderRequest
+	param := struct {
+		Id      uint64 `form:"id" json:"id"   binding:"required"` //order 表Id
+		Uid     int32  `form:"id" json:"uid"  binding:"required"`        //
+	}{}
 	err := c.ShouldBind(&param)
 	if err != nil {
 		log.Errorln(err.Error())
@@ -260,6 +266,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.OrderRequest{
 		Id: param.Id,
+		Uid:param.Uid,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -325,6 +332,9 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
+		TokenId     uint64  `form:"token_id"              json:"token_id"`
+		TokenName   string  `form:"token_name"            json:"token_name"`
+
 
 		OrderId           string `form:"order_id"               json:"order_id"`
 		PayPrice          int64  `form:"pay_price"              json:"pay_price"`
@@ -347,11 +357,12 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
-
 		ret.SetDataSection("sell_id", dt.SellId)
 		ret.SetDataSection("buy_id", dt.BuyId)
 		ret.SetDataSection("status", dt.States)
 		ret.SetDataSection("expiry_time", dt.ExpiryTime)
+		ret.SetDataSection("token_id", dt.TokenId)
+		ret.SetDataSection("token_name", dt.TokenName)
 
 		ret.SetDataSection("order_id", dt.OrderId)
 		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
