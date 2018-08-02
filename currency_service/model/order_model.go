@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"digicon/currency_service/conf"
 	"digicon/currency_service/dao"
-	. "digicon/proto/common"
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
+	. "digicon/proto/common"
 )
 
 // 订单表
@@ -135,7 +135,7 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 	if has {
 		cancelSql := "UPDATE  `user_currency_count` set `cancel` = `cancel` + 1, `orders`=`orders`+1  where uid=? "
 		_, err = dao.DB.GetMysqlConn().Exec(cancelSql, uid)
-	} else {
+	}else{
 		insertSql := "INSERT INTO `user_currency_count` (uid,orders, cancel, good) values(?,?,?, ?)"
 		_, err = dao.DB.GetMysqlConn().Exec(insertSql, uid, 1, 1, 100)
 	}
@@ -143,6 +143,7 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 	msg = ""
 	return
 }
+
 
 // 待放行
 // set states=2
@@ -381,15 +382,18 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	}
 	if has {
 		fmt.Println("has ....")
-		_, err := session.Where("uid=? AND  token_id=? AND version=?", this.BuyId, this.TokenId, uCurrency.Version).Update(&UserCurrency{Balance: allNum})
-		if err != nil {
-			fmt.Println("insert error!, ", err.Error())
-			log.Println(err.Error())
+		buySql := "update user_currency set `balance`=`balance` + ?, `version`=`version`+1  WHERE uid=? and token_id =? and version = ?"
+		buySqlRest, err := session.Exec(buySql, allNum, this.BuyId, this.TokenId, buyCurrency.Version)
+		if rst, _ := buySqlRest.RowsAffected(); rst == 0 {
+			fmt.Println("买家增加额度失败!", err.Error())
+			log.Errorln("买家增加额度失败!", err.Error())
 			session.Rollback()
 			code = ERRCODE_TRADE_ERROR
+			err = errors.New("买家增加额度失败!")
 			return code, err
 		}
 	} else {
+		fmt.Println("not has ....")
 		_, err := session.InsertOne(&UserCurrency{Uid: this.BuyId, TokenId: uint32(this.TokenId), TokenName: tokenName, Balance: allNum})
 		if err != nil {
 			fmt.Println("insert error!, ", err.Error())
@@ -456,7 +460,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 			code = ERRCODE_TRADE_ERROR
 			return code, err
 		}
-	} else {
+	}else{
 		insertSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?, ?)"
 		_, err = session.Exec(insertSql, this.SellId, 1, 1, 100)
 		if err != nil {
@@ -466,6 +470,8 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 			return code, err
 		}
 	}
+
+
 
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
@@ -528,7 +534,7 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
  */
 func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ?", uid, uid, startTime, endTime).Find(&ods)
+	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ?",uid , uid, startTime, endTime).Find(&ods)
 	if err != nil {
 		log.Errorln(err.Error())
 		return
