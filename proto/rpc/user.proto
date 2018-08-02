@@ -323,11 +323,13 @@ message UserBaseData{
     bool google_exist       =12;
     string nick_name        = 13;        // 昵称
     string head_sculpture   = 14;        // 头相
+    int32 security_auth =15;
 }
 
 message UserRealData{
     string real_name            =1;
     string identify_card        =2;
+    int32 second_mark=3;
 }
 
 
