@@ -131,7 +131,13 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 			return ERRCODE_UNKNOWN,err
 		}
 	}
-
+	has,err=engine.Where("uid=?",req.Uid).Get(ex)
+	if err!=nil{
+		return ERRCODE_UNKNOWN,err
+	}
+	if !has{
+		return ERRCODE_ACCOUNT_NOTEXIST,nil
+	}
 	sess :=engine.NewSession()
 	defer  sess.Close()
 	if err=sess.Begin();err!=nil{
@@ -142,7 +148,7 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 		RealName:req.RealName,
 		IdentifyCard:req.IdCode,
 		AffirmTime:time.Now().Unix(),
-
+		AffirmCount:ex.AffirmCount+1,
 	});err!=nil{
 		sess.Rollback()
 
