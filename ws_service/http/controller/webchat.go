@@ -195,7 +195,7 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 		Uid:      mesg.Uid,
 		OrderId:  mesg.OrderId,
 		InfoType: mesg.InfoType,
-		TimeNow:  time.Now().Format("2006-01-02 15:04:05"),
+		CreatedTime:  time.Now().Format("2006-01-02 15:04:05"),
 	}
 	message := &ResponseMessage{
 		Code:     0,
