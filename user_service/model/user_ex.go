@@ -106,6 +106,7 @@ func (ex *UserEx) SetNickName(req *proto.UserSetNickNameRequest, rsp *proto.User
 //申请一级实名认证
 func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVerifyResponse)(ret int32,err error) {
 	engine := DB.GetMysqlConn()
+	fmt.Println("---------------->258369")
 	u:=new(User)
 	has, err := engine.Table("user").Where("uid=?",req.Uid).Get(u)
 	if err != nil {
@@ -123,11 +124,6 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 	if result != ERRCODE_SUCCESS {
 		return result, nil
 	}
-	sess :=engine.NewSession()
-	defer  sess.Close()
-	if err=sess.Begin();err!=nil{
-		return ERRCODE_UNKNOWN,err
-	}
 	//google 认证
 	if req.GoogleCode !=0{
 		_,err:=u.AuthGoogleCode(u.GoogleVerifyId,req.GoogleCode)
@@ -136,6 +132,11 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 		}
 	}
 
+	sess :=engine.NewSession()
+	defer  sess.Close()
+	if err=sess.Begin();err!=nil{
+		return ERRCODE_UNKNOWN,err
+	}
 	//写数据库 如果 user 表上有 该用户，则 表user_ex 此表一定有该 用户
 	if _,err=sess.Where("uid=?",req.Uid).Update(&UserEx{
 		RealName:req.RealName,
@@ -144,6 +145,7 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 
 	});err!=nil{
 		sess.Rollback()
+
 		return ERRCODE_UNKNOWN,err
 	}
 	u.SetTardeMark = u.SetTardeMark^ 2
@@ -156,6 +158,7 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 	if err!=nil{
 		return ERRCODE_UNKNOWN, err
 	}
+	sess.Commit()
 	return 0,nil
 }
 

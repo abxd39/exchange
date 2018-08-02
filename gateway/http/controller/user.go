@@ -141,6 +141,7 @@ func (s *UserGroup)FirstVerify(c*gin.Context)  {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+	fmt.Println("--------------------->123456")
 	rsp,err:=rpc.InnerService.UserSevice.CallFirstVerify(&proto.FirstVerifyRequest{
 		Uid:uint64(param.Uid),
 		RealName:param.RealName,

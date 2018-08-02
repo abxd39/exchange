@@ -95,20 +95,20 @@ func (*RPCServer) FirstRealNameVerify(c context.Context, req *proto.FirstVerifyR
 
 func (*RPCServer) SecondVerify(c context.Context, req *proto.SecondRequest, rsp *proto.SecondResponse) (err error) {
 	u := model.UserSecondaryCertification{}
-	rsp.Code, err = u.SetSecondVerify(req,rsp)
+	rsp.Code, err = u.SetSecondVerify(req, rsp)
 	if err != nil {
 		log.Errorln(err.Error())
-		return err
+		return nil
 	}
 	return nil
 }
 
-func (*RPCServer)GetVerifyCount(c context.Context, req *proto.VerifyCountRequest, rsp *proto.VerifyCountResponse) (err error) {
+func (*RPCServer) GetVerifyCount(c context.Context, req *proto.VerifyCountRequest, rsp *proto.VerifyCountResponse) (err error) {
 	u := model.UserEx{}
 	rsp.Code, err = u.GetVerifyCount(req, rsp)
 	if err != nil {
 		log.Errorln(err.Error())
-		return err
+		return nil
 	}
 	return nil
 }
