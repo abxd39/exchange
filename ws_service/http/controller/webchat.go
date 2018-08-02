@@ -52,7 +52,7 @@ type RespMessage struct {
 	Uid      uint64 `form:"uid"         json:"uid"  `                          // 用户ID
 	UserName string `form:"username"   json:"username" `
 	Content  string `form:"content"     json:"content"` // neirong
-	TimeNow  string  `form:"time_now"   json:"time_now"`
+	CreatedTime string `xorm:"DATETIME" json:"created_time"`
 }
 
 type ResponseMessage struct {
