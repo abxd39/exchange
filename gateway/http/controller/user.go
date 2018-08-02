@@ -60,8 +60,36 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.POST("/second_verify",TokenVerify,s.SecondVerify)
 		//获取认证的次数
 		user.GET("/verify_count",s.GetVerifyCount)
+		//上传图片to oss
+		user.POST("/upload_picture",s.UploadPicture)
 	}
 }
+
+//上传图片到 oss
+func (s*UserGroup)UploadPicture(c*gin.Context){
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	p:= &struct {
+		File string `form:"file" json:"file" binding:"required"`
+	}{}
+	if err := c.ShouldBind(p); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	path,err:=s.upload_picture(p.File)
+	if err!=nil{
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		log.Errorf(err.Error())
+		return
+	}
+	ret.SetErrCode(ERRCODE_SUCCESS)
+	ret.SetDataSection("path", path)
+	return
+}
+
 
 func (s *UserGroup)GetVerifyCount(c*gin.Context)  {
 	ret := NewPublciError()
