@@ -28,6 +28,10 @@ type MoneyRecord struct {
 	CreatedTime int64  `xorm:"comment('操作时间')  created BIGINT(20)"`
 }
 
+func (*MoneyRecord) TableName() string {
+	return "money_record"
+}
+
 //检查流水记录是否存在
 func (s *MoneyRecord) CheckExist(ukey string, ty proto.TOKEN_TYPE_OPERATOR) (ok bool, err error) {
 	ok, err = DB.GetMysqlConn().Where("ukey=? and type=?", ukey, ty).Exist(&MoneyRecord{})

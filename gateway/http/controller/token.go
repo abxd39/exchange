@@ -31,6 +31,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/trade_list", s.TokenTradeList)
 
 		action.POST("/del_entrust", s.DelEntrust)
+
+		action.POST("/transfer_to_currency", s.TransferToCurrency)
 	}
 }
 
@@ -377,6 +379,38 @@ func (s *TokenGroup) DelEntrust(c *gin.Context) {
 	rsp, err := rpc.InnerService.TokenService.CallDelEntrust(&proto.DelEntrustRequest{
 		Uid:       param.Uid,
 		EntrustId: param.EntrustId,
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+}
+
+func (s *TokenGroup) TransferToCurrency(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param := &struct {
+		Uid     uint64  `form:"uid" binding:"required"`
+		Token   string  `form:"token" binding:"required"`
+		TokenId int32   `form:"token_id" binding:"required"`
+		Num     float64 `form:"num" binding:"required"`
+	}{}
+
+	if err := c.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallTransferToCurrency(&proto.TransferToCurrencyRequest{
+		Uid:     param.Uid,
+		TokenId: param.TokenId,
+		Num:     convert.Float64ToInt64By8Bit(param.Num),
 	})
 
 	if err != nil {

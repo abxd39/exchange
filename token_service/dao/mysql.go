@@ -67,3 +67,33 @@ func NewMysqlCommon() (mysql *MysqlCommon) {
 func (s *Dao) GetCommonMysqlConn() *xorm.Engine {
 	return s.commonMysql.im
 }
+
+// g_currency库
+type MysqlCurrency struct {
+	im *xorm.Engine
+}
+
+func NewMysqlCurrency() (mysql *MysqlCurrency) {
+	dsource := conf.Cfg.MustValue("mysql", "currency")
+
+	engine, err := xorm.NewEngine("mysql", dsource)
+	if err != nil {
+		log.Fatalf("db err is %s", err)
+	}
+	engine.ShowSQL(true)
+
+	err = engine.Ping()
+	if err != nil {
+		log.Fatalf("db err is %s", err)
+	}
+
+	mysql = &MysqlCurrency{
+		im: engine,
+	}
+
+	return mysql
+}
+
+func (s *Dao) GetCurrencyMysqlConn() *xorm.Engine {
+	return s.currencyMysql.im
+}
