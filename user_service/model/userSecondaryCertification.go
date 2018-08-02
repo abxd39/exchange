@@ -61,6 +61,7 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 			PositivePath:          req.FrontPath,
 			ReverseSidePath:       req.ReversePath,
 			VideoPath:             req.VideoPath,
+			VerifyCount:1,
 			InHandPicturePath:req.HeadPath,
 			VerifyTime:int( time.Now().Unix()),
 		});err!=nil{
@@ -74,9 +75,7 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 			sess.Rollback()
 			return ERRCODE_UNKNOWN,err
 		}
-		if err != nil {
-			return ERRCODE_UNKNOWN, err
-		}
+
 		sess.Commit()
 		return 0,nil
 	}
@@ -89,6 +88,7 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 		VideoPath:             req.VideoPath,
 		InHandPicturePath:req.HeadPath,
 		VerifyTime:int( time.Now().Unix()),
+		VerifyCount:us.VerifyCount+1,
 	});err!=nil{
 		sess.Rollback()
 		return ERRCODE_UNKNOWN,err
