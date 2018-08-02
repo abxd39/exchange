@@ -204,11 +204,11 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 		Msg:      "成功",
 	}
 	data, _ := json.Marshal(message)
+	go SaveChatMsg(mesg)
 	this.m.BroadcastFilter(data, func(q *melody.Session) bool {
 		qv, _ := q.Get("channelId")
 		sv, _ := s.Get("channelId")
 		if qv == sv {
-			go SaveChatMsg(mesg)
 			return true
 		} else {
 			return false
@@ -217,7 +217,7 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 }
 
 /*
-
+	
  */
 func SaveChatMsg(mesg Message) {
 	log.Errorln("go run to save msg :", mesg)
