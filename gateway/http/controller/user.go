@@ -126,8 +126,8 @@ func (s *UserGroup)SecondVerify(c*gin.Context)  {
 		Fp string `form:"front_path" json:"front_path" binding:"required"`
 		Rp string `form:"reverse_path" json:"front_path" binding:"required"`
 		Hp string `form:"head_path" json:"front_path" binding:"required"`
-		Number string `form:"number" json:"number" binding:"required"`
-		VPath string `form:"video_path" json:"video_path" binding:"required"`
+		Number string `form:"number" json:"number" `
+		VPath string `form:"video_path" json:"video_path" `
 	}{}
 	if err := c.ShouldBind(p); err != nil {
 		log.Errorf(err.Error())
