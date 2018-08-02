@@ -50,6 +50,7 @@ service TokenRPC {
 
         //获取队列配置
         rpc GetConfigQuene(NullRequest) returns (ConfigQueneResponse) {}
+
 }
 
 enum ENTRUST_OPT //操作方向类型
@@ -151,11 +152,6 @@ message HistoryKlineResponse{
     string message                  =2;
 }
 
-
-
-
-
-
 message EntrustBaseData{
     string price                        =1;
     string surplus_num                  =2;
@@ -165,6 +161,7 @@ message EntrustBaseData{
 
 message EntrustQueneRequest {
     string symbol       =3;
+    int64 num           =2;
 }
 
 message EntrustQueneResponse {

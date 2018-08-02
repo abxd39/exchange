@@ -104,5 +104,6 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 		return ERRCODE_UNKNOWN, err
 	}
 	sess.Commit()
+	u.ForceRefreshCache(u.Uid)
 	return 0, nil
 }

@@ -358,7 +358,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 }
 
 //消耗冻结资金
-func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id string, ty proto.TOKEN_TYPE_OPERATOR) (err error) {
+func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, ukey string, ty proto.TOKEN_TYPE_OPERATOR) (err error) {
 	defer func() {
 		if err != nil {
 			log.WithFields(log.Fields{
@@ -366,7 +366,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 				"uid":         s.Uid,
 				"token_id":    s.TokenId,
 				"balance":     s.Balance,
-				"entrusdt_id": entrust_id,
+				"entrusdt_id": ukey,
 				"ty":          ty,
 			}).Errorf("notify  money del fronzen error %s", err.Error())
 		}
@@ -390,7 +390,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, entrust_id s
 
 	f := Frozen{
 		Uid:     s.Uid,
-		Ukey:    entrust_id,
+		Ukey:    ukey,
 		Num:     num,
 		TokenId: s.TokenId,
 		Type:    int(ty),
@@ -422,8 +422,6 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 		err = errors.New("update balance err version is wrong")
 		return
 	}
-
-
 
 	_, err = sess.Insert(&Frozen{
 		Uid:     s.Uid,

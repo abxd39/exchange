@@ -80,8 +80,11 @@ func Int64MulFloat64(a int64, b float64) int64 {
 func Int64DivInt64By8Bit(a int64, b int64) int64 {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
+	d := decimal.New(100000000, 0)
 
-	num := dd.Div(dp).Round(8).Coefficient().Int64()
+	//num := dd.Div(dp).Round(8).Coefficient().Int64()
+
+	num:=dd.Div(dp).Mul(d).IntPart()
 	return num
 }
 
@@ -89,8 +92,9 @@ func Int64DivInt64By8Bit(a int64, b int64) int64 {
 func Int64DivInt64By8BitString(a int64, b int64) string {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
-
-	num := dd.Div(dp).Round(8).Coefficient().String()
+	d := decimal.New(100000000, 0)
+	num:=dd.Div(dp).Mul(d).String()
+	//num := dd.Div(dp).Round(8).Coefficient().String()
 	return num
 }
 

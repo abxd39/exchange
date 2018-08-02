@@ -159,6 +159,8 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 		return ERRCODE_UNKNOWN, err
 	}
 	sess.Commit()
+
+	u.ForceRefreshCache(u.Uid)
 	return 0,nil
 }
 

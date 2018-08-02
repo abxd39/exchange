@@ -72,11 +72,11 @@ func (s *EntrustQueneMgr) Init() bool {
 
 		p, ok := GetPrice(v.Name)
 
-		if v.SellPoundage==0 {
-			log.Fatalf("err SellPoundage config  symbol %s",v.Name)
+		if v.SellPoundage == 0 {
+			log.Fatalf("err SellPoundage config  symbol %s", v.Name)
 		}
-		if v.BuyPoundage==0 {
-			log.Fatalf("err BuyPoundage config  symbol %s",v.Name)
+		if v.BuyPoundage == 0 {
+			log.Fatalf("err BuyPoundage config  symbol %s", v.Name)
 		}
 		if ok {
 			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, p.Price, v.Name, cny, usd, p.Amount, p.Vol, p.Count, p.UsdVol)

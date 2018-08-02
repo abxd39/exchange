@@ -33,3 +33,7 @@
 ./token_service/token_service
 ./public_service/user/public_service
 /admin/*
+
+
+./bin/*.exe
+./bin/*_service

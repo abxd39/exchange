@@ -141,7 +141,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, 4)
+	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, req.Num)
 	if err == redis.Nil {
 
 	} else if err != nil {
@@ -160,7 +160,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		}
 	}
 
-	others, err = q.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 2, 4)
+	others, err = q.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 2, req.Num)
 	if err == redis.Nil {
 
 	} else if err != nil {

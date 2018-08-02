@@ -103,7 +103,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),
 				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
-				Scope:        convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
+				Scope:        convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 				TradeTokenId: int32(v.TokenTradeId),
 			})
 		} else if v.TokenId == 3 {
@@ -123,7 +123,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),
 				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
-				Scope:        convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
+				Scope:        convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 				TradeTokenId: int32(v.TokenTradeId),
 			})
 		} else if v.TokenId == 4 {
@@ -143,7 +143,7 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 				Symbol:       v.Name,
 				Price:        convert.Int64ToStringBy8Bit(price),
 				CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
-				Scope:        convert.Int64DivInt64By8BitString(price-p.Price, p.Price),
+				Scope:        convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 				TradeTokenId: int32(v.TokenTradeId),
 			})
 		}

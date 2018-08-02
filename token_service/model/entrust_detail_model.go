@@ -10,9 +10,13 @@ import (
 
 import (
 	. "digicon/token_service/dao"
+	"fmt"
 	"github.com/pkg/errors"
+	"os"
 )
 
+
+/*
 type EntrustData struct {
 	EntrustId  string `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
 	Uid        uint64 `xorm:"not null comment('用户id') INT(32)"`
@@ -23,6 +27,8 @@ type EntrustData struct {
 	Fee        int64 `xorm:"not null comment('手续费比例') BIGINT(20)"`
 	States     int   `xorm:"not null comment('状态0正常1撤单2成交') TINYINT(4)"`
 }
+*/
+
 
 type EntrustDetail struct {
 	EntrustId   string `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
@@ -82,6 +88,10 @@ func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	return m
 }
 
+func (s *EntrustDetail) SubSurplusInCache(num int64)  {
+	s.SurplusNum-=num
+}
+
 func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 
 	if s.SurplusNum > deal_num {
@@ -89,11 +99,25 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 	} else if s.SurplusNum == deal_num {
 		s.States = int(proto.TRADE_STATES_TRADE_ALL)
 	} else {
-		return errors.New("decr entrust_detail surplus is less")
+		log.WithFields(logrus.Fields{
+			"uid":        s.Uid,
+			"entrust_id": s.EntrustId,
+			"sulplus":    s.SurplusNum,
+			"deal_num":   deal_num,
+			"os_id":      os.Getpid(),
+		}).Info("decr entrust_detail surplus is less deal_num info")
+		return errors.New(fmt.Sprintf("decr entrust_detail surplus is less deal_num %d", deal_num))
 	}
 
-	s.SurplusNum -= deal_num
-	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num").Update(s)
+	log.WithFields(logrus.Fields{
+		"uid":        s.Uid,
+		"entrust_id": s.EntrustId,
+		"sulplus":    s.SurplusNum,
+		"deal_num":   deal_num,
+		"os_id":      os.Getpid(),
+	}).Info("just record entrust_detail surplus ")
+	//s.SurplusNum -= deal_num
+	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num").Decr("surplus_num",deal_num).Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
 		return err

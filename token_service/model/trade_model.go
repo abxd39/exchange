@@ -24,10 +24,11 @@ type Trade struct {
 	Price        int64  `xorm:"comment('价格') BIGINT(20)"`
 	Num          int64  `xorm:"comment('数量') BIGINT(20)"`
 	//Balance      int64  `xorm:"BIGINT(20)"`
-	Fee      int64 `xorm:"comment('手续费') BIGINT(20)"`
-	Opt      int   `xorm:"comment(' buy  1或sell 2') index TINYINT(4)"`
-	DealTime int64 `xorm:"comment('成交时间') BIGINT(20)"`
-	States   int   `xorm:"comment('0是挂单，1是部分成交,2成交， -1撤销') INT(11)"`
+	EntrustId string `xorm:"comment('委托ID')  VARCHAR(32)"`
+	Fee       int64  `xorm:"comment('手续费') BIGINT(20)"`
+	Opt       int    `xorm:"comment(' buy  1或sell 2') index TINYINT(4)"`
+	DealTime  int64  `xorm:"comment('成交时间') BIGINT(20)"`
+	States    int    `xorm:"comment('0是挂单，1是部分成交,2成交， -1撤销') INT(11)"`
 }
 
 func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
