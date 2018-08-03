@@ -195,8 +195,18 @@ func (this *Order) Add() (id uint64, code int32) {
 	nTime := time.Now()
 	nowTime := nTime.Format("2006-01-02 15:04:05")
 
-	session := engine.NewSession()
+	/// 0
+	adsM := new(Ads).Get(this.AdId)
+	fmt.Println(adsM, this.Num)
+	if adsM.Num < uint64(this.Num) {
+		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
+		log.Println(err.Error())
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return
+	}
 
+
+	session := engine.NewSession()
 	/// 1. 卖家冻结
 	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
 	sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
@@ -251,16 +261,7 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 
-	/// 4.
-	adsM := new(Ads).Get(this.AdId)
-	fmt.Println(adsM, this.Num)
-	if adsM.Num < uint64(this.Num) {
-		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
-		log.Println(err.Error())
-		session.Rollback()
-		code = ERRCODE_TRADE_ERROR_ADS_NUM
-		return
-	}
+
 
 
 	err = session.Commit()
