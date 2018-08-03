@@ -171,12 +171,12 @@ func (s *User) SerialJsonData() (data string, err error) {
 	} else {
 		mark = 0
 	}
-	if s.SetTardeMark^utils.APPLY_FOR_FIRST ==utils.APPLY_FOR_FIRST{
+	if s.SetTardeMark^APPLY_FOR_FIRST ==APPLY_FOR_FIRST{
 		first =1
 	}else {
 		first=0
 	}
-	if s.SetTardeMark^utils.APPLY_FOR_SECOND ==utils.APPLY_FOR_SECOND{
+	if s.SetTardeMark^APPLY_FOR_SECOND ==APPLY_FOR_SECOND{
 		second =1
 	}else {
 		second=0
