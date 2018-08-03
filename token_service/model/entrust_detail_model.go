@@ -15,7 +15,6 @@ import (
 	"os"
 )
 
-
 /*
 type EntrustData struct {
 	EntrustId  string `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
@@ -28,7 +27,6 @@ type EntrustData struct {
 	States     int   `xorm:"not null comment('状态0正常1撤单2成交') TINYINT(4)"`
 }
 */
-
 
 type EntrustDetail struct {
 	EntrustId   string `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
@@ -88,8 +86,8 @@ func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	return m
 }
 
-func (s *EntrustDetail) SubSurplusInCache(num int64)  {
-	s.SurplusNum-=num
+func (s *EntrustDetail) SubSurplusInCache(num int64) {
+	s.SurplusNum -= num
 }
 
 func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
@@ -117,7 +115,7 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 		"os_id":      os.Getpid(),
 	}).Info("just record entrust_detail surplus ")
 	//s.SurplusNum -= deal_num
-	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num").Decr("surplus_num",deal_num).Update(s)
+	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num").Decr("surplus_num", deal_num).Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
 		return err

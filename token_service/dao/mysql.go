@@ -20,10 +20,10 @@ func NewMysql() (mysql *Mysql) {
 	}
 	engine.ShowSQL(true)
 	/*
-	cacher := xorm.NewLRUCacher2(xorm.NewMemoryStore(), time.Hour, 1000)
+		cacher := xorm.NewLRUCacher2(xorm.NewMemoryStore(), time.Hour, 1000)
 
-	engine.SetDefaultCacher(cacher)
-*/
+		engine.SetDefaultCacher(cacher)
+	*/
 	err = engine.Ping()
 	if err != nil {
 		log.Fatalf("db err is %s", err)
