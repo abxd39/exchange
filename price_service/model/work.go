@@ -61,9 +61,11 @@ func NewPriceWorkQuene(name string, token_id int32, cny int64, d *proto.PriceCac
 	for i := 0; i < MaxPrice; i++ {
 		v := &PriceInfo{}
 		v.Key = fmt.Sprintf("%s_%s", name, period_key[i])
+
 		if v.Key == "BTC/USDT_" {
 			panic("ss")
 		}
+
 		m.data = append(m.data, v)
 	}
 	go m.Publish()
@@ -159,7 +161,6 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		low = data.Price
 		high = data.Price
 	} else {
-
 		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
 
 		low = GetLow(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)

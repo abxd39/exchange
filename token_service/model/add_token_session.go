@@ -58,7 +58,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 
 	//isAddFrozen := false
 	if proto.TOKEN_OPT_TYPE_DEL == req.Opt {
-		ret, err = u.SubMoney(session, req.Num)
+		ret, err = u.SubMoney(session, req.Num, string(req.Ukey), req.Type)
 		if err != nil {
 			log.Errorln(err.Error())
 			session.Rollback()

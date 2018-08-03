@@ -47,25 +47,37 @@ func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 func (ex *UserEx) GetNickName(req *proto.UserGetNickNameRequest, rsp *proto.UserGetNickNameResponse) (ret int32, err error) {
 	//
 	engine := DB.GetMysqlConn()
-	fmt.Println("uid:", req.Uid)
-	uex := make([]UserEx, 0)
-	err = engine.In("uid", req.Uid).Find(&uex)
+	sql := "SELECT user.`uid`, account, user_ex.`nick_name`, user_ex.`head_sculpture` FROM g_common.`user` LEFT JOIN   user_ex ON user.`uid` = user_ex.`uid`"
+	type UNickName struct {
+		Uid        uint64     `json:"uid"`
+		Account    string      `json:"account"`
+		NickName   string      `json:"nick_name"`
+		HeadSculpture  string   `json:"head_sculpture"`
+	}
+	var uex []UNickName
+	err = engine.SQL(sql).In("uid", req.Uid).Find(&uex)
+	//fmt.Println("uid:", req.Uid)
+	//uex := make([]UserEx, 0)
+	//err = engine.In("uid", req.Uid).Find(&uex)
 	if err != nil {
 		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-
 	for _, value := range uex {
+		var nickname string
+		if value.NickName == ""{
+			nickname = value.Account
+		}else{
+			nickname = value.NickName
+		}
 		userEx := &proto.UserGetNickNameResponse_UserNickName{
 			Uid:           uint64(value.Uid),
-			NickName:      value.NickName,
+			NickName:      nickname,
 			HeadSculpture: value.HeadSculpture,
 		}
-
 		rsp.User = append(rsp.User, userEx)
 	}
-
 	ret = ERRCODE_SUCCESS
 	return
 }

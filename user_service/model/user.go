@@ -438,7 +438,6 @@ func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 				ret = ERRCODE_UNKNOWN
 				return
 			}
-			err = errors.New("test")
 			ret = ERRCODE_SUCCESS
 			return
 		}
