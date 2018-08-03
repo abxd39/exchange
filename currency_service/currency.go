@@ -3,7 +3,6 @@ package main
 import (
 	cf "digicon/currency_service/conf"
 	"digicon/currency_service/dao"
-	//log "github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc"
 	"digicon/currency_service/rpc/client"
@@ -12,6 +11,7 @@ import (
 	"os/signal"
 	"syscall"
 	"digicon/common/xlog"
+	"digicon/currency_service/rpc/handler"
 )
 
 
@@ -28,6 +28,7 @@ func main() {
 	log.Infof("begin run server")
 	dao.InitDao()
 	go rpc.RPCServerInit()
+	go handler.InitCheckOrderStatus()
 
 	client.InitInnerService()
 

@@ -253,6 +253,7 @@ func (this *Order) Add() (id uint64, code int32) {
 
 	/// 4.
 	adsM := new(Ads).Get(this.AdId)
+	fmt.Println(adsM, this.Num)
 	if adsM.Num < uint64(this.Num) {
 		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
 		log.Println(err.Error())
@@ -582,6 +583,22 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 	return
 }
 
+
+
+func (this *Order) GetOrdersByStatus()(ods []Order, err error){
+	engine := dao.DB.GetMysqlConn()
+	err = engine.Where("states = 1 OR states = 2").Find(&ods)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
+
+
+
 /*
 
  */
@@ -600,7 +617,7 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 
  */
 func CheckOrderExiryTime(id uint64, exiryTime string) {
-	fmt.Println("go run check order Exiry time ...............................")
+	log.Println("go run check order Exiry time ...............................")
 	od := new(Order)
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
@@ -625,7 +642,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 		}
 		time.Sleep(2 * 60 * time.Second)
 	}
-	fmt.Println(id, " break .................")
+	log.Println(id, " break .................")
 	return
 }
 
@@ -667,6 +684,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	sqlRest, err := session.Exec(sellSql, sellNum, sellNum, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		log.Println(err.Error())
+		log.Errorln("od.Id:", od.Id, od.ExpiryTime)
 		session.Rollback()
 		return
 	}
@@ -703,8 +721,9 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 //获取相差时间
 func GetHourDiffer(start_time, end_time string) int64 {
 	var minute int64
-	t1, err := time.ParseInLocation("2006-01-02 15:04:05", start_time, time.Local)
-	t2, err := time.ParseInLocation("2006-01-02 15:04:05", end_time, time.Local)
+	t1, err := time.Parse("2006-01-02 15:04:05", start_time)
+	t2, err := time.Parse("2006-01-02 15:04:05", end_time)
+	//fmt.Println(t1,t2)
 	if err == nil && t1.Before(t2) {
 		diff := t2.Unix() - t1.Unix() //
 		minute = diff / 60            //3600
