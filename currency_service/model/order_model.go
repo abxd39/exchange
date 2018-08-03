@@ -381,16 +381,42 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	}
 	if has {
 		fmt.Println("has ....")
-		_, err := session.Where("uid=? AND  token_id=? AND version=?", this.BuyId, this.TokenId, uCurrency.Version).Update(&UserCurrency{Balance: allNum})
+		buySql := "update user_currency set `balance`=`balance`+?, `version`=`version`+1   WHERE uid=? and token_id=? and version=?"
+		buyRest, err := session.Exec(buySql, allNum, this.BuyId, this.TokenId, buyCurrency.Version)
 		if err != nil {
-			fmt.Println("insert error!, ", err.Error())
+			fmt.Println("买家添加余额失败, ", err.Error())
 			log.Println(err.Error())
 			session.Rollback()
 			code = ERRCODE_TRADE_ERROR
 			return code, err
 		}
+		if rst, _ := buyRest.RowsAffected(); rst == 0 {
+			fmt.Println("买家添加余额失败失败!", err.Error())
+			log.Errorln("买家添加余额失败失败!", err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			err = errors.New("买家添加余额失败失败!")
+			return code, err
+		}
 	} else {
-		_, err := session.InsertOne(&UserCurrency{Uid: this.BuyId, TokenId: uint32(this.TokenId), TokenName: tokenName, Balance: allNum})
+		fmt.Println("no has....")
+		insertSql := "insert into user_currency (uid, token_id, token_name, valance, version) values (?, ?, ?, ?, 0)"
+		buyRest, err := session.Exec(insertSql, this.BuyId, this.TokenId, tokenName, allNum)
+		if err != nil {
+			fmt.Println("买家添加余额失败, ", err.Error())
+			log.Println(err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			return code, err
+		}
+		if rst, _ := buyRest.RowsAffected(); rst == 0 {
+			fmt.Println("买家添加余额失败失败!", err.Error())
+			log.Errorln("买家添加余额失败失败!", err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			err = errors.New("买家添加余额失败失败!")
+			return code, err
+		}
 		if err != nil {
 			fmt.Println("insert error!, ", err.Error())
 			log.Println(err.Error())
