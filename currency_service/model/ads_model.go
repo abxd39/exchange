@@ -244,3 +244,15 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 	//fmt.Println("User data:", data)
 	return data, total
 }
+
+
+
+/*
+	获取所有币种广告的总和额度
+*/
+func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, err error){
+	ssAds := new(Ads)
+	engine := dao.DB.GetMysqlConn()
+	sumLimit, err = engine.Where("uid=? and token_id=?", uid, tokenId).SumInt(ssAds, "num")
+	return
+}
