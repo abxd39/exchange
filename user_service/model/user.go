@@ -7,18 +7,19 @@ import (
 	"digicon/common/random"
 	proto "digicon/proto/rpc"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	. "digicon/common/constant"
 	. "digicon/proto/common"
 	. "digicon/user_service/dao"
+
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
 	"github.com/pkg/errors"
-	"admin/utils"
 )
 
 type User struct {
@@ -171,15 +172,15 @@ func (s *User) SerialJsonData() (data string, err error) {
 	} else {
 		mark = 0
 	}
-	if s.SetTardeMark^APPLY_FOR_FIRST ==APPLY_FOR_FIRST{
-		first =1
-	}else {
-		first=0
+	if s.SetTardeMark^APPLY_FOR_FIRST == APPLY_FOR_FIRST {
+		first = 1
+	} else {
+		first = 0
 	}
-	if s.SetTardeMark^APPLY_FOR_SECOND ==APPLY_FOR_SECOND{
-		second =1
-	}else {
-		second=0
+	if s.SetTardeMark^APPLY_FOR_SECOND == APPLY_FOR_SECOND {
+		second = 1
+	} else {
+		second = 0
 	}
 
 	r := &proto.UserAllData{
@@ -201,11 +202,11 @@ func (s *User) SerialJsonData() (data string, err error) {
 		},
 
 		Real: &proto.UserRealData{
-			RealName:     ex.RealName,
-			IdentifyCard: ex.IdentifyCard,
-			SecondMark:   mark,
-			CheckMarkFirst:first,
-			CheckMarkSecond:second,
+			RealName:        ex.RealName,
+			IdentifyCard:    ex.IdentifyCard,
+			SecondMark:      mark,
+			CheckMarkFirst:  first,
+			CheckMarkSecond: second,
 		},
 
 		Invite: &proto.UserInviteData{
