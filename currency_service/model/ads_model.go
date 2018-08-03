@@ -253,6 +253,6 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, err error){
 	ssAds := new(Ads)
 	engine := dao.DB.GetMysqlConn()
-	sumLimit, err = engine.Where("uid=? and token_id=?", uid, tokenId).SumInt(ssAds, "num")
+	sumLimit, err = engine.Where("uid=? and token_id=? ", uid, tokenId).SumInt(ssAds, "num")
 	return
 }

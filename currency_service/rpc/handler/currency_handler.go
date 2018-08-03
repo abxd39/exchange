@@ -455,7 +455,13 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 	balance, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
 	sumLimit, err := new(model.Ads).GetUserAdsLimit(req.Uid, req.TokenId)
 	//fmt.Println("sumLimit: ", sumLimit)
-	resultBalance := balance.Balance - sumLimit
+	var resultBalance int64
+	if balance.Balance > sumLimit {
+		resultBalance = balance.Balance - sumLimit
+	}else{
+		resultBalance = 0
+	}
+
 	if err != nil {
 		rsp.Data = string("0.00")
 		rsp.Code = errdefine.ERRCODE_UNKNOWN

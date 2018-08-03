@@ -264,7 +264,6 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 /*
 	获取用户资产明细
  */
-
  func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetailRequest, rsp *proto.OtherResponse) error {
 	 uCurrencyHistory := new(model.UserCurrencyHistory)
 	 uAssetDeailList, total, page, pageNum ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid), req.Page, req.PageNum)
