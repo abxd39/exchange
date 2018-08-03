@@ -410,7 +410,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symPrice := symbolData.Data[symbol]
 				if symPrice != nil {
-					fmt.Println("cnyPrice: ", symPrice.Price, symPrice.CnyPrice, dt.TokenName)
+					//fmt.Println("cnyPrice: ", symPrice.Price, symPrice.CnyPrice, dt.TokenName)
 					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
 					if int64price > 0 {
 						sum += convert.Int64DivInt64By8Bit(dt.Balance, int64price)
