@@ -605,7 +605,7 @@ func (this *Order) GetOrdersByStatus()(ods []Order, err error){
  */
 func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ?", uid, uid, startTime, endTime).Find(&ods)
+	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ? AND states=3", uid, uid, startTime, endTime).Find(&ods)
 	if err != nil {
 		log.Errorln(err.Error())
 		return
@@ -618,11 +618,9 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 
  */
 func CheckOrderExiryTime(id uint64, exiryTime string) {
-	log.Println("go run check order Exiry time ...............................")
 	od := new(Order)
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
-		fmt.Println(now, exiryTime)
 		fmt.Println("id: ", id, " order Exitry time(min): ", GetHourDiffer(now, exiryTime))
 		if GetHourDiffer(now, exiryTime) <= 0 {
 			engine := dao.DB.GetMysqlConn()
@@ -649,6 +647,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 
 
 func CancelAction(id uint64, CancelType uint32) (err error){
+
 	engine := dao.DB.GetMysqlConn()
 	od := new(Order)
 	_, err = od.GetOrder(id)
@@ -672,6 +671,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	err = session.Begin()
 
 	if err != nil {
+		fmt.Println("session start error!!!!!!!!!!!")
 		log.Println(err.Error())
 		session.Rollback()
 		return
@@ -683,7 +683,9 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	sellNum := rateFee + allNum
 	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
 	sqlRest, err := session.Exec(sellSql, sellNum, sellNum, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+
 	if err != nil {
+		fmt.Println("user_currency 还原 freeze error")
 		log.Println(err.Error())
 		log.Errorln("od.Id:", od.Id, od.ExpiryTime)
 		session.Rollback()
@@ -708,6 +710,13 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	_, err = session.Exec(sql, 4, CancelType, now, od.Id)
 	if err != nil {
 		log.Errorln(err.Error())
+		session.Rollback()
+		return
+	}
+	fmt.Println("session commit ....")
+	err = session.Commit()
+	if err != nil {
+		log.Println(err.Error())
 		session.Rollback()
 		return
 	}
