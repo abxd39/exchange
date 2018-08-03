@@ -195,8 +195,18 @@ func (this *Order) Add() (id uint64, code int32) {
 	nTime := time.Now()
 	nowTime := nTime.Format("2006-01-02 15:04:05")
 
-	session := engine.NewSession()
+	/// 0
+	adsM := new(Ads).Get(this.AdId)
+	if adsM.Num < uint64(this.Num) {
+		msg := "下单失败,购买的数量大于订单的数量!"
+		//fmt.Println(msg)
+		log.Println(msg)
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return
+	}
 
+
+	session := engine.NewSession()
 	/// 1. 卖家冻结
 	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
 	sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
@@ -250,6 +260,9 @@ func (this *Order) Add() (id uint64, code int32) {
 		session.Rollback()
 		return
 	}
+
+
+
 
 	err = session.Commit()
 	if err != nil {
@@ -400,7 +413,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		}
 	} else {
 		fmt.Println("no has....")
-		insertSql := "insert into user_currency (uid, token_id, token_name, valance, version) values (?, ?, ?, ?, 0)"
+		insertSql := "insert into user_currency (uid, token_id, token_name, balance, version) values (?, ?, ?, ?, 0)"
 		buyRest, err := session.Exec(insertSql, this.BuyId, this.TokenId, tokenName, allNum)
 		if err != nil {
 			fmt.Println("买家添加余额失败, ", err.Error())
@@ -472,8 +485,6 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		log.Println(err.Error())
 	}
 	if has {
-		//countAddOneSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?,?) ON DUPLICATE KEY UPDATE `success` = `success`+1"
-		//_, err = session.Exec(countAddOneSql, this.SellId, 1, 1, 100.0)
 		countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1, `orders`=`orders`+1  where uid=? "
 		_, err = session.Exec(countAddOneSql, this.SellId)
 		if err != nil {
@@ -501,10 +512,34 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		return code, err
 	}
 
+
 	//////////////////////////////////////////////////////
-	// 4. 更新状态
+	// 4. 广告个数减去相应的数量
 	//////////////////////////////////////////////////////
+	adsM := new(Ads).Get(this.AdId)
+	if adsM.Num < uint64(allNum) {
+		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
+		log.Println(err.Error())
+		session.Rollback()
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return code, err
+	}
 	now := time.Now().Format("2006-01-02 15:04:05")
+	updateAdsSql := "update `ads` set `num`=`num`-?, `updated_time`=?  WHERE `id`=? "
+	_,err = session.Exec(updateAdsSql, allNum, now, this.AdId)
+	if err != nil {
+		fmt.Println("update ads num states error:", err.Error())
+		log.Println(err.Error())
+		session.Rollback()
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return code, err
+	}
+
+
+	//////////////////////////////////////////////////////
+	// 5. 更新状态
+	//////////////////////////////////////////////////////
+
 	updateStatesSql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?,`release_time`=?,`fee`=?  WHERE  `id`=?"
 	_, err = session.Exec(updateStatesSql, 3, updateTimeStr, now, rateFee, Id)
 	if err != nil {
@@ -549,6 +584,22 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 	return
 }
 
+
+
+func (this *Order) GetOrdersByStatus()(ods []Order, err error){
+	engine := dao.DB.GetMysqlConn()
+	err = engine.Where("states = 1 OR states = 2").Find(&ods)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
+
+
+
 /*
 
  */
@@ -567,7 +618,7 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 
  */
 func CheckOrderExiryTime(id uint64, exiryTime string) {
-	fmt.Println("go run check order Exiry time ...............................")
+	log.Println("go run check order Exiry time ...............................")
 	od := new(Order)
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
@@ -592,7 +643,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 		}
 		time.Sleep(2 * 60 * time.Second)
 	}
-	fmt.Println(id, " break .................")
+	log.Println(id, " break .................")
 	return
 }
 
@@ -634,6 +685,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	sqlRest, err := session.Exec(sellSql, sellNum, sellNum, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		log.Println(err.Error())
+		log.Errorln("od.Id:", od.Id, od.ExpiryTime)
 		session.Rollback()
 		return
 	}
@@ -670,8 +722,9 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 //获取相差时间
 func GetHourDiffer(start_time, end_time string) int64 {
 	var minute int64
-	t1, err := time.ParseInLocation("2006-01-02 15:04:05", start_time, time.Local)
-	t2, err := time.ParseInLocation("2006-01-02 15:04:05", end_time, time.Local)
+	t1, err := time.Parse("2006-01-02 15:04:05", start_time)
+	t2, err := time.Parse("2006-01-02 15:04:05", end_time)
+	//fmt.Println(t1,t2)
 	if err == nil && t1.Before(t2) {
 		diff := t2.Unix() - t1.Unix() //
 		minute = diff / 60            //3600

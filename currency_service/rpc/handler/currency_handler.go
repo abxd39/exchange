@@ -453,12 +453,16 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 // 获取当前法币账户余额
 func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
 	balance, err := new(model.UserCurrency).GetBalance(req.Uid, req.TokenId)
+	sumLimit, err := new(model.Ads).GetUserAdsLimit(req.Uid, req.TokenId)
+	//fmt.Println("sumLimit: ", sumLimit)
+	resultBalance := balance.Balance - sumLimit
 	if err != nil {
 		rsp.Data = string("0.00")
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	} else {
-		rsp.Data = convert.Int64ToStringBy8Bit(balance.Balance)
+		//rsp.Data = convert.Int64ToStringBy8Bit(balance.Balance)
+		rsp.Data = convert.Int64ToStringBy8Bit(resultBalance)
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		return nil
 	}
