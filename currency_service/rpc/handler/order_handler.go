@@ -52,7 +52,7 @@ func (s *RPCServer) CancelOrder(ctx context.Context, req *proto.CancelOrderReque
 
 // 删除订单
 func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
-	fmt.Println(req.Id)
+	//fmt.Println(req.Id)
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
 	code, msg := new(model.Order).Delete(req.Id, updateTimeStr)
 	rsp.Code = code
@@ -111,7 +111,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 
 	od.PayId = nowAds.Pays
 
-	fmt.Println("od.selleid:", od.SellId, od.BuyId)
+	//fmt.Println("od.selleid:", od.SellId, od.BuyId)
 	if od.SellId == od.BuyId {
 		msg := "无法下自己订单"
 		err := errors.New(msg)
@@ -157,7 +157,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.ExpiryTime = now.Add(mm).Format("2006-01-02 15:04:05")
 
 	//fmt.Println("od:", od)
-	id, code := od.Add()
+	id, code := od.Add(req.Uid)
 	rsp.Code = code
 	rsp.Data = strconv.FormatUint(id, 10)
 	return nil
@@ -279,8 +279,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		tokenids = append(tokenids, ua.TokenId)
 	}
 	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids) // rpc 获取用户信息
-	fmt.Println("nickNames:", nickNames)
-
+	//fmt.Println("nickNames:", nickNames)
 	userNameMap := map[uint64]string{}
 	nickUsers := nickNames.User
 	for i := 0; i < len(nickUsers); i++ {

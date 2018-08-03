@@ -57,7 +57,7 @@ func (s *RPCServer) GetAds(ctx context.Context, req *proto.AdsGetRequest, rsp *p
 func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
-	fmt.Println(req.TokenId, req.TokenName)
+	//fmt.Println(req.TokenId, req.TokenName)
 
 	ads := new(model.Ads)
 	ads.Uid = req.Uid
@@ -113,7 +113,7 @@ func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *pr
 
 // 修改广告(买卖)状态
 func (s *RPCServer) UpdatedAdsStatus(ctx context.Context, req *proto.AdsStatusRequest, rsp *proto.CurrencyResponse) error {
-	fmt.Println(req.StatusId)
+	//fmt.Println(req.StatusId)
 	code := new(model.Ads).UpdatedAdsStatus(req.Id, req.StatusId)
 	rsp.Code = int32(code)
 	return nil
@@ -223,13 +223,12 @@ func (s *RPCServer) CurrencyTokensList(ctx context.Context, req *proto.CurrencyT
 
 	//data := new(model.Tokens).List()
 	data := new(model.CommonTokens).List()
-	fmt.Println("data:", data)
+	//fmt.Println("data:", data)
 	if data == nil {
 		return nil
 	}
 
-	fmt.Println("data:", data)
-
+	//fmt.Println("data:", data)
 	listLen := len(data)
 	listData := make([]*proto.CurrencyTokens, listLen)
 	for i := 0; i < listLen; i++ {
@@ -643,9 +642,7 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 	获取最新交易价格
 */
 func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.GetRecentTransactionPriceRequest, rsp *proto.OtherResponse) error {
-
-	fmt.Println(req.PriceType)
-
+	//fmt.Println(req.PriceType)
 	type TransactionPrice struct {
 		MarketPrice float64 `json:"market_price"`
 		LatestPrice float64 `json:"latest_price"`
@@ -662,7 +659,7 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 
 	chistory := new(model.UserCurrencyHistory)
 	err, price := chistory.GetLastPrice(tokenId)
-	fmt.Println("last price:", price)
+	//fmt.Println("last price:", price)
 	if err != nil {
 		tp.LatestPrice = convert.Int64ToFloat64By8Bit(price)
 	}

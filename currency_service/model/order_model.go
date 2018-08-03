@@ -164,7 +164,7 @@ func (this *Order) Ready(Id uint64, updateTimeStr string) (code int32, msg strin
 }
 
 // 添加订单
-func (this *Order) Add() (id uint64, code int32) {
+func (this *Order) Add(curUId int32) (id uint64, code int32) {
 	var err error
 	/////////////
 
@@ -283,8 +283,22 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 
+	/// 4. 自动回复的消息
+	replaySql := "insert into chats (order_id, is_order_user, uid, uname, content, states, created_time) values (?,?,?,?, ?,?,?)"
 
-
+	var isOrderUser  int
+	if adsM.Uid ==  uint64(curUId) {
+		isOrderUser = 1
+	}else{
+		isOrderUser = 0
+	}
+	var uname string
+	if adsM.Uid == this.SellId  {
+		uname = this.SellName
+	}else{
+		uname = this.BuyName
+	}
+	_, err = session.Exec(replaySql, this.OrderId, isOrderUser, adsM.Uid, uname ,adsM.Reply, 1, nowTime)
 
 	err = session.Commit()
 	if err != nil {
