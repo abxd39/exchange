@@ -499,6 +499,11 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 		" AND token_id=%d"+
 		" AND version=%d", s.TableName(), newBalance, uid, tokenId, s.Version))
 	if err != nil {
+		tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
+		tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+		currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
+		currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+
 		tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 		currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 
@@ -510,6 +515,11 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 		" (uid, token_id, ukey, type, opt, balance, num, created_time) VALUES"+
 		" (%d, %d, %d, %d, %d, %d, %d, %d)", new(MoneyRecord).TableName(), uid, tokenId, xid, proto.TOKEN_TYPE_OPERATOR_TRANSFER_TO_CURRENCY, proto.TOKEN_OPT_TYPE_DEL, newBalance, num, now))
 	if err != nil {
+		tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
+		tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+		currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
+		currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+
 		tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 		currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 
@@ -530,6 +540,11 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 			" (uid, token_id, token_name, balance, version)"+
 			" VALUES (%d, %d, '%s', %d, 1)", userCurrencyTableName, uid, tokenId, tokenName, newCurrBalance))
 		if err != nil {
+			tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
+			tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+			currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
+			currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+
 			tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 			currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 
@@ -538,6 +553,11 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 	} else {
 		_, err = currencySession.Exec(fmt.Sprintf("UPDATE %s SET balance=%d,version=version+1 WHERE uid=%d AND token_id=%d AND version=%d", userCurrencyTableName, newCurrBalance, uid, tokenId, userCurrency.Version))
 		if err != nil {
+			tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
+			tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+			currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
+			currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+
 			tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 			currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 
@@ -550,6 +570,11 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
 		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(OutUserCurrencyHistory).TableName(), uid, xid, tokenId, num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
 	if err != nil {
+		tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
+		tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+		currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
+		currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+
 		tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 		currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
 
