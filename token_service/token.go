@@ -1,6 +1,7 @@
 package main
 
 import (
+	"digicon/common/snowflake"
 	"digicon/common/xlog"
 	cf "digicon/token_service/conf"
 	"digicon/token_service/dao"
@@ -27,6 +28,8 @@ func main() {
 
 	log.Infof("begin run server")
 	dao.InitDao()
+	snowflake.Init(1)
+
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	model.GetQueneMgr().Init()

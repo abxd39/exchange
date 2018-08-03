@@ -8,6 +8,7 @@ import (
 	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 
+	"digicon/common/errors"
 	"digicon/token_service/rpc/client"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -404,5 +405,17 @@ func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest
 	if err != nil {
 		return nil
 	}
+	return nil
+}
+
+func (s *RPCServer) TransferToCurrency(ctx context.Context, req *proto.TransferToCurrencyRequest, rsp *proto.TransferToCurrencyResponse) error {
+	userTokenModel := &model.UserToken{}
+	err := userTokenModel.TransferToCurrency(req.Uid, int(req.TokenId), "", req.Num)
+	if err != nil {
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
+	}
+
 	return nil
 }

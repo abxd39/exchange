@@ -84,7 +84,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
 
-		Currency.POST("/transfer", this.Transfer)              // 划转
+		Currency.POST("/transfer", this.Transfer) // 划转
 	}
 }
 
@@ -476,14 +476,12 @@ func (this *CurrencyGroup) UpdatedAdsStatus(c *gin.Context) {
 		return
 	}
 
-
 	if rsp.Code != 0 {
 		ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
 		return
-	}else{
+	} else {
 		ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	}
-
 
 }
 
@@ -1209,8 +1207,8 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 
 	//ret.SetDataSection("appeal", uCurrencyCount.Success+uCurrencyCount.Failure) // 申诉
 	//ret.SetDataSection("success", uCurrencyCount.Success)
-	ret.SetDataSection("appeal", 0) // 申诉
-	ret.SetDataSection("success", 0)  //
+	ret.SetDataSection("appeal", 0)  // 申诉
+	ret.SetDataSection("success", 0) //
 
 	ret.SetDataSection("average_to", uCurrencyCount.AverageTo)
 	ret.SetDataSection("month_rate", uCurrencyCount.MonthRate)
@@ -1295,17 +1293,17 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 /*
 	划转
 */
-func (this *CurrencyGroup) Transfer (c *gin.Context){
+func (this *CurrencyGroup) Transfer(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
 	req := struct {
-		Uid        uint64  `form:"uid"        json:"uid"           binding:"required"`
-		TokenId    uint32  `form:"token_id"   json:"token_id"      binding:"required"`
-		TransType  uint32  `form:"trans_type" json:"trans_type"    binding:"required"`  // 1: 法币转到币币, 2: 币币转到法币
-		Num        float64 `form:"num"        json:"num"           binding:"required"`
+		Uid       uint64  `form:"uid"        json:"uid"           binding:"required"`
+		TokenId   uint32  `form:"token_id"   json:"token_id"      binding:"required"`
+		TransType uint32  `form:"trans_type" json:"trans_type"    binding:"required"` // 1: 法币转到币币, 2: 币币转到法币
+		Num       float64 `form:"num"        json:"num"           binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&req)
@@ -1336,10 +1334,6 @@ func (this *CurrencyGroup) Transfer (c *gin.Context){
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	return
 }
-
-
-
-
 
 ///*
 //	测试rpc添加用户余额

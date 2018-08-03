@@ -18,6 +18,9 @@ const (
 	ERRCODE_PARAM       = 2
 	ERRCODE_TOKENVERIFY = 3
 	ERRCODE_GREE        = 4
+
+	ERRCODE_NORMAL_ERROR = 100
+
 	//200-
 	ERRCODE_ACCOUNT_EXIST     = 202
 	ERRCODE_ACCOUNT_NOTEXIST  = 203
@@ -43,7 +46,6 @@ const (
 	ERRCODE_PHONE_EXIST     = 220
 	ERRCODE_PHONE_NOT_EXIST = 221
 	ERRCODE_INVITE          = 222
-
 
 	ERRCODE_EMAIL_EXIST   = 223
 	ERRCODE_UOPLOA_FAILED = 224
@@ -174,18 +176,10 @@ func (s *PublicErrorType) init() {
 func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
 	s.ret[ERR_CODE_RET] = code
 
-	if code == ERRCODE_PARAM {
-		if len(err_msg) > 0 {
-			s.ret[ERR_CODE_MESSAGE] = err_msg[0]
-		} else {
-			s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
-		}
-	} else if code != ERRCODE_UNKNOWN {
-		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
+	if len(err_msg) > 0 {
+		s.ret[ERR_CODE_MESSAGE] = err_msg[0]
 	} else {
-		if len(err_msg) > 0 {
-			s.ret[ERR_CODE_MESSAGE] = err_msg[0]
-		}
+		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
 	}
 }
 

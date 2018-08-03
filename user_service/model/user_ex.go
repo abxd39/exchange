@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 type UserEx struct {
 	Uid           int64  `xorm:"not null pk comment(' 用户ID') BIGINT(11)"`
 	NickName      string `xorm:"not null default '' comment('用户昵称') VARCHAR(64)"`
@@ -24,7 +23,6 @@ type UserEx struct {
 	AffirmCount   int    `xorm:"default 0 comment('实名认证的次数') TINYINT(4)"`
 	ChannelName   string `xorm:"not null default '' comment('邀请的渠道名称') VARCHAR(100)"`
 }
-
 
 func (s *UserEx) TableName() string {
 	return "user_ex"
@@ -104,11 +102,11 @@ func (ex *UserEx) SetNickName(req *proto.UserSetNickNameRequest, rsp *proto.User
 }
 
 //申请一级实名认证
-func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVerifyResponse)(ret int32,err error) {
+func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.FirstVerifyResponse) (ret int32, err error) {
 	engine := DB.GetMysqlConn()
 	fmt.Println("---------------->258369")
-	u:=new(User)
-	has, err := engine.Table("user").Where("uid=?",req.Uid).Get(u)
+	u := new(User)
+	has, err := engine.Table("user").Where("uid=?", req.Uid).Get(u)
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
@@ -125,63 +123,63 @@ func (ex*UserEx) SetFirstVerify(req*proto.FirstVerifyRequest,rsp*proto.FirstVeri
 		return result, nil
 	}
 	//google 认证
-	if req.GoogleCode !=0{
-		_,err:=u.AuthGoogleCode(u.GoogleVerifyId,req.GoogleCode)
-		if err!=nil{
-			return ERRCODE_UNKNOWN,err
+	if req.GoogleCode != 0 {
+		_, err := u.AuthGoogleCode(u.GoogleVerifyId, req.GoogleCode)
+		if err != nil {
+			return ERRCODE_UNKNOWN, err
 		}
 	}
-	has,err=engine.Where("uid=?",req.Uid).Get(ex)
-	if err!=nil{
-		return ERRCODE_UNKNOWN,err
+	has, err = engine.Where("uid=?", req.Uid).Get(ex)
+	if err != nil {
+		return ERRCODE_UNKNOWN, err
 	}
-	if !has{
-		return ERRCODE_ACCOUNT_NOTEXIST,nil
+	if !has {
+		return ERRCODE_ACCOUNT_NOTEXIST, nil
 	}
-	sess :=engine.NewSession()
-	defer  sess.Close()
-	if err=sess.Begin();err!=nil{
-		return ERRCODE_UNKNOWN,err
+	sess := engine.NewSession()
+	defer sess.Close()
+	if err = sess.Begin(); err != nil {
+		return ERRCODE_UNKNOWN, err
 	}
 	//写数据库 如果 user 表上有 该用户，则 表user_ex 此表一定有该 用户
-	if _,err=sess.Where("uid=?",req.Uid).Update(&UserEx{
-		RealName:req.RealName,
-		IdentifyCard:req.IdCode,
-		AffirmTime:time.Now().Unix(),
-		AffirmCount:ex.AffirmCount+1,
-	});err!=nil{
+	if _, err = sess.Where("uid=?", req.Uid).Update(&UserEx{
+		RealName:     req.RealName,
+		IdentifyCard: req.IdCode,
+		AffirmTime:   time.Now().Unix(),
+		AffirmCount:  ex.AffirmCount + 1,
+	}); err != nil {
 		sess.Rollback()
 
-		return ERRCODE_UNKNOWN,err
+		return ERRCODE_UNKNOWN, err
 	}
-	u.SetTardeMark = u.SetTardeMark^ 2
-	if _,err=sess.Table("user").Where("uid=?",req.Uid).Update(&User{
-		SetTardeMark:u.SetTardeMark,
-	});err!=nil{
+	u.SetTardeMark = u.SetTardeMark ^ 2
+	if _, err = sess.Table("user").Where("uid=?", req.Uid).Update(&User{
+		SetTardeMark: u.SetTardeMark,
+	}); err != nil {
 		sess.Rollback()
-		return ERRCODE_UNKNOWN,err
+		return ERRCODE_UNKNOWN, err
 	}
-	if err!=nil{
+	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
 	sess.Commit()
 
 	u.ForceRefreshCache(u.Uid)
-	return 0,nil
+	return 0, nil
 }
 
 //获取认证次数 实名 和二级认证次数
 
-func (ex*UserEx) GetVerifyCount(req*proto.VerifyCountRequest,rsp*proto.VerifyCountResponse)(ret int32,err error){
+func (ex *UserEx) GetVerifyCount(req *proto.VerifyCountRequest, rsp *proto.VerifyCountResponse) (ret int32, err error) {
 	engine := DB.GetMysqlConn()
-	_,err=engine.Where("uid=?",req.Uid).Get(ex)
-	if err!=nil {
-		return ERRCODE_UNKNOWN,err
+	_, err = engine.Where("uid=?", req.Uid).Get(ex)
+	if err != nil {
+		return ERRCODE_UNKNOWN, err
 	}
-	rsp.SecondCount, err =new(UserSecondaryCertification).GetVerifyCount(req.Uid)
-	if err!=nil {
-		return ERRCODE_UNKNOWN,err
+	rsp.SecondCount, err = new(UserSecondaryCertification).GetVerifyCount(req.Uid)
+	if err != nil {
+		return ERRCODE_UNKNOWN, err
 	}
 	rsp.FirstCount = int32(ex.AffirmCount)
-	return ERRCODE_SUCCESS,nil
+	return ERRCODE_SUCCESS, nil
 }

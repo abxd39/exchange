@@ -255,8 +255,8 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 
 	//var param OrderRequest
 	param := struct {
-		Id      uint64 `form:"id" json:"id"   binding:"required"` //order 表Id
-		Uid     int32  `form:"id" json:"uid"  binding:"required"`        //
+		Id  uint64 `form:"id" json:"id"   binding:"required"` //order 表Id
+		Uid int32  `form:"id" json:"uid"  binding:"required"` //
 	}{}
 	err := c.ShouldBind(&param)
 	if err != nil {
@@ -265,8 +265,8 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.OrderRequest{
-		Id: param.Id,
-		Uid:param.Uid,
+		Id:  param.Id,
+		Uid: param.Uid,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -332,9 +332,8 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
-		TokenId     uint64  `form:"token_id"              json:"token_id"`
-		TokenName   string  `form:"token_name"            json:"token_name"`
-
+		TokenId    uint64 `form:"token_id"              json:"token_id"`
+		TokenName  string `form:"token_name"            json:"token_name"`
 
 		OrderId           string `form:"order_id"               json:"order_id"`
 		PayPrice          int64  `form:"pay_price"              json:"pay_price"`

@@ -134,9 +134,6 @@ func (this *WalletHandler) Tibi(ctx context.Context, req *proto.TibiRequest, rsp
 	return nil
 }
 
-
-
-
 func (this *WalletHandler) GetValue(ctx context.Context, req *proto.GetValueRequest, rsp *proto.GetValueResponse) error {
 	rsp.Code = "0"
 	rsp.Msg = "操作成功"

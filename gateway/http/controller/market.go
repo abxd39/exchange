@@ -82,7 +82,7 @@ func (s *MarketGroup) EntrustQuene(c *gin.Context) {
 	}()
 	type EntrustQueneParam struct {
 		Symbol string `form:"symbol" binding:"required"`
-		Num int64 `form:"num" `
+		Num    int64  `form:"num" `
 	}
 
 	var param EntrustQueneParam
@@ -93,14 +93,14 @@ func (s *MarketGroup) EntrustQuene(c *gin.Context) {
 		return
 	}
 
-	if param.Num<=0 {
-		param.Num=5
+	if param.Num <= 0 {
+		param.Num = 5
 	}
 
-	param.Num-=1
+	param.Num -= 1
 	rsp, err := rpc.InnerService.TokenService.CallEntrustQuene(&proto.EntrustQueneRequest{
 		Symbol: param.Symbol,
-		Num:param.Num,
+		Num:    param.Num,
 	})
 
 	if err != nil {

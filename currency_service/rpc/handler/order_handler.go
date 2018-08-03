@@ -26,6 +26,9 @@ func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest
 	o := new(model.Order)
 
 	rsp.Total, rsp.Page, rsp.PageNum, rsp.Err = o.List(req.Page, req.PageNum, req.AdType, req.States, req.Id, req.Uid, req.TokenId, req.StartTime, req.EndTime, &result)
+	//for _, od := range result{
+
+	//}
 
 	orders, err := json.Marshal(result)
 	if err != nil {
@@ -307,7 +310,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 
     var NewUAssetDetaillList []NewUserCurrencyHisotry
 	for _, ua := range uAssetDeailList{
-		fmt.Println(ua.CreatedTime)
+		//fmt.Println(ua.CreatedTime)
 		var tmp NewUserCurrencyHisotry
 		tmp.TradeName   = userNameMap[uint64(ua.TradeUid)]
 		tmp.Uid         = ua.Uid

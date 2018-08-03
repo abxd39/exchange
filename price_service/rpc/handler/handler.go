@@ -5,9 +5,9 @@ import (
 	//"digicon/price_service/exchange"
 	"digicon/price_service/model"
 	proto "digicon/proto/rpc"
+	"fmt"
 	"golang.org/x/net/context"
 	"log"
-	"fmt"
 	"strings"
 )
 
@@ -177,30 +177,29 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 	return nil
 }
 
-
 /*
 	获取一个币对的价格比
 */
 func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRateRequest, rsp *proto.GetSymbolsRateResponse) error {
 	type BaseData struct {
-		Symbol   string  `json:"symbol"`    //  btc/usdt
-		Price    string  `json:"price"`     //  1btc = xxx usdt
-		CnyPrice string  `json:"cny_price"` //  cny
+		Symbol   string `json:"symbol"`    //  btc/usdt
+		Price    string `json:"price"`     //  1btc = xxx usdt
+		CnyPrice string `json:"cny_price"` //  cny
 	}
 	data := map[string]*proto.RateBaseData{}
-	for _, symbol := range req.Symbols{
+	for _, symbol := range req.Symbols {
 		var ok bool
 		data[symbol], ok = getSymbolRate(symbol)
 		if !ok {
 			tmpSym := strings.Split(symbol, "/")
-			if len(tmpSym) < 2{
+			if len(tmpSym) < 2 {
 				data[symbol] = new(proto.RateBaseData)
 				continue
 			}
-			newSymbol := fmt.Sprintf("%s/%s",tmpSym[1], tmpSym[0])
-			tmpdata,_ := getSymbolRate(newSymbol)
+			newSymbol := fmt.Sprintf("%s/%s", tmpSym[1], tmpSym[0])
+			tmpdata, _ := getSymbolRate(newSymbol)
 			tmpPrice, _ := convert.StringToInt64By8Bit(tmpdata.Price)
-			newPrice  := convert.Int64DivInt64By8Bit(100000000,tmpPrice)
+			newPrice := convert.Int64DivInt64By8Bit(100000000, tmpPrice)
 			tmpdata.Price = convert.Int64ToStringBy8Bit(newPrice)
 			int64CnyPrice, _ := convert.StringToInt64By8Bit(tmpdata.CnyPrice)
 			tmpCnyPrice := convert.Int64MulInt64By8Bit(100000000, tmpPrice)
@@ -214,16 +213,16 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 	return nil
 }
 
-func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool){
+func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool) {
 	q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
 	if !ok {
 		//fmt.Println(ok)
 		return getOtherSymbolRage(symbol)
-	}else{
+	} else {
 		e := q.GetEntry()
 		data = &proto.RateBaseData{
-			Symbol: q.Symbol,
-			Price: convert.Int64ToStringBy8Bit(e.Price),
+			Symbol:   q.Symbol,
+			Price:    convert.Int64ToStringBy8Bit(e.Price),
 			CnyPrice: convert.Int64ToStringBy8Bit(q.CnyPrice),
 		}
 	}
@@ -233,7 +232,7 @@ func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool){
 /*
    如果没有找到币对
 */
-func getOtherSymbolRage(symbol string)(data *proto.RateBaseData, ok bool){
+func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 
 	return
 }
@@ -247,4 +246,3 @@ func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *p
 	}
 	return nil
 }
-

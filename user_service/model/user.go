@@ -163,10 +163,10 @@ func (s *User) SerialJsonData() (data string, err error) {
 		return
 	}
 	var mark int32
-	if s.SecurityAuth ^ AUTH_TWO == AUTH_TWO{
-		mark =1
-	}else {
-		mark =0
+	if s.SecurityAuth^AUTH_TWO == AUTH_TWO {
+		mark = 1
+	} else {
+		mark = 0
 	}
 	r := &proto.UserAllData{
 		Base: &proto.UserBaseData{
@@ -184,7 +184,6 @@ func (s *User) SerialJsonData() (data string, err error) {
 			GoogleExist:    s.authSecurityCode(AUTH_GOOGLE),
 			NickName:       ex.NickName,
 			HeadSculpture:  ex.HeadSculpture,
-
 		},
 
 		Real: &proto.UserRealData{

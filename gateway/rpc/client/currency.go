@@ -159,12 +159,10 @@ func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*
 	return rsp, err
 }
 
-
 /*
 	交易
 */
-func (s *CurrencyRPCCli) CallTransfer(req *proto.TransferRequest)(*proto.OtherResponse, error) {
+func (s *CurrencyRPCCli) CallTransfer(req *proto.TransferRequest) (*proto.OtherResponse, error) {
 	rsp, err := s.conn.Transfer(context.TODO(), req)
 	return rsp, err
 }
-

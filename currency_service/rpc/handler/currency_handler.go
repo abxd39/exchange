@@ -140,11 +140,11 @@ func (s *RPCServer) AdsList(ctx context.Context, req *proto.AdsListRequest, rsp 
 			CreatedTime: data[i].CreatedTime,
 			UpdatedTime: data[i].UpdatedTime,
 			UserVolume:  data[i].Success,
-			TypeId:    data[i].TypeId,
-			TokenId:   data[i].TokenId,
-			TokenName: data[i].TokenName,
-			Premium:   data[i].Premium,
-			States:    data[i].States,
+			TypeId:      data[i].TypeId,
+			TokenId:     data[i].TokenId,
+			TokenName:   data[i].TokenName,
+			Premium:     data[i].Premium,
+			States:      data[i].States,
 			//Balance:     data[i].Balance,
 			//Freeze:      data[i].Freeze,
 		}
@@ -358,8 +358,8 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	tkconfig := new(model.TokenConfigTokenCNy)
 
 	var symbols []string
-	for _,dt := range data{
-		if dt.TokenName != "BTC"{
+	for _, dt := range data {
+		if dt.TokenName != "BTC" {
 			symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 			symbols = append(symbols, symbol)
 		}
@@ -367,20 +367,20 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 
 	//fmt.Println("symbols:", symbols)
 	type RespBalance struct {
-		Id        uint64 `json:"id"`
-		Uid       uint64 `json:"uid"`
-		TokenId   uint32 `json:"token_id"`
-		TokenName string `json:"token_name"`
-		Address   string `json:"address"`
+		Id        uint64  `json:"id"`
+		Uid       uint64  `json:"uid"`
+		TokenId   uint32  `json:"token_id"`
+		TokenName string  `json:"token_name"`
+		Address   string  `json:"address"`
 		Freeze    float64 `json:"freeze"`
 		Balance   float64 `json:"balance"`
 		Valuation float64 `json:"valuation"`
 	}
 	var RespUCurrencyList []RespBalance
 	type RespData struct {
-		UCurrencyList    []RespBalance
-		Sum              float64  `json:"sum"`
-		SumCNY   		 float64  `json:"sum_cny"`
+		UCurrencyList []RespBalance
+		Sum           float64 `json:"sum"`
+		SumCNY        float64 `json:"sum_cny"`
 	}
 
 	var sum int64
@@ -392,26 +392,26 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		log.Println(err.Error())
 		rsp.Data = "{}"
 		return err
-	}else{
-		for _, dt :=range data{
+	} else {
+		for _, dt := range data {
 			var tmp RespBalance
 			var valuation float64
-			if dt.TokenName == "BTC"{
+			if dt.TokenName == "BTC" {
 				err = tkconfig.GetPrice(dt.TokenId)
 				if err != nil {
 					sumcny += 0
-				}else{
+				} else {
 					sumcny += tkconfig.Price
 				}
 				sum += dt.Balance
 				int64valuetion := convert.Int64MulInt64By8Bit(tkconfig.Price, dt.Balance)
 				valuation = convert.Int64ToFloat64By8Bit(int64valuetion)
 				sumcny += int64valuetion
-			}else{
+			} else {
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symPrice := symbolData.Data[symbol]
 				if symPrice != nil {
-					fmt.Println("cnyPrice: ",symPrice.Price,symPrice.CnyPrice, dt.TokenName)
+					fmt.Println("cnyPrice: ", symPrice.Price, symPrice.CnyPrice, dt.TokenName)
 					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
 					if int64price > 0 {
 						sum += convert.Int64DivInt64By8Bit(dt.Balance, int64price)
@@ -425,12 +425,12 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				}
 			}
 			tmp.TokenName = dt.TokenName
-			tmp.TokenId   = dt.TokenId
-			tmp.Id        = dt.Id
-			tmp.Uid       = dt.Uid
-			tmp.Address   = dt.Address
-			tmp.Freeze    = convert.Int64ToFloat64By8Bit(dt.Freeze)
-			tmp.Balance   = convert.Int64ToFloat64By8Bit(dt.Balance)
+			tmp.TokenId = dt.TokenId
+			tmp.Id = dt.Id
+			tmp.Uid = dt.Uid
+			tmp.Address = dt.Address
+			tmp.Freeze = convert.Int64ToFloat64By8Bit(dt.Freeze)
+			tmp.Balance = convert.Int64ToFloat64By8Bit(dt.Balance)
 			tmp.Valuation = valuation
 			RespUCurrencyList = append(RespUCurrencyList, tmp)
 		}
@@ -439,7 +439,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	var respdata RespData
 	respdata.UCurrencyList = RespUCurrencyList
 	respdata.Sum = convert.Int64ToFloat64By8Bit(sum)
-	respdata.SumCNY =  convert.Int64ToFloat64By8Bit(sumcny)
+	respdata.SumCNY = convert.Int64ToFloat64By8Bit(sumcny)
 	result, err := json.Marshal(respdata)
 	if err != nil {
 		rsp.Data = "{}"
@@ -449,8 +449,6 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	rsp.Data = string(result)
 	return nil
 }
-
-
 
 // 获取当前法币账户余额
 func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurrencyBalanceRequest, rsp *proto.OtherResponse) error {
@@ -514,13 +512,13 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 		return err
 	}
 	type AuthInfo struct {
-		EmailAuth    int32  `json:"email_auth"`     //
-		PhoneAuth    int32  `json:"phone_auth"`     //
-		RealName     int32  `json:"real_name"`      //
-		TwoLevelAuth int32  `json:"two_level_auth"` //
-		NickName     string `json:"nick_name"`
-		HeadSculpture     string `json:"head_scul"`
-		CreatedTime  string `json:"created_time"`
+		EmailAuth     int32  `json:"email_auth"`     //
+		PhoneAuth     int32  `json:"phone_auth"`     //
+		RealName      int32  `json:"real_name"`      //
+		TwoLevelAuth  int32  `json:"two_level_auth"` //
+		NickName      string `json:"nick_name"`
+		HeadSculpture string `json:"head_scul"`
+		CreatedTime   string `json:"created_time"`
 	}
 	type UserRateAndAuth struct {
 		model.UserCurrencyCount
@@ -602,7 +600,6 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	return nil
 }
 
-
 /*
 	AddUserBalance
 */
@@ -634,14 +631,14 @@ func (s *RPCServer) AddUserBalance(ctx context.Context, req *proto.AddUserBalanc
 
 /*
 	获取最新交易价格
- */
-func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.GetRecentTransactionPriceRequest, rsp *proto.OtherResponse) error {
+*/
+func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.GetRecentTransactionPriceRequest, rsp *proto.OtherResponse) error {
 
 	fmt.Println(req.PriceType)
-	
+
 	type TransactionPrice struct {
-		MarketPrice   float64  `json:"market_price"`
-		LatestPrice   float64  `json:"latest_price"`
+		MarketPrice float64 `json:"market_price"`
+		LatestPrice float64 `json:"latest_price"`
 	}
 	tp := TransactionPrice{}
 
@@ -660,27 +657,23 @@ func (s *RPCServer) GetRecentTransactionPrice (ctx context.Context, req *proto.G
 		tp.LatestPrice = convert.Int64ToFloat64By8Bit(price)
 	}
 
-	data, err  := json.Marshal(tp)
+	data, err := json.Marshal(tp)
 	if err != nil {
 		fmt.Println(err)
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
-	}else{
+	} else {
 		rsp.Data = string(data)
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 		return nil
 	}
 }
 
-
-
 /*
 	交易划转
 */
-func (s *RPCServer)Transfer(ctx context.Context, req *proto.TransferRequest, rsp *proto.OtherResponse) error {
+func (s *RPCServer) Transfer(ctx context.Context, req *proto.TransferRequest, rsp *proto.OtherResponse) error {
 	fmt.Println(req)
 
 	return nil
 }
-
-

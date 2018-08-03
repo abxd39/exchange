@@ -32,7 +32,7 @@ const (
 	SMS_BIND_PHONE       = 11
 	SMS_BIND_EMAIL       = 12
 	SMS_CARRY_COIN       = 13
-	SMS_REAL_NAME		 = 14
+	SMS_REAL_NAME        = 14
 	SMS_MAX              = 15
 )
 
@@ -87,13 +87,13 @@ func ProcessSmsLogic(ty int32, phone, region string) (ret int32, err error) {
 			return
 		}
 		err = GetGreeSuccess(phone)
-		if err==redis.Nil {
-			ret=ERRCODE_GREE
+		if err == redis.Nil {
+			ret = ERRCODE_GREE
 			return
-		}else if err!=nil{
-			ret=ERRCODE_UNKNOWN
+		} else if err != nil {
+			ret = ERRCODE_UNKNOWN
 			return
-		}else{
+		} else {
 			DelGreeSuccess(phone)
 		}
 		ret, err = SendSms(phone, region, ty)

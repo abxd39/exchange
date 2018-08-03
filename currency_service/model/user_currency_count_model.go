@@ -29,23 +29,21 @@ func (this *UserCurrencyCount) GetUserCount(uid uint64) (data UserCurrencyCount,
 	return
 }
 
-
 /*
 	检查用户记录是否存在
 */
-func (this *UserCurrencyCount) CheckUserCurrencyCountExists(uid uint64) (has bool, err error){
+func (this *UserCurrencyCount) CheckUserCurrencyCountExists(uid uint64) (has bool, err error) {
 	engine := dao.DB.GetMysqlConn()
-	has, err = engine.Exist(&UserCurrencyCount{Uid:uid})
+	has, err = engine.Exist(&UserCurrencyCount{Uid: uid})
 	return
 }
 
 /*
 	添加用户好评率
 */
-func (this *UserCurrencyCount) AddUserCurrencyCount(uid uint64, order uint32, success uint32) (err error){
+func (this *UserCurrencyCount) AddUserCurrencyCount(uid uint64, order uint32, success uint32) (err error) {
 	insertSql := "INSERT INTO `user_currency_count` (uid,orders, success) values(?,?,?)"
 	engine := dao.DB.GetMysqlConn()
-	_, err = engine.Exec(insertSql, this.Uid, this.Orders,this.Success)
+	_, err = engine.Exec(insertSql, this.Uid, this.Orders, this.Success)
 	return
 }
-
