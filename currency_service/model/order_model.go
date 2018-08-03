@@ -133,6 +133,7 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 	}
 
 	err  = CancelAction(Id, CancelType)
+
 	if err != nil {
 		code = ERRCODE_UNKNOWN
 		msg = "cancel error!"
@@ -557,7 +558,10 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 					break
 				}
 			}
-			CancelAction(od.Id, 3)
+			err = CancelAction(od.Id, 3)
+			if err != nil {
+				err = CancelAction(od.Id, 3)
+			}
 			break
 		}
 		time.Sleep(2 * 60 * time.Second)

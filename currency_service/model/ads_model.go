@@ -167,7 +167,7 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 // 法币交易列表 - (广告(买卖))
 func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurrencyCountList, int64) {
 	//func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]Ads, int64) {
-	total, err := dao.DB.GetMysqlConn().Where("type_id=? AND token_id=?", TypeId, TokenId).Count(new(Ads))
+	total, err := dao.DB.GetMysqlConn().Where("type_id=? AND token_id=? AND states = 1 AND is_del = 0", TypeId, TokenId).Count(new(Ads))
 	fmt.Println("total:", total)
 	if err != nil {
 		log.Errorln(err.Error())
@@ -190,7 +190,8 @@ func (this *Ads) AdsList(TypeId, TokenId, Page, PageNum uint32) ([]AdsUserCurren
 		//Join("INNER", "user_currency", "ads.uid=user_currency.uid AND ads.token_id=user_currency.token_id").
 		Join("LEFT", "user_currency_count", "ads.uid=user_currency_count.uid").
 		Where("ads.type_id=? AND ads.token_id=?", TypeId, TokenId).
-		Where("ads.is_del != 1").
+		Where("ads.states = 1").
+		Where("ads.is_del = 0 ").
 		Desc("updated_time").
 		Limit(int(PageNum), limit).
 		Find(&data)
