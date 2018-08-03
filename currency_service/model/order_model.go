@@ -251,6 +251,17 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 
+	/// 4.
+	adsM := new(Ads).Get(this.AdId)
+	if adsM.Num < uint64(this.Num) {
+		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
+		log.Println(err.Error())
+		session.Rollback()
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return
+	}
+
+
 	err = session.Commit()
 	if err != nil {
 		log.Errorln(err.Error())
@@ -504,7 +515,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	// 4. 广告个数减去相应的数量
 	//////////////////////////////////////////////////////
 	adsM := new(Ads).Get(this.AdId)
-	if adsM.Num <= uint64(allNum) {
+	if adsM.Num < uint64(allNum) {
 		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
 		log.Println(err.Error())
 		session.Rollback()
