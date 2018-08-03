@@ -400,7 +400,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		}
 	} else {
 		fmt.Println("no has....")
-		insertSql := "insert into user_currency (uid, token_id, token_name, valance, version) values (?, ?, ?, ?, 0)"
+		insertSql := "insert into user_currency (uid, token_id, token_name, balance, version) values (?, ?, ?, ?, 0)"
 		buyRest, err := session.Exec(insertSql, this.BuyId, this.TokenId, tokenName, allNum)
 		if err != nil {
 			fmt.Println("买家添加余额失败, ", err.Error())
