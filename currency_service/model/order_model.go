@@ -197,10 +197,11 @@ func (this *Order) Add() (id uint64, code int32) {
 
 	/// 0
 	adsM := new(Ads).Get(this.AdId)
-	fmt.Println(adsM, this.Num)
+	//fmt.Println("adsM:", adsM.Num, "this num:", this.Num, adsM.Num < uint64(this.Num))
 	if adsM.Num < uint64(this.Num) {
-		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
-		log.Println(err.Error())
+		msg := "下单失败,购买的数量大于订单的数量!"
+		//fmt.Println(msg)
+		log.Println(msg)
 		code = ERRCODE_TRADE_ERROR_ADS_NUM
 		return
 	}
