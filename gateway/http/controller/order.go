@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"fmt"
 )
 
 type OrderRequest struct {
@@ -278,6 +279,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 
 // 添加订单
 func (this CurrencyGroup) AddOrder(c *gin.Context) {
+	fmt.Println("add order:,....")
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -285,11 +287,13 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 	var param AddOrder
 	var backParam BackAddOrder
 	err := c.ShouldBind(&param)
+
 	if err != nil {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
+	fmt.Println("param: ", param)
 	backParam.Uid = param.Uid
 	backParam.AdId = param.AdId
 	backParam.Num = convert.Float64ToInt64By8Bit(param.Num)
@@ -300,6 +304,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 		Uid:   param.Uid,
 		//TypeId:param.TypeId,
 	})
+	fmt.Println("rsp:", rsp )
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return

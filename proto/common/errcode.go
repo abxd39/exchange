@@ -73,6 +73,8 @@ const (
 	ERRCODE_ORDER_ERROR  = 423
 	ERRCODE_TRADE_ERROR  = 424
 	ERRCODE_TRADE_ERROR_ADS_NUM = 425
+	ERRCODE_TRADE_LOWER_PRICE = 426
+	ERRCODE_TRADE_LARGE_PRICE = 427
 )
 
 func GetErrorMessage(code int32) string {
@@ -137,6 +139,9 @@ func init() {
 	message[ERRCODE_TRADE_ERROR_ADS_NUM] = "下单失败,购买的数量大于订单的数量!"
 	message[ERRCODE_TRADE_ERROR] = "交易失败，请重试!"
 	message[ERRCODE_ORDER_FREEZE] = "订单冻结"
+	message[ERRCODE_TRADE_LOWER_PRICE] = "下单失败,买价小于允许的最小价格!"
+	message[ERRCODE_TRADE_LARGE_PRICE] = "下单失败,买价大于允许的最大价格!"
+
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
 	message[ERR_TOKEN_LESS] = "币的余额不够"

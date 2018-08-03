@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 	. "digicon/proto/common"
+	"digicon/common/convert"
 )
 
 // 订单表
@@ -204,6 +205,27 @@ func (this *Order) Add() (id uint64, code int32) {
 		code = ERRCODE_TRADE_ERROR_ADS_NUM
 		return
 	}
+
+	curCnyPrice := convert.Int64MulInt64By8Bit(this.Num, this.Price)
+
+	int64MinLimit := convert.Float64ToInt64By8Bit(float64(adsM.MinLimit))
+	fmt.Println(int64MinLimit, curCnyPrice)
+	if  curCnyPrice  < int64MinLimit{
+		msg := "下单失败,买价小于允许的最小价格!"
+		log.Println(msg)
+		code = ERRCODE_TRADE_LOWER_PRICE
+		return
+	}
+
+	int64MaxLimit := convert.Float64ToInt64By8Bit(float64(adsM.MaxLimit))
+	fmt.Println(int64MaxLimit, curCnyPrice)
+	if  curCnyPrice > int64MaxLimit {
+		msg := "下单失败,买价大于允许的最大价格!"
+		log.Println(msg)
+		code = ERRCODE_TRADE_LARGE_PRICE
+		return
+	}
+
 
 
 	session := engine.NewSession()
