@@ -18,6 +18,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
 	"github.com/pkg/errors"
+	"admin/utils"
 )
 
 type User struct {
@@ -163,11 +164,24 @@ func (s *User) SerialJsonData() (data string, err error) {
 		return
 	}
 	var mark int32
+	var first int32
+	var second int32
 	if s.SecurityAuth^AUTH_TWO == AUTH_TWO {
 		mark = 1
 	} else {
 		mark = 0
 	}
+	if s.SetTardeMark^utils.APPLY_FOR_FIRST ==utils.APPLY_FOR_FIRST{
+		first =1
+	}else {
+		first=0
+	}
+	if s.SetTardeMark^utils.APPLY_FOR_SECOND ==utils.APPLY_FOR_SECOND{
+		second =1
+	}else {
+		second=0
+	}
+
 	r := &proto.UserAllData{
 		Base: &proto.UserBaseData{
 			Uid:            s.Uid,
@@ -190,6 +204,8 @@ func (s *User) SerialJsonData() (data string, err error) {
 			RealName:     ex.RealName,
 			IdentifyCard: ex.IdentifyCard,
 			SecondMark:   mark,
+			CheckMarkFirst:first,
+			CheckMarkSecond:second,
 		},
 
 		Invite: &proto.UserInviteData{
