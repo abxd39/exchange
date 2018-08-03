@@ -472,8 +472,6 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		log.Println(err.Error())
 	}
 	if has {
-		//countAddOneSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?,?) ON DUPLICATE KEY UPDATE `success` = `success`+1"
-		//_, err = session.Exec(countAddOneSql, this.SellId, 1, 1, 100.0)
 		countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1, `orders`=`orders`+1  where uid=? "
 		_, err = session.Exec(countAddOneSql, this.SellId)
 		if err != nil {
@@ -501,10 +499,34 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		return code, err
 	}
 
+
 	//////////////////////////////////////////////////////
-	// 4. 更新状态
+	// 4. 广告个数减去相应的数量
 	//////////////////////////////////////////////////////
+	adsM := new(Ads).Get(this.AdId)
+	if adsM.Num <= uint64(allNum) {
+		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
+		log.Println(err.Error())
+		session.Rollback()
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return code, err
+	}
 	now := time.Now().Format("2006-01-02 15:04:05")
+	updateAdsSql := "update `ads` set `num`=`num`-?, `updated_time`=?  WHERE `id`=? "
+	_,err = session.Exec(updateAdsSql, allNum, now, this.AdId)
+	if err != nil {
+		fmt.Println("update ads num states error:", err.Error())
+		log.Println(err.Error())
+		session.Rollback()
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return code, err
+	}
+
+
+	//////////////////////////////////////////////////////
+	// 5. 更新状态
+	//////////////////////////////////////////////////////
+
 	updateStatesSql := "UPDATE   `order`   SET   `states`=?, `updated_time`=?,`release_time`=?,`fee`=?  WHERE  `id`=?"
 	_, err = session.Exec(updateStatesSql, 3, updateTimeStr, now, rateFee, Id)
 	if err != nil {
