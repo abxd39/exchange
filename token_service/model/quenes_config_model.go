@@ -1,8 +1,8 @@
 package model
 
 import (
-	. "digicon/token_service/dao"
 	log "github.com/sirupsen/logrus"
+	. "digicon/token_service/dao"
 )
 
 type ConfigQuenes struct {

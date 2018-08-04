@@ -6,6 +6,7 @@ import (
 	. "digicon/proto/common"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"digicon/common/convert"
 )
 
 // 买卖(广告)表
@@ -64,6 +65,19 @@ func (this *Ads) Add() int {
 	if err != nil {
 		log.Errorln("get user ads sum limit error!", err.Error())
 	}
+
+	if this.MinLimit < 100 {
+		log.Errorln("限制最小价格要大于等于100")
+		return ERRCODE_ADS_MIN_LIMIT
+	}
+
+	curCnyPrice := convert.Int64MulInt64By8Bit(int64(this.Num), int64(this.Price))
+	minLimit := this.MinLimit * 100000000
+	if curCnyPrice < int64(minLimit) {
+		log.Errorln("当前广告的总价已小于最小价格的值")
+		return ERRCODE_ADS_SET_PRICE
+	}
+
 
 	if this.TypeId == 2 && (uCurrency.Balance - sumLimit) < int64(this.Num)  { // type_id=2  是发布出售单
 		log.Errorln("add ads error, user currency balance lower this num!")
