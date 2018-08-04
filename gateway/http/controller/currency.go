@@ -237,6 +237,7 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		return
 	}
 
+
 	// 检证货币类型 ==========
 	// 调用 rpc 获取货币类型
 	tokenData, err := rpc.InnerService.CurrencyService.CallGetCurrencyTokens(&proto.CurrencyTokensRequest{
@@ -636,7 +637,6 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 		// 添加 用户头像和昵称
 		for l := 0; l < dataLen; l++ {
 			for _, u := range ulist.User {
-				fmt.Println(u.Uid, u.NickName, u.HeadSculpture)
 				if reaList.List[l].Uid == u.Uid {
 					reaList.List[l].UserName = u.NickName
 					reaList.List[l].UserFace = u.HeadSculpture

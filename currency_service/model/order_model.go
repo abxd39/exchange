@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 	. "digicon/proto/common"
+	"digicon/common/convert"
 )
 
 // 订单表
@@ -38,10 +39,16 @@ type Order struct {
 	ExpiryTime  string         `xorm:"comment('过期时间')     DATETIME"                           json:"expiry_time"`
 }
 
+
+type OrderModel struct {
+	Order         `xorm:"extends"`
+	TokenName     string        `xorm:"VARBINARY(36)"  form:"token_name" json:"token_name"`
+}
+
 //列出订单
 func (this *Order) List(Page, PageNum int32,
 	AdType, States uint32, Id, Uid uint64,
-	TokenId float64, StartTime, EndTime string, o *[]Order) (total int64, rPage int32, rPageNum int32, code int32) {
+	TokenId float64, StartTime, EndTime string, o *[]OrderModel) (total int64, rPage int32, rPageNum int32, code int32) {
 
 	engine := dao.DB.GetMysqlConn()
 	if Page <= 1 {
@@ -51,31 +58,31 @@ func (this *Order) List(Page, PageNum int32,
 		PageNum = 10
 	}
 
-	query := engine.Desc("id")
 	orderModel := new(Order)
 
-	query = query.Where("sell_id=? or buy_id=?", Uid, Uid)
+	query := engine.Table("order").Join("LEFT", "ads", "ads.id=order.ad_id").Desc("order.id")
+	query = query.Where("order.sell_id=? or order.buy_id=?", Uid, Uid)
 
 	if States == 0 { // 状态为0，表示已经删除
 		return 0, 0, 0, ERRCODE_SUCCESS
 	} else if States == 100 { // 默认传递的States
-		query = query.Where("states != 0")
+		query = query.Where("order.states != 0")
 	} else {
-		query = query.Where("states = ?", States)
+		query = query.Where("order.states = ?", States)
 	}
 
 	if Id != 0 {
-		query = query.Where("id = ?", Id)
+		query = query.Where("order.id = ?", Id)
 	}
 	if AdType != 0 {
-		query = query.Where("ad_type = ?", AdType)
+		query = query.Where("order.ad_type = ?", AdType)
 	}
 	if TokenId != 0 {
-		query = query.Where("token_id = ?", TokenId)
+		query = query.Where("order.token_id = ?", TokenId)
 	}
 	//fmt.Println(StartTime, EndTime)
 	if StartTime != "" && EndTime != "" {
-		query = query.Where("created_time >= ? AND created_time <= ?", StartTime, EndTime)
+		query = query.Where("order.created_time >= ? AND order.created_time <= ?", StartTime, EndTime)
 	}
 
 	tmpQuery := *query
@@ -163,7 +170,7 @@ func (this *Order) Ready(Id uint64, updateTimeStr string) (code int32, msg strin
 }
 
 // 添加订单
-func (this *Order) Add() (id uint64, code int32) {
+func (this *Order) Add(curUId int32) (id uint64, code int32) {
 	var err error
 	/////////////
 
@@ -197,7 +204,6 @@ func (this *Order) Add() (id uint64, code int32) {
 
 	/// 0
 	adsM := new(Ads).Get(this.AdId)
-	//fmt.Println("adsM:", adsM.Num, "this num:", this.Num, adsM.Num < uint64(this.Num))
 	if adsM.Num < uint64(this.Num) {
 		msg := "下单失败,购买的数量大于订单的数量!"
 		//fmt.Println(msg)
@@ -205,6 +211,27 @@ func (this *Order) Add() (id uint64, code int32) {
 		code = ERRCODE_TRADE_ERROR_ADS_NUM
 		return
 	}
+
+	curCnyPrice := convert.Int64MulInt64By8Bit(this.Num, this.Price)
+
+	int64MinLimit := convert.Float64ToInt64By8Bit(float64(adsM.MinLimit))
+	fmt.Println(int64MinLimit, curCnyPrice)
+	if  curCnyPrice  < int64MinLimit{
+		msg := "下单失败,买价小于允许的最小价格!"
+		log.Println(msg)
+		code = ERRCODE_TRADE_LOWER_PRICE
+		return
+	}
+
+	int64MaxLimit := convert.Float64ToInt64By8Bit(float64(adsM.MaxLimit))
+	fmt.Println(int64MaxLimit, curCnyPrice)
+	if  curCnyPrice > int64MaxLimit {
+		msg := "下单失败,买价大于允许的最大价格!"
+		log.Println(msg)
+		code = ERRCODE_TRADE_LARGE_PRICE
+		return
+	}
+
 
 
 	session := engine.NewSession()
@@ -262,7 +289,27 @@ func (this *Order) Add() (id uint64, code int32) {
 		return
 	}
 
-
+	/// 4. 自动回复的消息
+	fmt.Println("ads reply: ", adsM.Reply)
+	if adsM.Reply != ""{
+		replaySql := "insert into chats (order_id, is_order_user, uid, uname, content, states, created_time) values (?,?,?,?, ?,?,?)"
+		var isOrderUser  int
+		if adsM.Uid ==  uint64(curUId) {
+			isOrderUser = 1
+		}else{
+			isOrderUser = 0
+		}
+		var uname string
+		if adsM.Uid == this.SellId  {
+			uname = this.SellName
+		}else{
+			uname = this.BuyName
+		}
+		_, err = session.Exec(replaySql, this.OrderId, isOrderUser, adsM.Uid, uname ,adsM.Reply, 1, nowTime)
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}
 
 
 	err = session.Commit()
@@ -505,6 +552,30 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		}
 	}
 
+	buyHas, err := session.Exist(&UserCurrencyCount{Uid: this.BuyId})
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if buyHas {
+		countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1, `orders`=`orders`+1  where uid=? "
+		_, err = session.Exec(countAddOneSql, this.BuyId)
+		if err != nil {
+			log.Println(err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			return code, err
+		}
+	} else {
+		insertSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?, ?)"
+		_, err = session.Exec(insertSql, this.BuyId, 1, 1, 100)
+		if err != nil {
+			log.Println(err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			return code, err
+		}
+	}
+
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
 		log.Errorln(err.Error())
@@ -606,7 +677,7 @@ func (this *Order) GetOrdersByStatus()(ods []Order, err error){
  */
 func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ?", uid, uid, startTime, endTime).Find(&ods)
+	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ? AND states=3", uid, uid, startTime, endTime).Find(&ods)
 	if err != nil {
 		log.Errorln(err.Error())
 		return
@@ -619,11 +690,9 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 
  */
 func CheckOrderExiryTime(id uint64, exiryTime string) {
-	log.Println("go run check order Exiry time ...............................")
 	od := new(Order)
 	for {
 		now := time.Now().Format("2006-01-02 15:04:05")
-		fmt.Println(now, exiryTime)
 		fmt.Println("id: ", id, " order Exitry time(min): ", GetHourDiffer(now, exiryTime))
 		if GetHourDiffer(now, exiryTime) <= 0 {
 			engine := dao.DB.GetMysqlConn()
@@ -650,6 +719,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 
 
 func CancelAction(id uint64, CancelType uint32) (err error){
+
 	engine := dao.DB.GetMysqlConn()
 	od := new(Order)
 	_, err = od.GetOrder(id)
@@ -673,6 +743,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	err = session.Begin()
 
 	if err != nil {
+		fmt.Println("session start error!!!!!!!!!!!")
 		log.Println(err.Error())
 		session.Rollback()
 		return
@@ -684,7 +755,9 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	sellNum := rateFee + allNum
 	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
 	sqlRest, err := session.Exec(sellSql, sellNum, sellNum, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+
 	if err != nil {
+		fmt.Println("user_currency 还原 freeze error")
 		log.Println(err.Error())
 		log.Errorln("od.Id:", od.Id, od.ExpiryTime)
 		session.Rollback()
@@ -709,6 +782,13 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	_, err = session.Exec(sql, 4, CancelType, now, od.Id)
 	if err != nil {
 		log.Errorln(err.Error())
+		session.Rollback()
+		return
+	}
+	fmt.Println("session commit ....")
+	err = session.Commit()
+	if err != nil {
+		log.Println(err.Error())
 		session.Rollback()
 		return
 	}

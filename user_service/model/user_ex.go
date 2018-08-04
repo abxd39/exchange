@@ -47,25 +47,37 @@ func (s *UserEx) GetUserEx(uid uint64) (ret int32, err error) {
 func (ex *UserEx) GetNickName(req *proto.UserGetNickNameRequest, rsp *proto.UserGetNickNameResponse) (ret int32, err error) {
 	//
 	engine := DB.GetMysqlConn()
-	fmt.Println("uid:", req.Uid)
-	uex := make([]UserEx, 0)
-	err = engine.In("uid", req.Uid).Find(&uex)
+	sql := "SELECT user.`uid`, account, user_ex.`nick_name`, user_ex.`head_sculpture` FROM g_common.`user` LEFT JOIN   user_ex ON user.`uid` = user_ex.`uid`"
+	type UNickName struct {
+		Uid        uint64     `json:"uid"`
+		Account    string      `json:"account"`
+		NickName   string      `json:"nick_name"`
+		HeadSculpture  string   `json:"head_sculpture"`
+	}
+	var uex []UNickName
+	err = engine.SQL(sql).In("uid", req.Uid).Find(&uex)
+	//fmt.Println("uid:", req.Uid)
+	//uex := make([]UserEx, 0)
+	//err = engine.In("uid", req.Uid).Find(&uex)
 	if err != nil {
 		log.Errorln(err.Error())
 		ret = ERRCODE_UNKNOWN
 		return
 	}
-
 	for _, value := range uex {
+		var nickname string
+		if value.NickName == ""{
+			nickname = value.Account
+		}else{
+			nickname = value.NickName
+		}
 		userEx := &proto.UserGetNickNameResponse_UserNickName{
 			Uid:           uint64(value.Uid),
-			NickName:      value.NickName,
+			NickName:      nickname,
 			HeadSculpture: value.HeadSculpture,
 		}
-
 		rsp.User = append(rsp.User, userEx)
 	}
-
 	ret = ERRCODE_SUCCESS
 	return
 }
@@ -142,7 +154,7 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 		return ERRCODE_UNKNOWN, err
 	}
 	//写数据库 如果 user 表上有 该用户，则 表user_ex 此表一定有该 用户
-	if _, err = sess.Where("uid=?", req.Uid).Update(&UserEx{
+	if _, err = sess.Where("uid=?", req.Uid).Cols("real_name","identify_card","affirm_time","affirm_count").Update(&UserEx{
 		RealName:     req.RealName,
 		IdentifyCard: req.IdCode,
 		AffirmTime:   time.Now().Unix(),
@@ -153,7 +165,7 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 		return ERRCODE_UNKNOWN, err
 	}
 	u.SetTardeMark = u.SetTardeMark ^ 2
-	if _, err = sess.Table("user").Where("uid=?", req.Uid).Update(&User{
+	if _, err = sess.Table("user").Where("uid=?", req.Uid).Cols("set_tarde_mark").Update(&User{
 		SetTardeMark: u.SetTardeMark,
 	}); err != nil {
 		sess.Rollback()

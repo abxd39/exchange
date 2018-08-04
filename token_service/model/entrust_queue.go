@@ -14,6 +14,9 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	//"github.com/liudng/godump"
 	"digicon/common/encryption"
+
+	"digicon/common/random"
+
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -421,10 +424,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	}
 	o.States = seller.States
 	err = buy_token_account.NotifyDelFronzen(session, buy_num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_FROZEN_COMFIRM_DEL)
-	if err != nil {
-		session.Rollback()
-		return
-	}
 
 	if ret != ERRCODE_SUCCESS {
 		session.Rollback()
@@ -553,11 +552,10 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		}
 		return
 	}()
-
+	n:= random.Krand(8, random.KC_RAND_KIND_UPPER)
 	if p.Opt == int(proto.ENTRUST_OPT_BUY) {
 		buyer = p
-
-		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1)
+		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1,string(n))
 		if err != nil {
 			return
 		}
@@ -569,7 +567,7 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 
 	} else {
 		seller = p
-		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 1, 1)
+		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 1, 1,string(n))
 		if err != nil {
 			return
 		}
@@ -1359,7 +1357,16 @@ func (s *EntrustQuene) delSource(opt proto.ENTRUST_OPT, ty proto.ENTRUST_TYPE, e
 }
 
 //获取队列首位交易单 sw1表示先取市价单再取限价单，2表示直接获取限价单，count获取数量
-func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count int64) (en []*EntrustDetail, err error) {
+func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count int64,h ...string) (en []*EntrustDetail, err error) {
+	var m string
+	if  len(h)>0{
+		m = h[0]
+	}else{
+		n := random.Krand(8, random.KC_RAND_KIND_LOWER)
+		m = string(n)
+	}
+
+	log.Infof("pop data begin time %d,entrust_id %s:", time.Now().Unix(), m)
 	var z []redis.Z
 	var quene_id string
 	//var ok bool
@@ -1387,7 +1394,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 	}
 
 	if len(z) == 0 && sw == 1 {
-		return s.PopFirstEntrust(opt, 2, count)
+		return s.PopFirstEntrust(opt, 2, count,m)
 	} else if len(z) == 0 && sw == 2 {
 		err = redis.Nil
 		return
@@ -1398,11 +1405,18 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 		g = append(g, v.Member.(string))
 	}
 	en = make([]*EntrustDetail, 0)
+
+	log.Infof("pop data middle time %d,entrust_id %s:", time.Now().Unix(), m)
 	err = DB.GetMysqlConn().In("entrust_id", g).Cols().Find(&en)
+	log.Infof("pop data end time %d,entrust_id:%s", time.Now().Unix(), m)
+
 	if err != nil {
+		log.Infof("pop data err time %d,entrust_id:%s", time.Now().Unix(), m)
 		log.Errorln(err)
 		return
 	}
+
+	log.Infof("pop data last time %d,entrust_id:%s", time.Now().Unix(), m)
 	/*
 		for _, v := range z {
 			d := v.Member.(string)

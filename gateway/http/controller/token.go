@@ -280,7 +280,7 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("list", rsp.Data.List)
-	ret.SetDataSection("total_worth_cny", rsp.Data.TotalWorthCny)
+	ret.SetDataSection("total_worth_cny",  rsp.Data.TotalWorthCny)
 	ret.SetDataSection("total_worth_btc", rsp.Data.TotalWorthBtc)
 }
 

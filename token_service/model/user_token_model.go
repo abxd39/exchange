@@ -145,7 +145,7 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64, ukey string, ty p
 		Uid:     s.Uid,
 		TokenId: s.TokenId,
 		Ukey:    ukey,
-		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+		Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
 		Type:    int(ty),
 		Num:     num,
 		Balance: s.Balance,
@@ -175,7 +175,7 @@ func (s *UserToken) AddFrozen(session *xorm.Session, num int64, ukey string, ty 
 		return
 	}
 
-	_, err = session.Insert(&Frozen{
+	_, err = session.Insert(&FrozenHistory{
 		Uid:     s.Uid,
 		Ukey:    ukey,
 		Num:     num,
@@ -190,7 +190,7 @@ func (s *UserToken) AddFrozen(session *xorm.Session, num int64, ukey string, ty 
 }
 
 //减少代币数量
-func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err error) {
+func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty proto.TOKEN_TYPE_OPERATOR) (ret int32, err error) {
 	defer func() {
 		if err != nil {
 			log.WithFields(log.Fields{
@@ -207,6 +207,19 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64) (ret int32, err e
 
 	s.Balance -= num
 	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
+	if err != nil {
+		return
+	}
+
+	_, err = session.Insert(&FrozenHistory{
+		Uid:     s.Uid,
+		Ukey:    ukey,
+		Num:     num,
+		TokenId: s.TokenId,
+		Type:    int(ty),
+		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+		Frozen:  s.Frozen,
+	})
 	if err != nil {
 		return
 	}
@@ -327,13 +340,14 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 		return
 	}
 
-	f := Frozen{
+	f := FrozenHistory{
 		Uid:     s.Uid,
 		Ukey:    entrust_id,
 		Num:     num,
 		TokenId: s.TokenId,
 		Type:    int(ty),
 		Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
+		Frozen:  s.Frozen,
 	}
 
 	_, err = sess.Insert(f)
@@ -393,13 +407,14 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, ukey string,
 		return
 	}
 
-	f := Frozen{
+	f := FrozenHistory{
 		Uid:     s.Uid,
 		Ukey:    ukey,
 		Num:     num,
 		TokenId: s.TokenId,
 		Type:    int(ty),
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+		Frozen:  s.Frozen,
 	}
 
 	_, err = sess.Insert(f)
@@ -428,13 +443,14 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 		return
 	}
 
-	_, err = sess.Insert(&Frozen{
+	_, err = sess.Insert(&FrozenHistory{
 		Uid:     s.Uid,
 		Ukey:    entrust_id,
 		Num:     num,
 		TokenId: s.TokenId,
 		Type:    int(ty),
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
+		Frozen:  s.Frozen,
 	})
 	if err != nil {
 		return

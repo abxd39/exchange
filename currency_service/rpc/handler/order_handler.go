@@ -22,13 +22,9 @@ import (
 
 // 获取订单列表
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest, rsp *proto.OrdersListResponse) error {
-	result := []model.Order{}
+	result := []model.OrderModel{}
 	o := new(model.Order)
-
 	rsp.Total, rsp.Page, rsp.PageNum, rsp.Err = o.List(req.Page, req.PageNum, req.AdType, req.States, req.Id, req.Uid, req.TokenId, req.StartTime, req.EndTime, &result)
-	//for _, od := range result{
-
-	//}
 
 	orders, err := json.Marshal(result)
 	if err != nil {
@@ -52,7 +48,7 @@ func (s *RPCServer) CancelOrder(ctx context.Context, req *proto.CancelOrderReque
 
 // 删除订单
 func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
-	fmt.Println(req.Id)
+	//fmt.Println(req.Id)
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
 	code, msg := new(model.Order).Delete(req.Id, updateTimeStr)
 	rsp.Code = code
@@ -111,7 +107,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 
 	od.PayId = nowAds.Pays
 
-	fmt.Println("od.selleid:", od.SellId, od.BuyId)
+	//fmt.Println("od.selleid:", od.SellId, od.BuyId)
 	if od.SellId == od.BuyId {
 		msg := "无法下自己订单"
 		err := errors.New(msg)
@@ -157,7 +153,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.ExpiryTime = now.Add(mm).Format("2006-01-02 15:04:05")
 
 	//fmt.Println("od:", od)
-	id, code := od.Add()
+	id, code := od.Add(req.Uid)
 	rsp.Code = code
 	rsp.Data = strconv.FormatUint(id, 10)
 	return nil
@@ -264,7 +260,6 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 /*
 	获取用户资产明细
  */
-
  func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetailRequest, rsp *proto.OtherResponse) error {
 	 uCurrencyHistory := new(model.UserCurrencyHistory)
 	 uAssetDeailList, total, page, pageNum ,err  := uCurrencyHistory.GetAssetDetail(int32(req.Uid), req.Page, req.PageNum)
@@ -280,8 +275,7 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		tokenids = append(tokenids, ua.TokenId)
 	}
 	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids) // rpc 获取用户信息
-	fmt.Println("nickNames:", nickNames)
-
+	//fmt.Println("nickNames:", nickNames)
 	userNameMap := map[uint64]string{}
 	nickUsers := nickNames.User
 	for i := 0; i < len(nickUsers); i++ {

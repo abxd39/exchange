@@ -7,13 +7,15 @@ import (
 	"digicon/common/random"
 	proto "digicon/proto/rpc"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	. "digicon/common/constant"
 	. "digicon/proto/common"
 	. "digicon/user_service/dao"
+
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
@@ -163,11 +165,24 @@ func (s *User) SerialJsonData() (data string, err error) {
 		return
 	}
 	var mark int32
+	var first int32
+	var second int32
 	if s.SecurityAuth^AUTH_TWO == AUTH_TWO {
 		mark = 1
 	} else {
 		mark = 0
 	}
+	if s.SetTardeMark^APPLY_FOR_FIRST == APPLY_FOR_FIRST {
+		first = 1
+	} else {
+		first = 0
+	}
+	if s.SetTardeMark^APPLY_FOR_SECOND == APPLY_FOR_SECOND {
+		second = 1
+	} else {
+		second = 0
+	}
+
 	r := &proto.UserAllData{
 		Base: &proto.UserBaseData{
 			Uid:            s.Uid,
@@ -187,9 +202,11 @@ func (s *User) SerialJsonData() (data string, err error) {
 		},
 
 		Real: &proto.UserRealData{
-			RealName:     ex.RealName,
-			IdentifyCard: ex.IdentifyCard,
-			SecondMark:   mark,
+			RealName:        ex.RealName,
+			IdentifyCard:    ex.IdentifyCard,
+			SecondMark:      mark,
+			CheckMarkFirst:  first,
+			CheckMarkSecond: second,
 		},
 
 		Invite: &proto.UserInviteData{
@@ -422,7 +439,6 @@ func (s *User) LoginByPhone(phone, pwd string) (token string, ret int32) {
 				ret = ERRCODE_UNKNOWN
 				return
 			}
-			err = errors.New("test")
 			ret = ERRCODE_SUCCESS
 			return
 		}
