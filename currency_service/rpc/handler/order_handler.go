@@ -275,7 +275,9 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		tokenids = append(tokenids, ua.TokenId)
 	}
 	nickNames, err := client.InnerService.UserSevice.CallGetNickName(uids) // rpc 获取用户信息
-	//fmt.Println("nickNames:", nickNames)
+
+	fmt.Println("nickNames:", nickNames)
+
 	userNameMap := map[uint64]string{}
 	nickUsers := nickNames.User
 	for i := 0; i < len(nickUsers); i++ {
