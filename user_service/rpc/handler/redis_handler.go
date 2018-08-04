@@ -226,7 +226,7 @@ func (s *RPCServer) GetUserRealName(ctx context.Context, req *proto.UserInfoRequ
 	if err != nil {
 		return nil
 	}
-
+	fmt.Println("----->123456",data)
 	rsp.Src = data
 	rsp.Data = d.Real
 	rsp.Err = ERRCODE_SUCCESS

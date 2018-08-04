@@ -164,23 +164,52 @@ func (s *User) SerialJsonData() (data string, err error) {
 		log.Errorln("db err when find user_ex,uid=?", s.Uid)
 		return
 	}
-	var mark int32
 	var first int32
 	var second int32
-	if s.SecurityAuth^AUTH_TWO == AUTH_TWO {
-		mark = 1
-	} else {
-		mark = 0
+	//if s.SecurityAuth^AUTH_TWO == AUTH_TWO {
+	//	mark = 1
+	//} else {
+	//	mark = 0
+	//}
+
+	for {
+		//有没有通过实名认证
+		if s.SecurityAuth ^ AUTH_FIRST ==AUTH_FIRST{
+			first = FIRST_ALREADY //已经通过认证
+			break
+		}
+		//是否有申请认证
+		if s.SetTardeMark^APPLY_FOR_FIRST == APPLY_FOR_FIRST{
+			first = FIRST_VERIFYING
+			break
+		}
+		//如果没有提交申请 检查是否有申请过认证但是没有通过
+		if s.SetTardeMark ^APPLY_FOR_FIRST_NOT_ALREADY == APPLY_FOR_FIRST_NOT_ALREADY {
+			first = FIRST_NOT_ALREADY
+			break
+		}
+		first =FIRST_NOT_V
+		break
 	}
-	if s.SetTardeMark^APPLY_FOR_FIRST == APPLY_FOR_FIRST {
-		first = 1
-	} else {
-		first = 0
-	}
-	if s.SetTardeMark^APPLY_FOR_SECOND == APPLY_FOR_SECOND {
-		second = 1
-	} else {
-		second = 0
+
+	for{
+		//有无通过二级认证
+		if s.SecurityAuth ^AUTH_TWO ==AUTH_TWO{
+			second = SECOND_ALREADY
+			break
+		}
+		//是否有申请二级认证
+		if s.SetTardeMark ^ APPLY_FOR_SECOND ==APPLY_FOR_SECOND{
+			second = SECOND_VERIFYING
+			break
+		}
+		//没有通过二级认证
+		if s.SetTardeMark ^APPLY_FOR_SECOND_NOT_ALREADY ==APPLY_FOR_SECOND_NOT_ALREADY{
+			second = SECOND_NOT_ALREADY
+			break
+		}
+		second = SECOND_NOT_V
+		break
 	}
 
 	r := &proto.UserAllData{
@@ -204,7 +233,6 @@ func (s *User) SerialJsonData() (data string, err error) {
 		Real: &proto.UserRealData{
 			RealName:        ex.RealName,
 			IdentifyCard:    ex.IdentifyCard,
-			SecondMark:      mark,
 			CheckMarkFirst:  first,
 			CheckMarkSecond: second,
 		},

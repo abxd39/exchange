@@ -329,9 +329,8 @@ message UserBaseData{
 message UserRealData{
     string real_name            =1;
     string identify_card        =2;
-    int32 second_mark=3;//二级实名认证状态
-    int32 check_mark_first=4;//实名审核状态
-    int32 check_mark_second=5;//二级认证审核状态
+    int32 check_mark_first=3;//实名审核状态
+    int32 check_mark_second=4;//二级认证审核状态
 }
 
 

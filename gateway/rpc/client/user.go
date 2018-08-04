@@ -310,6 +310,8 @@ type UserRealData struct {
 	RealName     string `json:"real_name"`
 	IdentifyCard string `json:"identify_card"`
 	SecondMark   int32  `json:"second_mark"`
+	CheckMarkFirst int32 `json:"check_mark_first"`
+	CheckMarkSecond int32 `json:"check_mark_second"`
 }
 
 func (s *UserRPCCli) CallGetUserRealName(uid uint64) (rsp *proto.UserRealNameResponse, u *UserRealData, err error) {
@@ -331,7 +333,8 @@ func (s *UserRPCCli) CallGetUserRealName(uid uint64) (rsp *proto.UserRealNameRes
 	u = &UserRealData{
 		RealName:     out.RealName,
 		IdentifyCard: out.IdentifyCard,
-		SecondMark:   out.SecondMark,
+		CheckMarkFirst: out.CheckMarkFirst,
+		CheckMarkSecond:out.CheckMarkSecond,
 	}
 
 	return
