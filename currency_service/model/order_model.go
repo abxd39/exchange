@@ -690,6 +690,33 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 	return
 }
 
+
+
+
+/*
+
+*/
+func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhistory []Order, err error) {
+	now := time.Now()
+	if startTime == "" {
+		startTime = now.Format("2006-01-02")
+	}
+	if endTime == "" {
+		endTime = now.Format("2006-01-02")
+	}
+	engine := dao.DB.GetMysqlConn()
+	if limit != 0 {
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Limit(int(limit)).Find(&uhistory)
+	} else {
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
+	}
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 ///////////////////// func ////////////////
 /*
 
