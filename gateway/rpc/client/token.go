@@ -70,6 +70,15 @@ func (s *TokenRPCCli) CallEntrustHistory(p *proto.EntrustHistoryRequest) (rsp *p
 	return
 }
 
+func (s *TokenRPCCli) CallBibiHistory(p *proto.BibiHistoryRequest) (rsp *proto.BibiHistoryResponse, err error) {
+	rsp, err = s.conn.BibiHistory(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func (s *TokenRPCCli) CallDelEntrust(p *proto.DelEntrustRequest) (rsp *proto.DelEntrustResponse, err error) {
 	rsp, err = s.conn.DelEntrust(context.TODO(), p)
 	if err != nil {
