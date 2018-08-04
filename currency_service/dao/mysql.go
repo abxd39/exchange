@@ -26,7 +26,7 @@ func NewMysql() (mysql *Mysql) {
 	if err != nil {
 		log.Fatalf("db err is %s", err)
 	}
-	//engine.ShowSQL(true)
+	engine.ShowSQL(true)
 	//cacher := xorm.NewLRUCacher2(xorm.NewMemoryStore(), time.Hour, 1000)
 	//engine.SetDefaultCacher(cacher)
 
@@ -51,7 +51,7 @@ func NewTokenMysql() (tkmysql *MysqlToken) {
 	if err != nil {
 		log.Fatalf("db err is %s", err)
 	}
-	//engine.ShowSQL(true)
+	engine.ShowSQL(true)
 	err = engine.Ping()
 	if err != nil {
 		log.Fatalf("db err is %s", err)
@@ -73,7 +73,7 @@ func NewCommonMysql() (tkmysql *MysqlCommon) {
 	if err != nil {
 		log.Fatalf("db err is %s", err)
 	}
-	//engine.ShowSQL(true)
+	engine.ShowSQL(true)
 	err = engine.Ping()
 	if err != nil {
 		log.Fatalf("db err is %s", err)

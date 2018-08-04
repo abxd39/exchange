@@ -277,3 +277,24 @@ func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, er
 	sumLimit, err = engine.Where("uid=? AND token_id=?  AND type_id=2  AND is_del = 0", uid, tokenId).SumInt(ssAds, "num")
 	return
 }
+
+
+
+/*
+	广告下架
+*/
+func AdsAutoDownline(id  uint64) {
+	ads := new(Ads).Get(id)
+	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
+	minLimit := ads.MinLimit * 100000000
+	if curCnyPrice < int64(minLimit) {
+		log.Errorln("当前广告的总价已小于最小价格的值, 广告自动下架")
+		sql := "update ads set states=0 where id=?"
+		engine := dao.DB.GetMysqlConn()
+		_, err := engine.Exec(sql, id)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+}
