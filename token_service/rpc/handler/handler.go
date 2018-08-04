@@ -325,8 +325,8 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	price, _ := strconv.ParseFloat(priceRsp.Data[symbol].Price, 64)
 	log.Info(symbol, " price=", price, ", total_usd=", totalMoney.TotalUsd)
 
-	rsp.Data.TotalWorthCny = convert.Int64ToStringBy8Bit(int64(totalMoney.TotalCny * 100000000))
-	rsp.Data.TotalWorthBtc = convert.Int64ToStringBy8Bit(int64(totalMoney.TotalUsd / price * 100000000))
+	rsp.Data.TotalWorthCny = convert.Int64ToFloat64By8Bit(int64(totalMoney.TotalCny * 100000000))
+	rsp.Data.TotalWorthBtc = convert.Int64ToFloat64By8Bit(int64(totalMoney.TotalUsd / price * 100000000))
 
 	return nil
 }
