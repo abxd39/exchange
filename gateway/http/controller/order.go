@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"fmt"
+	"digicon/gateway/utils"
 )
 
 type OrderRequest struct {
@@ -363,6 +364,8 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
+		pay_price := utils.Round2(convert.Int64ToFloat64By8Bit(dt.PayPrice), 2)
+
 		ret.SetDataSection("sell_id", dt.SellId)
 		ret.SetDataSection("buy_id", dt.BuyId)
 		ret.SetDataSection("status", dt.States)
@@ -371,7 +374,7 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		ret.SetDataSection("token_name", dt.TokenName)
 
 		ret.SetDataSection("order_id", dt.OrderId)
-		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
+		ret.SetDataSection("pay_price", pay_price)
 		ret.SetDataSection("num", convert.Int64ToFloat64By8Bit(dt.Num))
 		ret.SetDataSection("price", convert.Int64ToFloat64By8Bit(dt.Price))
 
