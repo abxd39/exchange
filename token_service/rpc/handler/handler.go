@@ -419,3 +419,46 @@ func (s *RPCServer) TransferToCurrency(ctx context.Context, req *proto.TransferT
 
 	return nil
 }
+
+func (s *RPCServer) BibiHistory(ctx context.Context, req *proto.BibiHistoryRequest, rsp *proto.BibiHistoryResponse) error {
+
+	modelList, list, err := new(model.EntrustDetail).GetBibiHistory(int64(req.Uid), int(req.Limit), int(req.Page),req.Symbol,int(req.Opt),int(req.States),int(req.StartTime),int(req.EndTime))
+
+	if err != nil {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
+
+	// 拼接返回数据
+	rsp.Data = new(proto.BibiHistoryResponse_Data)
+	rsp.Data.Items = make([]*proto.BibiHistoryResponse_Data_Item, 0)
+
+	rsp.Data.PageIndex = int32(modelList.PageIndex)
+	rsp.Data.PageSize = int32(modelList.PageSize)
+	rsp.Data.TotalPage = int32(modelList.PageCount)
+	rsp.Data.Total = int32(modelList.Total)
+
+	var display string
+	for _, v := range list {
+		if v.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
+			display = "市价"
+		} else {
+			display = convert.Int64ToStringBy8Bit(v.Mount)
+		}
+		rsp.Data.Items = append(rsp.Data.Items, &proto.BibiHistoryResponse_Data_Item{
+			EntrustId:  v.EntrustId,
+			Symbol:     v.Symbol,
+			Opt:        proto.ENTRUST_OPT(v.Opt),
+			Type:       proto.ENTRUST_TYPE(v.Type),
+			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
+			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
+			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
+			Mount:      display,
+			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
+			States:     int32(v.States),
+		})
+	}
+
+	return nil
+}

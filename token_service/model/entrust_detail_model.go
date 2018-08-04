@@ -6,6 +6,7 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	"digicon/common/model"
 )
 
 import (
@@ -63,6 +64,48 @@ func Insert(sess *xorm.Session, s *EntrustDetail) error {
 		return err
 	}
 	return nil
+}
+
+func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int,symbol string,opt,states,startTime,endTime int) (*model.ModelList,[]*EntrustDetail,error) {
+	//m := make([]EntrustDetail, 0)
+	var statess []int
+	if states == 0 {
+		statess = []int{0,1,2,3}
+	} else if states == 1 {
+		statess = []int{0}
+	} else {
+		statess = []int{1,2,3}
+	}
+	var optt []int
+	if opt == 0 {
+		optt = []int{1,2}
+	} else if opt == 1 {
+		optt = []int{1}
+	} else {
+		optt = []int{2}
+	}
+
+	engine := DB.GetMysqlConn()
+	query := engine.Where("symbol = ? and uid=? and created_time > ? and created_time <= ?", symbol,uid,startTime,endTime).In("states",statess).In("opt",optt)
+
+	tempQuery := query.Clone()
+	count, err := tempQuery.Count(s)
+	if err != nil {
+		return nil, nil, err
+	}
+	// 获取分页
+	offset, modelList := model.Paging(page, limit, int(count))
+
+	var list []*EntrustDetail
+
+	err = query.Limit(modelList.PageSize, offset).Find(&list)
+
+	if err != nil {
+		log.Errorln(err.Error())
+		return nil,nil,err
+	}
+	modelList.Items = list
+	return modelList, list, nil
 }
 
 func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail {
