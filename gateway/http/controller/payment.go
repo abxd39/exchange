@@ -190,7 +190,7 @@ func (this *CurrencyGroup) Alipay(c *gin.Context) {
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"file"         json:"file" binding:"required"`
+		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
@@ -267,7 +267,7 @@ func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"file"         json:"file" binding:"required"`
+		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
@@ -404,7 +404,7 @@ func (this *CurrencyGroup) WeChatPay(c *gin.Context) {
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"file"         json:"file" binding:"required"`
+		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
@@ -479,7 +479,7 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"file"         json:"file" binding:"required"`
+		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
