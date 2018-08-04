@@ -22,10 +22,10 @@ func (TransferRecord) TableName() string {
 //超时未处理的消息
 //2分钟前
 //每次去1000条
-func (t *TransferRecord) ListOverime() ([]*TransferRecord, error) {
+func (t *TransferRecord) ListOverime(overSeconds int64) ([]*TransferRecord, error) {
 	var list []*TransferRecord
 	engine := dao.DB.GetMysqlConn()
-	err := engine.Where("states=1").And("create_time<?", time.Now().Unix()-120).Limit(1000).OrderBy("create_time asc").Find(&list)
+	err := engine.Where("states=1").And("create_time<?", time.Now().Unix()-overSeconds).Limit(1000).OrderBy("create_time asc").Find(&list)
 	if err != nil {
 		return nil, errors.NewSys(err)
 	}

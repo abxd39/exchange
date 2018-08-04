@@ -39,7 +39,7 @@ func ResendTransferToCurrencyMsg() {
 	transferRecordMD := new(model.TransferRecord)
 
 	for {
-		list, err := transferRecordMD.ListOverime()
+		list, err := transferRecordMD.ListOverime(2)
 		if err != nil {
 			continue
 		}
