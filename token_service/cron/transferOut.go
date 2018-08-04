@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-//划转到法币成功事件处理
+//划出到法币成功，标记消息状态为已完成
 func HandlerTransferToCurrencyDone() {
 	rdsClient := dao.DB.GetRedisConn()
 	userTokenMD := new(model.UserToken)
@@ -33,7 +33,7 @@ func HandlerTransferToCurrencyDone() {
 	}
 }
 
-//划转到法币消息发送或处理失败，定时重新发送
+//消息重发机制，发送失败或远程处理失败
 func ResendTransferToCurrencyMsg() {
 	rdsClient := dao.DB.GetRedisConn()
 	transferRecordMD := new(model.TransferRecord)

@@ -8,23 +8,26 @@ import (
 	"encoding/json"
 )
 
-//代币划转到法币事件处理
-func HandlerTransferFromToken() {
+//划出到代币成功，标记消息状态为已完成
+func HandlerTransferToTokenDone() {
 	rdsClient := dao.DB.GetRedisConn()
 	userCurrencyMD := new(model.UserCurrency)
 
 	for {
-		msgBody, err := rdsClient.LPop(constant.RDS_TOKEN_TO_CURRENCY_TODO).Bytes()
+		msgBody, err := rdsClient.LPop(constant.RDS_CURRENCY_TO_TOKEN_DONE).Bytes()
 		if err != nil {
 			continue
 		}
 
-		msg := &proto.TransferToCurrencyTodoMessage{}
+		msg := &proto.TransferToTokenDoneMessage{}
 		err = json.Unmarshal(msgBody, msg)
 		if err != nil {
 			continue
 		}
 
-		userCurrencyMD.TransferFromToken(msg)
+		err = userCurrencyMD.TransferToTokenDone(msg)
+		if err != nil {
+			continue
+		}
 	}
 }

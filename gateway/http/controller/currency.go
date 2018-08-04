@@ -84,7 +84,7 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
 
-		Currency.POST("/transfer", this.Transfer) // 划转
+		Currency.POST("/transfer_to_token", this.TransferToToken) // 法币划转到代币
 	}
 }
 
@@ -236,7 +236,6 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}
-
 
 	// 检证货币类型 ==========
 	// 调用 rpc 获取货币类型
@@ -512,7 +511,6 @@ type AdsListsData struct {
 
 	Premium float64 `json:"premium"` // 溢价
 	States  uint32  `json:"states"`  // 状态:0下架 1上架
-
 }
 
 // 法币交易列表 - (广告(买卖))
@@ -1189,7 +1187,6 @@ func (this *CurrencyGroup) GetUserRating(c *gin.Context) {
 		PhoneAuth    int32 `json:"phone_auth"`     //
 		RealName     int32 `json:"real_name"`      //
 		TwoLevelAuth int32 `json:"two_level_auth"` //
-
 	}
 	//fmt.Println("data:", rsp.Data)
 	var uCurrencyCount UserCurrencyCount
@@ -1291,19 +1288,18 @@ func (this *CurrencyGroup) GetAssetDetail(c *gin.Context) {
 }
 
 /*
-	划转
+	法币划转到代币
 */
-func (this *CurrencyGroup) Transfer(c *gin.Context) {
+func (this *CurrencyGroup) TransferToToken(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
 	req := struct {
-		Uid       uint64  `form:"uid"        json:"uid"           binding:"required"`
-		TokenId   uint32  `form:"token_id"   json:"token_id"      binding:"required"`
-		TransType uint32  `form:"trans_type" json:"trans_type"    binding:"required"` // 1: 法币转到币币, 2: 币币转到法币
-		Num       float64 `form:"num"        json:"num"           binding:"required"`
+		Uid     uint64  `form:"uid"        json:"uid"           binding:"required"`
+		TokenId uint32  `form:"token_id"   json:"token_id"      binding:"required"`
+		Num     float64 `form:"num"        json:"num"           binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&req)
@@ -1319,15 +1315,14 @@ func (this *CurrencyGroup) Transfer(c *gin.Context) {
 	}
 
 	//fmt.Println(req)
-	rsp, err := rpc.InnerService.CurrencyService.CallTransfer(&proto.TransferRequest{
-		Uid:       req.Uid,
-		TokenId:   req.TokenId,
-		TransType: req.TransType,
-		Num:       uint64(convert.Float64ToInt64By8Bit(req.Num)),
+	rsp, err := rpc.InnerService.CurrencyService.CallTransferToToken(&proto.TransferToTokenRequest{
+		Uid:     req.Uid,
+		TokenId: req.TokenId,
+		Num:     uint64(convert.Float64ToInt64By8Bit(req.Num)),
 	})
 	if err != nil {
 		log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
