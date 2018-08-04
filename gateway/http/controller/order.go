@@ -34,6 +34,7 @@ type OtherType struct {
 }
 
 type OtherOrderType struct {
+	TokenName   string `form:"token_name"   json:"token_name"`
 	OrderId     string `form:"order_id"     json:"order_id" `    // 订单id
 	States      uint32 `form:"states"       json:"states"`       // 订单状态 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消
 	PayStatus   uint32 `form:"pay_status"   json:"pay_status"`   // 支付状态 1待支付 2待放行(已支付) 3确认支付(已完成)
@@ -150,6 +151,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		o.Num = convert.Int64ToFloat64By8Bit(bod.Num)
 		o.Fee = convert.Int64ToFloat64By8Bit(bod.Fee)
 		o.TokenId = bod.TokenId
+		o.TokenName = bod.TokenName
 		o.PayId = bod.PayId
 		o.SellId = bod.SellId
 		o.SellName = bod.SellName

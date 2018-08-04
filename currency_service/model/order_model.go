@@ -39,10 +39,16 @@ type Order struct {
 	ExpiryTime  string         `xorm:"comment('过期时间')     DATETIME"                           json:"expiry_time"`
 }
 
+
+type OrderModel struct {
+	Order         `xorm:"extends"`
+	TokenName     string        `xorm:"VARBINARY(36)"  form:"token_name" json:"token_name"`
+}
+
 //列出订单
 func (this *Order) List(Page, PageNum int32,
 	AdType, States uint32, Id, Uid uint64,
-	TokenId float64, StartTime, EndTime string, o *[]Order) (total int64, rPage int32, rPageNum int32, code int32) {
+	TokenId float64, StartTime, EndTime string, o *[]OrderModel) (total int64, rPage int32, rPageNum int32, code int32) {
 
 	engine := dao.DB.GetMysqlConn()
 	if Page <= 1 {
@@ -52,31 +58,31 @@ func (this *Order) List(Page, PageNum int32,
 		PageNum = 10
 	}
 
-	query := engine.Desc("id")
 	orderModel := new(Order)
 
-	query = query.Where("sell_id=? or buy_id=?", Uid, Uid)
+	query := engine.Table("order").Join("LEFT", "ads", "ads.id=order.ad_id").Desc("order.id")
+	query = query.Where("order.sell_id=? or order.buy_id=?", Uid, Uid)
 
 	if States == 0 { // 状态为0，表示已经删除
 		return 0, 0, 0, ERRCODE_SUCCESS
 	} else if States == 100 { // 默认传递的States
-		query = query.Where("states != 0")
+		query = query.Where("order.states != 0")
 	} else {
-		query = query.Where("states = ?", States)
+		query = query.Where("order.states = ?", States)
 	}
 
 	if Id != 0 {
-		query = query.Where("id = ?", Id)
+		query = query.Where("order.id = ?", Id)
 	}
 	if AdType != 0 {
-		query = query.Where("ad_type = ?", AdType)
+		query = query.Where("order.ad_type = ?", AdType)
 	}
 	if TokenId != 0 {
-		query = query.Where("token_id = ?", TokenId)
+		query = query.Where("order.token_id = ?", TokenId)
 	}
 	//fmt.Println(StartTime, EndTime)
 	if StartTime != "" && EndTime != "" {
-		query = query.Where("created_time >= ? AND created_time <= ?", StartTime, EndTime)
+		query = query.Where("order.created_time >= ? AND order.created_time <= ?", StartTime, EndTime)
 	}
 
 	tmpQuery := *query
@@ -538,6 +544,30 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	} else {
 		insertSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?, ?)"
 		_, err = session.Exec(insertSql, this.SellId, 1, 1, 100)
+		if err != nil {
+			log.Println(err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			return code, err
+		}
+	}
+
+	buyHas, err := session.Exist(&UserCurrencyCount{Uid: this.BuyId})
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if buyHas {
+		countAddOneSql := "UPDATE  `user_currency_count` set `success` = `success` + 1, `orders`=`orders`+1  where uid=? "
+		_, err = session.Exec(countAddOneSql, this.BuyId)
+		if err != nil {
+			log.Println(err.Error())
+			session.Rollback()
+			code = ERRCODE_TRADE_ERROR
+			return code, err
+		}
+	} else {
+		insertSql := "INSERT INTO `user_currency_count` (uid,orders, success, good) values(?,?,?, ?)"
+		_, err = session.Exec(insertSql, this.BuyId, 1, 1, 100)
 		if err != nil {
 			log.Println(err.Error())
 			session.Rollback()
