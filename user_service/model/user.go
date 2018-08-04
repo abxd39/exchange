@@ -174,17 +174,17 @@ func (s *User) SerialJsonData() (data string, err error) {
 
 	for {
 		//有没有通过实名认证
-		if s.SecurityAuth ^ AUTH_FIRST ==AUTH_FIRST{
+		if s.SecurityAuth & AUTH_FIRST ==AUTH_FIRST{
 			first = FIRST_ALREADY //已经通过认证
 			break
 		}
 		//是否有申请认证
-		if s.SetTardeMark^APPLY_FOR_FIRST == APPLY_FOR_FIRST{
+		if s.SetTardeMark & APPLY_FOR_FIRST == APPLY_FOR_FIRST{
 			first = FIRST_VERIFYING
 			break
 		}
 		//如果没有提交申请 检查是否有申请过认证但是没有通过
-		if s.SetTardeMark ^APPLY_FOR_FIRST_NOT_ALREADY == APPLY_FOR_FIRST_NOT_ALREADY {
+		if s.SetTardeMark & APPLY_FOR_FIRST_NOT_ALREADY == APPLY_FOR_FIRST_NOT_ALREADY {
 			first = FIRST_NOT_ALREADY
 			break
 		}
@@ -194,17 +194,17 @@ func (s *User) SerialJsonData() (data string, err error) {
 
 	for{
 		//有无通过二级认证
-		if s.SecurityAuth ^AUTH_TWO ==AUTH_TWO{
+		if s.SecurityAuth & AUTH_TWO ==AUTH_TWO{
 			second = SECOND_ALREADY
 			break
 		}
 		//是否有申请二级认证
-		if s.SetTardeMark ^ APPLY_FOR_SECOND ==APPLY_FOR_SECOND{
+		if s.SetTardeMark & APPLY_FOR_SECOND ==APPLY_FOR_SECOND{
 			second = SECOND_VERIFYING
 			break
 		}
 		//没有通过二级认证
-		if s.SetTardeMark ^APPLY_FOR_SECOND_NOT_ALREADY ==APPLY_FOR_SECOND_NOT_ALREADY{
+		if s.SetTardeMark & APPLY_FOR_SECOND_NOT_ALREADY ==APPLY_FOR_SECOND_NOT_ALREADY{
 			second = SECOND_NOT_ALREADY
 			break
 		}

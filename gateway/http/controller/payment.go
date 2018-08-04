@@ -16,10 +16,10 @@ import (
 type RspBankPay struct {
 	Uid        uint64 `form:"uid"        json:"uid"         binding:"required"`
 	Name       string `form:"name"       json:"name"        binding:"required"`
-	Card_num   string `form:"card_num"   json:"card_num"    binding:"required"`
-	Verify_num string `form:"verify_num" json:"verify_num"  binding:"required"`
-	Bank_name  string `form:"bank_name"  json:"bank_name"   binding:"required"`
-	Bank_info  string `form:"bank_info"  json:"bank_info"   binding:"required"`
+	CardNum   string `form:"card_num"   json:"card_num"    binding:"required"`
+	VerifyNum string `form:"verify_num" json:"verify_num"  binding:"required"`
+	BankName  string `form:"bank_name"  json:"bank_name"   binding:"required"`
+	BankInfo  string `form:"bank_info"  json:"bank_info"   binding:"required"`
 }
 type BankPay struct {
 	RspBankPay
@@ -78,10 +78,10 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		Uid: req.Uid,
 		//Token:     req.Token,
 		Name:      req.Name,
-		CardNum:   req.Card_num,
-		VerifyNum: req.Verify_num,
-		BankName:  req.Bank_name,
-		BankInfo:  req.Bank_info,
+		CardNum:   req.CardNum,
+		VerifyNum: req.Verify,
+		BankName:  req.BankName,
+		BankInfo:  req.BankInfo,
 		Verify:    req.Verify,
 	})
 
@@ -117,10 +117,20 @@ func (this *CurrencyGroup) GetBankPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	var bankpay RspBankPay
-	err = json.Unmarshal([]byte(rsp.Data), &bankpay)
+	type RRRBankPay struct {
+		Uid        uint64 `form:"uid"        json:"uid"         `
+		Name       string `form:"name"       json:"name"        `
+		CardNum    string `form:"card_num"   json:"card_num"    `
+		BankName   string `form:"bank_name"  json:"bank_name"   `
+		BankInfo   string `form:"bank_info"  json:"bank_info"   `
+	}
+	rrrrbankpay := new(RRRBankPay)
+	err = json.Unmarshal([]byte(rsp.Data), rrrrbankpay)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-	ret.SetDataSection("bank_pay", bankpay)
+	ret.SetDataSection("bank_pay", rrrrbankpay)
 	return
 }
 
@@ -141,10 +151,10 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 		Uid: req.Uid,
 		//Token:     req.Token,
 		Name:      req.Name,
-		CardNum:   req.Card_num,
-		VerifyNum: req.Verify_num,
-		BankName:  req.Bank_name,
-		BankInfo:  req.Bank_info,
+		CardNum:   req.CardNum,
+		VerifyNum: req.Verify,
+		BankName:  req.BankName,
+		BankInfo:  req.BankInfo,
 		Verify:    req.Verify,
 	})
 	if err != nil {
