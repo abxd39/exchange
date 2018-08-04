@@ -22,3 +22,11 @@ const (
 const (
 	AUTH_TRADEMARK = 1 //0001资金密码设置状态
 )
+
+// 划转
+const (
+	RDS_TOKEN_TO_CURRENCY_TODO = "token_to_currency_todo"
+	RDS_TOKEN_TO_CURRENCY_DONE = "token_to_currency_done"
+	RDS_CURRENCY_TO_TOKEN_TODO = "currency_to_token_todo"
+	RDS_CURRENCY_TO_TOKEN_DONE = "currency_to_token_done"
+)
