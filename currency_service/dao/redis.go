@@ -4,8 +4,8 @@ import (
 	//"github.com/go-redis/redis"
 	// "github.com/golang/glog"
 	cf "digicon/currency_service/conf"
-	log "github.com/sirupsen/logrus"
 	"github.com/go-redis/redis"
+	log "github.com/sirupsen/logrus"
 )
 
 type RedisCli struct {
@@ -31,4 +31,8 @@ func NewRedisCli() *RedisCli {
 	return &RedisCli{
 		rcon: client,
 	}
+}
+
+func (s *Dao) GetRedisConn() *redis.Client {
+	return s.redis.rcon
 }

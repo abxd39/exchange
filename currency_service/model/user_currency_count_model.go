@@ -47,3 +47,5 @@ func (this *UserCurrencyCount) AddUserCurrencyCount(uid uint64, order uint32, su
 	_, err = engine.Exec(insertSql, this.Uid, this.Orders, this.Success)
 	return
 }
+
+

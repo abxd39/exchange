@@ -4,6 +4,7 @@ import (
 	"digicon/common/snowflake"
 	"digicon/common/xlog"
 	cf "digicon/token_service/conf"
+	"digicon/token_service/cron"
 	"digicon/token_service/dao"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
@@ -28,7 +29,7 @@ func main() {
 
 	log.Infof("begin run server")
 	dao.InitDao()
-	snowflake.Init(1)
+	snowflake.Init(1) // todo 环境变量机器ID
 
 	go rpc.RPCServerInit()
 	client.InitInnerService()
@@ -36,6 +37,10 @@ func main() {
 	//model.GetKLine("BTC/USDT","1min",10)
 	//model.Test()
 	//go exchange.InitExchange()
+
+	go cron.HandlerTransferToCurrencyDone()
+	go cron.ResendTransferToCurrencyMsg()
+
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,

@@ -24,3 +24,11 @@ const (
 	APPLY_FOR_FIRST=2//实名认证申请状态
 	APPLY_FOR_SECOND=4//二级认证申请状态
 )
+
+// 划转
+const (
+	RDS_TOKEN_TO_CURRENCY_TODO = "token_to_currency_todo"
+	RDS_TOKEN_TO_CURRENCY_DONE = "token_to_currency_done"
+	RDS_CURRENCY_TO_TOKEN_TODO = "currency_to_token_todo"
+	RDS_CURRENCY_TO_TOKEN_DONE = "currency_to_token_done"
+)

@@ -1,9 +1,15 @@
 package model
 
 import (
+	"digicon/common/constant"
+	"digicon/common/errors"
+	"digicon/common/xtime"
 	"digicon/currency_service/dao"
-	"errors"
+	proto "digicon/proto/rpc"
+	"fmt"
+	"github.com/gin-gonic/gin/json"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 // 用户虚拟货币资产表
@@ -16,6 +22,10 @@ type UserCurrency struct {
 	Balance   int64  `xorm:"not null default 0 comment('余额') BIGINT"   json:"balance"`        // 余额
 	Address   string `xorm:"not null default '' comment('充值地址') VARCHAR(255)" json:"address"` // 充值地址
 	Version   int64  `xorm:"version"`
+}
+
+func (UserCurrency) TableName() string {
+	return "user_currency"
 }
 
 func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurrency {
@@ -73,4 +83,99 @@ func (this *UserCurrency) SetBalance(uid uint64, token_id uint32, amount int64) 
 		return err
 	}
 	return
+}
+
+func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMessage) error {
+	//判断消息是否已处理过
+	isDid, history, err := new(UserCurrencyHistory).IsTransferFromTokenDid(msg.Id)
+	if err != nil {
+		return err
+	}
+
+	rdsClient := dao.DB.GetRedisConn()
+	if isDid { //已处理过，返回done消息，退出处理
+		msg, err := json.Marshal(proto.TransferToCurrencyDoneMessage{
+			Id:       msg.Id,
+			DoneTime: xtime.Date2Unix(history.CreatedTime, xtime.LAYOUT_DATE_TIME),
+		})
+		if err != nil {
+			return errors.NewSys(err)
+		}
+
+		rdsClient.RPush(constant.RDS_TOKEN_TO_CURRENCY_DONE, msg)
+		return nil
+	}
+
+	//整理数据
+	now := time.Now().Unix()
+
+	//开始处理
+	currencySession := dao.DB.GetMysqlConn().NewSession()
+	sessionClone := currencySession.Clone()
+	defer func() {
+		currencySession.Close()
+		sessionClone.Close()
+	}()
+
+	userCurrency := UserCurrency{}
+	has, err := sessionClone.Where("uid=?", msg.Uid).And("token_id=?", msg.TokenId).Get(&userCurrency)
+	if err != nil {
+		return errors.NewSys(err)
+	}
+	newCurrBalance := userCurrency.Balance + msg.Num
+
+	// 开始事务
+	err = currencySession.Begin()
+	if err != nil {
+		return errors.NewSys(err)
+	}
+
+	//1.法币账号
+	if !has {
+		_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
+			" (uid, token_id, token_name, balance, version)"+
+			" VALUES (%d, %d, '%s', %d, 1)", this.TableName(), msg.Uid, msg.TokenId, "", newCurrBalance))
+		if err != nil {
+			currencySession.Rollback()
+			return errors.NewSys(err)
+		}
+	} else {
+		_, err = currencySession.Exec(fmt.Sprintf("UPDATE %s SET balance=%d,version=version+1 WHERE uid=%d AND token_id=%d AND version=%d", this.TableName(), newCurrBalance, msg.Uid, msg.TokenId, userCurrency.Version))
+		if err != nil {
+			currencySession.Rollback()
+			return errors.NewSys(err)
+		}
+	}
+
+	//2.法币流水
+	_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
+		" (uid, trade_uid, transfer_id, token_id, num, surplus, operator, created_time)"+
+		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(UserCurrencyHistory).TableName(), msg.Uid, msg.Id, msg.TokenId, msg.Num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
+	if err != nil {
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
+
+	//3.发送处理成功消息给token服
+	doneMsg, err := json.Marshal(proto.TransferToCurrencyDoneMessage{
+		Id:       msg.Id,
+		DoneTime: now,
+	})
+	if err != nil {
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
+	if _, err := rdsClient.RPush(constant.RDS_TOKEN_TO_CURRENCY_DONE, doneMsg).Result(); err != nil { //发送失败，回滚
+		log.Error("发送代币划转处理成功消息失败", err.Error())
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
+
+	//提交
+	err = currencySession.Commit()
+	if err != nil {
+		return errors.NewSys(err)
+	}
+
+	return nil
 }

@@ -9,8 +9,9 @@ import (
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
 
+	"digicon/common/constant"
 	"digicon/common/snowflake"
-	"digicon/common/xtime"
+	"github.com/gin-gonic/gin/json"
 	"time"
 )
 
@@ -491,22 +492,20 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 	}
 
 	//整理数据
+	transferId := snowflake.SnowflakeNode.Generate()
 	now := time.Now().Unix()
-	xid := snowflake.SnowflakeNode.Generate()
 
-	//开始划转，XA事务
+	//开始划转
 	tokenSession := DB.GetMysqlConn().NewSession()
-	currencySession := DB.GetCurrencyMysqlConn().NewSession()
-	defer func() {
-		tokenSession.Close()
-		currencySession.Close()
-	}()
+	defer tokenSession.Close()
 
-	//两个库指定同一个事务id，表明两个库的操作处于同一个事务中
-	tokenSession.Exec(fmt.Sprintf("XA START '%d'", xid))
-	currencySession.Exec(fmt.Sprintf("XA START '%d'", xid))
+	//事务
+	err = tokenSession.Begin()
+	if err != nil {
+		return errors.NewSys(err)
+	}
 
-	//1.代币账户减
+	//1.代币账户
 	newBalance := s.Balance - num
 	_, err = tokenSession.Exec(fmt.Sprintf("UPDATE %s SET"+
 		" balance=%d,"+
@@ -515,96 +514,61 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 		" AND token_id=%d"+
 		" AND version=%d", s.TableName(), newBalance, uid, tokenId, s.Version))
 	if err != nil {
-		tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
-		tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-
-		tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-
+		tokenSession.Rollback()
 		return errors.NewSys(err)
 	}
 
 	//2.代币流水
 	_, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s"+
 		" (uid, token_id, ukey, type, opt, balance, num, created_time) VALUES"+
-		" (%d, %d, %d, %d, %d, %d, %d, %d)", new(MoneyRecord).TableName(), uid, tokenId, xid, proto.TOKEN_TYPE_OPERATOR_TRANSFER_TO_CURRENCY, proto.TOKEN_OPT_TYPE_DEL, newBalance, num, now))
+		" (%d, %d, %d, %d, %d, %d, %d, %d)", new(MoneyRecord).TableName(), uid, tokenId, transferId, proto.TOKEN_TYPE_OPERATOR_TRANSFER_TO_CURRENCY, proto.TOKEN_OPT_TYPE_DEL, newBalance, num, now))
 	if err != nil {
-		tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
-		tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-
-		tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-
+		tokenSession.Rollback()
 		return errors.NewSys(err)
 	}
 
-	//3.法币账号加
-	userCurrency := OutUserCurrency{}
-	has, err := currencySession.Clone().Where("uid=?", uid).And("token_id=?", tokenId).Get(&userCurrency)
+	//3.划转记录
+	_, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s"+
+		" (id, uid, token_id, num, states, create_time) VALUES"+
+		" (%d, %d, %d, %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, num, 1, now))
 	if err != nil {
-		return errors.NewSys(err)
-	}
-	newCurrBalance := userCurrency.Balance + num
-	userCurrencyTableName := userCurrency.TableName()
-
-	if !has {
-		_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-			" (uid, token_id, token_name, balance, version)"+
-			" VALUES (%d, %d, '%s', %d, 1)", userCurrencyTableName, uid, tokenId, tokenName, newCurrBalance))
-		if err != nil {
-			tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
-			tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-			currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
-			currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-
-			tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-			currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-
-			return errors.NewSys(err)
-		}
-	} else {
-		_, err = currencySession.Exec(fmt.Sprintf("UPDATE %s SET balance=%d,version=version+1 WHERE uid=%d AND token_id=%d AND version=%d", userCurrencyTableName, newCurrBalance, uid, tokenId, userCurrency.Version))
-		if err != nil {
-			tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
-			tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-			currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
-			currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-
-			tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-			currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-
-			return errors.NewSys(err)
-		}
-	}
-
-	//4.法币流水
-	_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
-		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(OutUserCurrencyHistory).TableName(), uid, xid, tokenId, num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
-	if err != nil {
-		tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
-		tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-
-		tokenSession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-		currencySession.Exec(fmt.Sprintf("XA ROLLBACK '%d'", xid))
-
+		tokenSession.Rollback()
 		return errors.NewSys(err)
 	}
 
 	//提交
-	tokenSession.Exec(fmt.Sprintf("XA END '%d'", xid))
-	tokenSession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
-	currencySession.Exec(fmt.Sprintf("XA END '%d'", xid))
-	currencySession.Exec(fmt.Sprintf("XA PREPARE '%d'", xid))
+	err = tokenSession.Commit()
+	if err != nil {
+		return errors.NewSys(err)
+	}
 
-	tokenSession.Exec(fmt.Sprintf("XA COMMIT '%d'", xid))
-	currencySession.Exec(fmt.Sprintf("XA COMMIT '%d'", xid))
+	// 发送到redis
+	go func() {
+		msg, err := json.Marshal(proto.TransferToCurrencyTodoMessage{
+			Id:         int64(transferId),
+			Uid:        int32(uid),
+			TokenId:    int32(tokenId),
+			Num:        num,
+			CreateTime: now,
+		})
+		if err != nil {
+			return
+		}
+
+		rdsClient := DB.GetRedisConn()
+		rdsClient.RPush(constant.RDS_TOKEN_TO_CURRENCY_TODO, msg)
+	}()
+
+	return nil
+}
+
+//划转到法币成功，把划转记录标记为已完成
+func (s *UserToken) TransferToCurrencyDone(msg *proto.TransferToCurrencyDoneMessage) error {
+	engine := DB.GetMysqlConn()
+	_, err := engine.Exec(fmt.Sprintf("UPDATE %s SET states=2,update_time=%d WHERE id=%d AND states=1", new(TransferRecord).TableName(), time.Now().Unix(), msg.Id))
+	if err != nil {
+		return errors.NewSys(err)
+	}
 
 	return nil
 }

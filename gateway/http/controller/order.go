@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"fmt"
+	"digicon/gateway/utils"
 )
 
 type OrderRequest struct {
@@ -34,6 +35,7 @@ type OtherType struct {
 }
 
 type OtherOrderType struct {
+	TokenName   string `form:"token_name"   json:"token_name"`
 	OrderId     string `form:"order_id"     json:"order_id" `    // 订单id
 	States      uint32 `form:"states"       json:"states"`       // 订单状态 0删除 1待支付 2待放行(已支付) 3确认支付(已完成) 4取消
 	PayStatus   uint32 `form:"pay_status"   json:"pay_status"`   // 支付状态 1待支付 2待放行(已支付) 3确认支付(已完成)
@@ -150,6 +152,7 @@ func (this *CurrencyGroup) OrdersList(c *gin.Context) {
 		o.Num = convert.Int64ToFloat64By8Bit(bod.Num)
 		o.Fee = convert.Int64ToFloat64By8Bit(bod.Fee)
 		o.TokenId = bod.TokenId
+		o.TokenName = bod.TokenName
 		o.PayId = bod.PayId
 		o.SellId = bod.SellId
 		o.SellName = bod.SellName
@@ -361,6 +364,8 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
+		pay_price := utils.Round2(convert.Int64ToFloat64By8Bit(dt.PayPrice), 2)
+
 		ret.SetDataSection("sell_id", dt.SellId)
 		ret.SetDataSection("buy_id", dt.BuyId)
 		ret.SetDataSection("status", dt.States)
@@ -369,7 +374,7 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		ret.SetDataSection("token_name", dt.TokenName)
 
 		ret.SetDataSection("order_id", dt.OrderId)
-		ret.SetDataSection("pay_price", convert.Int64ToFloat64By8Bit(dt.PayPrice))
+		ret.SetDataSection("pay_price", pay_price)
 		ret.SetDataSection("num", convert.Int64ToFloat64By8Bit(dt.Num))
 		ret.SetDataSection("price", convert.Int64ToFloat64By8Bit(dt.Price))
 
