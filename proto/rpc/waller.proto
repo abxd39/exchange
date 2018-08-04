@@ -21,6 +21,9 @@ service Gateway2Waller {
 
     rpc InList(InListRequest) returns (InListResponse){}
     rpc OutList(OutListRequest) returns (OutListResponse){}
+
+    //提币申请
+    rpc TibiApply(TibiApplyRequest) returns (TibiApplyResponse){}
 }
 
 
@@ -242,6 +245,28 @@ message OutListResponse{
     int32 code=1;
     string msg=2;
     Data data=3;
+}
+
+
+
+
+message TibiApplyRequest{
+    int32 uid=1;
+    int32 tokenid=2;
+    string to =3;
+    string amount=4;
+    string gasprice=5;
+    string real_amount=6;
+    string sms_code=7;
+    string email_code=8;
+    string password=9;
+    string phone=10;
+    string email=11;
+}
+
+message TibiApplyResponse{
+    int32 code=1;
+    string msg=2;
 }
 
 

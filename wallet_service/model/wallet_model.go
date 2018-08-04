@@ -15,3 +15,5 @@ type Wallet struct {
 	CreatedTime time.Time `xorm:"not null default '0000-00-00 00:00:00' comment('创建时间') TIMESTAMP"`
 	Freeze      string    `xorm:"comment('冻结金额') DECIMAL(64,8)"`
 }
+
+

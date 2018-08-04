@@ -6,6 +6,8 @@ import (
 	"github.com/shopspring/decimal"
 	"math/big"
 	"time"
+	. "digicon/proto/common"
+	"fmt"
 )
 
 // 平台币账户的交易
@@ -28,6 +30,28 @@ type TokenInout struct {
 	CreatedTime time.Time `xorm:"comment('创建时间') TIMESTAMP"`
 	DoneTime    time.Time `xorm:"done_time"`
 	Remarks     string    `xorm:"remarks"`
+	AmountCny         int64     `xorm:"amount_cny"`
+	FeeCny         int64     `xorm:"fee_cny"`
+}
+
+type User struct {
+	Uid              uint64 `xorm:"not null pk autoincr comment('用户ID') BIGINT(11)"`
+	Account          string `xorm:"comment('账号') unique VARCHAR(64)"`
+	Pwd              string `xorm:"comment('密码') VARCHAR(255)"`
+	Country          string `xorm:"comment('地区号') VARCHAR(32)"`
+	Phone            string `xorm:"comment('手机') unique VARCHAR(64)"`
+	PhoneVerifyTime  int    `xorm:"comment('手机验证时间') INT(11)"`
+	Email            string `xorm:"comment('邮箱') unique VARCHAR(128)"`
+	EmailVerifyTime  int    `xorm:"comment('邮箱验证时间') INT(11)"`
+	GoogleVerifyId   string `xorm:"comment('谷歌私钥') VARCHAR(128)"`
+	GoogleVerifyTime int    `xorm:"comment('谷歌验证时间') INT(255)"`
+	SmsTip           bool   `xorm:"default 0 comment('短信提醒') TINYINT(1)"`
+	PayPwd           string `xorm:"comment('支付密码') VARCHAR(255)"`
+	NeedPwd          bool   `xorm:"comment('免密设置1开启0关闭') TINYINT(1)"`
+	NeedPwdTime      int    `xorm:"comment('免密周期') INT(11)"`
+	Status           int    `xorm:"default 0 comment('用户状态，1正常，2冻结') INT(11)"`
+	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
+	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
 }
 
 func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string, decim int) (int, error) {
@@ -97,4 +121,52 @@ func (this *TokenInout) GetInOutList(pageIndex, pageSize int, filter map[string]
 	modelList.Items = list
 
 	return modelList, list, nil
+}
+
+//提币申请
+func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string) (ret int,err error) {
+	//查询form地址
+	var walletToken = new(WalletToken)
+	err = walletToken.GetByUid(uid)
+	if err != nil {
+		return ERRCODE_UNKNOWN,err
+	}
+	from := walletToken.Address
+
+	this.From = from
+	this.To = to
+	temp, _ := new(big.Int).SetString(amount,10)
+	amount1 := decimal.NewFromBigInt(temp, int32(8-8)).IntPart()
+	this.Amount = amount1
+
+	temp1, _ := new(big.Int).SetString(amount,10)
+	fee1 := decimal.NewFromBigInt(temp1, int32(8-8)).IntPart()
+	this.Fee = fee1
+
+	this.Contract = walletToken.Contract
+	this.Chainid = walletToken.Chainid
+	this.Tokenid = tokenid
+	this.Uid = uid
+	affected, err := utils.Engine_wallet.InsertOne(this)
+	fmt.Println("保存结果：",affected,err)
+	return int(affected), err
+
+}
+
+//验证支付密码
+func (this *TokenInout) AuthPayPwd(uid int32,password string) (ret int32,err error) {
+	engine := utils.Engine_common
+	var data = new(User)
+	ok,err := engine.Where("uid=?",uid).Get(&data)
+	fmt.Println("验证资金密码：",ok,err)
+	if err != nil {
+		return ERRCODE_UNKNOWN, err
+	}
+	if !ok {
+		return ERRCODE_ACCOUNT_NOTEXIST, nil
+	}
+	if data.PayPwd != password {
+		return ERRCODE_UNKNOWN,nil
+	}
+	return ERRCODE_SUCCESS,nil
 }
