@@ -154,7 +154,7 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 		return ERRCODE_UNKNOWN, err
 	}
 	//写数据库 如果 user 表上有 该用户，则 表user_ex 此表一定有该 用户
-	if _, err = sess.Where("uid=?", req.Uid).Update(&UserEx{
+	if _, err = sess.Where("uid=?", req.Uid).Cols("real_name","identify_card","affirm_time","affirm_count").Update(&UserEx{
 		RealName:     req.RealName,
 		IdentifyCard: req.IdCode,
 		AffirmTime:   time.Now().Unix(),
@@ -164,8 +164,8 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 
 		return ERRCODE_UNKNOWN, err
 	}
-	u.SetTardeMark = u.SetTardeMark ^ 2
-	if _, err = sess.Table("user").Where("uid=?", req.Uid).Update(&User{
+	u.SetTardeMark = u.SetTardeMark &^ 2
+	if _, err = sess.Table("user").Where("uid=?", req.Uid).Cols("set_tarde_mark").Update(&User{
 		SetTardeMark: u.SetTardeMark,
 	}); err != nil {
 		sess.Rollback()
