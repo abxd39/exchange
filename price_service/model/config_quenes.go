@@ -75,8 +75,7 @@ func InitConfig() {
 			ConfigQueneArr[int32(v.TokenId)] = a
 		}
 
-		m := GetConfigQuenesByType(1)
-		fmt.Println(len(m))
+		//m := GetConfigQuenesByType(1)
 	}
 	m := GetConfigQuenesByType(1)
 	fmt.Println(len(m))

@@ -53,6 +53,39 @@ func (s *RPCServer) LastPrice(ctx context.Context, req *proto.LastPriceRequest, 
 	return nil
 }
 
+func (s *RPCServer) SymbolTitle(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolTitleResponse) error {
+	
+	return nil
+}
+
+func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdRequest, rsp *proto.SymbolsByIdResponse) error {
+	g := model.GetConfigQuenesByType(req.TokenId)
+	k:=make([]*proto.SymbolBaseData,0)
+
+	for _, v := range g {
+		q, ok := model.GetQueneMgr().GetQueneByUKey(v.Name)
+		if !ok {
+			return nil
+		}
+
+		p, ok := model.Get24HourPrice(v.Name)
+		if !ok {
+			return nil
+		}
+
+		price := q.GetEntry().Price
+		k=append(k,&proto.SymbolBaseData{
+			Symbol:       v.Name,
+			Price:        convert.Int64ToStringBy8Bit(price),
+			CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
+			Scope:        convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
+			TradeTokenId: int32(v.TokenTradeId),
+		})
+	}
+
+	return nil
+}
+
 func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolsResponse) error {
 
 	rsp.Usdt = new(proto.SymbolsBaseData)

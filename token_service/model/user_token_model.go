@@ -44,8 +44,8 @@ func (s *UserToken) CalcTotalMoney(uid uint64) (*UserTokenTotalMoney, error) {
 
 	engine := DB.GetMysqlConn()
 	_, err := engine.SQL(fmt.Sprintf("SELECT SUM(tmp.cny) AS total_cny,SUM(tmp.usd) AS total_usd FROM"+
-		" (SELECT (ut.balance+ut.frozen)/100000000 * ctc.price/100000000 AS cny,"+
-		" (ut.balance+ut.frozen)/100000000 * ctc.usd_price/100000000 AS usd"+
+		" (SELECT SUM(ut.balance+ut.frozen)/100000000 * ctc.price/100000000 AS cny,"+
+		" SUM(ut.balance+ut.frozen)/100000000 * ctc.usd_price/100000000 AS usd"+
 		" FROM %s ut LEFT JOIN %s ctc ON ctc.token_id=ut.token_id WHERE ut.uid=%d GROUP BY ut.token_id"+
 		") tmp", s.TableName(), new(ConfigTokenCny).TableName(), uid)).Get(userTokenTotal)
 	if err != nil {

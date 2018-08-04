@@ -191,7 +191,7 @@ message EntrustHistoryBaseData{
     string trade_num                   =7;
     int32 states                        =8;
     string create_time                   =9;
-    string mount                        =10;
+    string sum                        =10;
     string price                          =11;
 }
 
@@ -205,7 +205,7 @@ message EntrustListBaseData{
     string trade_num                   =7;
     int32 states                        =8;
     string create_time                   =9;
-    string mount                        =10;
+    string sum                        =10;
 }
 
 message EntrustHistoryResponse{

@@ -193,7 +193,7 @@ func (s *RPCServer) EntrustHistory(ctx context.Context, req *proto.EntrustHistor
 		if v.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
 			display = "市价"
 		} else {
-			display = convert.Int64ToStringBy8Bit(v.Mount)
+			display = convert.Int64ToStringBy8Bit(v.Sum)
 		}
 		rsp.Data = append(rsp.Data, &proto.EntrustHistoryBaseData{
 			EntrustId:  v.EntrustId,
@@ -203,9 +203,10 @@ func (s *RPCServer) EntrustHistory(ctx context.Context, req *proto.EntrustHistor
 			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
 			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
-			Mount:      display,
+			Sum:      display,
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     int32(v.States),
+			//Sum: convert.Int64ToStringBy8Bit( v.Sum),
 		})
 	}
 	return nil
@@ -218,7 +219,7 @@ func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRe
 		if v.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
 			display = "市价"
 		} else {
-			display = convert.Int64ToStringBy8Bit(v.Mount)
+			display = convert.Int64ToStringBy8Bit(v.Sum)
 		}
 		rsp.Data = append(rsp.Data, &proto.EntrustListBaseData{
 			EntrustId:  v.EntrustId,
@@ -227,7 +228,7 @@ func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRe
 			Type:       proto.ENTRUST_TYPE(v.Type),
 			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
 			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
-			Mount:      display,
+			Sum:      display,
 			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     int32(v.States),
