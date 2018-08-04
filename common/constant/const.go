@@ -9,6 +9,9 @@ const (
 	REGISTER int = 1
 )
 
+
+
+
 const (
 	AUTH_NIL    = -1 //取消认证
 	AUTH_EMAIL  = 2  //00000010 //邮箱
@@ -48,4 +51,27 @@ const (
 	RDS_TOKEN_TO_CURRENCY_DONE = "token_to_currency_done"
 	RDS_CURRENCY_TO_TOKEN_TODO = "currency_to_token_todo"
 	RDS_CURRENCY_TO_TOKEN_DONE = "currency_to_token_done"
+)
+
+
+
+
+// 验证类型   1 注册 2 忘记密码 3 修改手机号码 4重置谷歌验证码 5 重置资金密码 6 修改登录密码 7 设置银行卡支付 8 设置微信支付 9 设置支付宝支付 10 设置PayPal支付
+//           11 绑定手机  12 绑定邮箱, 13 提币
+const (
+	SMS_REGISTER         = 1 //注册业务
+	SMS_FORGET           = 2
+	SMS_MODIFY_PHONE     = 3
+	SMS_SET_GOOGLE_CODE  = 4
+	SMS_RESET_TRADE_PWD  = 5
+	SMS_MODIFY_LOGIN_PWD = 6
+	SMS_BANK_PAY         = 7
+	SMS_WECHAT_PAY       = 8
+	SMS_AIL_PAY          = 9
+	SMS_PAYPAL_PAY       = 10
+	SMS_BIND_PHONE       = 11
+	SMS_BIND_EMAIL       = 12
+	SMS_CARRY_COIN       = 13
+	SMS_REAL_NAME        = 14
+	SMS_MAX              = 15
 )
