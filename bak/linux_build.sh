@@ -3,10 +3,11 @@
 
 remote_ip=47.106.136.96
 
-#services="wallet_service" 
+services="currency_service" 
 #services="ws_service" 
 #services="user_service" 
-services="currency_service" 
+#services="gateway" 
+
 #services="currency_service user_service gateway"
 #services="currency_service user_service price_service gateway"
 
@@ -41,9 +42,9 @@ function restart_service(){
         service_id=`echo $result | awk -F " " '{print $2}'`
         echo  "$service $service_id"
         if [ "$service_id" != "" ];then
-            result=`ssh root@$remote_ip  "echo 'cd $remote_path && mv -f $service.nw $service && kill -9  $service_id &&  nohup ./$service  > $service.log 2>&1 &' > start_$service.sh && sh start_$service.sh >/dev/null 2>&1 & exit"`
+            result=`ssh root@$remote_ip  "echo 'cd $remote_path && mv -f $service.nw $service && chmod +x $service && kill -9  $service_id &&  nohup ./$service  > $service.log 2>&1 &' > start_$service.sh && sh start_$service.sh >/dev/null 2>&1 & exit"`
         else
-            result=`ssh root@$remote_ip  "echo 'cd $remote_path && mv -f $service.nw $service && nohup ./$service > $service.log  2>&1 & ' > start_$service.sh &&  sh start_$service.sh >/dev/null 2>&1 & exit"`
+            result=`ssh root@$remote_ip  "echo 'cd $remote_path && mv -f $service.nw $service && chmod +x $service && nohup ./$service > $service.log  2>&1 & ' > start_$service.sh &&  sh start_$service.sh >/dev/null 2>&1 & exit"`
         fi
         result=`ssh root@$remote_ip " mv -f  start_$service.sh /tmp/" `        
         start_service_result=`ssh root@$remote_ip -f -n "ps -ef | grep -v grep | grep start_$service.sh"`

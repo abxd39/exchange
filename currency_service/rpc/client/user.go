@@ -29,7 +29,7 @@ type UserRPCCli struct {
 //}
 
 func (s *UserRPCCli) CallGetNickName(uids []uint64) (rsp *proto.UserGetNickNameResponse, err error) {
-	fmt.Println("uids:", uids)
+	//fmt.Println("uids:", uids)
 	return s.userconn.GetNickName(context.TODO(), &proto.UserGetNickNameRequest{Uid: uids})
 }
 
@@ -49,7 +49,7 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	service_name := cf.Cfg.MustValue("base", "service_name")
 	user_client_name := cf.Cfg.MustValue("base", "service_client_user")
 
-	fmt.Println("service_name,", service_name, " user_client_name: ", user_client_name)
+	//fmt.Println("service_name,", service_name, " user_client_name: ", user_client_name)
 	greeter := proto.NewGateway2WallerService(service_name, service.Client())
 	userGreeter := proto.NewUserRPCService(user_client_name, service.Client())
 
