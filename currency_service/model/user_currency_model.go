@@ -147,7 +147,7 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, tokenName str
 		return errors.NewSys(err)
 	}
 
-	// 发送划转消息给currency服
+	// 发送划转消息给token服
 	go func() {
 		msg, err := json.Marshal(proto.TransferToTokenTodoMessage{
 			Id:         int64(transferId),
