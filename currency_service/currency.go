@@ -1,6 +1,7 @@
 package main
 
 import (
+	"digicon/common/snowflake"
 	"digicon/common/xlog"
 	cf "digicon/currency_service/conf"
 	"digicon/currency_service/cron"
@@ -24,6 +25,7 @@ func init() {
 }
 
 func main() {
+	snowflake.Init(1) // todo 环境变量机器ID
 	flag.Parse()
 	log.Infof("begin run server")
 	dao.InitDao()
@@ -32,7 +34,11 @@ func main() {
 
 	client.InitInnerService()
 
+	//划入
 	go cron.HandlerTransferFromToken()
+
+	//划出
+	go cron.HandlerTransferToTokenDone()
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

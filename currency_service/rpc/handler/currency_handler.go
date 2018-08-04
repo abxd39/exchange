@@ -7,6 +7,7 @@ import (
 	"fmt"
 	//"github.com/gin-gonic/gin/json"
 	"digicon/common/convert"
+	"digicon/common/errors"
 	"digicon/currency_service/rpc/client"
 	"encoding/json"
 	"golang.org/x/net/context"
@@ -457,7 +458,7 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 	var resultBalance int64
 	if balance.Balance > sumLimit {
 		resultBalance = balance.Balance - sumLimit
-	}else{
+	} else {
 		resultBalance = 0
 	}
 
@@ -676,11 +677,15 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 	}
 }
 
-/*
-	交易划转
-*/
-func (s *RPCServer) Transfer(ctx context.Context, req *proto.TransferRequest, rsp *proto.OtherResponse) error {
-	fmt.Println(req)
+// 法币划转到代币
+func (s *RPCServer) TransferToToken(ctx context.Context, req *proto.TransferToTokenRequest, rsp *proto.OtherResponse) error {
+	userCurrencyModel := &model.UserCurrency{}
+	err := userCurrencyModel.TransferToToken(req.Uid, int(req.TokenId), "", int64(req.Num))
+	if err != nil {
+		rsp.Code = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
+	}
 
 	return nil
 }
