@@ -51,6 +51,7 @@ func (*User) TableName() string {
 	return "user"
 }
 
+
 func (s *User) GetUser(uid uint64) (ret int32, err error) {
 	ok, err := DB.GetMysqlConn().Where("uid=?", uid).Get(s)
 	if err != nil {

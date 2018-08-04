@@ -185,6 +185,18 @@ func (s *UserRPCCli) CallSendEmail(email string, ty int32) (rsp *proto.CommonErr
 // 	return
 // }
 
+func (s *UserRPCCli) CallRefresh(uid uint64) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.Refresh(context.TODO(), &proto.RefreshRequest{
+		Uid: uid,
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
 func (s *UserRPCCli) CallGoogleSecretKey(uid uint64) (rsp *proto.GoogleAuthResponse, err error) {
 	rsp, err = s.conn.GetGoogleSecretKey(context.TODO(), &proto.GoogleAuthRequest{
 		Uid: uid,

@@ -318,3 +318,9 @@ func (s *RPCServer) Api2(ctx context.Context, req *proto.Api2Request, rsp *proto
 	}
 	return nil
 }
+
+
+func (s *RPCServer) Refresh(ctx context.Context, req *proto.RefreshRequest, rsp *proto.CommonErrResponse) error {
+	new(model.User).ForceRefreshCache(req.Uid)
+	return nil
+}
