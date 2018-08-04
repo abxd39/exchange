@@ -232,10 +232,18 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		}
 	}()
 	var token_id int
+	var sum int64
 	if p.Opt == proto.ENTRUST_OPT_BUY {
 		token_id = s.TokenId
+		if p.Type==proto.ENTRUST_TYPE_LIMIT_PRICE {
+			sum=convert.Int64DivInt64By8Bit(p.Num,p.OnPrice)
+		}
+
 	} else {
 		token_id = s.TokenTradeId
+		if p.Type==proto.ENTRUST_TYPE_LIMIT_PRICE {
+			sum=convert.Int64MulInt64By8Bit(p.Num,p.OnPrice)
+		}
 	}
 
 	g := &EntrustDetail{
@@ -249,6 +257,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		States:     int(proto.TRADE_STATES_TRADE_NONE),
 		Type:       int(p.Type),
 		Symbol:     p.Symbol,
+		Sum:sum,
 	}
 
 	m := &UserToken{}
@@ -347,17 +356,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		return
 	}
 
-	/*
-		buyer_entrust := GetEntrust(buyer.EntrustId)
-		if buyer_entrust == nil {
-			return
-		}
-
-		seller_entrust := GetEntrust(seller.EntrustId)
-		if seller_entrust == nil {
-			return
-		}
-	*/
 
 	//num := convert.Int64MulInt64By8Bit(deal_num, price) //买家消耗USDT数量
 	//fmt.Printf("price =%d,deal_num=%d ,num =%d \n", price, deal_num, num)
@@ -381,6 +379,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		EntrustId:    buyer.EntrustId,
 	}
 
+
 	sell_fee := convert.Int64MulFloat64(deal_num, s.SellPoundage)
 	o := &Trade{
 		TradeNo:      no,
@@ -396,10 +395,31 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		EntrustId:    seller.EntrustId,
 	}
 
+
+
 	if buyer.SurplusNum < buy_num {
 		err = errors.New("error when check surplus num")
 		return
 	}
+
+	buy_trade,err :=GetUserTradeByEntrustId(buyer.EntrustId)
+	if err!=nil {
+		return err
+	}
+
+		buy_trade=append(buy_trade,t)
+		buyer.Price = CaluateAvgPrice(buy_trade)
+
+
+
+	sell_trade,err :=GetUserTradeByEntrustId(seller.EntrustId)
+	if err!=nil {
+		return err
+	}
+
+		sell_trade=append(sell_trade,o)
+		seller.Price = CaluateAvgPrice(sell_trade)
+	
 
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
@@ -430,7 +450,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		return
 	}
 
-	err = buy_trade_token_account.AddMoney(session, t.Num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE)
+	err = buy_trade_token_account.AddMoney(session, o.Num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE)
 	if err != nil {
 		session.Rollback()
 		return
@@ -447,7 +467,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		return
 	}
 
-	err = sell_trade_token_account.AddMoney(session, o.Num, o.TradeNo, proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE)
+	err = sell_trade_token_account.AddMoney(session, t.Num, o.TradeNo, proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE)
 	if err != nil {
 		session.Rollback()
 		return
@@ -553,15 +573,19 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		return
 	}()
 	n:= random.Krand(8, random.KC_RAND_KIND_UPPER)
+	j:=fmt.Sprintf("%s_%s",string(n),p.EntrustId)
 	if p.Opt == int(proto.ENTRUST_OPT_BUY) {
 		buyer = p
-		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1,string(n))
+		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1,j)
 		if err != nil {
+			log.Infof("record 1")
 			return
 		}
 		if len(others) > 0 {
 			seller = others[0]
 		} else {
+			err=redis.Nil
+			log.Infof("record 2")
 			return
 		}
 
@@ -569,11 +593,14 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		seller = p
 		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 1, 1,string(n))
 		if err != nil {
+			log.Infof("record 4")
 			return
 		}
 		if len(others) > 0 {
 			buyer = others[0]
 		} else {
+			err=redis.Nil
+			log.Infof("record 3")
 			return
 		}
 	}
@@ -636,6 +663,15 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 				*/
 				g_num = convert.Int64DivInt64By8Bit(buyer.SurplusNum, price)
 			} else {
+				log.WithFields(logrus.Fields{
+					"buyer_price":     buyer.OnPrice,
+					"seller_price":    seller.OnPrice,
+					"price ":          s.price_c,
+					"os_id":           os.Getpid(),
+					"buy_entrust_id":  buyer.EntrustId,
+					"sell_entrust_id": seller.EntrustId,
+				}).Errorln("test check  price please check")
+				err=redis.Nil
 				return
 			}
 		}

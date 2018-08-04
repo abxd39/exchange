@@ -1,6 +1,10 @@
 package utils
 
-import "digicon/common/convert"
+import (
+	"digicon/common/convert"
+	"fmt"
+	"strconv"
+)
 
 // 以下是试例 - 等待真正的接口
 
@@ -60,3 +64,13 @@ func NumFiat(num int64, balance int64) float64 {
 
 	return convert.Int64ToFloat64By8Bit(num)
 }
+
+
+
+
+func Round2(f float64, n int) float64 {
+	floatStr := fmt.Sprintf("%."+strconv.Itoa(n)+"f", f)
+	inst, _ := strconv.ParseFloat(floatStr, 64)
+	return inst
+}
+

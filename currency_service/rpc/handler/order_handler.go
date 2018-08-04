@@ -22,13 +22,9 @@ import (
 
 // 获取订单列表
 func (s *RPCServer) OrdersList(ctx context.Context, req *proto.OrdersListRequest, rsp *proto.OrdersListResponse) error {
-	result := []model.Order{}
+	result := []model.OrderModel{}
 	o := new(model.Order)
-
 	rsp.Total, rsp.Page, rsp.PageNum, rsp.Err = o.List(req.Page, req.PageNum, req.AdType, req.States, req.Id, req.Uid, req.TokenId, req.StartTime, req.EndTime, &result)
-	//for _, od := range result{
-
-	//}
 
 	orders, err := json.Marshal(result)
 	if err != nil {

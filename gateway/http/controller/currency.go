@@ -237,6 +237,7 @@ func (this *CurrencyGroup) AddAds(c *gin.Context) {
 		return
 	}
 
+
 	// 检证货币类型 ==========
 	// 调用 rpc 获取货币类型
 	tokenData, err := rpc.InnerService.CurrencyService.CallGetCurrencyTokens(&proto.CurrencyTokensRequest{

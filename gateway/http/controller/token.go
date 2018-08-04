@@ -8,6 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
+	"fmt"
+	"time"
 )
 
 type TokenGroup struct{}
@@ -31,8 +34,10 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/trade_list", s.TokenTradeList)
 
 		action.POST("/del_entrust", s.DelEntrust)
-
+		
 		action.POST("/transfer_to_currency", s.TransferToCurrency)
+
+		action.GET("/bibi_history", s.BibiHistory)
 	}
 }
 
@@ -169,6 +174,86 @@ func (s *TokenGroup) EntrustList(c *gin.Context) {
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("list", rsp.Data)
+}
+
+func (s *TokenGroup) BibiHistory(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	fmt.Println("参数：12")
+	type EntrustListParam struct {
+		Uid   uint64 `form:"uid" binding:"required"`
+		Token string `form:"token" binding:"required"`
+		Limit int32  `form:"limit" `
+		Page  int32  `form:"page" `
+		Symbol1 string `form:"symbol1"`
+		Symbol2 string `form:"symbol2"`
+		Opt int32 `form:"opt"`
+		States int32 `form:"states"`
+		StartTime int32 `form:"startTime"`
+		EndTime int32 `form:"endTime"`
+	}
+
+	var param EntrustListParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if param.Limit == 0 {
+		param.Limit = 5
+	}
+	if param.Page == 0 {
+		param.Page = 1
+	}
+
+	symbol := strings.Join([]string{param.Symbol1,param.Symbol2},"/")
+	startTime := param.StartTime
+	if startTime == 0 {
+		startTime = int32(time.Now().Unix()) - 86400
+	}
+	endTime := param.EndTime
+	if endTime == 0 {
+		endTime = int32(time.Now().Unix())
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallBibiHistory(&proto.BibiHistoryRequest{
+		Uid:   param.Uid,
+		Limit: param.Limit,
+		Page:  param.Page,
+		Symbol:symbol,
+		Opt:param.Opt,
+		States:param.States,
+		StartTime:startTime,
+		EndTime:endTime,
+	})
+
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*proto.BibiHistoryResponse_Data_Item `json:"items"`
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     rsp.Data.Items,
+	}
+
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Msg)
+	ret.SetDataSection("list", newList)
 }
 
 func (s *TokenGroup) EntrustHistory(c *gin.Context) {

@@ -53,6 +53,9 @@ service TokenRPC {
 
         //划转到代币
         rpc TransferToCurrency(TransferToCurrencyRequest) returns (TransferToCurrencyResponse) {};
+	
+	//币币列表
+        rpc BibiHistory(BibiHistoryRequest) returns (BibiHistoryResponse) {};
 }
 
 enum ENTRUST_OPT //操作方向类型
@@ -191,7 +194,7 @@ message EntrustHistoryBaseData{
     string trade_num                   =7;
     int32 states                        =8;
     string create_time                   =9;
-    string mount                        =10;
+    string sum                        =10;
     string price                          =11;
 }
 
@@ -205,7 +208,7 @@ message EntrustListBaseData{
     string trade_num                   =7;
     int32 states                        =8;
     string create_time                   =9;
-    string mount                        =10;
+    string sum                        =10;
 }
 
 message EntrustHistoryResponse{
@@ -351,4 +354,55 @@ message TransferToCurrencyRequest{
 message TransferToCurrencyResponse{
     int32 err                       =1;
     string message                  =2;
+}
+
+message TransferToCurrencyTodoMessage{
+    int64 id            =1;
+    int32 uid           =2;
+    int32 token_id      =3;
+    int64 num           =4;
+    int64 create_time   =5;
+}
+
+message TransferToCurrencyDoneMessage{
+    int64 id            =1;
+    int64 done_time   =2;
+}
+
+message BibiHistoryRequest{
+    uint64 uid                          =1;
+    int32 limit                         =2;
+    int32 page                          =3;
+    string symbol                       =4;
+    int32 opt                           =5;
+    int32 states                        =6;
+    int32 startTime                     =7;
+    int32 endTime                       =8;
+}
+
+message BibiHistoryResponse{
+    message Data {
+        message Item {
+                string entrust_id                     =1;
+                string  symbol                        =2;
+                ENTRUST_OPT opt                       =3;
+                ENTRUST_TYPE   type                   =4;
+                string all_num                        =5;
+                string on_price                       =6;
+                string trade_num                      =7;
+                int32 states                          =8;
+                string create_time                    =9;
+                string mount                          =10;
+                string price                          =11;
+        }
+        int32 page_index           =1;
+        int32 page_size            =2;
+        int32 total_page           =3;
+        int32 total                =4;
+        repeated Item items        =5;
+    }
+
+    int32 code                 =1;
+    string msg                 =2;
+    Data data                  =3;
 }

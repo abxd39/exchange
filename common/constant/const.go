@@ -41,3 +41,11 @@ const(
 	SECOND_NOT_ALREADY=3//没有通过认证
 	SECOND_VERIFYING=4//认证中
 )
+
+// 划转
+const (
+	RDS_TOKEN_TO_CURRENCY_TODO = "token_to_currency_todo"
+	RDS_TOKEN_TO_CURRENCY_DONE = "token_to_currency_done"
+	RDS_CURRENCY_TO_TOKEN_TODO = "currency_to_token_todo"
+	RDS_CURRENCY_TO_TOKEN_DONE = "currency_to_token_done"
+)

@@ -69,8 +69,8 @@ func (s *MarketGroup) Symbols(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("btc", rsp.Btc)
 	ret.SetDataSection("usdt", rsp.Usdt)
+	ret.SetDataSection("btc", rsp.Btc)
 	ret.SetDataSection("eth", rsp.Eth)
 	ret.SetDataSection("sdc", rsp.Sdc)
 }

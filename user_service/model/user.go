@@ -421,7 +421,7 @@ func (s *User) Register(req *proto.RegisterRequest, filed string) (errCode int32
 		}
 	}
 
-	return ERRCODE_SUCCESS, e.Uid, uint64(e.Uid)
+	return ERRCODE_SUCCESS, e.Uid, uint64(d.Uid)
 
 }
 

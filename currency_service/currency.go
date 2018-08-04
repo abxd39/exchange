@@ -1,26 +1,26 @@
 package main
 
 import (
+	"digicon/common/xlog"
 	cf "digicon/currency_service/conf"
+	"digicon/currency_service/cron"
 	"digicon/currency_service/dao"
-	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc"
 	"digicon/currency_service/rpc/client"
+	"digicon/currency_service/rpc/handler"
 	"flag"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
-	"digicon/common/xlog"
-	"digicon/currency_service/rpc/handler"
 )
 
-
-func init()  {
+func init() {
 	cf.Init()
 	path := cf.Cfg.MustValue("log", "log_dir")
 	name := cf.Cfg.MustValue("log", "log_name")
 	level := cf.Cfg.MustValue("log", "log_level")
-	xlog.InitLogger(path,name,level)
+	xlog.InitLogger(path, name, level)
 }
 
 func main() {
@@ -31,6 +31,8 @@ func main() {
 	go handler.InitCheckOrderStatus()
 
 	client.InitInnerService()
+
+	go cron.HandlerTransferFromToken()
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
