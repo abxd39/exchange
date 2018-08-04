@@ -33,6 +33,8 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 
 	r.GET("in_list", this.InList)
 	r.GET("out_list", this.OutList)
+
+	r.POST("/tibi_apply", this.TibiApply)           //
 }
 
 ///////////////////////// start btc ///////////////////////////
@@ -510,5 +512,41 @@ func (this *WalletGroup) OutList(ctx *gin.Context) {
 	}
 
 	ret.SetDataSection("list", newList)
+	return
+}
+
+//申请提币2
+func (this *WalletGroup) TibiApply(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type Param struct {
+		Uid      int32  `form:"uid" binding:"required"`
+		Token_id int32  `form:"token_id" binding:"required"`
+		To       string `form:"to" binding:"required"`
+		Amount   string `form:"amount" binding:"required"`
+		Gasprice string  `form:"gasprice" binding:"required"`
+		RealAmount string `form:"realAmount" binding:"required"`
+		SmsCode string `form:"smsCode" binding:"required"`
+		EmailCode string `form:"emailCode" binding:"required"`
+		Password string `form:"password" binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount,param.RealAmount,param.SmsCode,param.EmailCode,param.Password)
+	if err != nil {
+		//fmt.Println(rsp.Code, rsp.Msg)
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	//ctx.JSON(http.StatusOK, rsp)
+	ret.SetDataSection("msg", rsp.Msg)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
