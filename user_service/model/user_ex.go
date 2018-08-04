@@ -6,6 +6,7 @@ import (
 	. "digicon/user_service/dao"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	."digicon/common/constant"
 	"time"
 )
 
@@ -164,7 +165,7 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 
 		return ERRCODE_UNKNOWN, err
 	}
-	u.SetTardeMark = u.SetTardeMark ^ 2
+	u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_FIRST
 	if _, err = sess.Table("user").Where("uid=?", req.Uid).Cols("set_tarde_mark").Update(&User{
 		SetTardeMark: u.SetTardeMark,
 	}); err != nil {

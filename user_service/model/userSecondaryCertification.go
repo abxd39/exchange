@@ -5,6 +5,7 @@ import (
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
 	"fmt"
+	."digicon/common/constant"
 	"time"
 )
 
@@ -68,7 +69,7 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 			sess.Rollback()
 			return ERRCODE_UNKNOWN, err
 		}
-		u.SetTardeMark = u.SetTardeMark ^ 4
+		u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_SECOND
 		if _, err = engine.Table("user").Where("uid=?", req.Uid).Update(&User{
 			SetTardeMark: u.SetTardeMark,
 		}); err != nil {
@@ -93,7 +94,7 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 		sess.Rollback()
 		return ERRCODE_UNKNOWN, err
 	}
-	u.SetTardeMark = u.SetTardeMark ^ 4
+	u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_SECOND
 	if _, err = engine.Table("user").Where("uid=?", req.Uid).Update(&User{
 		SetTardeMark: u.SetTardeMark,
 	}); err != nil {

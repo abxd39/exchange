@@ -309,7 +309,6 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 type UserRealData struct {
 	RealName     string `json:"real_name"`
 	IdentifyCard string `json:"identify_card"`
-	SecondMark   int32  `json:"second_mark"`
 	CheckMarkFirst int32 `json:"check_mark_first"`
 	CheckMarkSecond int32 `json:"check_mark_second"`
 }
