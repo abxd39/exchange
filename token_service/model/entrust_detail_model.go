@@ -38,7 +38,7 @@ type EntrustDetail struct {
 	SurplusNum  int64  `xorm:"not null comment('剩余数量') BIGINT(20)"`
 	Price       int64  `xorm:"not null comment('实际价格(卖出价格）') BIGINT(20)"`
 	Sum       	int64  	`xorm:"not null comment('委托总额') BIGINT(20)"`
-	Mount       int64  `xorm:"not null comment('全部实际价值') BIGINT(20)"`
+	//Mount       int64  `xorm:"not null comment('全部实际价值') BIGINT(20)"`
 	Opt         int    `xorm:"not null comment('类型 买入单1 卖出单2 ') TINYINT(4)"`
 	Type        int    `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
 	OnPrice     int64  `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
@@ -111,7 +111,7 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int,symbol string,
 
 func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail {
 	m := make([]EntrustDetail, 0)
-	err := DB.GetMysqlConn().Where("uid=?", uid).Limit(limit, page-1).Find(&m)
+	err := DB.GetMysqlConn().Where("uid=?", uid).Desc("created_time").Limit(limit, page-1).Find(&m)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil
@@ -122,7 +122,7 @@ func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail 
 func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	m := make([]EntrustDetail, 0)
 	i := []int{0, 1}
-	err := DB.GetMysqlConn().Where("uid=?", uid).In("states", i).Limit(limit, page-1).Find(&m)
+	err := DB.GetMysqlConn().Where("uid=?", uid).In("states", i).Desc("created_time").Limit(limit, page-1).Find(&m)
 	if err != nil {
 		log.Fatalln(err.Error())
 		return nil

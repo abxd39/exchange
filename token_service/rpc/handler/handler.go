@@ -445,7 +445,7 @@ func (s *RPCServer) BibiHistory(ctx context.Context, req *proto.BibiHistoryReque
 		if v.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
 			display = "市价"
 		} else {
-			display = convert.Int64ToStringBy8Bit(v.Mount)
+			display = convert.Int64ToStringBy8Bit(v.Sum)
 		}
 		rsp.Data.Items = append(rsp.Data.Items, &proto.BibiHistoryResponse_Data_Item{
 			EntrustId:  v.EntrustId,

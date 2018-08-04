@@ -170,7 +170,7 @@ message SymbolsByIdRequest{
 }
 
 message SymbolsByIdResponse{
-    SymbolsBaseData data  =1;
+    repeated  SymbolBaseData data  =1;
 }
 
 message TitleBaseData{
