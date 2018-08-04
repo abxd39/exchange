@@ -577,6 +577,22 @@ func (s *UserToken) TransferToCurrencyDone(msg *proto.TransferToCurrencyDoneMess
 func (s *UserToken) TransferFromCurrency(msg *proto.TransferToTokenTodoMessage) error {
 	//!!!!重要，判断消息是否已处理过
 	rdsClient := DB.GetRedisConn()
+	isDid, history, err := new(MoneyRecord).IsTransferFromCurrencyDid(msg.Id)
+	if err != nil {
+		return err
+	}
+	if isDid { //已处理过，返回done消息并直接退出!
+		msg, err := json.Marshal(proto.TransferToTokenDoneMessage{
+			Id:       msg.Id,
+			DoneTime: history.CreatedTime,
+		})
+		if err != nil {
+			return errors.NewSys(err)
+		}
+
+		rdsClient.RPush(constant.RDS_CURRENCY_TO_TOKEN_DONE, msg)
+		return nil
+	}
 
 	//整理数据
 	now := time.Now().Unix()

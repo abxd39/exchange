@@ -319,9 +319,14 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 		session.Rollback()
 		return
 	}
+
 	id = this.Id
 	code = ERRCODE_SUCCESS
+
+	/////    检查是否超时
 	go CheckOrderExiryTime(id, this.ExpiryTime)
+	/////    检查广告是否需要下架
+	go AdsAutoDownline(adsM.Id)
 	return
 }
 

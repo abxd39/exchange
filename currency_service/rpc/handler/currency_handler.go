@@ -357,11 +357,15 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 
 	tkconfig := new(model.TokenConfigTokenCNy)
 
+	fmt.Println("data:", data)
+
 	var symbols []string
 	for _, dt := range data {
 		if dt.TokenName != "BTC" {
-			symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
-			symbols = append(symbols, symbol)
+			if dt.TokenName != ""{
+				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
+				symbols = append(symbols, symbol)
+			}
 		}
 	}
 
@@ -386,12 +390,15 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	var sum int64
 	var sumcny int64
 
+	fmt.Println("symbols:", symbols)
+
 	symbolData, err := client.InnerService.UserSevice.CallGetSymbolsRate(symbols)
 
 	if err != nil {
 		log.Println(err.Error())
+		fmt.Println(err.Error())
 		rsp.Data = "{}"
-		return err
+		//return err
 	} else {
 		for _, dt := range data {
 			var tmp RespBalance
@@ -410,6 +417,9 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			} else {
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symPrice := symbolData.Data[symbol]
+
+				fmt.Println("symPrice:", symPrice)
+
 				if symPrice != nil {
 					//fmt.Println("cnyPrice: ", symPrice.Price, symPrice.CnyPrice, dt.TokenName)
 					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)

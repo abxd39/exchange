@@ -125,7 +125,7 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, tokenName str
 
 	//2.法币流水
 	_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (uid, trade_uid, transfer_id, token_id, num, surplus, operator, created_time)"+
+		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
 		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(UserCurrencyHistory).TableName(), uid, transferId, tokenId, num, newBalance, 4, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
 	if err != nil {
 		currencySession.Rollback()
@@ -232,7 +232,7 @@ func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMes
 
 	//2.法币流水
 	_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (uid, trade_uid, transfer_id, token_id, num, surplus, operator, created_time)"+
+		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
 		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(UserCurrencyHistory).TableName(), msg.Uid, msg.Id, msg.TokenId, msg.Num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
 	if err != nil {
 		currencySession.Rollback()

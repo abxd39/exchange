@@ -1,8 +1,10 @@
 package model
 
 import (
+	"digicon/common/errors"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
+	"fmt"
 	"github.com/go-xorm/xorm"
 	log "github.com/sirupsen/logrus"
 )
@@ -50,4 +52,14 @@ func InsertRecord(session *xorm.Session, p *MoneyRecord) (err error) {
 		return
 	}
 	return
+}
+
+// 检查币币划转到法币消息是否已处理
+func (s *MoneyRecord) IsTransferFromCurrencyDid(transferId int64) (bool, *MoneyRecord, error) {
+	has, err := DB.GetMysqlConn().Where(fmt.Sprintf("ukey='%d'", transferId)).And("opt=11").Get(s)
+	if err != nil {
+		return false, nil, errors.NewSys(err)
+	}
+
+	return has, s, nil
 }
