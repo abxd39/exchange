@@ -12,8 +12,8 @@ import (
 )
 
 type UserCurrencyPaypalPay struct {
-	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
-	Paypal     string `xorm:"not null default '' comment('paypal 账号') VARCHAR(20)"`
+	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"        json:"uid"`
+	Paypal     string `xorm:"not null default '' comment('paypal 账号') VARCHAR(20)"  json:"paypal"`
 	CreateTime string `xorm:"not null comment('创建时间') DATETIME"`
 	UpdateTime string `xorm:"not null comment('修改时间') DATETIME"`
 }

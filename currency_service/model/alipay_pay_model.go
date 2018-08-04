@@ -11,10 +11,10 @@ import (
 )
 
 type UserCurrencyAlipayPay struct {
-	Uid         uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
-	Name        string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"`
-	Alipay      string `xorm:"not null default '' comment('支付宝账号') VARCHAR(20)"`
-	ReceiptCode string `xorm:"not null default '' comment('支付宝收款二维码图片路径') VARCHAR(100)"`
+	Uid         uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"       json:"uid"`
+	Name        string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"     json:"name"`
+	Alipay      string `xorm:"not null default '' comment('支付宝账号') VARCHAR(20)"   json:"alipay"`
+	ReceiptCode string `xorm:"not null default '' comment('支付宝收款二维码图片路径') VARCHAR(100)"  json:"receipt_code"`
 	CreateTime  string `xorm:"not null comment('创建时间') DATETIME"`
 	UpdataTime  string `xorm:"not null comment('修改时间') DATETIME"`
 }

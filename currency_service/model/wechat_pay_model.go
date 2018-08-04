@@ -10,10 +10,10 @@ import (
 )
 
 type UserCurrencyWechatPay struct {
-	Uid         uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
-	Name        string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"`
-	Wechat      string `xorm:"not null default '' comment('微信号码') VARCHAR(20)"`
-	ReceiptCode string `xorm:"not null default '' comment('收款二维码图片路径') VARCHAR(100)"`
+	Uid         uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"     json:"uid"`
+	Name        string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"  json:"name"`
+	Wechat      string `xorm:"not null default '' comment('微信号码') VARCHAR(20)"  json:"wechat"`
+	ReceiptCode string `xorm:"not null default '' comment('收款二维码图片路径') VARCHAR(100)"   json:"receipt_code"`
 	CreateTime  string `xorm:"not null comment('创建时间') DATETIME"`
 	UpdateTime  string `xorm:"not null comment('修改时间') DATETIME"`
 }

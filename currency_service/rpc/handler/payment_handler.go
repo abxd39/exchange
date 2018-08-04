@@ -75,6 +75,7 @@ func (*RPCServer) BankPay(ctx context.Context, req *proto.BankPayRequest, rsp *p
 func (*RPCServer) GetBankPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error) {
 	p := new(model.UserCurrencyBankPay)
 	err = p.GetByUid(req.Uid)
+
 	data, err := json.Marshal(p)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
