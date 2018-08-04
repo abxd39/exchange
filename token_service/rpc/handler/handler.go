@@ -203,7 +203,7 @@ func (s *RPCServer) EntrustHistory(ctx context.Context, req *proto.EntrustHistor
 			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
 			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
-			Sum:      display,
+			Sum:        display,
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     int32(v.States),
 			//Sum: convert.Int64ToStringBy8Bit( v.Sum),
@@ -228,7 +228,7 @@ func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRe
 			Type:       proto.ENTRUST_TYPE(v.Type),
 			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
 			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
-			Sum:      display,
+			Sum:        display,
 			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     int32(v.States),
@@ -323,6 +323,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	}
 
 	price, _ := strconv.ParseFloat(priceRsp.Data[symbol].Price, 64)
+	log.Info(symbol, " price=", price, ", total_usd=", totalMoney.TotalUsd)
 
 	rsp.Data.TotalWorthCny = convert.Int64ToStringBy8Bit(int64(totalMoney.TotalCny * 100000000))
 	rsp.Data.TotalWorthBtc = convert.Int64ToStringBy8Bit(int64(totalMoney.TotalUsd / price * 100000000))
@@ -423,7 +424,7 @@ func (s *RPCServer) TransferToCurrency(ctx context.Context, req *proto.TransferT
 
 func (s *RPCServer) BibiHistory(ctx context.Context, req *proto.BibiHistoryRequest, rsp *proto.BibiHistoryResponse) error {
 
-	modelList, list, err := new(model.EntrustDetail).GetBibiHistory(int64(req.Uid), int(req.Limit), int(req.Page),req.Symbol,int(req.Opt),int(req.States),int(req.StartTime),int(req.EndTime))
+	modelList, list, err := new(model.EntrustDetail).GetBibiHistory(int64(req.Uid), int(req.Limit), int(req.Page), req.Symbol, int(req.Opt), int(req.States), int(req.StartTime), int(req.EndTime))
 
 	if err != nil {
 		rsp.Code = ERRCODE_UNKNOWN
