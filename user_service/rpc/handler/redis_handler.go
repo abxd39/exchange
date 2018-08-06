@@ -15,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/GeeTeam/GtGoSdk"
 	cf "digicon/user_service/conf"
+
 )
 
 //获取谷歌验密钥
@@ -153,9 +154,9 @@ func (s *RPCServer) ResetGoogleSecretKey(ctx context.Context, req *proto.ResetGo
 
 	m := u.GetAuthMethodExpectGoogle()
 	if m == constant.AUTH_PHONE {
-		ret, err = u.AuthCodeByAl(u.Phone, req.SmsCode, model.SMS_SET_GOOGLE_CODE, true)
+		ret, err = u.AuthCodeByAl(u.Phone, req.SmsCode, constant.SMS_SET_GOOGLE_CODE, true)
 	} else {
-		ret, err = u.AuthCodeByAl(u.Email, req.SmsCode, model.SMS_SET_GOOGLE_CODE, true)
+		ret, err = u.AuthCodeByAl(u.Email, req.SmsCode, constant.SMS_SET_GOOGLE_CODE, true)
 	}
 	//ret, err = u.AuthCodeByAl(req.Ukey, req.SmsCode, model.SMS_FORGET,true)
 	if err == redis.Nil {

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"digicon/common/constant"
 )
 
 type UserCurrencyBankPay struct {
@@ -33,14 +34,13 @@ func (p *UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, erro
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
 		Uid:      req.Uid,
 		Code:     req.Verify,
-		AuthType: 7, // 设置银行卡支付 7
+		AuthType: constant.SMS_BANK_PAY, // 设置银行卡支付 7
 	})
 	if err != nil {
 		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	if rsp.Code != ERRCODE_SUCCESS {
-		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 

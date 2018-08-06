@@ -15,11 +15,13 @@ import (
 
 func (*RPCServer) Alipay(ctx context.Context, req *proto.AlipayRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyAlipayPay{
+		Uid:         req.Uid,
 		Name:        req.Name,
 		Alipay:      req.Alipay,
 		ReceiptCode: req.ReceiptCode,
 	}
 	rsp.Code, err = p.SetAlipay(req)
+	rsp.Data = p.ReceiptCode
 	fmt.Println(rsp.Code)
 	if err != nil {
 		log.Errorf(err.Error())
@@ -49,6 +51,7 @@ func (*RPCServer) UpdateAliPay(ctx context.Context, req *proto.AlipayRequest, rs
 		ReceiptCode: req.ReceiptCode,
 	}
 	rsp.Code, err = p.SetAlipay(req)
+	rsp.Data = p.ReceiptCode
 	fmt.Println(rsp.Code)
 	if err != nil {
 		log.Errorf(err.Error())

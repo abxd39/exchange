@@ -5,10 +5,10 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc/client"
-	"digicon/common/constant"
+	log "github.com/sirupsen/logrus"
+	"fmt"
+	. "digicon/common/constant"
 )
 
 type UserCurrencyAlipayPay struct {
@@ -27,16 +27,18 @@ func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, er
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
 		Uid:      req.Uid,
 		Code:     req.Verify,
-		AuthType: constant.SMS_AIL_PAY, // 设置支付宝支付 9
+		AuthType: SMS_AIL_PAY, // 设置支付宝支付 9
 	})
 	if err != nil {
-		log.Errorln(err.Error())
+		log.Println(rsp)
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
-	if rsp.Code != ERRCODE_SUCCESS {
-		log.Errorln(err.Error())
-		return ERRCODE_SMS_CODE_DIFF, err
+
+	if rsp != nil && rsp.Code != ERRCODE_SUCCESS {
+		log.Println(rsp)
+		return ERRCODE_SMS_CODE_DIFF, nil
 	}
+
 
 	//是否需要验证支付宝是否属于该账户
 	//查询数据库是否存在
@@ -44,6 +46,7 @@ func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, er
 	has, err := engine.Exist(&UserCurrencyAlipayPay{
 		Uid: req.Uid,
 	})
+	fmt.Println("uid:", req.Uid)
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}

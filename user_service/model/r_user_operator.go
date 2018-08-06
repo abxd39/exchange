@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"time"
+	. "digicon/common/constant"
 )
 
 type RedisOp struct {

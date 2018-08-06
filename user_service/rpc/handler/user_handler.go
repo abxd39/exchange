@@ -47,7 +47,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 	}).Info("Register")
 
 	if req.Type == 1 { //手机注册
-		ret, err := model.AuthSms(req.Ukey, model.SMS_REGISTER, req.Code)
+		ret, err := model.AuthSms(req.Ukey, constant.SMS_REGISTER, req.Code)
 		if err == redis.Nil {
 			rsp.Err = ret
 			rsp.Message = GetErrorMessage(rsp.Err)
@@ -73,7 +73,7 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 
 		return nil
 	} else if req.Type == 2 {
-		ret, err := model.AuthEmail(req.Ukey, model.SMS_REGISTER, req.Code)
+		ret, err := model.AuthEmail(req.Ukey, constant.SMS_REGISTER, req.Code)
 		if err != nil {
 			rsp.Err = ERRCODE_UNKNOWN
 			rsp.Message = err.Error()
@@ -255,7 +255,7 @@ func (s *RPCServer) ForgetPwd(ctx context.Context, req *proto.ForgetRequest, rsp
 		rsp.Err = ret
 		return nil
 	}
-	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, model.SMS_FORGET, false)
+	ret, err = u.AuthCodeByAl(req.Ukey, req.Code, constant.SMS_FORGET, false)
 	if err == redis.Nil {
 		rsp.Err = ERRCODE_SMS_CODE_NIL
 		rsp.Message = GetErrorMessage(rsp.Err)
@@ -447,7 +447,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 	u.GetUser(req.Uid)
 	phone := u.Phone
 	var err error
-	code, err := model.AuthEmail(req.Email, model.SMS_BIND_EMAIL, req.EmailCode)
+	code, err := model.AuthEmail(req.Email, constant.SMS_BIND_EMAIL, req.EmailCode)
 	fmt.Println("code:", code, err)
 
 	if err != nil {
@@ -456,7 +456,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 		return err
 	}
 	if req.VerifyType == 1 { // 3: 短信校验
-		rsp.Code, err = model.AuthSms(phone, model.SMS_BIND_EMAIL, req.VerifyCode)
+		rsp.Code, err = model.AuthSms(phone, constant.SMS_BIND_EMAIL, req.VerifyCode)
 		fmt.Println(rsp.Code, err)
 		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_EMAIL)
 		if err != nil {
@@ -464,7 +464,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 			return err
 		}
 	} else if req.VerifyType == 2 { // 4 谷歌验证
-		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_EMAIL, false)
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, constant.SMS_BIND_EMAIL, false)
 		if err != nil {
 			return err
 		}
@@ -505,7 +505,7 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 	email := u.Email
 	var err error
 	//rsp.Code, err = u.AuthCodeByAl(req.Phone, req.PhoneCode, model.SMS_BIND_PHONE)
-	rsp.Code, err = model.AuthSms(req.Phone, model.SMS_BIND_PHONE, req.PhoneCode)
+	rsp.Code, err = model.AuthSms(req.Phone, constant.SMS_BIND_PHONE, req.PhoneCode)
 
 	if err != nil {
 		rsp.Code = ERRCODE_UNKNOWN
@@ -513,13 +513,13 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 	}
 	if req.VerifyType == 1 { //  1. email verify
 		//rsp.Code, err = u.AuthCodeByAl(phone, req.VerifyCode, model.SMS_BIND_PHONE)
-		rsp.Code, err = model.AuthEmail(email, model.SMS_BIND_PHONE, req.VerifyCode)
+		rsp.Code, err = model.AuthEmail(email, constant.SMS_BIND_PHONE, req.VerifyCode)
 		if err != nil {
 			rsp.Code = ERRCODE_UNKNOWN
 			return err
 		}
 	} else if req.VerifyType == 2 { // 2. google verify
-		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, model.SMS_BIND_PHONE, false)
+		rsp.Code, err = u.AuthCodeByAl(u.GoogleVerifyId, req.VerifyCode, constant.SMS_BIND_PHONE, false)
 		if err != nil {
 			rsp.Code = ERRCODE_UNKNOWN
 			return err
