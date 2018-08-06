@@ -93,6 +93,37 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		return nil
 	}
 
+	if ads.IsTwolevel == 1{
+		authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(uint64(req.Uid))
+		if err != nil {
+			rsp.Code = errdefine.ERRCODE_UNKNOWN
+			return err 
+		}
+		type AuthInfo struct {
+			EmailAuth     int32  `json:"email_auth"`     //
+			PhoneAuth     int32  `json:"phone_auth"`     //
+			RealName      int32  `json:"real_name"`      //
+			TwoLevelAuth  int32  `json:"two_level_auth"` //
+			NickName      string `json:"nick_name"`
+			HeadSculpture string `json:"head_scul"`
+			CreatedTime   string `json:"created_time"`
+		}
+		var authInfo AuthInfo
+		if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
+			fmt.Println(err)
+			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
+			return err
+		}
+		if authInfo.TwoLevelAuth == 1 {
+			fmt.Println("two level auth go....")
+		}else{
+			msg := "没有两次验证"
+			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
+			err := errors.New(msg)
+			return err
+		}
+	}
+
 	od.AdType = nowAds.TypeId
 	od.Price = int64(nowAds.Price)
 	od.TokenId = uint64(nowAds.TokenId)
