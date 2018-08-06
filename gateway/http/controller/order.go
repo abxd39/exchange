@@ -337,7 +337,9 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 
 	type Data struct {
 		SellId     uint64 `form:"sell_id"                json:"sell_id"`
+		SellName   string `form:"sell_name"              json:"sell_name"`
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
+		BuyName    string `form:"buy_name"                json:"buy_name"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
 		TokenId    uint64 `form:"token_id"              json:"token_id"`
@@ -367,7 +369,9 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		pay_price := utils.Round2(convert.Int64ToFloat64By8Bit(dt.PayPrice), 2)
 
 		ret.SetDataSection("sell_id", dt.SellId)
+		ret.SetDataSection("sell_name", dt.SellName)
 		ret.SetDataSection("buy_id", dt.BuyId)
+		ret.SetDataSection("buy_name", dt.BuyName)
 		ret.SetDataSection("status", dt.States)
 		ret.SetDataSection("expiry_time", dt.ExpiryTime)
 		ret.SetDataSection("token_id", dt.TokenId)

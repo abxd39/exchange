@@ -85,27 +85,59 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	}
 
 
-	ads := new(model.Ads)
-	var nowAds *model.Ads
-	nowAds = ads.Get(od.AdId)
-	if nowAds == nil {
+	ads := new(model.Ads).Get(od.AdId)
+	//var nowAds *model.Ads
+	//nowAds = ads.Get(od.AdId)
+	if ads == nil {
 		rsp.Code = errdefine.ERRCODE_ADS_NOTEXIST
 		return nil
 	}
 
-	od.AdType = nowAds.TypeId
-	od.Price = int64(nowAds.Price)
-	od.TokenId = uint64(nowAds.TokenId)
+	fmt.Println("ads is two level: ", ads.IsTwolevel)
+	if ads.IsTwolevel == 1{
+		authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(uint64(req.Uid))
+		if err != nil {
+			rsp.Code = errdefine.ERRCODE_UNKNOWN
+			return err
+		}
+		type AuthInfo struct {
+			EmailAuth     int32  `json:"email_auth"`     //
+			PhoneAuth     int32  `json:"phone_auth"`     //
+			RealName      int32  `json:"real_name"`      //
+			TwoLevelAuth  int32  `json:"two_level_auth"` //
+			NickName      string `json:"nick_name"`
+			HeadSculpture string `json:"head_scul"`
+			CreatedTime   string `json:"created_time"`
+		}
+		var authInfo AuthInfo
+		if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
+			fmt.Println(err)
+			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
+			return err
+		}
+		fmt.Println("two level auth: ", req.Uid, authInfo.TwoLevelAuth)
+		if authInfo.TwoLevelAuth != 1 {
+			msg := "没有两次验证"
+			log.Println(msg)
+			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
+			err := errors.New(msg)
+			return err
+		}
+	}
 
-	if uint32(nowAds.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
-		od.SellId = nowAds.Uid
+	od.AdType = ads.TypeId
+	od.Price = int64(ads.Price)
+	od.TokenId = uint64(ads.TokenId)
+
+	if uint32(ads.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
+		od.SellId = ads.Uid
 		od.BuyId  = uint64(req.Uid)
 	}else{
-		od.BuyId  = nowAds.Uid
+		od.BuyId  = ads.Uid
 		od.SellId = uint64(req.Uid)
 	}
 
-	od.PayId = nowAds.Pays
+	od.PayId = ads.Pays
 
 	//fmt.Println("od.selleid:", od.SellId, od.BuyId)
 	if od.SellId == od.BuyId {
@@ -182,7 +214,9 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 
 	type Data struct {
 		SellId     uint64 `form:"sell_id"                json:"sell_id"`
+		SellName   string `form:"sell_name"              json:"sell_name"`
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
+		BuyName    string `form:"buy_name"                json:"buy_name"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
 		TokenId     uint64  `form:"token_id"              json:"token_id"`
@@ -208,7 +242,9 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	}
 	var dt Data
 	dt.SellId     = order.SellId
+	dt.SellName   = order.SellName
 	dt.BuyId      = order.BuyId
+	dt.BuyName    = order.BuyName
 	dt.States     = order.States
 	dt.ExpiryTime = order.ExpiryTime
 	dt.TokenId    = order.TokenId
