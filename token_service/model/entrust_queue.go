@@ -1312,7 +1312,7 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustDetail) (ret int, err error) {
 			x = convert.Int64ToFloat64By8Bit(p.OnPrice)
 		} else {
 			quene_id = s.MarketBuyQueueId
-			x = -float64(time.Now().Unix())
+			x = float64(time.Now().Unix())
 		}
 
 	} else if p.Opt == int(proto.ENTRUST_OPT_SELL) {
@@ -1321,7 +1321,7 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustDetail) (ret int, err error) {
 			x = convert.Int64ToFloat64By8Bit(p.OnPrice)
 		} else {
 			quene_id = s.MarketSellQueueId
-			x = -float64(time.Now().Unix())
+			x = float64(time.Now().Unix())
 		}
 
 	}
@@ -1402,7 +1402,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 		m = string(n)
 	}
 
-	log.Infof("pop data begin time %d,entrust_id %s:", time.Now().Unix(), m)
+
 	var z []redis.Z
 	var quene_id string
 	//var ok bool
@@ -1442,9 +1442,9 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 	}
 	en = make([]*EntrustDetail, 0)
 
-	log.Infof("pop data middle time %d,entrust_id %s:", time.Now().Unix(), m)
+
 	err = DB.GetMysqlConn().In("entrust_id", g).Cols().Find(&en)
-	log.Infof("pop data end time %d,entrust_id:%s", time.Now().Unix(), m)
+
 
 	if err != nil {
 		log.Infof("pop data err time %d,entrust_id:%s", time.Now().Unix(), m)
@@ -1452,7 +1452,6 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 		return
 	}
 
-	log.Infof("pop data last time %d,entrust_id:%s", time.Now().Unix(), m)
 	/*
 		for _, v := range z {
 			d := v.Member.(string)

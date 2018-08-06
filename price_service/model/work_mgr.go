@@ -25,8 +25,8 @@ type WorkQueneMgr struct {
 func (s *WorkQueneMgr) Init() {
 	InitConfig()
 	InitConfigTitle()
-	for _, v := range ConfigQueneData {
 
+	for _, v := range ConfigQueneData {
 		cny := GetTokenCnyPrice2(v.TokenId)
 		p, ok := GetPrice(v.Name)
 		if !ok {

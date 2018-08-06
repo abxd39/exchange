@@ -10,14 +10,9 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	log "github.com/sirupsen/logrus"
 	"time"
+	"errors"
 )
 
-type PriceInfo struct {
-	Key      string
-	PreData  *proto.PriceCache
-	MinPrice int64
-	UsdPrice int64
-}
 
 const (
 	//OneMinPrice
@@ -29,6 +24,13 @@ const (
 	OneMonthPrice
 	MaxPrice
 )
+
+type PriceInfo struct {
+	Key      string
+	PreData  *proto.PriceCache
+	MinPrice int64
+	UsdPrice int64
+}
 
 type PriceWorkQuene struct {
 	TokenId      int32
@@ -58,13 +60,124 @@ func NewPriceWorkQuene(name string, token_id int32, cny int64, d *proto.PriceCac
 		CnyPrice:     cny,
 	}
 
+	c:=&ConfigQuenes{}
+	ok,err := DB.GetMysqlConn2().Where("switch=1").Get(c)
+	if err!=nil {
+		log.Fatal(err.Error())
+	}
+	if !ok {
+		log.Fatal(errors.New("err config"))
+	}
+	ids:=make([]int64,0)
+	one:=&Price{}
+	ok,err =DB.GetMysqlConn().Where("symbol=? ",name).Desc("id").Get(one)
+	if err!=nil {
+		log.Fatal(err.Error())
+	}
+
+
+
+	if !ok {
+		for i := 0; i < MaxPrice; i++ {
+			v := &PriceInfo{}
+			v.Key = fmt.Sprintf("%s_%s", name, period_key[i])
+			v.PreData=&proto.PriceCache{
+				Id:0,
+				Symbol:name,
+				Price:c.Price,
+				CreatedTime:0,
+				Amount:0,
+				Vol:0,
+				Count:0,
+				UsdVol:0,
+			}
+			m.data = append(m.data, v)
+		}
+		go m.Subscribe()
+		return m
+	}
+	t := time.Unix(one.Id, 0)
+
+	var min5 ,min15 ,hour4 int
+	if t.Minute()%5 !=0 {
+		min5=t.Minute()%5
+	}
+
+	five:=t.Add(-time.Duration(60*min5)*time.Second)
+	log.Debug("five add %v",&five)
+
+	ids=append(ids,five.Unix())
+
+	if t.Minute()%15 !=0 {
+		min15= t.Minute()%15
+	}
+
+	fifteen:=t.Add(-time.Duration(60*min15)*time.Second)
+
+	log.Debug("fifteen add %v",&fifteen)
+	ids=append(ids,fifteen.Unix())
+
+	if t.Hour()%4 !=0 {
+		hour4 = t.Hour()%4
+	}
+
+	four:=t.Add(-time.Duration(t.Minute()*60)*time.Second -time.Duration(3600*hour4)*time.Second)
+	ids=append(ids,four.Unix())
+
+
+	left_hour:=t.Hour()%24
+	left_min:=t.Minute()%60
+	oneday:=t.Add(-time.Duration(left_hour*3600)*time.Second-time.Duration(left_min*60)*time.Second)
+	ids=append(ids,oneday.Unix())
+
+
+	week:=t.Weekday()
+	one_week:=oneday.Add( -(time.Duration(week))*86400*time.Second )
+	ids=append(ids,one_week.Unix())
+
+	month:=t.Day()
+	one_month:=oneday.Add(-time.Duration(month-1)*86400*time.Second )
+	ids=append(ids,one_month.Unix())
+
+
 	for i := 0; i < MaxPrice; i++ {
+
 		v := &PriceInfo{}
 		v.Key = fmt.Sprintf("%s_%s", name, period_key[i])
 
+		p:=&Price{}
+		ok,err := DB.GetMysqlConn().Where("symbol=? and id=?",name,ids[i]).Get(p)
+		if err!=nil {
+			log.Fatal(err.Error())
+		}
+		if !ok {
+			//init
+			v.PreData=&proto.PriceCache{
+				Id:ids[i],
+				Symbol:name,
+				Price:c.Price,
+				CreatedTime:ids[i],
+				Amount:0,
+				Vol:0,
+				Count:0,
+				UsdVol:0,
+			}
+		}else{
+			v.PreData=&proto.PriceCache{
+				Id:p.Id,
+				Symbol:p.Symbol,
+				Price:p.Price,
+				CreatedTime:p.CreatedTime,
+				Amount:p.Amount,
+				Vol:p.Vol,
+				Count:p.Count,
+				UsdVol:p.UsdVol,
+			}
+		}
+
 		m.data = append(m.data, v)
 	}
-	go m.Publish()
+	go m.Subscribe()
 
 	return m
 }
@@ -88,7 +201,7 @@ func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) {
 	s.entry = k
 }
 
-func (s *PriceWorkQuene) Publish() {
+func (s *PriceWorkQuene) Subscribe() {
 	pb := DB.GetRedisConn().Subscribe(s.PriceChannel)
 	ch := pb.Channel()
 	for v := range ch {

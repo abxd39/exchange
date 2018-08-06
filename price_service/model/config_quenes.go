@@ -3,7 +3,6 @@ package model
 import (
 	. "digicon/price_service/dao"
 	proto "digicon/proto/rpc"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,6 +12,7 @@ type ConfigQuenes struct {
 	TokenTradeId int    `xorm:"comment('实际交易币') unique(union_quene_id) INT(11)"`
 	Switch       int    `xorm:"comment('开关0关1开') TINYINT(4)"`
 	Name         string `xorm:"comment('USDT/BTC') VARCHAR(32)"`
+	Price        int64   `xorm:"BIGINT(20)"`
 }
 
 type ConfigTokenCny struct {
@@ -77,8 +77,8 @@ func InitConfig() {
 
 		//m := GetConfigQuenesByType(1)
 	}
-	m := GetConfigQuenesByType(1)
-	fmt.Println(len(m))
+	//m := GetConfigQuenesByType(1)
+
 	h := GetCnyQuenes()
 	for _, v := range h {
 		ConfigCny[int32(v.TokenId)] = &proto.CnyPriceBaseData{
