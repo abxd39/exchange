@@ -10,7 +10,7 @@ import (
 
 //划出到代币成功，标记消息状态为已完成
 func HandlerTransferToTokenDone() {
-	rdsClient := dao.DB.GetRedisConn()
+	rdsClient := dao.DB.GetCommonRedisConn()
 	userCurrencyMD := new(model.UserCurrency)
 
 	for {

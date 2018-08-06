@@ -4,6 +4,7 @@ var DB *Dao
 
 type Dao struct {
 	redis       *RedisCli
+	commonRedis *RedisCliCommon
 	mysql       *Mysql
 	tokenMysql  *MysqlToken
 	commonMysql *MysqlCommon
@@ -17,6 +18,7 @@ func NewDao() (dao *Dao) {
 
 	dao = &Dao{
 		redis:       rediscli,
+		commonRedis: NewRedisCliCommon(),
 		mysql:       mysql,
 		tokenMysql:  tkmysql,
 		commonMysql: comMysql,
