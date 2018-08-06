@@ -95,7 +95,9 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 		sess.Rollback()
 		return ERRCODE_UNKNOWN, err
 	}
-	u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_SECOND
+	if u.SetTardeMark & APPLY_FOR_SECOND!=APPLY_FOR_SECOND{
+		u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_SECOND
+	}
 	if _, err = engine.Table("user").Where("uid=?", req.Uid).Update(&User{
 		SetTardeMark: u.SetTardeMark,
 	}); err != nil {
