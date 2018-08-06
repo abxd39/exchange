@@ -60,6 +60,8 @@ const (
 	ERRCODE_ADS_EXISTS        = 306
 	ERRCODE_ADS_SET_PRICE     = 307
 	ERRCODE_ADS_MIN_LIMIT     = 308
+	ERRCODE_ADS_NEED_TWO_LEVEL = 309
+
 
 	//400-
 	ERR_TOKEN_QUENE_NIL      = 401
@@ -69,6 +71,7 @@ const (
 	ERR_TOKEN_ENTRUST_STATES = 405
 	ERR_TOKEN_ENTRUST_EXIST  = 406
 
+
 	ERRCODE_ORDER_FREEZE = 420
 	ERRCODE_SELLER_LESS  = 421
 	ERRCODE_USER_BALANCE = 422
@@ -77,7 +80,7 @@ const (
 	ERRCODE_TRADE_ERROR_ADS_NUM = 425
 	ERRCODE_TRADE_LOWER_PRICE = 426
 	ERRCODE_TRADE_LARGE_PRICE = 427
-
+	ERRCODE_TRADE_TO_SELF     = 428
 
 )
 
@@ -138,6 +141,7 @@ func init() {
 	message[ERRCODE_ADS_EXISTS] = "广告已存在"
 	message[ERRCODE_ADS_SET_PRICE] = "当前广告的总价已小于最小价格的值"
 	message[ERRCODE_ADS_MIN_LIMIT] = "限制最小价格要大于等于100"
+	message[ERRCODE_ADS_NEED_TWO_LEVEL] = "对方设置了需要两次验证才能下单"
 
 	message[ERRCODE_SELLER_LESS] = "卖家余额不足"
 	message[ERRCODE_USER_BALANCE] = "查询用户余额失败"
@@ -147,6 +151,7 @@ func init() {
 	message[ERRCODE_ORDER_FREEZE] = "订单冻结"
 	message[ERRCODE_TRADE_LOWER_PRICE] = "下单失败,买价小于允许的最小价格!"
 	message[ERRCODE_TRADE_LARGE_PRICE] = "下单失败,买价大于允许的最大价格!"
+	message[ERRCODE_TRADE_TO_SELF]  = "不能下自己的单!"
 
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"

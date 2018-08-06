@@ -85,6 +85,8 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
 
 		Currency.POST("/transfer_to_token", this.TransferToToken) // 法币划转到代币
+
+		Currency.GET("/get_pay_set", this.GetHasSetPay)
 	}
 }
 
@@ -962,7 +964,7 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	}()
 
 	req := struct {
-		TokenId uint32 `form:"token_id" json:"token_id" binding:"required"`
+		TokenId uint32 `form:"token_id"  json:"token_id" binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&req)
@@ -986,7 +988,8 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	}
 	//fmt.Println("price:", data)
 	type respPrice struct {
-		Cny float64 `json:"cny"`
+		Cny     float64 `json:"cny"`
+		MinCny  float64 `json:min_cny`
 	}
 	var rPrce respPrice
 	err = json.Unmarshal([]byte(data.Data), &rPrce)
@@ -996,6 +999,7 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 		return
 	}
 	ret.SetDataSection("price", rPrce.Cny)
+	ret.SetDataSection("min_price", rPrce.MinCny)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
@@ -1060,10 +1064,13 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	//fmt.Println("respdata:", respdata)
 	ret.SetDataSection("list", respdata.UCurrencyList)
 	ret.SetDataSection("sum", respdata.Sum)
-	ret.SetDataSection("sum_cny", respdata.SumCNY)
+	ret.SetDataSection("sum_cny", utils.Round2(respdata.SumCNY, 2))
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
-
 }
+
+
+
+
 
 func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
 	ret := NewPublciError()

@@ -464,3 +464,40 @@ func (s *RPCServer) BibiHistory(ctx context.Context, req *proto.BibiHistoryReque
 
 	return nil
 }
+
+//划转列表
+func (s *RPCServer) TransferList(ctx context.Context, req *proto.TransferListRequest, rsp *proto.TransferListResponse) error {
+	filter := map[string]interface{}{
+		"uid":      req.Uid,
+		"transfer": true,
+	}
+
+	modelList, list, err := new(model.MoneyRecord).List(int(req.Page), int(req.PageNum), filter)
+	if err != nil {
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
+	}
+
+	// 拼接返回数据
+	rsp.Data = new(proto.TransferListResponse_Data)
+	rsp.Data.Items = make([]*proto.TransferListResponse_Data_Item, len(list))
+
+	rsp.Data.PageIndex = int32(modelList.PageIndex)
+	rsp.Data.PageSize = int32(modelList.PageSize)
+	rsp.Data.TotalPage = int32(modelList.PageCount)
+	rsp.Data.Total = int32(modelList.Total)
+
+	for k, v := range list {
+		rsp.Data.Items[k] = &proto.TransferListResponse_Data_Item{
+			Id:          int64(v.Id),
+			TokenId:     int32(v.TokenId),
+			TokenName:   v.TokenName,
+			Type:        int32(v.Type),
+			Num:         v.Num,
+			CreatedTime: v.CreatedTime,
+		}
+	}
+
+	return nil
+}

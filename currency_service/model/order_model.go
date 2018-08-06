@@ -177,8 +177,8 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 	engine := dao.DB.GetMysqlConn()
 
 	uCurrency := new(UserCurrency)
-
 	fmt.Println(this.SellId, this.TokenId)
+
 
 	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 	if err != nil {
@@ -698,17 +698,26 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 */
 func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhistory []Order, err error) {
 	now := time.Now()
-	if startTime == "" {
+	if startTime != "" {
 		startTime = now.Format("2006-01-02")
 	}
-	if endTime == "" {
+	if endTime != "" {
 		endTime = now.Format("2006-01-02")
 	}
+	token := new(CommonTokens).Get(0, "BTC")
+	var tokenId uint32
+	if token != nil {
+		tokenId = token.Id
+	}else{
+		tokenId = 2
+	}
 	engine := dao.DB.GetMysqlConn()
-	if limit != 0 {
-		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Limit(int(limit)).Find(&uhistory)
-	} else {
-		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
+	if limit != 0  && startTime == "" && endTime == ""{
+		err = engine.Where("token_id=?", tokenId).Limit(int(limit)).Desc("created_time").Find(&uhistory)
+	} else if limit == 0 && startTime != "" && endTime != ""{
+		err = engine.Where("token_id = ? AND created_time >= ? && created_time <= ?",tokenId, startTime, endTime).Desc("created_time").Find(&uhistory)
+	}else{
+		err = engine.Where("token_id =? AND created_time >= ? && created_time <= ?", tokenId, startTime, endTime).Desc("created_time").Limit(int(limit)).Find(&uhistory)
 	}
 	if err != nil {
 		log.Errorln(err.Error())

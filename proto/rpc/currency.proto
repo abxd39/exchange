@@ -54,6 +54,9 @@ service CurrencyRPC {
         rpc TradeDetail(TradeDetailRequest) returns(TradeDetailResponse){};
 
 
+        rpc GetPaySet    (PayRequest) returns (PaysResponse) {};
+
+
         //Set bank pay
         rpc BankPay       (BankPayRequest) returns (PaysResponse){};
         rpc GetBankPay    (PayRequest) returns (PaysResponse) {};

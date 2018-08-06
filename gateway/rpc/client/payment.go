@@ -5,6 +5,14 @@ import (
 	proto "digicon/proto/rpc"
 )
 
+
+
+func (s *CurrencyRPCCli) CallGetPaySet(req *proto.PayRequest) ( *proto.PaysResponse, error) {
+	return s.conn.GetPaySet(context.TODO(), req)
+}
+
+
+
 ///////////   bank pay ////////////
 
 func (s *CurrencyRPCCli) CallBankPay(req *proto.BankPayRequest) (*proto.PaysResponse, error) {
