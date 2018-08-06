@@ -12,10 +12,6 @@ import (
 	"github.com/alex023/clock"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
-	//"github.com/liudng/godump"
-	"digicon/common/encryption"
-
-	"digicon/common/random"
 
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -23,6 +19,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"github.com/satori/go.uuid"
 )
 
 const (
@@ -235,14 +232,14 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	var sum int64
 	if p.Opt == proto.ENTRUST_OPT_BUY {
 		token_id = s.TokenId
-		if p.Type==proto.ENTRUST_TYPE_LIMIT_PRICE {
-			sum=convert.Int64DivInt64By8Bit(p.Num,p.OnPrice)
+		if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
+			sum = convert.Int64DivInt64By8Bit(p.Num, p.OnPrice)
 		}
 
 	} else {
 		token_id = s.TokenTradeId
-		if p.Type==proto.ENTRUST_TYPE_LIMIT_PRICE {
-			sum=convert.Int64MulInt64By8Bit(p.Num,p.OnPrice)
+		if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
+			sum = convert.Int64MulInt64By8Bit(p.Num, p.OnPrice)
 		}
 	}
 
@@ -257,7 +254,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		States:     int(proto.TRADE_STATES_TRADE_NONE),
 		Type:       int(p.Type),
 		Symbol:     p.Symbol,
-		Sum:sum,
+		Sum:        sum,
 	}
 
 	m := &UserToken{}
@@ -356,14 +353,14 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		return
 	}
 
-
 	//num := convert.Int64MulInt64By8Bit(deal_num, price) //买家消耗USDT数量
 	//fmt.Printf("price =%d,deal_num=%d ,num =%d \n", price, deal_num, num)
 
 	fee := convert.Int64MulFloat64(buy_num, s.BuyPoundage) //买家消耗手续费0.005个USDT
 
-	no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
-
+	//no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
+	uuid ,_:=uuid.NewV1()
+	no:=uuid.String()
 	trade_time := time.Now().Unix()
 	t := &Trade{
 		TradeNo:      no,
@@ -378,7 +375,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		TokenName:    s.TokenQueueId,
 		EntrustId:    buyer.EntrustId,
 	}
-
 
 	sell_fee := convert.Int64MulFloat64(deal_num, s.SellPoundage)
 	o := &Trade{
@@ -395,31 +391,26 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		EntrustId:    seller.EntrustId,
 	}
 
-
-
 	if buyer.SurplusNum < buy_num {
 		err = errors.New("error when check surplus num")
 		return
 	}
 
-	buy_trade,err :=GetUserTradeByEntrustId(buyer.EntrustId)
-	if err!=nil {
+	buy_trade, err := GetUserTradeByEntrustId(buyer.EntrustId)
+	if err != nil {
 		return err
 	}
 
-		buy_trade=append(buy_trade,t)
-		buyer.Price = CaluateAvgPrice(buy_trade)
+	buy_trade = append(buy_trade, t)
+	buyer.Price = CaluateAvgPrice(buy_trade)
 
-
-
-	sell_trade,err :=GetUserTradeByEntrustId(seller.EntrustId)
-	if err!=nil {
+	sell_trade, err := GetUserTradeByEntrustId(seller.EntrustId)
+	if err != nil {
 		return err
 	}
 
-		sell_trade=append(sell_trade,o)
-		seller.Price = CaluateAvgPrice(sell_trade)
-	
+	sell_trade = append(sell_trade, o)
+	seller.Price = CaluateAvgPrice(sell_trade)
 
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
@@ -572,11 +563,10 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		}
 		return
 	}()
-	n:= random.Krand(8, random.KC_RAND_KIND_UPPER)
-	j:=fmt.Sprintf("%s_%s",string(n),p.EntrustId)
+
 	if p.Opt == int(proto.ENTRUST_OPT_BUY) {
 		buyer = p
-		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1,j)
+		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 1, 1)
 		if err != nil {
 			log.Infof("record 1")
 			return
@@ -584,14 +574,14 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		if len(others) > 0 {
 			seller = others[0]
 		} else {
-			err=redis.Nil
+			err = redis.Nil
 			log.Infof("record 2")
 			return
 		}
 
 	} else {
 		seller = p
-		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 1, 1,string(n))
+		others, err = s.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 1, 1)
 		if err != nil {
 			log.Infof("record 4")
 			return
@@ -599,7 +589,7 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		if len(others) > 0 {
 			buyer = others[0]
 		} else {
-			err=redis.Nil
+			err = redis.Nil
 			log.Infof("record 3")
 			return
 		}
@@ -671,7 +661,7 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 					"buy_entrust_id":  buyer.EntrustId,
 					"sell_entrust_id": seller.EntrustId,
 				}).Errorln("test check  price please check")
-				err=redis.Nil
+				err = redis.Nil
 				return
 			}
 		}
@@ -1303,6 +1293,23 @@ func (s *EntrustQuene) joinSellQuene(p *EntrustDetail) (ret int, err error) {
 		ret = ERRCODE_PARAM
 		return
 	}
+	log.WithFields(logrus.Fields{
+		"entrust": p.EntrustId,
+		"uid":     p.Uid,
+		"all_num": p.AllNum,
+		"sulplus": p.SurplusNum,
+		"symbol":  s.TokenQueueId,
+		"os_id":   os.Getpid(),
+	}).Info("joinSellQuene record")
+	if p.SurplusNum == 0 {
+		log.WithFields(logrus.Fields{
+			"entrust": p.EntrustId,
+			"uid":     p.Uid,
+			"all_num": p.AllNum,
+			"sulplus": p.SurplusNum,
+			"os_id":   os.Getpid(),
+		}).Errorf("surplus null join quene")
+	}
 
 	var quene_id string
 	var x float64
@@ -1393,15 +1400,7 @@ func (s *EntrustQuene) delSource(opt proto.ENTRUST_OPT, ty proto.ENTRUST_TYPE, e
 }
 
 //获取队列首位交易单 sw1表示先取市价单再取限价单，2表示直接获取限价单，count获取数量
-func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count int64,h ...string) (en []*EntrustDetail, err error) {
-	var m string
-	if  len(h)>0{
-		m = h[0]
-	}else{
-		n := random.Krand(8, random.KC_RAND_KIND_LOWER)
-		m = string(n)
-	}
-
+func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count int64) (en []*EntrustDetail, err error) {
 
 	var z []redis.Z
 	var quene_id string
@@ -1430,7 +1429,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 	}
 
 	if len(z) == 0 && sw == 1 {
-		return s.PopFirstEntrust(opt, 2, count,m)
+		return s.PopFirstEntrust(opt, 2, count)
 	} else if len(z) == 0 && sw == 2 {
 		err = redis.Nil
 		return
@@ -1442,12 +1441,8 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw int32, count in
 	}
 	en = make([]*EntrustDetail, 0)
 
-
 	err = DB.GetMysqlConn().In("entrust_id", g).Cols().Find(&en)
-
-
 	if err != nil {
-		log.Infof("pop data err time %d,entrust_id:%s", time.Now().Unix(), m)
 		log.Errorln(err)
 		return
 	}

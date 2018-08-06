@@ -37,6 +37,6 @@ func GetPrice(symbol string) (*Price, bool) {
 		log.Fatalln("err data price")
 	}
 
-	log.Infof("init price is %d",m.Price)
+	log.Infof("init price is %d", m.Price)
 	return m, ok
 }
