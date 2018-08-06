@@ -232,20 +232,10 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 		var ok bool
 		data[symbol], ok = getSymbolRate(symbol)
 		if !ok {
-			tmpSym := strings.Split(symbol, "/")
-			if len(tmpSym) < 2 {
-				data[symbol] = new(proto.RateBaseData)
+			tmpdata, ok := getOtherSymbolRage(symbol)
+			if !ok {
 				continue
 			}
-			newSymbol := fmt.Sprintf("%s/%s", tmpSym[1], tmpSym[0])
-			tmpdata, _ := getSymbolRate(newSymbol)
-			tmpPrice, _ := convert.StringToInt64By8Bit(tmpdata.Price)
-			newPrice := convert.Int64DivInt64By8Bit(100000000, tmpPrice)
-			tmpdata.Price = convert.Int64ToStringBy8Bit(newPrice)
-			int64CnyPrice, _ := convert.StringToInt64By8Bit(tmpdata.CnyPrice)
-			tmpCnyPrice := convert.Int64MulInt64By8Bit(100000000, tmpPrice)
-			newCnyPrice := convert.Int64MulInt64By8BitString(int64CnyPrice, tmpCnyPrice)
-			tmpdata.CnyPrice = newCnyPrice
 			data[symbol] = tmpdata
 		}
 
@@ -257,8 +247,9 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool) {
 	q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
 	if !ok {
-		//fmt.Println(ok)
-		return getOtherSymbolRage(symbol)
+		//fmt.Println(symbol, ok)
+		//return getOtherSymbolRage(symbol)
+		return
 	} else {
 		e := q.GetEntry()
 		data = &proto.RateBaseData{
@@ -274,7 +265,32 @@ func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool) {
    如果没有找到币对
 */
 func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
-
+	//fmt.Println("other symbol rage ...", symbol)
+	tmpSym := strings.Split(symbol, "/")
+	if len(tmpSym) < 2 {
+		return
+	}
+	tmpSymToUSDT := fmt.Sprintf("%s/USDT", tmpSym[0])
+	toUSDTQ, ok := model.GetQueneMgr().GetQueneByUKey(tmpSymToUSDT)
+	if !ok {
+		//fmt.Println(tmpSymToUSDT, " not ok!!!")
+		return
+	}
+	usdtToTmpSym := fmt.Sprintf("%s/USDT", tmpSym[1])
+	usdtToQ, ok := model.GetQueneMgr().GetQueneByUKey(usdtToTmpSym)
+	if !ok {
+		//fmt.Println(usdtToTmpSym, " not ok!!!!")
+		return
+	}
+	BTCPrice := toUSDTQ.GetEntry()
+	OtherPrice := usdtToQ.GetEntry()
+	price := convert.Int64DivInt64By8Bit(BTCPrice.Price, OtherPrice.Price)
+	cnyPrice := convert.Int64MulInt64By8Bit(OtherPrice.Price, toUSDTQ.CnyPrice)
+	data = &proto.RateBaseData{
+		Symbol:  symbol,
+		Price:   convert.Int64ToStringBy8Bit(price),
+		CnyPrice: convert.Int64ToStringBy8Bit(cnyPrice),
+	}
 	return
 }
 

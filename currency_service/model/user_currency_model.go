@@ -167,15 +167,15 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, num int64) er
 	return nil
 }
 
-//从代币转入
+//从代币转入，同一个消息只能处理一次（消息重发机制可能导致同一个消息发送多次）
 func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMessage) error {
 	//!!!!重要，判断消息是否已处理过
 	rdsClient := dao.DB.GetCommonRedisConn()
-	isDid, history, err := new(UserCurrencyHistory).IsTransferFromTokenDid(msg.Id)
+	isHandled, history, err := new(UserCurrencyHistory).IsTransferFromTokenHandled(msg.Id)
 	if err != nil {
 		return err
 	}
-	if isDid { //已处理过，返回done消息并直接退出!
+	if isHandled { //已处理过，返回done消息并直接退出!
 		msg, err := json.Marshal(proto.TransferToCurrencyDoneMessage{
 			Id:       msg.Id,
 			DoneTime: xtime.Date2Unix(history.CreatedTime, xtime.LAYOUT_DATE_TIME),

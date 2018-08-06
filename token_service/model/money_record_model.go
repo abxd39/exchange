@@ -90,8 +90,8 @@ func InsertRecord(session *xorm.Session, p *MoneyRecord) (err error) {
 	return
 }
 
-// 检查币币划转到法币消息是否已处理
-func (s *MoneyRecord) IsTransferFromCurrencyDid(transferId int64) (bool, *MoneyRecord, error) {
+// 检查币币划转到法币消息是否已处理，流水存在即表示已处理
+func (s *MoneyRecord) IsTransferFromCurrencyHandled(transferId int64) (bool, *MoneyRecord, error) {
 	has, err := DB.GetMysqlConn().Where(fmt.Sprintf("ukey='%d'", transferId)).And("type=11").Get(s)
 	if err != nil {
 		return false, nil, errors.NewSys(err)

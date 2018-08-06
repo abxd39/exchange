@@ -104,7 +104,7 @@ func (this *UserCurrencyHistory) GetLastPrice(tokenId uint32) (err error, price 
 }
 
 // 检查币币划转到法币消息是否已处理
-func (this *UserCurrencyHistory) IsTransferFromTokenDid(transferId int64) (bool, *UserCurrencyHistory, error) {
+func (this *UserCurrencyHistory) IsTransferFromTokenHandled(transferId int64) (bool, *UserCurrencyHistory, error) {
 	has, err := dao.DB.GetMysqlConn().Where(fmt.Sprintf("order_id='%d'", transferId)).And("operator=3").Get(this)
 	if err != nil {
 		return false, nil, errors.NewSys(err)

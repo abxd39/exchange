@@ -356,21 +356,42 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		return err
 	}
 
+
+
 	tkconfig := new(model.TokenConfigTokenCNy)
 
 	fmt.Println("data:", data)
 
 	var symbols []string
+	var nosymbol []int
+
+	otherSymbolMap := make(map[uint32]string)
 	for _, dt := range data {
+		fmt.Println("dt:", dt)
 		if dt.TokenName != "BTC" {
-			if dt.TokenName != "" {
+			if dt.TokenName != ""{
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symbols = append(symbols, symbol)
+			}else{
+				nosymbol = append(nosymbol, int(dt.TokenId))
 			}
 		}
 	}
 
-	//fmt.Println("symbols:", symbols)
+	if len(nosymbol) > 0 {
+		tokensModel := new(model.CommonTokens)
+		otherTokens := tokensModel.GetByTokenIds(nosymbol)
+		for _, otk := range otherTokens{
+			fmt.Println(otk.Mark)
+			symbol := fmt.Sprintf("BTC/%s", otk.Mark)
+			symbols = append(symbols, symbol)
+			otherSymbolMap[otk.Id] = fmt.Sprintf("%s", otk.Mark)
+		}
+	}
+
+
+	fmt.Println("symbols:", symbols)
+
 	type RespBalance struct {
 		Id        uint64  `json:"id"`
 		Uid       uint64  `json:"uid"`
@@ -391,10 +412,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	var sum int64
 	var sumcny int64
 
-	fmt.Println("symbols:", symbols)
-
 	symbolData, err := client.InnerService.UserSevice.CallGetSymbolsRate(symbols)
-
 	if err != nil {
 		log.Println(err.Error())
 		fmt.Println(err.Error())
@@ -416,11 +434,15 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64valuetion), 2)
 				sumcny += int64valuetion
 			} else {
-				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
+				var symbol string
+				if dt.TokenName != ""{
+					symbol = fmt.Sprintf("BTC/%s", dt.TokenName)
+				}else{
+					symbol = fmt.Sprintf("BTC/%s", otherSymbolMap[dt.TokenId])
+				}
 				symPrice := symbolData.Data[symbol]
 
-				fmt.Println("symPrice:", symPrice)
-
+				fmt.Println("symPrice:", symPrice, " symbol: ", symbol)
 				if symPrice != nil {
 					//fmt.Println("cnyPrice: ", symPrice.Price, symPrice.CnyPrice, dt.TokenName)
 					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
@@ -435,14 +457,19 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 					}
 				}
 			}
-			tmp.TokenName = dt.TokenName
+			if dt.TokenName != ""{
+				tmp.TokenName = dt.TokenName
+			}else{
+				tmp.TokenName = otherSymbolMap[dt.TokenId]
+			}
+
 			tmp.TokenId = dt.TokenId
 			tmp.Id = dt.Id
 			tmp.Uid = dt.Uid
 			tmp.Address = dt.Address
 			tmp.Freeze = convert.Int64ToFloat64By8Bit(dt.Freeze)
 			tmp.Balance = convert.Int64ToFloat64By8Bit(dt.Balance)
-			tmp.Valuation = utils.Round2(valuation, 2)
+			tmp.Valuation =  utils.Round2(valuation, 2)
 			RespUCurrencyList = append(RespUCurrencyList, tmp)
 		}
 	}
@@ -492,7 +519,7 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 	var maxmaxprice float64
 	var minminprice float64
 	var price float64
-	maxPrice, minPrice, _ := new(model.Ads).GetOnlineAdsMaxMinPrice(req.TokenId)
+	maxPrice, minPrice, _  := new(model.Ads).GetOnlineAdsMaxMinPrice(req.TokenId)
 	fmt.Println("maxPrice:", maxPrice, "minPrice: ", minPrice)
 	if maxPrice != 0 {
 		maxmaxprice = convert.Int64ToFloat64By8Bit(maxPrice)
@@ -688,7 +715,7 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 	tp.MarketPrice = utils.Round2(convert.Int64ToFloat64By8Bit(price), 2)
 
 	chistory := new(model.UserCurrencyHistory)
-	//od := new(model.Order)
+
 	err, price := chistory.GetLastPrice(tokenId)
 	//fmt.Println("last price:", price)
 	if err != nil {
