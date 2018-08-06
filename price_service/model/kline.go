@@ -18,11 +18,11 @@ type Kline struct {
 	Period string `xorm:"comment('周期') VARCHAR(32)"`
 }
 
-func InsertKline(p *Kline) {
+func InsertKline(p *Kline) error {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
 		log.Errorln(err.Error())
-		return
+		return err
 	}
-	return
+	return nil
 }

@@ -307,7 +307,7 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty i
 */
 
 //冻结资金
-func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_id string, ty proto.TOKEN_TYPE_OPERATOR) (ret int32, err error) {
+func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, ukey string, ty proto.TOKEN_TYPE_OPERATOR) (ret int32, err error) {
 	defer func() {
 		if err != nil {
 			log.WithFields(log.Fields{
@@ -315,7 +315,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 				"uid":         s.Uid,
 				"token_id":    s.TokenId,
 				"balance":     s.Balance,
-				"entrusdt_id": entrust_id,
+				"entrusdt_id": ukey,
 				"ty":          ty,
 			}).Errorf("sub  money with fronzen error %s", err.Error())
 		}
@@ -323,6 +323,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 	var aff int64
 	if s.Balance < num {
 		ret = ERR_TOKEN_LESS
+		return
 	}
 
 	s.Balance -= num
@@ -330,20 +331,18 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 	aff, err = sess.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance", "frozen").Update(s)
 	if err != nil {
 		ret = ERRCODE_UNKNOWN
-
 		return
 	}
 
 	if aff == 0 {
 		err = errors.New("update balance err version is wrong")
 		ret = ERRCODE_UNKNOWN
-
 		return
 	}
 
 	f := FrozenHistory{
 		Uid:     s.Uid,
-		Ukey:    entrust_id,
+		Ukey:    ukey,
 		Num:     num,
 		TokenId: s.TokenId,
 		Type:    int(ty),
@@ -362,7 +361,7 @@ func (s *UserToken) SubMoneyWithFronzen(sess *xorm.Session, num int64, entrust_i
 	err = InsertRecord(sess, &MoneyRecord{
 		Uid:     s.Uid,
 		TokenId: s.TokenId,
-		Ukey:    entrust_id,
+		Ukey:    ukey,
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
 		Type:    int(ty),
 		Num:     num,

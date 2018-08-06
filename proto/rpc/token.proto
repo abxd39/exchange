@@ -11,8 +11,8 @@ service TokenRPC {
 		rpc EntrustOrder(EntrustOrderRequest) returns (CommonErrResponse) {};
         //新增代币
         rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
-
-
+        //扣减币币余额
+        rpc SubTokenWithFronze(SubTokenWithFronzeRequest) returns (CommonErrResponse) {};
 
 
         //历史委托队列
@@ -149,6 +149,15 @@ message AddTokenNumRequest {
     bytes ukey  =8;
     TOKEN_TYPE_OPERATOR type  =9;
     TOKEN_OPT_TYPE_ADD_TYPE opt_add_type = 10;
+}
+
+message SubTokenWithFronzeRequest{
+    uint64 uid = 3;
+    int32 token_id = 4;
+    int64 num = 6;
+    TOKEN_OPT_TYPE opt = 7;
+    bytes ukey  =8;
+    TOKEN_TYPE_OPERATOR type  =9;
 }
 
 message HistoryKlineRequest{

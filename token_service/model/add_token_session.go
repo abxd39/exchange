@@ -122,3 +122,44 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 	return
 
 }
+
+
+func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err error) {
+	u := &UserToken{}
+	err = u.GetUserToken(req.Uid, int(req.TokenId))
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+	var ok bool
+	r := &MoneyRecord{}
+	ok, err = r.CheckExist(string(req.Ukey), req.Type)
+	if err != nil {
+		return
+	}
+	if ok {
+		ret = ERR_TOKEN_REPEAT
+		return
+	}
+	if u.Balance < req.Num {
+		ret = ERR_TOKEN_LESS
+		return 
+	}
+
+	session := DB.GetMysqlConn().NewSession()
+	defer session.Close()
+	err = session.Begin()
+	ret,err = u.SubMoneyWithFronzen(session,req.Num,string(req.Ukey),req.Type)
+	if err != nil ||ret!=ERRCODE_SUCCESS {
+		session.Rollback()
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+
+	return
+}
+

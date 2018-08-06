@@ -295,22 +295,20 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		return
 	}
 
-	err = DB.GetRedisConn().LPush(p.Key, y).Err()
-	if err != nil {
-		log.Errorln(err.Error())
-		return
-	}
 	if amount<0 {
 		log.WithFields(log.Fields{
 			"Symbol":       s.Symbol,
 			"Key":  p.Key,
+			"id":data.Id,
 			"amount": amount,
 			"vol":        vol,
 			"low":      low,
 			"p.PreData":p.PreData.Id,
-		}).Errorf("price record error %s", err.Error())
+		}).Errorf("price record error ")
+		return
 	}
-	InsertKline(&Kline{
+
+	err = InsertKline(&Kline{
 		Symbol: s.Symbol,
 		Period: p.Key,
 		Id:     h.Id,
@@ -322,5 +320,14 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		High:   high,
 	})
 
+	if err!=nil {
+		return
+	}
+	err = DB.GetRedisConn().LPush(p.Key, y).Err()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	
 	p.PreData = data
 }

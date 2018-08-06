@@ -131,6 +131,19 @@ func (s *RPCServer) AddTokenNum(ctx context.Context, req *proto.AddTokenNumReque
 	return nil
 }
 
+func (s *RPCServer) SubTokenWithFronze(ctx context.Context, req *proto.SubTokenWithFronzeRequest, rsp *proto.CommonErrResponse) error {
+	ret, err := model.SubTokenWithFronzen(req)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	rsp.Err = ret
+	rsp.Message=GetErrorMessage(rsp.Err)
+	return nil
+}
+
 func (s *RPCServer) HistoryKline(ctx context.Context, req *proto.HistoryKlineRequest, rsp *proto.HistoryKlineResponse) error {
 	return nil
 }
