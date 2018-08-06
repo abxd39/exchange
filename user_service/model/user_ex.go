@@ -154,7 +154,7 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 	if err = sess.Begin(); err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
-	//写数据库 如果 user 表上有 该用户，则 表user_ex 此表一定有该 用户
+	//写数据库 如果 user 表上有 该用户，则 表user_ex 此表一定有该 用户affirm_time
 	if _, err = sess.Where("uid=?", req.Uid).Cols("real_name","identify_card","affirm_time","affirm_count").Update(&UserEx{
 		RealName:     req.RealName,
 		IdentifyCard: req.IdCode,
@@ -165,7 +165,9 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 
 		return ERRCODE_UNKNOWN, err
 	}
-	u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_FIRST
+	if u.SetTardeMark & APPLY_FOR_FIRST!=APPLY_FOR_FIRST{//重复提交的问题
+		u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_FIRST
+	}
 	if _, err = sess.Table("user").Where("uid=?", req.Uid).Cols("set_tarde_mark").Update(&User{
 		SetTardeMark: u.SetTardeMark,
 	}); err != nil {
