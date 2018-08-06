@@ -115,6 +115,15 @@ func (s *TokenRPCCli) CallTokenBalanceList(p *proto.TokenBalanceListRequest) (rs
 	return
 }
 
+func (s *TokenRPCCli) CallTransferList(p *proto.TransferListRequest) (rsp *proto.TransferListResponse, err error) {
+	rsp, err = s.conn.TransferList(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func (s *TokenRPCCli) CallTokenTradeList(p *proto.TokenTradeListRequest) (rsp *proto.TokenTradeListResponse, err error) {
 	rsp, err = s.conn.TokenTradeList(context.TODO(), p)
 	if err != nil {

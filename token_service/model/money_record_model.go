@@ -2,6 +2,7 @@ package model
 
 import (
 	"digicon/common/errors"
+	"digicon/common/model"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
 	"fmt"
@@ -30,8 +31,43 @@ type MoneyRecord struct {
 	CreatedTime int64  `xorm:"comment('操作时间')  created BIGINT(20)"`
 }
 
+type MoneyRecordWithToken struct {
+	MoneyRecord `xorm:"extends"`
+	TokenName   string
+}
+
 func (*MoneyRecord) TableName() string {
 	return "money_record"
+}
+
+//流水列表
+func (s *MoneyRecord) List(pageIndex, pageSize int, filter map[string]interface{}) (*model.ModelList, []*MoneyRecordWithToken, error) {
+	query := DB.GetMysqlConn().Alias("mr").Join("LEFT", []string{new(OutCommonTokens).TableName(), "t"}, "mr.token_id=t.id").Where("1=1")
+
+	//筛选
+	if _, ok := filter["uid"]; ok {
+		query.And("mr.uid=?", filter["uid"])
+	}
+	if _, ok := filter["transfer"]; ok { //划转流水
+		query.And("mr.type IN (?,?)", proto.TOKEN_TYPE_OPERATOR_TRANSFER_TO_CURRENCY, proto.TOKEN_TYPE_OPERATOR_TRANSFER_FROM_CURRENCY)
+	}
+
+	//分页
+	tmpQuery := *query
+	total, err := tmpQuery.Count(s)
+	if err != nil {
+		return nil, nil, errors.NewSys(err)
+	}
+	offset, modelList := model.Paging(pageIndex, pageSize, int(total))
+
+	var list []*MoneyRecordWithToken
+	err = query.Select("mr.*,t.mark AS token_name").OrderBy("mr.id DESC").Limit(modelList.PageSize, offset).Find(&list)
+	if err != nil {
+		return nil, nil, errors.NewSys(err)
+	}
+	modelList.Items = list
+
+	return modelList, list, nil
 }
 
 //检查流水记录是否存在

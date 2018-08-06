@@ -30,6 +30,9 @@ service TokenRPC {
         //代币交易明细列表
         rpc TokenTradeList(TokenTradeListRequest) returns (TokenTradeListResponse) {};
 
+        //划转明细列表
+        rpc TransferList(TransferListRequest) returns (TransferListResponse) {};
+
 
         rpc DelEntrust(DelEntrustRequest) returns (DelEntrustResponse) {}
         //########market##########//
@@ -120,8 +123,8 @@ enum TOKEN_TYPE_OPERATOR
     HISTORY_FRONZE_BACK                     =7;//
     HISTORY_FRONZE_SYS_SURPLUS              =8;//系统自动退小额余额
     FROZEN_COMFIRM_DEL                      =9;//交易确认扣减冻结数量
-    TRANSFER_TO_CURRENCY                    =10;//交易确认扣减冻结数量
-    TRANSFER_FROM_CURRENCY                  =11;//交易确认扣减冻结数量
+    TRANSFER_TO_CURRENCY                    =10;//划转到法币
+    TRANSFER_FROM_CURRENCY                  =11;//划转到币币
 }
 
 message  EntrustOrderRequest {
@@ -310,6 +313,35 @@ message TokenTradeListResponse{
         int32 total_page           =3;
         int32 total                =4;
         repeated Detail items      =5;
+    }
+
+    int32 err                             =1;
+    string message                        =2;
+    Data data                             =3;
+}
+
+message TransferListRequest{
+    uint64 uid                      =1;
+    int32 page                      =2;
+    int32 page_num                  =3;
+}
+
+message TransferListResponse{
+    message Data {
+        message Item {
+            int64 id            =1;
+            int32 token_id      =2;
+            string token_name   =3;
+            int32 type          =4; //10-划转到法币,11-划转到币币
+            int64 num           =5;
+            int64 created_time  =6;
+        }
+
+        int32 page_index           =1;
+        int32 page_size            =2;
+        int32 total_page           =3;
+        int32 total                =4;
+        repeated Item items      =5;
     }
 
     int32 err                             =1;
