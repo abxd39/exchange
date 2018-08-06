@@ -1,12 +1,12 @@
 package model
 
 import (
+	"digicon/common/convert"
 	"digicon/common/model"
 	. "digicon/token_service/dao"
 	"github.com/go-xorm/xorm"
-	log "github.com/sirupsen/logrus"
-	"digicon/common/convert"
 	"github.com/liudng/godump"
+	log "github.com/sirupsen/logrus"
 )
 
 /*
@@ -76,25 +76,24 @@ func (s *Trade) GetUserTradeList(pageIndex, pageSize int, uid uint64) (*model.Mo
 	return modelList, list, nil
 }
 
-
-func  GetUserTradeByEntrustId(entrust_id string) (g []*Trade,err error) {
-	g =make([]*Trade,0)
-	err = DB.GetMysqlConn().Where("entrust_id=?",entrust_id).Find(&g)
-	if err!=nil {
+func GetUserTradeByEntrustId(entrust_id string) (g []*Trade, err error) {
+	g = make([]*Trade, 0)
+	err = DB.GetMysqlConn().Where("entrust_id=?", entrust_id).Find(&g)
+	if err != nil {
 		log.Errorln(err.Error())
 		return
 	}
 	return
 }
 
-func CaluateAvgPrice(t []*Trade) int64{
-	var amount ,sum int64
+func CaluateAvgPrice(t []*Trade) int64 {
+	var amount, sum int64
 
-	for _,v:=range t {
-		amount += convert.Int64MulInt64By8Bit(v.Num,v.Price)
-		sum+=v.Num
+	for _, v := range t {
+		amount += convert.Int64MulInt64By8Bit(v.Num, v.Price)
+		sum += v.Num
 	}
-	tt:=convert.Int64MulInt64By8Bit(amount,sum)
+	tt := convert.Int64MulInt64By8Bit(amount, sum)
 	godump.Dump(tt)
-	return convert.Int64MulInt64By8Bit(amount,sum)
+	return convert.Int64MulInt64By8Bit(amount, sum)
 }

@@ -3,10 +3,10 @@ package model
 import (
 	proto "digicon/proto/rpc"
 	///. "digicon/token_service/dao"
+	"digicon/common/model"
 	"github.com/go-xorm/xorm"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"digicon/common/model"
 )
 
 import (
@@ -37,7 +37,7 @@ type EntrustDetail struct {
 	AllNum      int64  `xorm:"not null comment('总数量') BIGINT(20)"`
 	SurplusNum  int64  `xorm:"not null comment('剩余数量') BIGINT(20)"`
 	Price       int64  `xorm:"not null comment('实际价格(卖出价格）') BIGINT(20)"`
-	Sum       	int64  	`xorm:"not null comment('委托总额') BIGINT(20)"`
+	Sum         int64  `xorm:"not null comment('委托总额') BIGINT(20)"`
 	Mount       int64  `xorm:"not null comment('全部实际价值') BIGINT(20)"`
 	Opt         int    `xorm:"not null comment('类型 买入单1 卖出单2 ') TINYINT(4)"`
 	Type        int    `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
@@ -67,19 +67,19 @@ func Insert(sess *xorm.Session, s *EntrustDetail) error {
 	return nil
 }
 
-func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int,symbol string,opt,states,startTime,endTime int) (*model.ModelList,[]*EntrustDetail,error) {
+func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int, symbol string, opt, states, startTime, endTime int) (*model.ModelList, []*EntrustDetail, error) {
 	//m := make([]EntrustDetail, 0)
 	var statess []int
 	if states == 0 {
-		statess = []int{0,1,2,3}
+		statess = []int{0, 1, 2, 3}
 	} else if states == 1 {
 		statess = []int{0}
 	} else {
-		statess = []int{1,2,3}
+		statess = []int{1, 2, 3}
 	}
 	var optt []int
 	if opt == 0 {
-		optt = []int{1,2}
+		optt = []int{1, 2}
 	} else if opt == 1 {
 		optt = []int{1}
 	} else {
@@ -88,24 +88,24 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int,symbol string,
 
 	engine := DB.GetMysqlConn()
 	engine.ShowSQL(true)
-	query := engine.Where("uid = ?",uid)
+	query := engine.Where("uid = ?", uid)
 	if symbol != "" {
-		query.Where("symbol = ?",symbol)
+		query.Where("symbol = ?", symbol)
 	}
 	if startTime != 0 {
-		query.Where("created_time >= ?",startTime)
+		query.Where("created_time >= ?", startTime)
 	}
 	if endTime != 0 {
-		query.Where("created_time <= ?",endTime)
+		query.Where("created_time <= ?", endTime)
 	}
-	query.In("states",statess)
-	query.In("opt",optt)
+	query.In("states", statess)
+	query.In("opt", optt)
 	//query := engine.Where("symbol = ? and uid=? and created_time > ? and created_time <= ?", symbol,uid,startTime,endTime).In("states",statess).In("opt",optt)
 
 	tempQuery := query.Clone()
 	count, err := tempQuery.Count(s)
 
-	fmt.Println("结果数据：",count,err)
+	fmt.Println("结果数据：", count, err)
 
 	if err != nil {
 		return nil, nil, err
@@ -119,7 +119,7 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int,symbol string,
 
 	if err != nil {
 		log.Errorln(err.Error())
-		return nil,nil,err
+		return nil, nil, err
 	}
 	modelList.Items = list
 	return modelList, list, nil
@@ -175,7 +175,7 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 		"os_id":      os.Getpid(),
 	}).Info("just record entrust_detail surplus ")
 	//s.SurplusNum -= deal_num
-	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num").Decr("surplus_num", deal_num).Update(s)
+	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num","price").Decr("surplus_num", deal_num).Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
 		return err

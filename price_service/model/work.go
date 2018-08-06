@@ -241,9 +241,7 @@ func (s *PriceWorkQuene) Subscribe() {
 					s.save(OneMonthPrice, k)
 				}
 			}
-
 		}
-
 	}
 
 }
@@ -302,7 +300,16 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		log.Errorln(err.Error())
 		return
 	}
-
+	if amount<0 {
+		log.WithFields(log.Fields{
+			"Symbol":       s.Symbol,
+			"Key":  p.Key,
+			"amount": amount,
+			"vol":        vol,
+			"low":      low,
+			"p.PreData":p.PreData.Id,
+		}).Errorf("price record error %s", err.Error())
+	}
 	InsertKline(&Kline{
 		Symbol: s.Symbol,
 		Period: p.Key,
