@@ -92,4 +92,4 @@ const (
 )
 
 // 各项目通信的redis dbs
-const COMMON_REDIS_DB = 5
+const COMMON_REDIS_DB = 15

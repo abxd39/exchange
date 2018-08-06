@@ -988,8 +988,8 @@ func (this *CurrencyGroup) GetSellingPrice(c *gin.Context) {
 	}
 	//fmt.Println("price:", data)
 	type respPrice struct {
-		Cny     float64 `json:"cny"`
-		MinCny  float64 `json:min_cny`
+		Cny    float64 `json:"cny"`
+		MinCny float64 `json:min_cny`
 	}
 	var rPrce respPrice
 	err = json.Unmarshal([]byte(data.Data), &rPrce)
@@ -1067,10 +1067,6 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	ret.SetDataSection("sum_cny", utils.Round2(respdata.SumCNY, 2))
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 }
-
-
-
-
 
 func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
 	ret := NewPublciError()
@@ -1333,7 +1329,7 @@ func (this *CurrencyGroup) TransferToToken(c *gin.Context) {
 		return
 	}
 
-	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	ret.SetErrCode(rsp.Code, rsp.Message)
 	return
 }
 

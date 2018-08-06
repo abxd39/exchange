@@ -412,7 +412,7 @@ func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest
 
 func (s *RPCServer) TransferToCurrency(ctx context.Context, req *proto.TransferToCurrencyRequest, rsp *proto.TransferToCurrencyResponse) error {
 	userTokenModel := &model.UserToken{}
-	err := userTokenModel.TransferToCurrency(req.Uid, int(req.TokenId), "", req.Num)
+	err := userTokenModel.TransferToCurrency(req.Uid, int(req.TokenId), req.Num)
 	if err != nil {
 		rsp.Err = int32(errors.GetErrStatus(err))
 		rsp.Message = errors.GetErrMsg(err)

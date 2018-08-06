@@ -9,11 +9,11 @@ import (
 	"digicon/common/convert"
 	"digicon/common/errors"
 	"digicon/currency_service/rpc/client"
+	"digicon/currency_service/utils"
 	"encoding/json"
 	"golang.org/x/net/context"
 	"log"
 	"time"
-	"digicon/currency_service/utils"
 )
 
 type RPCServer struct{}
@@ -363,7 +363,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	var symbols []string
 	for _, dt := range data {
 		if dt.TokenName != "BTC" {
-			if dt.TokenName != ""{
+			if dt.TokenName != "" {
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symbols = append(symbols, symbol)
 			}
@@ -442,7 +442,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			tmp.Address = dt.Address
 			tmp.Freeze = convert.Int64ToFloat64By8Bit(dt.Freeze)
 			tmp.Balance = convert.Int64ToFloat64By8Bit(dt.Balance)
-			tmp.Valuation =  utils.Round2(valuation, 2)
+			tmp.Valuation = utils.Round2(valuation, 2)
 			RespUCurrencyList = append(RespUCurrencyList, tmp)
 		}
 	}
@@ -492,7 +492,7 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 	var maxmaxprice float64
 	var minminprice float64
 	var price float64
-	maxPrice, minPrice, _  := new(model.Ads).GetOnlineAdsMaxMinPrice(req.TokenId)
+	maxPrice, minPrice, _ := new(model.Ads).GetOnlineAdsMaxMinPrice(req.TokenId)
 	fmt.Println("maxPrice:", maxPrice, "minPrice: ", minPrice)
 	if maxPrice != 0 {
 		maxmaxprice = convert.Int64ToFloat64By8Bit(maxPrice)
@@ -518,11 +518,11 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 	}
 
 	type SellingPrice struct {
-		Cny float64
+		Cny    float64
 		Mincny float64
 	}
 
-	dt := SellingPrice{Cny: maxmaxprice, Mincny:minminprice}
+	dt := SellingPrice{Cny: maxmaxprice, Mincny: minminprice}
 	data, _ := json.Marshal(dt)
 	rsp.Data = string(data)
 	rsp.Code = errdefine.ERRCODE_SUCCESS
@@ -693,8 +693,8 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 	//fmt.Println("last price:", price)
 	if err != nil {
 		tp.LatestPrice = 0.00
-	}else{
-		tp.LatestPrice = utils.Round2(convert.Int64ToFloat64By8Bit(price),2)
+	} else {
+		tp.LatestPrice = utils.Round2(convert.Int64ToFloat64By8Bit(price), 2)
 	}
 
 	data, err := json.Marshal(tp)
@@ -712,7 +712,7 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 // 法币划转到代币
 func (s *RPCServer) TransferToToken(ctx context.Context, req *proto.TransferToTokenRequest, rsp *proto.OtherResponse) error {
 	userCurrencyModel := &model.UserCurrency{}
-	err := userCurrencyModel.TransferToToken(req.Uid, int(req.TokenId), "", int64(req.Num))
+	err := userCurrencyModel.TransferToToken(req.Uid, int(req.TokenId), int64(req.Num))
 	if err != nil {
 		rsp.Code = int32(errors.GetErrStatus(err))
 		rsp.Message = errors.GetErrMsg(err)
