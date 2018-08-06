@@ -9,22 +9,22 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 
+	"bytes"
+	"crypto/md5"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
+	"errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/gin-gonic/gin"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
-	"crypto/md5"
-	"encoding/hex"
-	"encoding/base64"
-	"bytes"
-	"errors"
 )
 
 type RspBankPay struct {
-	Uid        uint64 `form:"uid"        json:"uid"         binding:"required"`
-	Name       string `form:"name"       json:"name"        binding:"required"`
+	Uid       uint64 `form:"uid"        json:"uid"         binding:"required"`
+	Name      string `form:"name"       json:"name"        binding:"required"`
 	CardNum   string `form:"card_num"   json:"card_num"    binding:"required"`
 	VerifyNum string `form:"verify_num" json:"verify_num"  binding:"required"`
 	BankName  string `form:"bank_name"  json:"bank_name"   binding:"required"`
@@ -100,14 +100,14 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		return
 	}
 	type RRRBankPay struct {
-		Uid        uint64 `form:"uid"        json:"uid"         `
-		Name       string `form:"name"       json:"name"        `
-		CardNum    string `form:"card_num"   json:"card_num"    `
-		BankName   string `form:"bank_name"  json:"bank_name"   `
-		BankInfo   string `form:"bank_info"  json:"bank_info"   `
+		Uid      uint64 `form:"uid"        json:"uid"         `
+		Name     string `form:"name"       json:"name"        `
+		CardNum  string `form:"card_num"   json:"card_num"    `
+		BankName string `form:"bank_name"  json:"bank_name"   `
+		BankInfo string `form:"bank_info"  json:"bank_info"   `
 	}
 	rrrrbankpay := new(RRRBankPay)
-	rrrrbankpay.Uid= req.Uid
+	rrrrbankpay.Uid = req.Uid
 	rrrrbankpay.Name = req.Name
 	rrrrbankpay.BankInfo = req.BankInfo
 	rrrrbankpay.BankName = req.BankName
@@ -140,11 +140,11 @@ func (this *CurrencyGroup) GetBankPay(c *gin.Context) {
 		return
 	}
 	type RRRBankPay struct {
-		Uid        uint64 `form:"uid"        json:"uid"         `
-		Name       string `form:"name"       json:"name"        `
-		CardNum    string `form:"card_num"   json:"card_num"    `
-		BankName   string `form:"bank_name"  json:"bank_name"   `
-		BankInfo   string `form:"bank_info"  json:"bank_info"   `
+		Uid      uint64 `form:"uid"        json:"uid"         `
+		Name     string `form:"name"       json:"name"        `
+		CardNum  string `form:"card_num"   json:"card_num"    `
+		BankName string `form:"bank_name"  json:"bank_name"   `
+		BankInfo string `form:"bank_info"  json:"bank_info"   `
 	}
 	rrrrbankpay := new(RRRBankPay)
 	err = json.Unmarshal([]byte(rsp.Data), rrrrbankpay)
@@ -185,14 +185,14 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 		return
 	} else {
 		type RRRBankPay struct {
-			Uid        uint64 `form:"uid"        json:"uid"         `
-			Name       string `form:"name"       json:"name"        `
-			CardNum    string `form:"card_num"   json:"card_num"    `
-			BankName   string `form:"bank_name"  json:"bank_name"   `
-			BankInfo   string `form:"bank_info"  json:"bank_info"   `
+			Uid      uint64 `form:"uid"        json:"uid"         `
+			Name     string `form:"name"       json:"name"        `
+			CardNum  string `form:"card_num"   json:"card_num"    `
+			BankName string `form:"bank_name"  json:"bank_name"   `
+			BankInfo string `form:"bank_info"  json:"bank_info"   `
 		}
 		rrrrbankpay := new(RRRBankPay)
-		rrrrbankpay.Uid= req.Uid
+		rrrrbankpay.Uid = req.Uid
 		rrrrbankpay.Name = req.Name
 		rrrrbankpay.BankInfo = req.BankInfo
 		rrrrbankpay.BankName = req.BankName
@@ -211,11 +211,11 @@ func (this *CurrencyGroup) Alipay(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
-		Name         string `form:"name"         json:"name"    binding:"required"`
-		Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
-		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		Uid         uint64 `form:"uid"          json:"uid"     binding:"required"`
+		Name        string `form:"name"         json:"name"    binding:"required"`
+		Alipay      string `form:"alipay"       json:"alipay"  binding:"required"`
+		Verify      string `form:"verify"       json:"verify"  binding:"required"`
+		ReceiptCode string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
@@ -245,7 +245,7 @@ func (this *CurrencyGroup) Alipay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
-		var alipay  RspAliPay
+		var alipay RspAliPay
 		alipay.Uid = req.Uid
 		alipay.Name = req.Name
 		alipay.Alipay = req.Alipay
@@ -295,11 +295,11 @@ func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
-		Name         string `form:"name"         json:"name"    binding:"required"`
-		Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
-		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		Uid         uint64 `form:"uid"          json:"uid"     binding:"required"`
+		Name        string `form:"name"         json:"name"    binding:"required"`
+		Alipay      string `form:"alipay"       json:"alipay"  binding:"required"`
+		Verify      string `form:"verify"       json:"verify"  binding:"required"`
+		ReceiptCode string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
@@ -330,7 +330,7 @@ func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
-		var alipay  RspAliPay
+		var alipay RspAliPay
 		alipay.Uid = req.Uid
 		alipay.Name = req.Name
 		alipay.Alipay = req.Alipay
@@ -447,11 +447,11 @@ func (this *CurrencyGroup) WeChatPay(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
-		Name         string `form:"name"         json:"name"    binding:"required"`
-		Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
-		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		Uid         uint64 `form:"uid"          json:"uid"     binding:"required"`
+		Name        string `form:"name"         json:"name"    binding:"required"`
+		Wechat      string `form:"wechat"       json:"wechat"  binding:"required"`
+		Verify      string `form:"verify"       json:"verify"  binding:"required"`
+		ReceiptCode string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
@@ -481,7 +481,7 @@ func (this *CurrencyGroup) WeChatPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	if rsp.Code == ERRCODE_SUCCESS{
+	if rsp.Code == ERRCODE_SUCCESS {
 		var wechatPay RspWeChatPay
 		wechatPay.Receipt_code = url
 		wechatPay.Name = req.Name
@@ -489,7 +489,7 @@ func (this *CurrencyGroup) WeChatPay(c *gin.Context) {
 		wechatPay.Wechat = req.Wechat
 		ret.SetDataSection("wechat_pay", wechatPay)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-	}else{
+	} else {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
 	return
@@ -532,11 +532,11 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 	}()
 
 	req := struct {
-		Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
-		Name         string `form:"name"         json:"name"    binding:"required"`
-		Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
-		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		Uid         uint64 `form:"uid"          json:"uid"     binding:"required"`
+		Name        string `form:"name"         json:"name"    binding:"required"`
+		Wechat      string `form:"wechat"       json:"wechat"  binding:"required"`
+		Verify      string `form:"verify"       json:"verify"  binding:"required"`
+		ReceiptCode string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
@@ -565,7 +565,7 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	if rsp.Code == ERRCODE_SUCCESS{
+	if rsp.Code == ERRCODE_SUCCESS {
 		var wechatPay RspWeChatPay
 		wechatPay.Receipt_code = url
 		wechatPay.Name = req.Name
@@ -573,15 +573,12 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 		wechatPay.Wechat = req.Wechat
 		ret.SetDataSection("wechat_pay", wechatPay)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-	}else{
+	} else {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
 
 	return
 }
-
-
-
 
 //上传Ali coud
 func (a *CurrencyGroup) upload_picture(file string) (string, error) {

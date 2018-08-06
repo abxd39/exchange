@@ -1,10 +1,10 @@
 package handler
 
 import (
-	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/model"
 	proto "digicon/proto/rpc"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 
 	"digicon/proto/common"
 	"github.com/gin-gonic/gin/json"

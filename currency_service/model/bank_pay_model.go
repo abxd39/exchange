@@ -11,15 +11,15 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"digicon/common/constant"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserCurrencyBankPay struct {
 	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"     json:"uid"`
 	Name       string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"  json:"name"`
 	CardNum    string `xorm:"not null default '' comment('银行卡号') VARCHAR(20)"  json:"card_num"`
-	BankName   string `xorm:"not null default '' comment('银行名称') VARCHAR(20)"  json:"bank_name"` 
+	BankName   string `xorm:"not null default '' comment('银行名称') VARCHAR(20)"  json:"bank_name"`
 	BankInfo   string `xorm:"not null default '' comment('支行名称') VARCHAR(20)"  json:"bank_info"`
 	CreateTime string `xorm:"not null comment('创建时间') DATETIME"`
 	UpdataTime string `xorm:"not null comment('修改时间') DATETIME"`

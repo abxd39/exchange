@@ -9,13 +9,12 @@ import (
 	"fmt"
 
 	"digicon/common/constant"
+	cf "digicon/user_service/conf"
+	"github.com/GeeTeam/GtGoSdk"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
-	"golang.org/x/net/context"
 	log "github.com/sirupsen/logrus"
-	"github.com/GeeTeam/GtGoSdk"
-	cf "digicon/user_service/conf"
-
+	"golang.org/x/net/context"
 )
 
 //获取谷歌验密钥
@@ -227,7 +226,7 @@ func (s *RPCServer) GetUserRealName(ctx context.Context, req *proto.UserInfoRequ
 	if err != nil {
 		return nil
 	}
-	fmt.Println("----->123456",data)
+	fmt.Println("----->123456", data)
 	rsp.Src = data
 	rsp.Data = d.Real
 	rsp.Err = ERRCODE_SUCCESS
@@ -267,28 +266,28 @@ func (s *RPCServer) Api1(ctx context.Context, req *proto.Api1Request, rsp *proto
 	rsp.Data = &proto.Api1BaseData{}
 	r, ok := responseMap["gt"]
 	if !ok {
-		rsp.Err=ERRCODE_UNKNOWN
+		rsp.Err = ERRCODE_UNKNOWN
 		return nil
 	}
 	rsp.Data.Gt = r.(string)
 	r, ok = responseMap["challenge"]
 	if !ok {
-		rsp.Err=ERRCODE_UNKNOWN
+		rsp.Err = ERRCODE_UNKNOWN
 		return nil
 	}
 	rsp.Data.Challenge = r.(string)
 
 	r, ok = responseMap["success"]
 	if !ok {
-		rsp.Err=ERRCODE_UNKNOWN
+		rsp.Err = ERRCODE_UNKNOWN
 		return nil
 	}
 	rsp.Data.Success = int32(r.(int))
 
 	log.WithFields(log.Fields{
-		"Challenge":   rsp.Data.Challenge,
-		"Gt":    rsp.Data.Gt,
-		"Phone":req.Phone,
+		"Challenge": rsp.Data.Challenge,
+		"Gt":        rsp.Data.Gt,
+		"Phone":     req.Phone,
 	}).Info("Api1")
 	return nil
 }
@@ -297,19 +296,19 @@ func (s *RPCServer) Api2(ctx context.Context, req *proto.Api2Request, rsp *proto
 
 	Gt := GtGoSdk.GeetestLib(cf.GtPrivateKey, cf.GtCaptchaID)
 	var result bool
-	if req.Status==0 {
+	if req.Status == 0 {
 		result = Gt.FailbackValidate(req.Challenge, req.Validate, req.Seccode)
-	}else{
-		result = Gt.SuccessValidate(req.Challenge, req.Validate, req.Seccode,req.Phone)
+	} else {
+		result = Gt.SuccessValidate(req.Challenge, req.Validate, req.Seccode, req.Phone)
 	}
 
 	log.WithFields(log.Fields{
-		"Challenge":    req.Challenge,
-		"Validate":    req.Validate,
-		"Seccode":  req.Seccode,
+		"Challenge": req.Challenge,
+		"Validate":  req.Validate,
+		"Seccode":   req.Seccode,
 		"Status":    req.Status,
-		"Phone": req.Phone,
-		"result":result,
+		"Phone":     req.Phone,
+		"result":    result,
 	}).Info("Api2")
 	if result {
 		model.SetGreeSuccess(req.Phone)
@@ -319,7 +318,6 @@ func (s *RPCServer) Api2(ctx context.Context, req *proto.Api2Request, rsp *proto
 	}
 	return nil
 }
-
 
 func (s *RPCServer) Refresh(ctx context.Context, req *proto.RefreshRequest, rsp *proto.CommonErrResponse) error {
 	new(model.User).ForceRefreshCache(req.Uid)

@@ -11,13 +11,11 @@ import (
 	"net/http"
 	"strconv"
 
+	. "digicon/common/constant"
 	"github.com/apex/log"
 	"github.com/go-redis/redis"
 	"github.com/pkg/errors"
-	. "digicon/common/constant"
-
 )
-
 
 //发送短信
 func SendSms(phone, country string, ty int32) (ret int32, err error) {

@@ -1,14 +1,14 @@
 package model
 
 import (
+	. "digicon/common/constant"
 	"digicon/currency_service/dao"
+	"digicon/currency_service/rpc/client"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	"time"
-	"digicon/currency_service/rpc/client"
-	log "github.com/sirupsen/logrus"
 	"fmt"
-	. "digicon/common/constant"
+	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type UserCurrencyAlipayPay struct {
@@ -38,7 +38,6 @@ func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, er
 		log.Println(rsp)
 		return ERRCODE_SMS_CODE_DIFF, nil
 	}
-
 
 	//是否需要验证支付宝是否属于该账户
 	//查询数据库是否存在
