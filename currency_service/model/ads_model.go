@@ -278,6 +278,26 @@ func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, er
 	return
 }
 
+/*
+	获取在线广告最高价格和最低价格
+*/
+
+func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) ( MaxPrice, MinPrice int64, err error){
+	//sql := "select MAX(price)  AS max_price,MIN(price) AS min_price from ads where token_id =? and states=1"
+	sql := " SELECT MAX(order.price)  AS max_price,MIN(order.price) AS min_price FROM  `order` LEFT JOIN  `ads`  ON `ads`.`id` = `order`.`ad_id` WHERE order.token_id =? AND   `ads`.`states`=1 AND `ads`.`is_del`=0;"
+	engine := dao.DB.GetMysqlConn()
+	type PriceStruct struct {
+		MaxPrice  int64   `xorm:"BIGINT(20)"  json:"max_price"`
+		MinPrice  int64   `xorm:"BIGINT(20)"  json:"min_price"`
+	}
+	price := PriceStruct{}
+	_, err  = engine.SQL(sql, tokenId).Get(&price)
+	MaxPrice = price.MaxPrice
+	MinPrice = price.MinPrice
+	return
+}
+
+
 
 
 /*
@@ -298,3 +318,5 @@ func AdsAutoDownline(id  uint64) {
 	}
 
 }
+
+
