@@ -8,6 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/rpc/client"
+	"digicon/common/constant"
 )
 
 type UserCurrencyAlipayPay struct {
@@ -26,7 +27,7 @@ func (ali *UserCurrencyAlipayPay) SetAlipay(req *proto.AlipayRequest) (int32, er
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
 		Uid:      req.Uid,
 		Code:     req.Verify,
-		AuthType: 9, // 设置支付宝支付 9
+		AuthType: constant.SMS_AIL_PAY, // 设置支付宝支付 9
 	})
 	if err != nil {
 		log.Errorln(err.Error())

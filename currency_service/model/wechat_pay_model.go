@@ -7,6 +7,7 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"time"
+	"digicon/common/constant"
 )
 
 type UserCurrencyWechatPay struct {
@@ -24,7 +25,7 @@ func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
 		Uid:      req.Uid,
 		Code:     req.Verify,
-		AuthType: 10, // 设置银行卡支付 10
+		AuthType:  constant.SMS_WECHAT_PAY, // 设置银行卡支付 10
 	})
 	if err != nil {
 		log.Errorln(err.Error())
