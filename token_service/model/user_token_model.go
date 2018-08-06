@@ -211,14 +211,15 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty p
 		return
 	}
 
-	_, err = session.Insert(&FrozenHistory{
+	//交易流水
+	err = InsertRecord(session, &MoneyRecord{
 		Uid:     s.Uid,
-		Ukey:    ukey,
-		Num:     num,
 		TokenId: s.TokenId,
-		Type:    int(ty),
+		Ukey:    ukey,
 		Opt:     int(proto.TOKEN_OPT_TYPE_DEL),
-		Frozen:  s.Frozen,
+		Type:    int(ty),
+		Num:     num,
+		Balance: s.Balance,
 	})
 	if err != nil {
 		return

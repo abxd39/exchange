@@ -307,13 +307,17 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 		Uid:   param.Uid,
 		//TypeId:param.TypeId,
 	})
-	fmt.Println("rsp:", rsp )
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-	ret.SetDataSection("id", rsp.Data)
+	if rsp.Code != ERRCODE_SUCCESS{
+		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+		return
+	}else{
+		ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+		ret.SetDataSection("id", rsp.Data)
+	}
 	return
 }
 
