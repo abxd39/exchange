@@ -1062,7 +1062,7 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	//fmt.Println("respdata:", respdata)
 	ret.SetDataSection("list", respdata.UCurrencyList)
 	ret.SetDataSection("sum", respdata.Sum)
-	ret.SetDataSection("sum_cny", respdata.SumCNY)
+	ret.SetDataSection("sum_cny", utils.Round2(respdata.SumCNY, 2))
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 
 }

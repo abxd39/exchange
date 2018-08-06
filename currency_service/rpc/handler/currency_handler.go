@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"time"
+	"digicon/currency_service/utils"
 )
 
 type RPCServer struct{}
@@ -412,7 +413,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				}
 				sum += dt.Balance
 				int64valuetion := convert.Int64MulInt64By8Bit(tkconfig.Price, dt.Balance)
-				valuation = convert.Int64ToFloat64By8Bit(int64valuetion)
+				valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64valuetion), 2)
 				sumcny += int64valuetion
 			} else {
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
@@ -429,7 +430,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 					int64cynPrice, _ := convert.StringToInt64By8Bit(symPrice.CnyPrice)
 					if int64cynPrice > 0 {
 						int64Valueation := convert.Int64MulInt64By8Bit(dt.Balance, int64cynPrice)
-						valuation = convert.Int64ToFloat64By8Bit(int64Valueation)
+						valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64Valueation), 2)
 						sumcny += int64Valueation
 					}
 				}
@@ -441,7 +442,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			tmp.Address = dt.Address
 			tmp.Freeze = convert.Int64ToFloat64By8Bit(dt.Freeze)
 			tmp.Balance = convert.Int64ToFloat64By8Bit(dt.Balance)
-			tmp.Valuation = valuation
+			tmp.Valuation =  utils.Round2(valuation, 2)
 			RespUCurrencyList = append(RespUCurrencyList, tmp)
 		}
 	}
