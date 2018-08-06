@@ -214,7 +214,9 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 
 	type Data struct {
 		SellId     uint64 `form:"sell_id"                json:"sell_id"`
+		SellName   string `form:"sell_name"              json:"sell_name"`
 		BuyId      uint64 `form:"buy_id"                 json:"buy_id"`
+		BuyName    string `form:"buy_name"                json:"buy_name"`
 		States     uint32 `form:"states"                 json:"states"`
 		ExpiryTime string `xorm:"expiry_time"            json:"expiry_time" `
 		TokenId     uint64  `form:"token_id"              json:"token_id"`
@@ -240,7 +242,9 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	}
 	var dt Data
 	dt.SellId     = order.SellId
+	dt.SellName   = order.SellName
 	dt.BuyId      = order.BuyId
+	dt.BuyName    = order.BuyName
 	dt.States     = order.States
 	dt.ExpiryTime = order.ExpiryTime
 	dt.TokenId    = order.TokenId

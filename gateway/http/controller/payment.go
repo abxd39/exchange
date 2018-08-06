@@ -75,9 +75,9 @@ func (this *CurrencyGroup) GetHasSetPay (c *gin.Context)  {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 	req := struct {
-		Uid   uint32   `json:"uid"`
+		Uid   uint64   `form:"uid"    json:"uid"`
 	}{}
-	err := c.ShouldBind(&req)
+	err := c.ShouldBindQuery(&req)
 	if err != nil {
 		log.Errorln(err)
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
@@ -85,8 +85,14 @@ func (this *CurrencyGroup) GetHasSetPay (c *gin.Context)  {
 	}
 
 	rsp , err := rpc.InnerService.CurrencyService.CallGetPaySet(&proto.PayRequest{
-		Uid:   uint64(req.Uid),
+		Uid:   req.Uid,
 	})
+	if err != nil {
+		log.Errorln(err)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+
 	type PaySet struct {
 		BankPay     uint32  `form:"bank_pay"    json:"bank_pay"`
 		AliPay      uint32  `form:"ali_pay"     json:"ali_pay"`

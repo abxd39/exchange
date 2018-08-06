@@ -201,19 +201,19 @@ func (*RPCServer) GetPaySet (ctx context.Context, req *proto.PayRequest, rsp *pr
 		bankpaySet  = 1
 	}
 	alipay := new(model.UserCurrencyAlipayPay)
-	alipay.GetByUid(req.Uid)
+	err = alipay.GetByUid(req.Uid)
 	if alipay.Alipay != ""{
 		alipaySet = 1
 	}
-
 	wechatpay := new(model.UserCurrencyWechatPay)
-	wechatpay.GetByUid(req.Uid)
+	err = wechatpay.GetByUid(req.Uid)
+
 	if wechatpay.Wechat != ""{
 		wechatpaySet = 1
 	}
 
 	paypal := new(model.UserCurrencyPaypalPay)
-	paypal.GetByUid(req.Uid)
+	err = paypal.GetByUid(req.Uid)
 
 	if paypal.Paypal != ""{
 		paypalSet = 1
@@ -231,6 +231,9 @@ func (*RPCServer) GetPaySet (ctx context.Context, req *proto.PayRequest, rsp *pr
 	payset.WeChatPay = wechatpaySet
 	payset.AliPay = alipaySet
 	payset.BankPay = bankpaySet
+
+
+	fmt.Println("payset:", payset)
 
 	data, err := json.Marshal(payset)
 	if err != nil {
