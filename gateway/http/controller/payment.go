@@ -69,6 +69,51 @@ type WeChatPay struct {
 	Verify string `form:"verify"       json:"verify"  binding:"required"`
 }
 
+func (this *CurrencyGroup) GetHasSetPay (c *gin.Context)  {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Uid   uint32   `json:"uid"`
+	}{}
+	err := c.ShouldBind(&req)
+	if err != nil {
+		log.Errorln(err)
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+
+	rsp , err := rpc.InnerService.CurrencyService.CallGetPaySet(&proto.PayRequest{
+		Uid:   uint64(req.Uid),
+	})
+	type PaySet struct {
+		BankPay     uint32  `form:"bank_pay"    json:"bank_pay"`
+		AliPay      uint32  `form:"ali_pay"     json:"ali_pay"`
+		WeChatPay   uint32  `form:"wechat_pay"  json:"wechat_pay"`
+		PaypalPay   uint32  `form:"paypal_pay"  json:"paypal_pay"`
+	}
+
+	var payset PaySet
+	err = json.Unmarshal([]byte(rsp.Data),&payset)
+	if err != nil {
+		log.Errorln(err)
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	ret.SetDataSection("setpays", payset)
+	return
+}
+
+
+
+
+
+
+
+
+
 func (*CurrencyGroup) BankPay(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {

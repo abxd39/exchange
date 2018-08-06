@@ -11,6 +11,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+
+
 /////////////   ali pay  //////////////////
 
 func (*RPCServer) Alipay(ctx context.Context, req *proto.AlipayRequest, rsp *proto.PaysResponse) (err error) {
@@ -179,4 +181,63 @@ func (*RPCServer) UpdateWeChatPay(ctx context.Context, req *proto.WeChatPayReque
 		log.Errorf(err.Error())
 	}
 	return nil
+}
+
+
+
+///////////////////////////////////////////////////////////
+
+
+func (*RPCServer) GetPaySet (ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) ( err error){
+	var bankpaySet uint32
+	var alipaySet  uint32
+	var wechatpaySet uint32
+	var paypalSet    uint32
+
+	bankpay := new(model.UserCurrencyBankPay)
+	err = bankpay.GetByUid(req.Uid)
+
+	if bankpay.CardNum != ""{
+		bankpaySet  = 1
+	}
+	alipay := new(model.UserCurrencyAlipayPay)
+	alipay.GetByUid(req.Uid)
+	if alipay.Alipay != ""{
+		alipaySet = 1
+	}
+
+	wechatpay := new(model.UserCurrencyWechatPay)
+	wechatpay.GetByUid(req.Uid)
+	if wechatpay.Wechat != ""{
+		wechatpaySet = 1
+	}
+
+	paypal := new(model.UserCurrencyPaypalPay)
+	paypal.GetByUid(req.Uid)
+
+	if paypal.Paypal != ""{
+		paypalSet = 1
+	}
+
+	type PaySet struct {
+		BankPay     uint32  `form:"bank_pay"    json:"bank_pay"`
+		AliPay      uint32  `form:"ali_pay"     json:"ali_pay"`
+		WeChatPay   uint32  `form:"wechat_pay"  json:"wechat_pay"`
+		PaypalPay   uint32  `form:"paypal_pay"  json:"paypal_pay"`
+	}
+
+	var payset PaySet
+	payset.PaypalPay = paypalSet
+	payset.WeChatPay = wechatpaySet
+	payset.AliPay = alipaySet
+	payset.BankPay = bankpaySet
+
+	data, err := json.Marshal(payset)
+	if err != nil {
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		return
+	}
+	rsp.Code = errdefine.ERRCODE_SUCCESS
+	rsp.Data = string(data)
+	return
 }

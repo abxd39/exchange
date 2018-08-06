@@ -85,10 +85,10 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	}
 
 
-	ads := new(model.Ads)
-	var nowAds *model.Ads
-	nowAds = ads.Get(od.AdId)
-	if nowAds == nil {
+	ads := new(model.Ads).Get(od.AdId)
+	//var nowAds *model.Ads
+	//nowAds = ads.Get(od.AdId)
+	if ads == nil {
 		rsp.Code = errdefine.ERRCODE_ADS_NOTEXIST
 		return nil
 	}
@@ -116,29 +116,28 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 			return err
 		}
 		fmt.Println("two level auth: ", req.Uid, authInfo.TwoLevelAuth)
-		if authInfo.TwoLevelAuth == 1 {
-			fmt.Println("two level auth go....")
-		}else{
+		if authInfo.TwoLevelAuth != 1 {
 			msg := "没有两次验证"
+			log.Println(msg)
 			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
 			err := errors.New(msg)
 			return err
 		}
 	}
 
-	od.AdType = nowAds.TypeId
-	od.Price = int64(nowAds.Price)
-	od.TokenId = uint64(nowAds.TokenId)
+	od.AdType = ads.TypeId
+	od.Price = int64(ads.Price)
+	od.TokenId = uint64(ads.TokenId)
 
-	if uint32(nowAds.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
-		od.SellId = nowAds.Uid
+	if uint32(ads.TypeId) == 2 {            //   广告状态为2(购买),那么当前用户肯定为出售
+		od.SellId = ads.Uid
 		od.BuyId  = uint64(req.Uid)
 	}else{
-		od.BuyId  = nowAds.Uid
+		od.BuyId  = ads.Uid
 		od.SellId = uint64(req.Uid)
 	}
 
-	od.PayId = nowAds.Pays
+	od.PayId = ads.Pays
 
 	//fmt.Println("od.selleid:", od.SellId, od.BuyId)
 	if od.SellId == od.BuyId {

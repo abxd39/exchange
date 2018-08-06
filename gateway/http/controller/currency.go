@@ -85,6 +85,8 @@ func (this *CurrencyGroup) Router(r *gin.Engine) {
 		Currency.GET("/get_asset_detail", this.GetAssetDetail) //  获取法币资产明细
 
 		Currency.POST("/transfer_to_token", this.TransferToToken) // 法币划转到代币
+
+		Currency.GET("/get_pay_set", this.GetHasSetPay)
 	}
 }
 
