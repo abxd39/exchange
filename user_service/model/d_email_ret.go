@@ -1,6 +1,7 @@
 package model
 
 import (
+	. "digicon/common/constant"
 	"digicon/common/random"
 	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
@@ -10,7 +11,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dm"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
-	. "digicon/common/constant"
 )
 
 func SendEmail(email string, ty int32) (err error) {

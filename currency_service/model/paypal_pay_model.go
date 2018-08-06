@@ -6,10 +6,10 @@ import (
 	proto "digicon/proto/rpc"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"digicon/common/constant"
 	"digicon/currency_service/rpc/client"
 	"fmt"
-	"digicon/common/constant"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserCurrencyPaypalPay struct {

@@ -1,13 +1,13 @@
 package model
 
 import (
+	. "digicon/common/constant"
 	. "digicon/user_service/dao"
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"time"
-	. "digicon/common/constant"
 )
 
 type RedisOp struct {
@@ -50,9 +50,8 @@ func getUserToken(uid uint64) string {
 }
 
 func getGree(account string) string {
-return fmt.Sprintf("account:%s:gree:exist",account)
+	return fmt.Sprintf("account:%s:gree:exist", account)
 }
-
 
 func (s *RedisOp) SetSmsCode(phone string, code string, ty int32) (err error) {
 	err = DB.GetRedisConn().Set(GetPhoneTagByLogic(phone, ty), code, 600*time.Second).Err()
@@ -185,9 +184,8 @@ func (s *RedisOp) GetUserToken(uid int32) (token []byte, err error) {
 }
 */
 
-
 func SetGreeSuccess(account string) (err error) {
-	err = DB.GetRedisConn().Set(getGree(account),1, 300*time.Second).Err()
+	err = DB.GetRedisConn().Set(getGree(account), 1, 300*time.Second).Err()
 	if err != nil {
 		log.Errorln(err.Error())
 		return
@@ -195,8 +193,7 @@ func SetGreeSuccess(account string) (err error) {
 	return
 }
 
-
-func  GetGreeSuccess(account string) (err error) {
+func GetGreeSuccess(account string) (err error) {
 	err = DB.GetRedisConn().Get(getGree(account)).Err()
 	if err != nil {
 		log.Errorln(err.Error())
@@ -205,7 +202,7 @@ func  GetGreeSuccess(account string) (err error) {
 	return
 }
 
-func  DelGreeSuccess(account string) (err error) {
+func DelGreeSuccess(account string) (err error) {
 	err = DB.GetRedisConn().Del(getGree(account)).Err()
 	if err != nil {
 		log.Errorln(err.Error())

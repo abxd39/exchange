@@ -160,7 +160,7 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, tokenName str
 			return
 		}
 
-		rdsClient := dao.DB.GetRedisConn()
+		rdsClient := dao.DB.GetCommonRedisConn()
 		rdsClient.RPush(constant.RDS_CURRENCY_TO_TOKEN_TODO, msg)
 	}()
 
@@ -170,7 +170,7 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, tokenName str
 //从代币转入
 func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMessage) error {
 	//!!!!重要，判断消息是否已处理过
-	rdsClient := dao.DB.GetRedisConn()
+	rdsClient := dao.DB.GetCommonRedisConn()
 	isDid, history, err := new(UserCurrencyHistory).IsTransferFromTokenDid(msg.Id)
 	if err != nil {
 		return err

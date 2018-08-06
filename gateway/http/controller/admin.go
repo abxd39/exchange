@@ -10,7 +10,6 @@ import (
 
 type AdminGroup struct{}
 
-
 func (s *AdminGroup) Router(r *gin.Engine) {
 	action := r.Group("/admin")
 	{
@@ -19,17 +18,15 @@ func (s *AdminGroup) Router(r *gin.Engine) {
 	}
 }
 
-
 func (s *AdminGroup) Refresh(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-
-	param:=struct {
+	param := struct {
 		Uid uint64 `form:"uid" json:"uid" binding:"required"`
-		Key string  `form:"key" json:"key" binding:"required"`
+		Key string `form:"key" json:"key" binding:"required"`
 	}{}
 
 	if err := c.ShouldBind(&param); err != nil {
@@ -38,7 +35,7 @@ func (s *AdminGroup) Refresh(c *gin.Context) {
 		return
 	}
 
-	if param.Key!="hhhhhhhhhhhhhhhhhh" {
+	if param.Key != "hhhhhhhhhhhhhhhhhh" {
 		ret.SetErrCode(ERRCODE_PARAM)
 		return
 	}

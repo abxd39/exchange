@@ -555,7 +555,7 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 			return
 		}
 
-		rdsClient := DB.GetRedisConn()
+		rdsClient := DB.GetCommonRedisConn()
 		rdsClient.RPush(constant.RDS_TOKEN_TO_CURRENCY_TODO, msg)
 	}()
 
@@ -576,7 +576,7 @@ func (s *UserToken) TransferToCurrencyDone(msg *proto.TransferToCurrencyDoneMess
 //从法币转入
 func (s *UserToken) TransferFromCurrency(msg *proto.TransferToTokenTodoMessage) error {
 	//!!!!重要，判断消息是否已处理过
-	rdsClient := DB.GetRedisConn()
+	rdsClient := DB.GetCommonRedisConn()
 	isDid, history, err := new(MoneyRecord).IsTransferFromCurrencyDid(msg.Id)
 	if err != nil {
 		return err

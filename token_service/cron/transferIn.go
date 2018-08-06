@@ -10,7 +10,7 @@ import (
 
 //划入代币处理，来源：法币
 func HandlerTransferFromCurrency() {
-	rdsClient := dao.DB.GetRedisConn()
+	rdsClient := dao.DB.GetCommonRedisConn()
 	userTokenMD := new(model.UserToken)
 
 	for {
