@@ -160,7 +160,7 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, tokenName str
 			return
 		}
 
-		rdsClient := dao.DB.GetRedisConn()
+		rdsClient := dao.DB.GetCommonRedisConn()
 		rdsClient.RPush(constant.RDS_CURRENCY_TO_TOKEN_TODO, msg)
 	}()
 
