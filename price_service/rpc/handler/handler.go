@@ -281,9 +281,9 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *proto.VolumeResponse) error {
 	data := model.GetVolumeTotal()
 	if data != nil {
-		rsp.DayVolume = data.DayVolume
-		rsp.WeekVolume = data.WeekVolume
-		rsp.MonthVolume = data.MonthVolume
+		rsp.DayVolume = data.DayVolume / 100000000
+		rsp.WeekVolume = data.WeekVolume / 100000000
+		rsp.MonthVolume = data.MonthVolume / 100000000
 	}
 	return nil
 }
