@@ -93,11 +93,12 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		return nil
 	}
 
+	fmt.Println("ads is two level: ", ads.IsTwolevel)
 	if ads.IsTwolevel == 1{
 		authResp, err := client.InnerService.UserSevice.CallGetAuthInfo(uint64(req.Uid))
 		if err != nil {
 			rsp.Code = errdefine.ERRCODE_UNKNOWN
-			return err 
+			return err
 		}
 		type AuthInfo struct {
 			EmailAuth     int32  `json:"email_auth"`     //
@@ -114,6 +115,7 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
 			return err
 		}
+		fmt.Println("two level auth: ", req.Uid, authInfo.TwoLevelAuth)
 		if authInfo.TwoLevelAuth == 1 {
 			fmt.Println("two level auth go....")
 		}else{

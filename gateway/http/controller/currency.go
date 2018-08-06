@@ -1064,8 +1064,11 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	ret.SetDataSection("sum", respdata.Sum)
 	ret.SetDataSection("sum_cny", utils.Round2(respdata.SumCNY, 2))
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
-
 }
+
+
+
+
 
 func (this *CurrencyGroup) GetUserCurrencyDetail(c *gin.Context) {
 	ret := NewPublciError()
