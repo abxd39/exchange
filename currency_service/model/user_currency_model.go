@@ -86,7 +86,7 @@ func (this *UserCurrency) SetBalance(uid uint64, token_id uint32, amount int64) 
 	return
 }
 
-func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, tokenName string, num int64) error {
+func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, num int64) error {
 	//检查法币是否足够
 	userCurrency, err := this.GetBalance(uid, uint32(tokenId))
 	if err != nil {
@@ -239,10 +239,17 @@ func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMes
 	}
 
 	//2.法币流水
-	_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
+	result, err := currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
 		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
-		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(UserCurrencyHistory).TableName(), msg.Uid, msg.Id, msg.TokenId, msg.Num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
+		" SELECT %d, %[2]d, '%d', %d, %d, %d, %d, '%s'"+
+		" FROM DUAL"+
+		" WHERE NOT EXISTS (SELECT order_id FROM %[1]s WHERE order_id='%[3]d')", new(UserCurrencyHistory).TableName(), msg.Uid, msg.Id, msg.TokenId, msg.Num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
 	if err != nil {
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
+	affected, err := result.RowsAffected()
+	if err != nil || affected == 0 { //再次检查消息是否已处理!!!
 		currencySession.Rollback()
 		return errors.NewSys(err)
 	}
