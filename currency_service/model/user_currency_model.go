@@ -215,9 +215,17 @@ func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMes
 
 	//1.法币账号
 	if !has { //法币账户不存在，新建
+		//获取token_name
+		tokensModel := new(CommonTokens)
+		token := tokensModel.Get(uint32(msg.TokenId), "")
+		if token == nil {
+			return errors.NewNormal("获取token信息失败")
+		}
+
+		//新建法币账户
 		_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
 			" (uid, token_id, token_name, balance, version)"+
-			" VALUES (%d, %d, '%s', %d, 1)", this.TableName(), msg.Uid, msg.TokenId, "", newCurrBalance))
+			" VALUES (%d, %d, '%s', %d, 1)", this.TableName(), msg.Uid, msg.TokenId, token.Mark, newCurrBalance))
 		if err != nil {
 			currencySession.Rollback()
 			return errors.NewSys(err)
