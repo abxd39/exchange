@@ -16,8 +16,7 @@ import (
 	"digicon/common/convert"
 	"digicon/currency_service/rpc/client"
 	"strconv"
-	//"github.com/micro/go-micro/errors"
-	"errors"
+
 )
 
 // 获取订单列表
@@ -113,15 +112,16 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 		if err = json.Unmarshal([]byte(authResp.Data), &authInfo); err != nil {
 			fmt.Println(err)
 			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
-			return err
+			return nil
 		}
-		fmt.Println("two level auth: ", req.Uid, authInfo.TwoLevelAuth)
+		fmt.Println("two level auth: ", req.Uid, authInfo.TwoLevelAuth, authInfo.TwoLevelAuth==1)
 		if authInfo.TwoLevelAuth != 1 {
 			msg := "没有两次验证"
+			fmt.Println(msg)
 			log.Println(msg)
 			rsp.Code = errdefine.ERRCODE_ADS_NEED_TWO_LEVEL
-			err := errors.New(msg)
-			return err
+			//err := errors.New(msg)
+			return nil
 		}
 	}
 
@@ -142,11 +142,12 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	//fmt.Println("od.selleid:", od.SellId, od.BuyId)
 	if od.SellId == od.BuyId {
 		msg := "无法下自己订单"
-		err := errors.New(msg)
+		//err := errors.New(msg)
 		log.Errorln(msg)
-		rsp.Code = errdefine.ERRCODE_ORDER_ERROR
+		fmt.Println(msg)
+		rsp.Code = errdefine.ERRCODE_TRADE_TO_SELF
 		rsp.Message = msg
-		return err
+		return nil
 	}
 
 	var uids []uint64
