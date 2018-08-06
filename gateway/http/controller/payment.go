@@ -99,6 +99,19 @@ func (*CurrencyGroup) BankPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
+	type RRRBankPay struct {
+		Uid        uint64 `form:"uid"        json:"uid"         `
+		Name       string `form:"name"       json:"name"        `
+		CardNum    string `form:"card_num"   json:"card_num"    `
+		BankName   string `form:"bank_name"  json:"bank_name"   `
+		BankInfo   string `form:"bank_info"  json:"bank_info"   `
+	}
+	rrrrbankpay := new(RRRBankPay)
+	rrrrbankpay.Uid= req.Uid
+	rrrrbankpay.Name = req.Name
+	rrrrbankpay.BankInfo = req.BankInfo
+	rrrrbankpay.BankName = req.BankName
+	ret.SetDataSection("bank_pay", rrrrbankpay)
 	ret.SetErrCode(rsp.Code)
 	return
 
@@ -171,8 +184,20 @@ func (this *CurrencyGroup) UpdateBankPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
+		type RRRBankPay struct {
+			Uid        uint64 `form:"uid"        json:"uid"         `
+			Name       string `form:"name"       json:"name"        `
+			CardNum    string `form:"card_num"   json:"card_num"    `
+			BankName   string `form:"bank_name"  json:"bank_name"   `
+			BankInfo   string `form:"bank_info"  json:"bank_info"   `
+		}
+		rrrrbankpay := new(RRRBankPay)
+		rrrrbankpay.Uid= req.Uid
+		rrrrbankpay.Name = req.Name
+		rrrrbankpay.BankInfo = req.BankInfo
+		rrrrbankpay.BankName = req.BankName
+		ret.SetDataSection("bank_pay", rrrrbankpay)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-		//ret.SetDataSection("")
 	}
 	return
 }
@@ -190,14 +215,14 @@ func (this *CurrencyGroup) Alipay(c *gin.Context) {
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	url, err := this.upload_picture(req.Url)
+	url, err := this.upload_picture(req.ReceiptCode)
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
@@ -213,14 +238,23 @@ func (this *CurrencyGroup) Alipay(c *gin.Context) {
 		Name:        req.Name,
 		Alipay:      req.Alipay,
 		ReceiptCode: url,
+		Verify:      req.Verify,
 	})
 	if err != nil {
-		log.Errorf(err.Error())
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	} else {
+		var alipay  RspAliPay
+		alipay.Uid = req.Uid
+		alipay.Name = req.Name
+		alipay.Alipay = req.Alipay
+		alipay.Receipt_code = url
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+		//fmt.Println(alipay)
+		ret.SetDataSection("ali_pay", alipay)
 		return
 	}
-	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-	return
 }
 
 func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
@@ -249,7 +283,6 @@ func (this *CurrencyGroup) GetAliPay(c *gin.Context) {
 	} else {
 		ret.SetDataSection("ali_pay", alipay)
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-
 	}
 
 	return
@@ -261,20 +294,19 @@ func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-
 	req := struct {
 		Uid          uint64 `form:"uid"          json:"uid"     binding:"required"`
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Alipay       string `form:"alipay"       json:"alipay"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	url, err := this.upload_picture(req.Url)
+	url, err := this.upload_picture(req.ReceiptCode)
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
@@ -298,10 +330,17 @@ func (this *CurrencyGroup) UpdateAliPay(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	} else {
+		var alipay  RspAliPay
+		alipay.Uid = req.Uid
+		alipay.Name = req.Name
+		alipay.Alipay = req.Alipay
+		alipay.Receipt_code = url
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+		//fmt.Println(alipay)
+		ret.SetDataSection("ali_pay", alipay)
+		return
 	}
 
-	return
 }
 
 ///////////////////// ali pay  end /////////////////////
@@ -330,6 +369,11 @@ func (py *CurrencyGroup) Paypal(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
+
+	var paypay RspPaypalPay
+	paypay.Paypal = req.Paypal
+	paypay.Uid = req.Uid
+	ret.SetDataSection("paypal_pay", paypay)
 	ret.SetErrCode(rsp.Code)
 	return
 }
@@ -385,8 +429,11 @@ func (this *CurrencyGroup) UpdatePaypal(c *gin.Context) {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	} else {
+		var paypay RspPaypalPay
+		paypay.Uid = req.Uid
+		paypay.Paypal = req.Paypal
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-
+		ret.SetDataSection("paypal_pay", paypay)
 	}
 	return
 }
@@ -404,14 +451,14 @@ func (this *CurrencyGroup) WeChatPay(c *gin.Context) {
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	url, err := this.upload_picture(req.Url)
+	url, err := this.upload_picture(req.ReceiptCode)
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
@@ -427,14 +474,24 @@ func (this *CurrencyGroup) WeChatPay(c *gin.Context) {
 		Name:        req.Name,
 		Wechat:      req.Wechat,
 		ReceiptCode: url,
+		Verify:      req.Verify,
 	})
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	// ret.SetDataSection("data", rsp.Data)
-	ret.SetErrCode(rsp.Code)
+	if rsp.Code == ERRCODE_SUCCESS{
+		var wechatPay RspWeChatPay
+		wechatPay.Receipt_code = url
+		wechatPay.Name = req.Name
+		wechatPay.Uid = req.Uid
+		wechatPay.Wechat = req.Wechat
+		ret.SetDataSection("wechat_pay", wechatPay)
+		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	}else{
+		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	}
 	return
 }
 
@@ -479,14 +536,14 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 		Name         string `form:"name"         json:"name"    binding:"required"`
 		Wechat       string `form:"wechat"       json:"wechat"  binding:"required"`
 		Verify       string `form:"verify"       json:"verify"  binding:"required"`
-		Url          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
+		ReceiptCode          string `form:"receipt_code"         json:"receipt_code" binding:"required"`
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	url, err := this.upload_picture(req.Url)
+	url, err := this.upload_picture(req.ReceiptCode)
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
@@ -501,12 +558,22 @@ func (this *CurrencyGroup) UpdateWeChatPay(c *gin.Context) {
 		Name:        req.Name,
 		Wechat:      req.Wechat,
 		ReceiptCode: url,
+		Verify:      req.Verify,
 	})
 	if err != nil {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
-	} else {
+	}
+	if rsp.Code == ERRCODE_SUCCESS{
+		var wechatPay RspWeChatPay
+		wechatPay.Receipt_code = url
+		wechatPay.Name = req.Name
+		wechatPay.Uid = req.Uid
+		wechatPay.Wechat = req.Wechat
+		ret.SetDataSection("wechat_pay", wechatPay)
+		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+	}else{
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 	}
 
@@ -537,8 +604,7 @@ func (a *CurrencyGroup) upload_picture(file string) (string, error) {
 		return file, nil
 	}
 	fmt.Println("base34-2")
-	fmt.Println(file)
-
+	//fmt.Println(file)
 	t := time.Now()
 	timestamp := strconv.FormatInt(t.UTC().UnixNano(), 10)
 	subm := strings.IndexByte(file, ',')

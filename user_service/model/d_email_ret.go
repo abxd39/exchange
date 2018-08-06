@@ -10,6 +10,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/dm"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
+	. "digicon/common/constant"
 )
 
 func SendEmail(email string, ty int32) (err error) {

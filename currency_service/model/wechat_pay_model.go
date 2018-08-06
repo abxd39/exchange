@@ -2,13 +2,17 @@ package model
 
 import (
 	"digicon/currency_service/dao"
-	log "github.com/sirupsen/logrus"
-	"digicon/currency_service/rpc/client"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"time"
-	"digicon/common/constant"
+	"digicon/currency_service/rpc/client"
+	log "github.com/sirupsen/logrus"
+	"fmt"
+	. "digicon/common/constant"
 )
+
+
+
 
 type UserCurrencyWechatPay struct {
 	Uid         uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"     json:"uid"`
@@ -22,19 +26,27 @@ type UserCurrencyWechatPay struct {
 func (w *UserCurrencyWechatPay) SetWechatPay(req *proto.WeChatPayRequest) (int32, error) {
 
 	/////////////////  1.  验证  验证码 /////////////////////////
+	fmt.Println("req:", req)
+
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
 		Uid:      req.Uid,
 		Code:     req.Verify,
-		AuthType:  constant.SMS_WECHAT_PAY, // 设置银行卡支付 10
+		AuthType: SMS_WECHAT_PAY, // 设置银行卡支付 8
 	})
+	fmt.Println(rsp, err)
 	if err != nil {
-		log.Errorln(err.Error())
+		log.Println(rsp)
+		log.Errorln(err)
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
-	if rsp.Code != ERRCODE_SUCCESS {
-		log.Errorln(err.Error())
-		return ERRCODE_SMS_CODE_DIFF, err
+
+
+	if rsp != nil && rsp.Code != ERRCODE_SUCCESS {
+		log.Println(rsp)
+		return ERRCODE_SMS_CODE_DIFF, nil
 	}
+
+
 
 	//是否需要验证微信是否属于该账户
 	//查询数据库是否存在
