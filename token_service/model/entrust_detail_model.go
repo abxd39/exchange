@@ -87,10 +87,26 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int,symbol string,
 	}
 
 	engine := DB.GetMysqlConn()
-	query := engine.Where("symbol = ? and uid=? and created_time > ? and created_time <= ?", symbol,uid,startTime,endTime).In("states",statess).In("opt",optt)
+	engine.ShowSQL(true)
+	query := engine.Where("uid = ?",uid)
+	if symbol != "" {
+		query.Where("symbol = ?",symbol)
+	}
+	if startTime != 0 {
+		query.Where("created_time >= ?",startTime)
+	}
+	if endTime != 0 {
+		query.Where("created_time <= ?",endTime)
+	}
+	query.In("states",statess)
+	query.In("opt",optt)
+	//query := engine.Where("symbol = ? and uid=? and created_time > ? and created_time <= ?", symbol,uid,startTime,endTime).In("states",statess).In("opt",optt)
 
 	tempQuery := query.Clone()
 	count, err := tempQuery.Count(s)
+
+	fmt.Println("结果数据：",count,err)
+
 	if err != nil {
 		return nil, nil, err
 	}
@@ -111,7 +127,7 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int,symbol string,
 
 func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail {
 	m := make([]EntrustDetail, 0)
-	err := DB.GetMysqlConn().Where("uid=?", uid).Limit(limit, page-1).Find(&m)
+	err := DB.GetMysqlConn().Where("uid=?", uid).Desc("created_time").Limit(limit, page-1).Find(&m)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil
@@ -122,7 +138,7 @@ func (s *EntrustDetail) GetHistory(uid uint64, limit, page int) []EntrustDetail 
 func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	m := make([]EntrustDetail, 0)
 	i := []int{0, 1}
-	err := DB.GetMysqlConn().Where("uid=?", uid).In("states", i).Limit(limit, page-1).Find(&m)
+	err := DB.GetMysqlConn().Where("uid=?", uid).In("states", i).Desc("created_time").Limit(limit, page-1).Find(&m)
 	if err != nil {
 		log.Fatalln(err.Error())
 		return nil

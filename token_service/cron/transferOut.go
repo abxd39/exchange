@@ -6,12 +6,13 @@ import (
 	"digicon/token_service/dao"
 	"digicon/token_service/model"
 	"encoding/json"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/log"
 	"time"
 )
 
-//划转到法币成功事件处理
+//划出到法币成功，标记消息状态为已完成
 func HandlerTransferToCurrencyDone() {
-	rdsClient := dao.DB.GetRedisConn()
+	rdsClient := dao.DB.GetCommonRedisConn()
 	userTokenMD := new(model.UserToken)
 
 	for {
@@ -33,18 +34,20 @@ func HandlerTransferToCurrencyDone() {
 	}
 }
 
-//划转到法币消息发送或处理失败，定时重新发送
+//消息重发机制，发送失败或远程处理失败
 func ResendTransferToCurrencyMsg() {
-	rdsClient := dao.DB.GetRedisConn()
+	rdsClient := dao.DB.GetCommonRedisConn()
 	transferRecordMD := new(model.TransferRecord)
 
 	for {
 		list, err := transferRecordMD.ListOverime(2)
+		log.Info("划转到法币消息重发，overtime_list：", len(list), ", error：", err)
 		if err != nil {
 			continue
 		}
 
 		for _, v := range list {
+			log.Info("划转到法币消息重发，msg：", v, ", redis_list_name：", constant.RDS_TOKEN_TO_CURRENCY_TODO)
 			msg, err := json.Marshal(proto.TransferToCurrencyTodoMessage{
 				Id:         int64(v.Id),
 				Uid:        int32(v.Uid),

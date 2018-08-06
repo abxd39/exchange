@@ -28,6 +28,7 @@ func initRouter() *gin.Engine {
 	new(controller.ContentManageGroup).Router(r)
 
 	new(controller.CommonGroup).Router(r)
+	new(controller.AdminGroup).Router(r)
 	return r
 }
 

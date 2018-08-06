@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 )
 
-//代币划转到法币事件处理
+//划入法币处理，来源：代币
 func HandlerTransferFromToken() {
-	rdsClient := dao.DB.GetRedisConn()
+	rdsClient := dao.DB.GetCommonRedisConn()
 	userCurrencyMD := new(model.UserCurrency)
 
 	for {

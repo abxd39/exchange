@@ -36,5 +36,7 @@ func GetPrice(symbol string) (*Price, bool) {
 	if err != nil {
 		log.Fatalln("err data price")
 	}
+
+	log.Infof("init price is %d",m.Price)
 	return m, ok
 }

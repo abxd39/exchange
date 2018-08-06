@@ -1,10 +1,10 @@
 package handler
 
 import (
-	log "github.com/sirupsen/logrus"
 	"digicon/currency_service/model"
 	proto "digicon/proto/rpc"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 
 	"digicon/proto/common"
 	"github.com/gin-gonic/gin/json"
@@ -15,11 +15,13 @@ import (
 
 func (*RPCServer) Alipay(ctx context.Context, req *proto.AlipayRequest, rsp *proto.PaysResponse) (err error) {
 	p := model.UserCurrencyAlipayPay{
+		Uid:         req.Uid,
 		Name:        req.Name,
 		Alipay:      req.Alipay,
 		ReceiptCode: req.ReceiptCode,
 	}
 	rsp.Code, err = p.SetAlipay(req)
+	rsp.Data = p.ReceiptCode
 	fmt.Println(rsp.Code)
 	if err != nil {
 		log.Errorf(err.Error())
@@ -49,6 +51,7 @@ func (*RPCServer) UpdateAliPay(ctx context.Context, req *proto.AlipayRequest, rs
 		ReceiptCode: req.ReceiptCode,
 	}
 	rsp.Code, err = p.SetAlipay(req)
+	rsp.Data = p.ReceiptCode
 	fmt.Println(rsp.Code)
 	if err != nil {
 		log.Errorf(err.Error())
@@ -75,6 +78,7 @@ func (*RPCServer) BankPay(ctx context.Context, req *proto.BankPayRequest, rsp *p
 func (*RPCServer) GetBankPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error) {
 	p := new(model.UserCurrencyBankPay)
 	err = p.GetByUid(req.Uid)
+
 	data, err := json.Marshal(p)
 	if err != nil {
 		rsp.Code = errdefine.ERRCODE_UNKNOWN

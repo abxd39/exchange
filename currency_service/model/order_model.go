@@ -319,9 +319,14 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 		session.Rollback()
 		return
 	}
+
 	id = this.Id
 	code = ERRCODE_SUCCESS
+
+	/////    检查是否超时
 	go CheckOrderExiryTime(id, this.ExpiryTime)
+	/////    检查广告是否需要下架
+	go AdsAutoDownline(adsM.Id)
 	return
 }
 
@@ -678,6 +683,33 @@ func (this *Order) GetOrdersByStatus()(ods []Order, err error){
 func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
 	err = engine.Where("(sell_id = ? OR buy_id=? ) AND created_time >= ? AND created_time <= ? AND states=3", uid, uid, startTime, endTime).Find(&ods)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
+
+
+/*
+
+*/
+func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhistory []Order, err error) {
+	now := time.Now()
+	if startTime == "" {
+		startTime = now.Format("2006-01-02")
+	}
+	if endTime == "" {
+		endTime = now.Format("2006-01-02")
+	}
+	engine := dao.DB.GetMysqlConn()
+	if limit != 0 {
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Limit(int(limit)).Find(&uhistory)
+	} else {
+		err = engine.Where("created_time >= ? && created_time <= ?", startTime, endTime).Find(&uhistory)
+	}
 	if err != nil {
 		log.Errorln(err.Error())
 		return

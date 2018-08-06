@@ -277,3 +277,46 @@ func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, er
 	sumLimit, err = engine.Where("uid=? AND token_id=?  AND type_id=2  AND is_del = 0", uid, tokenId).SumInt(ssAds, "num")
 	return
 }
+
+/*
+	获取在线广告最高价格和最低价格
+*/
+
+func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) ( MaxPrice, MinPrice int64, err error){
+	//sql := "select MAX(price)  AS max_price,MIN(price) AS min_price from ads where token_id =? and states=1"
+	sql := " SELECT MAX(order.price)  AS max_price,MIN(order.price) AS min_price FROM  `order` LEFT JOIN  `ads`  ON `ads`.`id` = `order`.`ad_id` WHERE order.token_id =? AND   `ads`.`states`=1 AND `ads`.`is_del`=0;"
+	engine := dao.DB.GetMysqlConn()
+	type PriceStruct struct {
+		MaxPrice  int64   `xorm:"BIGINT(20)"  json:"max_price"`
+		MinPrice  int64   `xorm:"BIGINT(20)"  json:"min_price"`
+	}
+	price := PriceStruct{}
+	_, err  = engine.SQL(sql, tokenId).Get(&price)
+	MaxPrice = price.MaxPrice
+	MinPrice = price.MinPrice
+	return
+}
+
+
+
+
+/*
+	广告下架
+*/
+func AdsAutoDownline(id  uint64) {
+	ads := new(Ads).Get(id)
+	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
+	minLimit := ads.MinLimit * 100000000
+	if curCnyPrice < int64(minLimit) {
+		log.Errorln("当前广告的总价已小于最小价格的值, 广告自动下架")
+		sql := "update ads set states=0 where id=?"
+		engine := dao.DB.GetMysqlConn()
+		_, err := engine.Exec(sql, id)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+}
+
+

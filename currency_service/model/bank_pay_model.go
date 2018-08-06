@@ -11,15 +11,16 @@ import (
 	"strings"
 	"time"
 
+	"digicon/common/constant"
 	log "github.com/sirupsen/logrus"
 )
 
 type UserCurrencyBankPay struct {
-	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
-	Name       string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"`
-	CardNum    string `xorm:"not null default '' comment('银行卡号') VARCHAR(20)"`
-	BankName   string `xorm:"not null default '' comment('银行名称') VARCHAR(20)"`
-	BankInfo   string `xorm:"not null default '' comment('支行名称') VARCHAR(20)"`
+	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"     json:"uid"`
+	Name       string `xorm:"not null default '' comment('用户姓名') VARCHAR(20)"  json:"name"`
+	CardNum    string `xorm:"not null default '' comment('银行卡号') VARCHAR(20)"  json:"card_num"`
+	BankName   string `xorm:"not null default '' comment('银行名称') VARCHAR(20)"  json:"bank_name"`
+	BankInfo   string `xorm:"not null default '' comment('支行名称') VARCHAR(20)"  json:"bank_info"`
 	CreateTime string `xorm:"not null comment('创建时间') DATETIME"`
 	UpdataTime string `xorm:"not null comment('修改时间') DATETIME"`
 }
@@ -33,14 +34,13 @@ func (p *UserCurrencyBankPay) SetBankPay(req *proto.BankPayRequest) (int32, erro
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
 		Uid:      req.Uid,
 		Code:     req.Verify,
-		AuthType: 7, // 设置银行卡支付 7
+		AuthType: constant.SMS_BANK_PAY, // 设置银行卡支付 7
 	})
 	if err != nil {
 		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	if rsp.Code != ERRCODE_SUCCESS {
-		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 

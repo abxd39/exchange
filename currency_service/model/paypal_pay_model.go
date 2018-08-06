@@ -6,14 +6,15 @@ import (
 	proto "digicon/proto/rpc"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"digicon/common/constant"
 	"digicon/currency_service/rpc/client"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserCurrencyPaypalPay struct {
-	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"`
-	Paypal     string `xorm:"not null default '' comment('paypal 账号') VARCHAR(20)"`
+	Uid        uint64 `xorm:"not null pk default 0 comment('用户uid') INT(10)"        json:"uid"`
+	Paypal     string `xorm:"not null default '' comment('paypal 账号') VARCHAR(20)"  json:"paypal"`
 	CreateTime string `xorm:"not null comment('创建时间') DATETIME"`
 	UpdateTime string `xorm:"not null comment('修改时间') DATETIME"`
 }
@@ -24,7 +25,7 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 	rsp, err := client.InnerService.UserSevice.CallAuthVerify(&proto.AuthVerifyRequest{
 		Uid:      req.Uid,
 		Code:     req.Verify,
-		AuthType: 10, // 设置银行卡支付 10
+		AuthType: constant.SMS_PAYPAL_PAY, // 设置银行卡支付 10
 	})
 	fmt.Println("=========================", rsp)
 	if err != nil {
@@ -32,7 +33,6 @@ func (pal *UserCurrencyPaypalPay) SetPaypal(req *proto.PaypalRequest) (int32, er
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 	if rsp.Code != ERRCODE_SUCCESS {
-		log.Errorln(err.Error())
 		return ERRCODE_SMS_CODE_DIFF, err
 	}
 

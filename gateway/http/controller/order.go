@@ -426,12 +426,12 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	}
 
 	type UserCurrencyHistory struct {
-		Num         int64  `json:"num"           `
+		Price         int64  `json:"price"           `
 		Fee         int64  `json:"fee"           `
 		CreatedTime string `json:"created_time"  `
 	}
 	type RespUserCurrencyHistory struct {
-		Num         float64 `json:"num"           `
+		Price         float64 `json:"price"           `
 		Fee         float64 `json:"fee"           `
 		CreatedTime string  `json:"created_time"  `
 	}
@@ -446,7 +446,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	for _, v := range uCurrencyHistoryList {
 		var tmp RespUserCurrencyHistory
 		tmp.CreatedTime = v.CreatedTime
-		tmp.Num = convert.Int64ToFloat64By8Bit(v.Num)
+		tmp.Price = convert.Int64ToFloat64By8Bit(v.Price)
 		tmp.Fee = convert.Int64ToFloat64By8Bit(v.Fee)
 		rspCuHistory = append(rspCuHistory, tmp)
 	}

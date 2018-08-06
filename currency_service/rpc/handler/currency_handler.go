@@ -7,6 +7,7 @@ import (
 	"fmt"
 	//"github.com/gin-gonic/gin/json"
 	"digicon/common/convert"
+	"digicon/common/errors"
 	"digicon/currency_service/rpc/client"
 	"encoding/json"
 	"golang.org/x/net/context"
@@ -356,11 +357,15 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 
 	tkconfig := new(model.TokenConfigTokenCNy)
 
+	fmt.Println("data:", data)
+
 	var symbols []string
 	for _, dt := range data {
 		if dt.TokenName != "BTC" {
-			symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
-			symbols = append(symbols, symbol)
+			if dt.TokenName != ""{
+				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
+				symbols = append(symbols, symbol)
+			}
 		}
 	}
 
@@ -385,12 +390,15 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	var sum int64
 	var sumcny int64
 
+	fmt.Println("symbols:", symbols)
+
 	symbolData, err := client.InnerService.UserSevice.CallGetSymbolsRate(symbols)
 
 	if err != nil {
 		log.Println(err.Error())
+		fmt.Println(err.Error())
 		rsp.Data = "{}"
-		return err
+		//return err
 	} else {
 		for _, dt := range data {
 			var tmp RespBalance
@@ -409,6 +417,9 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			} else {
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symPrice := symbolData.Data[symbol]
+
+				fmt.Println("symPrice:", symPrice)
+
 				if symPrice != nil {
 					//fmt.Println("cnyPrice: ", symPrice.Price, symPrice.CnyPrice, dt.TokenName)
 					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
@@ -457,7 +468,7 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 	var resultBalance int64
 	if balance.Balance > sumLimit {
 		resultBalance = balance.Balance - sumLimit
-	}else{
+	} else {
 		resultBalance = 0
 	}
 
@@ -477,22 +488,40 @@ func (s *RPCServer) GetCurrencyBalance(ctx context.Context, req *proto.GetCurren
 func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPriceRequest, rsp *proto.OtherResponse) error {
 	//
 	//sellingPriceMap := map[uint32]float64{2: 48999.00, 3: 3003.34, 1: 7.08} // 1 ustd, 2 btc, 3 eth, 4, SDC(平台币)
-	tokenConfigCny := new(model.TokenConfigTokenCNy)
-
-	err := tokenConfigCny.GetPrice(req.TokenId)
+	var maxmaxprice float64
+	var minminprice float64
 	var price float64
-	if err != nil {
-		log.Println(err.Error())
-		price = 0.00
-	} else {
-		price = convert.Int64ToFloat64By8Bit(tokenConfigCny.Price)
+	maxPrice, minPrice, _  := new(model.Ads).GetOnlineAdsMaxMinPrice(req.TokenId)
+	fmt.Println("maxPrice:", maxPrice, "minPrice: ", minPrice)
+	if maxPrice != 0 {
+		maxmaxprice = convert.Int64ToFloat64By8Bit(maxPrice)
+	}
+	if minPrice != 0 {
+		minminprice = convert.Int64ToFloat64By8Bit(minPrice)
+	}
+	if maxPrice == 0 || minPrice == 0 {
+		tokenConfigCny := new(model.TokenConfigTokenCNy)
+		err := tokenConfigCny.GetPrice(req.TokenId)
+		if err != nil {
+			log.Println(err.Error())
+			price = 0.00
+		} else {
+			price = convert.Int64ToFloat64By8Bit(tokenConfigCny.Price)
+		}
+		if minPrice == 0 {
+			minminprice = price
+		}
+		if maxPrice == 0 {
+			maxmaxprice = price
+		}
 	}
 
 	type SellingPrice struct {
 		Cny float64
+		Mincny float64
 	}
 
-	dt := SellingPrice{Cny: price}
+	dt := SellingPrice{Cny: maxmaxprice, Mincny:minminprice}
 	data, _ := json.Marshal(dt)
 	rsp.Data = string(data)
 	rsp.Code = errdefine.ERRCODE_SUCCESS
@@ -676,11 +705,15 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 	}
 }
 
-/*
-	交易划转
-*/
-func (s *RPCServer) Transfer(ctx context.Context, req *proto.TransferRequest, rsp *proto.OtherResponse) error {
-	fmt.Println(req)
+// 法币划转到代币
+func (s *RPCServer) TransferToToken(ctx context.Context, req *proto.TransferToTokenRequest, rsp *proto.OtherResponse) error {
+	userCurrencyModel := &model.UserCurrency{}
+	err := userCurrencyModel.TransferToToken(req.Uid, int(req.TokenId), "", int64(req.Num))
+	if err != nil {
+		rsp.Code = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
+	}
 
 	return nil
 }

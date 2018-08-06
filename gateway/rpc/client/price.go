@@ -41,6 +41,25 @@ func (s *PriceRPCCli) CallQuotation(p *proto.QuotationRequest) (rsp *proto.Quota
 	return
 }
 
+
+func (s *PriceRPCCli) CallSymbolsTitle() (rsp *proto.SymbolTitleResponse, err error) {
+	rsp, err = s.conn.SymbolTitle(context.TODO(), &proto.NullRequest{})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *PriceRPCCli) CallSymbolsById(p *proto.SymbolsByIdRequest) (rsp *proto.SymbolsByIdResponse, err error) {
+	rsp, err = s.conn.SymbolsById(context.TODO(),p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

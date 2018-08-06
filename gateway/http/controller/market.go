@@ -25,6 +25,10 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 		action.GET("/price", s.CurrentPrice)
 
 		action.GET("/volume", s.Volume)
+
+		action.GET("/symbols_title", s.SymbolsTitle)
+
+		action.GET("/symbols_id", s.SymbolsById)
 	}
 }
 
@@ -212,4 +216,49 @@ func (s *MarketGroup) Volume(c *gin.Context) {
 	ret.SetDataSection("day", rsp.DayVolume)
 	ret.SetDataSection("week", rsp.WeekVolume)
 	ret.SetDataSection("month", rsp.MonthVolume)
+}
+
+
+
+func (s *MarketGroup) SymbolsTitle(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	rsp, err := rpc.InnerService.PriceService.CallSymbolsTitle()
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(ERRCODE_SUCCESS)
+	ret.SetDataSection("list", rsp.Data)
+}
+
+
+func (s *MarketGroup) SymbolsById(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type SymbolPrice struct {
+		TokenId int32 `form:"token_id" binding:"required"`
+	}
+
+	var param SymbolPrice
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.PriceService.CallSymbolsById(&proto.SymbolsByIdRequest{
+		TokenId:param.TokenId,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(ERRCODE_SUCCESS)
+	ret.SetDataSection("list", rsp.Data)
 }

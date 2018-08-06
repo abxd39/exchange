@@ -527,9 +527,9 @@ func (this *WalletGroup) TibiApply(ctx *gin.Context) {
 		To       string `form:"to" binding:"required"`
 		Amount   string `form:"amount" binding:"required"`
 		Gasprice string  `form:"gasprice" binding:"required"`
-		RealAmount string `form:"realAmount" binding:"required"`
-		SmsCode string `form:"smsCode" binding:"required"`
-		EmailCode string `form:"emailCode" binding:"required"`
+		RealAmount string `form:"real_amount" binding:"required"`
+		SmsCode string `form:"sms_code" binding:"required"`
+		EmailCode string `form:"email_code" binding:"required"`
 		Password string `form:"password" binding:"required"`
 	}
 	var param Param

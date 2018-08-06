@@ -480,7 +480,7 @@ func (s *UserToken) GetAllToken(uid uint64) []*UserToken {
 	return r
 }
 
-//划转到法币
+//划出到法币
 func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string, num int64) error {
 	//检查代币是否足够
 	err := s.GetUserToken(uid, tokenId)
@@ -542,7 +542,7 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 		return errors.NewSys(err)
 	}
 
-	// 发送到redis
+	// 发送划转消息事件给currency服
 	go func() {
 		msg, err := json.Marshal(proto.TransferToCurrencyTodoMessage{
 			Id:         int64(transferId),
@@ -555,20 +555,107 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, tokenName string
 			return
 		}
 
-		rdsClient := DB.GetRedisConn()
+		rdsClient := DB.GetCommonRedisConn()
 		rdsClient.RPush(constant.RDS_TOKEN_TO_CURRENCY_TODO, msg)
 	}()
 
 	return nil
 }
 
-//划转到法币成功，把划转记录标记为已完成
+//划出到法币成功，把划转记录标记为已完成
 func (s *UserToken) TransferToCurrencyDone(msg *proto.TransferToCurrencyDoneMessage) error {
 	engine := DB.GetMysqlConn()
 	_, err := engine.Exec(fmt.Sprintf("UPDATE %s SET states=2,update_time=%d WHERE id=%d AND states=1", new(TransferRecord).TableName(), time.Now().Unix(), msg.Id))
 	if err != nil {
 		return errors.NewSys(err)
 	}
+
+	return nil
+}
+
+//从法币转入
+func (s *UserToken) TransferFromCurrency(msg *proto.TransferToTokenTodoMessage) error {
+	//!!!!重要，判断消息是否已处理过
+	rdsClient := DB.GetCommonRedisConn()
+	isDid, history, err := new(MoneyRecord).IsTransferFromCurrencyDid(msg.Id)
+	if err != nil {
+		return err
+	}
+	if isDid { //已处理过，返回done消息并直接退出!
+		msg, err := json.Marshal(proto.TransferToTokenDoneMessage{
+			Id:       msg.Id,
+			DoneTime: history.CreatedTime,
+		})
+		if err != nil {
+			return errors.NewSys(err)
+		}
+
+		rdsClient.RPush(constant.RDS_CURRENCY_TO_TOKEN_DONE, msg)
+		return nil
+	}
+
+	//整理数据
+	now := time.Now().Unix()
+
+	//开始处理
+	tokenSession := DB.GetMysqlConn().NewSession()
+	sessionClone := tokenSession.Clone()
+	defer func() {
+		tokenSession.Close()
+		sessionClone.Close()
+	}()
+
+	//判断用户代币账户是否存在
+	userToken := UserToken{}
+	has, err := sessionClone.Where("uid=?", msg.Uid).And("token_id=?", msg.TokenId).Get(&userToken)
+	if err != nil {
+		return errors.NewSys(err)
+	}
+	newTokenBalance := userToken.Balance + msg.Num
+
+	//1.代币账户
+	if !has { //代币账号不存在，新建
+		_, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s"+
+			" (uid, token_id, token_name, balance, version)"+
+			" VALUES (%d, %d, '%s', %d, 1)", s.TableName(), msg.Uid, msg.TokenId, "", newTokenBalance))
+		if err != nil {
+			tokenSession.Rollback()
+			return errors.NewSys(err)
+		}
+	} else { //代币账号已存在，更新
+		_, err = tokenSession.Exec(fmt.Sprintf("UPDATE %s SET balance=%d,version=version+1 WHERE uid=%d AND token_id=%d AND version=%d", s.TableName(), newTokenBalance, msg.Uid, msg.TokenId, userToken.Version))
+		if err != nil {
+			tokenSession.Rollback()
+			return errors.NewSys(err)
+		}
+	}
+
+	//2.代币流水
+	_, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s"+
+		" (uid, token_id, ukey, type, opt, balance, num, created_time)"+
+		" VALUES (%d, %d, '%d', %d, %d, %d, %d, %d)", new(MoneyRecord).TableName(), msg.Uid, msg.TokenId, msg.Id, proto.TOKEN_TYPE_OPERATOR_TRANSFER_FROM_CURRENCY, proto.TOKEN_OPT_TYPE_ADD, newTokenBalance, msg.Num, now))
+	if err != nil {
+		tokenSession.Rollback()
+		return errors.NewSys(err)
+	}
+
+	//提交
+	err = tokenSession.Commit()
+	if err != nil {
+		return errors.NewSys(err)
+	}
+
+	//发送处理成功消息给currency服
+	go func() {
+		doneMsg, err := json.Marshal(proto.TransferToTokenDoneMessage{
+			Id:       msg.Id,
+			DoneTime: now,
+		})
+		if err != nil {
+			return
+		}
+		rdsClient.RPush(constant.RDS_CURRENCY_TO_TOKEN_DONE, doneMsg)
+	}()
 
 	return nil
 }

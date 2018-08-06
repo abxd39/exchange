@@ -83,6 +83,9 @@ service UserRPC {
     rpc SecondVerify(SecondRequest)returns(SecondResponse){};
     //获取实名认证的次数 二级认证次数
     rpc GetVerifyCount(VerifyCountRequest) returns(VerifyCountResponse){};
+
+
+    rpc Refresh(RefreshRequest) returns (CommonErrResponse) {}
 }
 
 message VerifyCountRequest{
@@ -516,4 +519,8 @@ message Api2Request{
 message Api2Response{
     int32 err       =1;
     string message  =2;
+}
+
+message RefreshRequest{
+    uint64 uid       =1;
 }

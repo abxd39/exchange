@@ -160,9 +160,9 @@ func (s *CurrencyRPCCli) CallGetAssetDetail(req *proto.GetAssetDetailRequest) (*
 }
 
 /*
-	交易
+	法币划转到代币
 */
-func (s *CurrencyRPCCli) CallTransfer(req *proto.TransferRequest) (*proto.OtherResponse, error) {
-	rsp, err := s.conn.Transfer(context.TODO(), req)
+func (s *CurrencyRPCCli) CallTransferToToken(req *proto.TransferToTokenRequest) (*proto.OtherResponse, error) {
+	rsp, err := s.conn.TransferToToken(context.TODO(), req)
 	return rsp, err
 }

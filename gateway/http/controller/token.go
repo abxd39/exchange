@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"strings"
 	"fmt"
 	"time"
 )
@@ -187,8 +186,7 @@ func (s *TokenGroup) BibiHistory(c *gin.Context) {
 		Token string `form:"token" binding:"required"`
 		Limit int32  `form:"limit" `
 		Page  int32  `form:"page" `
-		Symbol1 string `form:"symbol1"`
-		Symbol2 string `form:"symbol2"`
+		Symbol string `form:"symbol"`
 		Opt int32 `form:"opt"`
 		States int32 `form:"states"`
 		StartTime int32 `form:"startTime"`
@@ -210,7 +208,6 @@ func (s *TokenGroup) BibiHistory(c *gin.Context) {
 		param.Page = 1
 	}
 
-	symbol := strings.Join([]string{param.Symbol1,param.Symbol2},"/")
 	startTime := param.StartTime
 	if startTime == 0 {
 		startTime = int32(time.Now().Unix()) - 86400
@@ -224,7 +221,7 @@ func (s *TokenGroup) BibiHistory(c *gin.Context) {
 		Uid:   param.Uid,
 		Limit: param.Limit,
 		Page:  param.Page,
-		Symbol:symbol,
+		Symbol:param.Symbol,
 		Opt:param.Opt,
 		States:param.States,
 		StartTime:startTime,

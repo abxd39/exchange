@@ -278,8 +278,8 @@ message TokenBalanceListResponse{
             string worth_cny                  =5;
         }
 
-        string total_worth_cny              =1;
-        string total_worth_btc              =2;
+        double total_worth_cny              =1;
+        double total_worth_btc              =2;
         repeated List list                  =3;
     }
 

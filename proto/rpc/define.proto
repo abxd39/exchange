@@ -6,6 +6,8 @@ message NullRequest{
 
 }
 
+
+
 message CommonErrResponse{
     int32 err       =1;
     string message  =2;
@@ -22,3 +24,6 @@ message CommonPageRequest{
     int32   page           =3;
     int32  limit            =4;
 }
+
+
+

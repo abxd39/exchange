@@ -54,13 +54,21 @@ func (s *RPCServer) LastPrice(ctx context.Context, req *proto.LastPriceRequest, 
 }
 
 func (s *RPCServer) SymbolTitle(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolTitleResponse) error {
-	
+	g:=make([]*proto.TitleBaseData,0)
+
+	for _,v:=range model.ConfigTitles{
+		g=append(g,&proto.TitleBaseData{
+			Mark:v.Mark,
+			TokenId:int32(v.TokenId),
+		})
+	}
+	rsp.Data=g
 	return nil
 }
 
 func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdRequest, rsp *proto.SymbolsByIdResponse) error {
 	g := model.GetConfigQuenesByType(req.TokenId)
-	k:=make([]*proto.SymbolBaseData,0)
+	rsp.Data =make([]*proto.SymbolBaseData,0)
 
 	for _, v := range g {
 		q, ok := model.GetQueneMgr().GetQueneByUKey(v.Name)
@@ -74,7 +82,7 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 		}
 
 		price := q.GetEntry().Price
-		k=append(k,&proto.SymbolBaseData{
+		rsp.Data=append(rsp.Data,&proto.SymbolBaseData{
 			Symbol:       v.Name,
 			Price:        convert.Int64ToStringBy8Bit(price),
 			CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),

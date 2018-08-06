@@ -29,6 +29,7 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	rsp.Data = new(proto.CreateWalletPos)
 	tokenModel := &Tokens{Id: int(req.Tokenid)}
 	_, err = tokenModel.GetByid(int(req.Tokenid))
+	fmt.Println("收到的数据",err,req)
 
 	switch tokenModel.Signature {
 	case "eip155", "eth":
@@ -296,5 +297,41 @@ func (this *WalletHandler) OutList(ctx context.Context, req *proto.OutListReques
 		})
 	}
 
+	return nil
+}
+
+func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRequest, rsp *proto.TibiApplyResponse) error {
+	tokenInoutMD := new(TokenInout)
+	//验证短信验证码
+	//ret,err := AuthSms(req.Phone,SMS_CARRY_COIN,req.SmsCode)
+	//if ret != ERRCODE_SUCCESS {
+	//	rsp.Code = ERRCODE_UNKNOWN
+	//	rsp.Msg = err.Error()
+	//	return nil
+	//}
+	////验证邮箱验证码
+	//ret,err = AuthEmail(req.Email,SMS_CARRY_COIN,req.EmailCode)
+	//if ret != ERRCODE_SUCCESS {
+	//	rsp.Code = ERRCODE_UNKNOWN
+	//	rsp.Msg = err.Error()
+	//	return nil
+	//}
+	//验证资金密码
+	//ret,err := tokenInoutMD.AuthPayPwd(req.Uid,req.Password)
+	//if ret != ERRCODE_SUCCESS {
+	//	rsp.Code = ERRCODE_UNKNOWN
+	//	rsp.Msg = err.Error()
+	//	return nil
+	//}
+	//保存数据
+	_,err := tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.Amount,req.Gasprice)
+	if err != nil {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
+
+	rsp.Code = 0
+	rsp.Msg = "保存成功"
 	return nil
 }

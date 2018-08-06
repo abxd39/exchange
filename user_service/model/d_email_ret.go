@@ -1,6 +1,7 @@
 package model
 
 import (
+	. "digicon/common/constant"
 	"digicon/common/random"
 	. "digicon/proto/common"
 	cf "digicon/user_service/conf"
