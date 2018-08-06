@@ -6,7 +6,7 @@ import (
 	"digicon/token_service/dao"
 	"digicon/token_service/model"
 	"encoding/json"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/log"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 

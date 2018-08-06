@@ -39,6 +39,7 @@ func main() {
 
 	//划出
 	go cron.HandlerTransferToTokenDone()
+	go cron.ResendTransferToTokenMsg()
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

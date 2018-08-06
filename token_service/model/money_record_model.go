@@ -56,7 +56,7 @@ func InsertRecord(session *xorm.Session, p *MoneyRecord) (err error) {
 
 // 检查币币划转到法币消息是否已处理
 func (s *MoneyRecord) IsTransferFromCurrencyDid(transferId int64) (bool, *MoneyRecord, error) {
-	has, err := DB.GetMysqlConn().Where(fmt.Sprintf("ukey='%d'", transferId)).And("opt=11").Get(s)
+	has, err := DB.GetMysqlConn().Where(fmt.Sprintf("ukey='%d'", transferId)).And("type=11").Get(s)
 	if err != nil {
 		return false, nil, errors.NewSys(err)
 	}
