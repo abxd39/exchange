@@ -51,6 +51,9 @@ func (s *MoneyRecord) List(pageIndex, pageSize int, filter map[string]interface{
 	if _, ok := filter["transfer"]; ok { //划转流水
 		query.And("mr.type IN (?,?)", proto.TOKEN_TYPE_OPERATOR_TRANSFER_TO_CURRENCY, proto.TOKEN_TYPE_OPERATOR_TRANSFER_FROM_CURRENCY)
 	}
+	if v, ok := filter["type"]; ok {
+		query.And("mr.type=?", v)
+	}
 
 	//分页
 	tmpQuery := *query

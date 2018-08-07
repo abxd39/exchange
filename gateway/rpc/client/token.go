@@ -124,6 +124,15 @@ func (s *TokenRPCCli) CallTransferList(p *proto.TransferListRequest) (rsp *proto
 	return
 }
 
+func (s *TokenRPCCli) CallRefundList(p *proto.RefundListRequest) (rsp *proto.RefundListResponse, err error) {
+	rsp, err = s.conn.RefundList(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func (s *TokenRPCCli) CallTokenTradeList(p *proto.TokenTradeListRequest) (rsp *proto.TokenTradeListResponse, err error) {
 	rsp, err = s.conn.TokenTradeList(context.TODO(), p)
 	if err != nil {
