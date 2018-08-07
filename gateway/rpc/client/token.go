@@ -142,6 +142,15 @@ func (s *TokenRPCCli) CallTransferToCurrency(p *proto.TransferToCurrencyRequest)
 	return
 }
 
+func (s *TokenRPCCli) CallRegisterReward(p *proto.RegisterRewardRequest) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.RegisterReward(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID
 	Open   float64 `json:"open"`   // 开盘价

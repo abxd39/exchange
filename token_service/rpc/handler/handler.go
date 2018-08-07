@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	"digicon/common/errors"
+	"digicon/token_service/conf"
 	"digicon/token_service/rpc/client"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -523,6 +524,24 @@ func (s *RPCServer) TransferList(ctx context.Context, req *proto.TransferListReq
 			Num:         v.Num,
 			CreatedTime: v.CreatedTime,
 		}
+	}
+
+	return nil
+}
+
+//注册奖励
+func (s *RPCServer) RegisterReward(ctx context.Context, req *proto.RegisterRewardRequest, rsp *proto.CommonErrResponse) error {
+	//读取配置
+	tokenId := conf.Cfg.MustInt("register_reward", "token_id")
+	rewardNum := conf.Cfg.MustInt("register_reward", "reward_num")
+
+	//开始赠送
+	userTokenModel := new(model.UserToken)
+	err := userTokenModel.RegisterReward(req.Uid, int64(tokenId), convert.Int64MulInt64By8Bit(int64(rewardNum), 100000000))
+	if err != nil {
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
 	}
 
 	return nil

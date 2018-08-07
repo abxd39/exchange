@@ -20,6 +20,16 @@ remote_path="/root/go/src/dig/"
 
 echo $remote_ip 
 
+
+function init_start(){
+    echo "init run ...."
+    cd ../proto/
+    sh run.sh 
+}
+
+
+
+
 function build_service(){
     for service in $services;
     do
@@ -73,6 +83,7 @@ function del_local_service(){
     done
 }
 
+init_start
 build_service
 push_to_remote
 restart_service
