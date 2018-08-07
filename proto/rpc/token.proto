@@ -61,6 +61,9 @@ service TokenRPC {
 	
 	//币币列表
         rpc BibiHistory(BibiHistoryRequest) returns (BibiHistoryResponse) {};
+
+        //领取注册奖励
+        rpc RegisterReward(RegisterRewardRequest) returns (CommonErrResponse) {}
 }
 
 enum ENTRUST_OPT //操作方向类型
@@ -459,4 +462,9 @@ message BibiHistoryResponse{
     int32 code                 =1;
     string msg                 =2;
     Data data                  =3;
+}
+
+
+message RegisterRewardRequest {
+    int64 uid=1;
 }

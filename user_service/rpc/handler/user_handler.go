@@ -6,10 +6,7 @@ import (
 	"golang.org/x/net/context"
 
 	"digicon/common/constant"
-	"digicon/common/convert"
-	"digicon/user_service/conf"
 	"digicon/user_service/model"
-	"digicon/user_service/rpc/client"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -24,7 +21,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin/json"
-	"github.com/sirupsen/logrus"
 )
 
 type RPCServer struct{}
@@ -62,14 +58,9 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 			return nil
 		}
 		u := &model.User{}
-		errCode, uid, referUid := u.Register(req, "phone")
+		errCode, _, _ := u.Register(req, "phone")
 		rsp.Err = errCode
 		rsp.Message = GetErrorMessage(rsp.Err)
-
-		// 注册奖励代币
-		if rsp.Err == ERRCODE_SUCCESS {
-			s.RegisterReward(uid, referUid)
-		}
 
 		return nil
 	} else if req.Type == 2 {
@@ -84,14 +75,9 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 			return nil
 		}
 		u := &model.User{}
-		errCode, uid, referUid := u.Register(req, "email")
+		errCode, _, _ := u.Register(req, "email")
 		rsp.Err = errCode
 		rsp.Message = GetErrorMessage(rsp.Err)
-
-		// 注册奖励代币
-		if rsp.Err == ERRCODE_SUCCESS {
-			s.RegisterReward(uid, referUid)
-		}
 
 		return nil
 	}
@@ -99,61 +85,6 @@ func (s *RPCServer) Register(ctx context.Context, req *proto.RegisterRequest, rs
 	rsp.Err = ERRCODE_SMS_CODE_DIFF
 	rsp.Message = GetErrorMessage(rsp.Err)
 	return nil
-}
-
-// 注册奖励代币
-func (s *RPCServer) RegisterReward(uid uint64, referUid uint64) {
-	// 读取配置
-	tokenId := int32(conf.Cfg.MustInt("register_reward", "token_id"))
-	myNum := float64(conf.Cfg.MustInt("register_reward", "my_num"))
-	referNum := float64(conf.Cfg.MustInt("register_reward", "refer_num"))
-	secReferNum := float64(conf.Cfg.MustInt("register_reward", "sec_refer_num"))
-
-	// 1. 注册送20UNT
-	resp, err := client.InnerService.TokenService.CallAddTokenNum(uid, tokenId, convert.Float64ToInt64By8Bit(myNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d", uid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER)
-	if err != nil { // !!!不中断流程，只记录错误
-		log.WithFields(logrus.Fields{"uid": uid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励代币出错")
-	} else if resp.Err != ERRCODE_SUCCESS { // !!!不中断流程，只记录错误
-		log.WithFields(logrus.Fields{"uid": uid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励代币出错")
-	}
-
-	if referUid != 0 {
-		// 2. 推荐一级注册送20UNT
-		resp, err = client.InnerService.TokenService.CallAddTokenNum(referUid, tokenId, convert.Float64ToInt64By8Bit(referNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d", uid, referUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
-		if err != nil { // !!!不中断流程，只记录错误
-			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励一级推荐人代币出错")
-		} else if resp.Err != ERRCODE_SUCCESS { // !!!不中断流程，只记录错误
-			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励一级推荐人代币出错")
-		}
-
-		// 判断一级推荐人是否有推荐人，即二级推荐
-		referUserEx := &model.UserEx{}
-		_, err := referUserEx.GetUserEx(referUid)
-		if err != nil {
-			log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取一级推荐人的邀请UID出错")
-			return
-		}
-
-		if secReferUid := referUserEx.InviteId; secReferUid != 0 {
-			// 3. 推荐二级注册送20UNT
-			secReferUser := &model.User{}
-			_, err := secReferUser.GetUser(uint64(referUserEx.InviteId))
-			if err != nil {
-				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】获取二级推荐人出错")
-				return
-			}
-
-			resp, err = client.InnerService.TokenService.CallAddTokenNum(uint64(secReferUid), tokenId, convert.Float64ToInt64By8Bit(secReferNum), proto.TOKEN_OPT_TYPE_ADD, proto.TOKEN_OPT_TYPE_ADD_TYPE_FROZEN, []byte(fmt.Sprintf("%d-%d-%d", uid, referUid, secReferUid)), proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE)
-			if err != nil {
-				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_msg": err.Error()}).Error("【注册奖励代币】奖励二级推荐人代币出错")
-				return
-			}
-			if resp.Err != ERRCODE_SUCCESS {
-				log.WithFields(logrus.Fields{"uid": uid, "referUid": referUid, "secReferUid": secReferUid, "err_code": resp.Err, "err_msg": resp.Message}).Error("【注册奖励代币】奖励二级推荐人代币出错")
-				return
-			}
-		}
-	}
 }
 
 //注册by email

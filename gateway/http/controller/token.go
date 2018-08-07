@@ -5,10 +5,10 @@ import (
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"fmt"
 )
 
 type TokenGroup struct{}
@@ -38,6 +38,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/bibi_history", s.BibiHistory)
 
 		action.GET("/transfer_list", s.TransferList)
+
+		action.POST("/register_reward", s.RegisterReward)
 	}
 }
 
@@ -229,7 +231,7 @@ func (s *TokenGroup) BibiHistory(c *gin.Context) {
 		EndTime:   endTime,
 	})
 
-	fmt.Println("打印：",err,rsp)
+	fmt.Println("打印：", err, rsp)
 
 	type list struct {
 		PageIndex int32                                  `json:"page_index"`
@@ -576,4 +578,31 @@ func (s *TokenGroup) TransferList(c *gin.Context) {
 	}
 
 	ret.SetDataSection("list", newList)
+}
+
+func (s *TokenGroup) RegisterReward(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param := &struct {
+		Uid int64 `form:"uid" binding:"required"`
+	}{}
+
+	if err := c.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallRegisterReward(&proto.RegisterRewardRequest{
+		Uid: param.Uid,
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }

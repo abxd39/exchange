@@ -190,6 +190,146 @@ func (s *UserToken) AddFrozen(session *xorm.Session, num int64, ukey string, ty 
 	return
 }
 
+//注册奖励
+func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
+	if rewardTokenId == 0 || rewardNum == 0 { //无奖励
+		return nil
+	}
+
+	//整理数据
+	now := time.Now().Unix()
+
+	//开始
+	tokenSession := DB.GetMysqlConn().NewSession()
+	defer tokenSession.Close()
+
+	//事务
+	err := tokenSession.Begin()
+	if err != nil {
+		return errors.NewSys(err)
+	}
+
+	//1.自己
+	err = s.GetUserToken(uint64(uid), int(rewardTokenId))
+	if err != nil {
+		tokenSession.Rollback()
+		return errors.NewSys(err)
+	}
+	newFrozen := s.Frozen + rewardNum
+
+	affected, err := tokenSession.Table(s).Incr("frozen", rewardNum).
+		Where("uid=?", uid).And("token_id=?", rewardTokenId).
+		Cols("frozen").Update(s)
+	if err != nil || affected == 0 {
+		tokenSession.Rollback()
+		return errors.NewSys(err)
+	}
+
+	//流水
+	_, err = tokenSession.Insert(&FrozenHistory{
+		Uid:        uint64(uid),
+		Ukey:       fmt.Sprintf("%d", uid),
+		Num:        rewardNum,
+		TokenId:    int(rewardTokenId),
+		Type:       int(proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER),
+		CreateTime: now,
+		Opt:        int(proto.TOKEN_OPT_TYPE_ADD),
+		Frozen:     newFrozen,
+	})
+	if err != nil {
+		tokenSession.Rollback()
+		return errors.NewSys(err)
+	}
+
+	//2.推荐人
+	//2.1一级推荐人
+	userExMD := new(OutUserEx)
+	userEx, err := userExMD.Get(uid)
+	if err != nil {
+		tokenSession.Rollback()
+		return err
+	}
+	if inviteId := userEx.InviteId; inviteId > 0 { //有推荐人
+		err = s.GetUserToken(uint64(inviteId), int(rewardTokenId))
+		if err != nil {
+			tokenSession.Rollback()
+			return errors.NewSys(err)
+		}
+		inviteNewFrozen := s.Frozen + rewardNum
+
+		affected, err = tokenSession.Incr("frozen", rewardNum).
+			Where("uid=?", inviteId).And("token_id=?", rewardTokenId).
+			Cols("frozen").Update(s)
+		if err != nil || affected == 0 {
+			tokenSession.Rollback()
+			return errors.NewSys(err)
+		}
+
+		//流水
+		_, err = tokenSession.Insert(&FrozenHistory{
+			Uid:        uint64(inviteId),
+			Ukey:       fmt.Sprintf("%d-%d", uid, inviteId),
+			Num:        rewardNum,
+			TokenId:    int(rewardTokenId),
+			Type:       int(proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER),
+			CreateTime: now,
+			Opt:        int(proto.TOKEN_OPT_TYPE_ADD),
+			Frozen:     inviteNewFrozen,
+		})
+		if err != nil {
+			tokenSession.Rollback()
+			return errors.NewSys(err)
+		}
+
+		//2.2二级推荐人
+		inviteUserEx, err := userExMD.Get(inviteId)
+		if err != nil {
+			tokenSession.Rollback()
+			return err
+		}
+		if secInviteId := inviteUserEx.InviteId; secInviteId > 0 { //有推荐人
+			err = s.GetUserToken(uint64(inviteId), int(secInviteId))
+			if err != nil {
+				tokenSession.Rollback()
+				return errors.NewSys(err)
+			}
+			secNewFrozen := s.Frozen + rewardNum
+
+			_, err = tokenSession.Incr("frozen", rewardNum).
+				Where("uid=?", secInviteId).And("token_id=?", rewardTokenId).
+				Cols("frozen").Update(s)
+			if err != nil {
+				tokenSession.Rollback()
+				return errors.NewSys(err)
+			}
+
+			//流水
+			_, err = tokenSession.Insert(&FrozenHistory{
+				Uid:        uint64(secInviteId),
+				Ukey:       fmt.Sprintf("%d-%d-%d", uid, inviteId, secInviteId),
+				Num:        rewardNum,
+				TokenId:    int(rewardTokenId),
+				Type:       int(proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER),
+				CreateTime: now,
+				Opt:        int(proto.TOKEN_OPT_TYPE_ADD),
+				Frozen:     secNewFrozen,
+			})
+			if err != nil {
+				tokenSession.Rollback()
+				return errors.NewSys(err)
+			}
+		}
+	}
+
+	//提交
+	err = tokenSession.Commit()
+	if err != nil {
+		return errors.NewSys(err)
+	}
+
+	return nil
+}
+
 //减少代币数量
 func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty proto.TOKEN_TYPE_OPERATOR) (ret int32, err error) {
 	defer func() {
