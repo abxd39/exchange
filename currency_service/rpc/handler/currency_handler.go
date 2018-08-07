@@ -92,7 +92,7 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.
 func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
-	fmt.Println("update req:",  req.IsTwolevel , req.Id)
+	fmt.Println("update req:",  req.IsTwolevel , req.Id, req.MinLimit, req.MaxLimit)
 
 	ads := new(model.Ads)
 	ads.Id = req.Id

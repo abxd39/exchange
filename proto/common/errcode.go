@@ -81,6 +81,7 @@ const (
 	ERRCODE_TRADE_LOWER_PRICE = 426
 	ERRCODE_TRADE_LARGE_PRICE = 427
 	ERRCODE_TRADE_TO_SELF     = 428
+	ERRCODE_TRADE_HAS_COMPLETED = 429
 
 )
 
@@ -152,6 +153,7 @@ func init() {
 	message[ERRCODE_TRADE_LOWER_PRICE] = "下单失败,买价小于允许的最小价格!"
 	message[ERRCODE_TRADE_LARGE_PRICE] = "下单失败,买价大于允许的最大价格!"
 	message[ERRCODE_TRADE_TO_SELF]  = "不能下自己的单!"
+	message[ERRCODE_TRADE_HAS_COMPLETED] = "订单已经完成!"
 
 
 	message[ERR_TOKEN_QUENE_NIL] = "队列为空"
@@ -195,7 +197,11 @@ func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
 	s.ret[ERR_CODE_RET] = code
 
 	if len(err_msg) > 0 {
-		s.ret[ERR_CODE_MESSAGE] = err_msg[0]
+		if err_msg[0]=="" {
+			s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
+		}else{
+			s.ret[ERR_CODE_MESSAGE] = err_msg[0]
+		}
 	} else {
 		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
 	}

@@ -109,10 +109,11 @@ enum FRONZE_TYPE
 //交易类型
 enum TRADE_STATES //
 {
-    TRADE_NONE                             = 0;//未成交
+    TRADE_NONES                             = 0;//
     TRADE_PART                    = 1; //部分成交
     TRADE_ALL                     = 2; //加冻结余额
     TRADE_DEL                    = 3; //撤单
+    TRADE_UN                    =4;//未成交
 }
 
 //资金流水操作类型

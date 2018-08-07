@@ -110,9 +110,11 @@ func (this *Ads) Update() int {
 	if isGet == nil {
 		return ERRCODE_ADS_NOTEXIST
 	}
-
-	_, err := dao.DB.GetMysqlConn().Id(this.Id).Cols("is_twolevel").Update(this)
+	_, err := dao.DB.GetMysqlConn().Id(this.Id).Cols("price",
+		"num","premium", "accept_price", "min_limit", "max_limit",
+		"is_twolevel", "pays", "remarks", "reply", "updated_time").Update(this)
 	if err != nil {
+		fmt.Println(err)
 		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
 	}

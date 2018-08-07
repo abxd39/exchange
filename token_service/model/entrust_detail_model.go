@@ -30,22 +30,21 @@ type EntrustData struct {
 */
 
 type EntrustDetail struct {
-	EntrustId   string `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
-	Uid         uint64 `xorm:"not null comment('用户id') INT(32)"`
-	Symbol      string `xorm:" VARCHAR(64)"`
-	TokenId     int    `xorm:"not null comment('货币id') INT(32)"`
-	AllNum      int64  `xorm:"not null comment('总数量') BIGINT(20)"`
-	SurplusNum  int64  `xorm:"not null comment('剩余数量') BIGINT(20)"`
-	Price       int64  `xorm:"not null comment('实际价格(卖出价格）') BIGINT(20)"`
-	Sum         int64  `xorm:"not null comment('委托总额') BIGINT(20)"`
-	Mount       int64  `xorm:"not null comment('全部实际价值') BIGINT(20)"`
-	Opt         int    `xorm:"not null comment('类型 买入单1 卖出单2 ') TINYINT(4)"`
-	Type        int    `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
-	OnPrice     int64  `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
-	FeePercent  int64  `xorm:"not null comment('手续费比例') BIGINT(20)"`
-	States      int    `xorm:"not null comment('0是挂单，1是部分成交,2成交， 3撤销') TINYINT(4)"`
-	CreatedTime int64  `xorm:"not null comment('添加时间') created BIGINT(20)"`
-	Version     int    `xorm:"version"`
+	EntrustId   string  `xorm:"not null pk comment('委托记录表（委托管理）') VARCHAR(64)"`
+	Uid         uint64  `xorm:"not null comment('用户id') INT(32)"`
+	Symbol      string  `xorm:" VARCHAR(64)"`
+	TokenId     int     `xorm:"not null comment('货币id') INT(32)"`
+	AllNum      int64   `xorm:"not null comment('总数量') BIGINT(20)"`
+	SurplusNum  int64   `xorm:"not null comment('剩余数量') BIGINT(20)"`
+	Price       int64   `xorm:"not null comment('实际价格(卖出价格）') BIGINT(20)"`
+	Sum         int64   `xorm:"not null comment('委托总额') BIGINT(20)"`
+	Opt         int     `xorm:"not null comment('类型 买入单1 卖出单2 ') TINYINT(4)"`
+	Type        int     `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
+	OnPrice     int64   `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
+	FeePercent  float64 `xorm:"not null comment('手续费比例') BIGINT(20)"`
+	States      int     `xorm:"not null comment('0是挂单，1是部分成交,2成交， 3撤销') TINYINT(4)"`
+	CreatedTime int64   `xorm:"not null comment('添加时间') created BIGINT(20)"`
+	Version     int     `xorm:"version"`
 }
 
 func Insert(sess *xorm.Session, s *EntrustDetail) error {
@@ -71,9 +70,9 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int, symbol string
 	//m := make([]EntrustDetail, 0)
 	var statess []int
 	if states == 0 {
-		statess = []int{0, 1, 2, 3}
+		statess = []int{4, 1, 2, 3}
 	} else if states == 1 {
-		statess = []int{0}
+		statess = []int{4}
 	} else {
 		statess = []int{1, 2, 3}
 	}
