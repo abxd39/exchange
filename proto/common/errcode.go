@@ -195,7 +195,11 @@ func (s *PublicErrorType) SetErrCode(code int32, err_msg ...string) {
 	s.ret[ERR_CODE_RET] = code
 
 	if len(err_msg) > 0 {
-		s.ret[ERR_CODE_MESSAGE] = err_msg[0]
+		if err_msg[0]=="" {
+			s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
+		}else{
+			s.ret[ERR_CODE_MESSAGE] = err_msg[0]
+		}
 	} else {
 		s.ret[ERR_CODE_MESSAGE] = GetErrorMessage(code)
 	}

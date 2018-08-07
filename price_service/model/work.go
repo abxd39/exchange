@@ -1,16 +1,15 @@
 package model
 
 import (
-	"digicon/common/convert"
 	"digicon/common/genkey"
 	. "digicon/price_service/dao"
-
+	"github.com/golang/protobuf/jsonpb"
 	proto "digicon/proto/rpc"
 	"fmt"
-	"github.com/golang/protobuf/jsonpb"
 	log "github.com/sirupsen/logrus"
 	"time"
 	"errors"
+	"digicon/common/convert"
 )
 
 
@@ -201,6 +200,46 @@ func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) {
 	s.entry = k
 }
 
+
+func (s *PriceWorkQuene)ReloadKline()  {
+	var period_key = [MaxPrice]string{
+		"5min",
+		"15min",
+		"4hour",
+		"1day",
+		"1week",
+		"1month",
+	}
+	k:=make([]*Kline,0)
+
+	DB.GetMysqlConn().Find(k)
+
+	for _,v:=range k  {
+
+		t := time.Unix(v.Id, 0)
+		if t.Second() == 0 {
+			min := t.Minute()
+			if min%15 == 0 {
+				DB.GetMysqlConn().Insert(v)
+				h := t.Hour()
+				if h%4 == 0 {
+					s.save(FourHourPrice, k)
+					if h == 0 {
+						s.save(OneDayPrice, k)
+						w := t.Weekday()
+						if w == 0 {
+							s.save(OneWeekPrice, k)
+						}
+						if t.Day() == 1 {
+							s.save(OneMonthPrice, k)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 func (s *PriceWorkQuene) Subscribe() {
 	pb := DB.GetRedisConn().Subscribe(s.PriceChannel)
 	ch := pb.Channel()
@@ -215,30 +254,27 @@ func (s *PriceWorkQuene) Subscribe() {
 		if k.Price == 0 {
 			continue
 		}
-		s.entry = k
 
 		t := time.Unix(k.Id, 0)
 		if t.Second() == 0 {
+			s.entry = k
 			s.updatePrice2(k)
 			min := t.Minute()
 			if min%15 == 0 {
 				s.save(FivteenMinPrice, k)
-			}
-
-			h := t.Hour()
-			if h%4 == 0 {
-				s.save(FourHourPrice, k)
-			}
-
-			if h == 0 {
-				s.save(OneDayPrice, k)
-				w := t.Weekday()
-				if w == 1 {
-					s.save(OneWeekPrice, k)
-				}
-
-				if t.Day() == 1 {
-					s.save(OneMonthPrice, k)
+				h := t.Hour()
+				if h%4 == 0 {
+					s.save(FourHourPrice, k)
+					if h == 0 {
+						s.save(OneDayPrice, k)
+						w := t.Weekday()
+						if w == 0 {
+							s.save(OneWeekPrice, k)
+						}
+						if t.Day() == 1 {
+							s.save(OneMonthPrice, k)
+						}
+					}
 				}
 			}
 		}
@@ -247,6 +283,14 @@ func (s *PriceWorkQuene) Subscribe() {
 }
 
 func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
+	log.WithFields(log.Fields{
+		"Symbol":       s.Symbol,
+		"Key":  data.Id,
+		"id":data.Id,
+		"amount": data.Amount,
+		"vol":        data.Vol,
+	}).Info("begin price record ")
+
 	p := s.data[period]
 	var h *proto.PeriodPrice
 	var close, amount, vol, low, high, open int64

@@ -230,14 +230,17 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	}()
 	var token_id int
 	var sum int64
+	var fee_precent float64
 	if p.Opt == proto.ENTRUST_OPT_BUY {
 		token_id = s.TokenId
+		fee_precent = s.BuyPoundage
 		if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
 			sum = convert.Int64DivInt64By8Bit(p.Num, p.OnPrice)
 		}
 
 	} else {
 		token_id = s.TokenTradeId
+		fee_precent = s.SellPoundage
 		if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
 			sum = convert.Int64MulInt64By8Bit(p.Num, p.OnPrice)
 		}
@@ -251,10 +254,11 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		SurplusNum: p.Num,
 		Opt:        int(p.Opt),
 		OnPrice:    p.OnPrice,
-		States:     int(proto.TRADE_STATES_TRADE_NONE),
+		States:     int(proto.TRADE_STATES_TRADE_UN),
 		Type:       int(p.Type),
 		Symbol:     p.Symbol,
 		Sum:        sum,
+		FeePercent: fee_precent,
 	}
 
 	m := &UserToken{}
@@ -694,6 +698,27 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		"os_id":            os.Getpid(),
 	}).Info("record match trade")
 
+	if sell_num == 0 {
+		log.WithFields(logrus.Fields{
+			"symbol":           s.TokenQueueId,
+			"buyer_id":         buyer.Uid,
+			"seller_id":        seller.Uid,
+			"buyer_entrust_id": buyer.EntrustId,
+			"sell_entrust_id":  seller.EntrustId,
+			"sell_num":         sell_num,
+			"buy_num":          buy_num,
+			"price":            price,
+			"g_num":            g_num,
+			"buyer_type":       buyer.Type,
+			"seller_type":      seller.Type,
+		}).Warn("please check logic")
+		err = s.SurplusBack(seller)
+		if err != nil {
+			return
+		}
+		return
+	}
+
 	if buy_num == 0 {
 		log.WithFields(logrus.Fields{
 			"symbol":           s.TokenQueueId,
@@ -715,26 +740,7 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		return
 	}
 
-	if sell_num == 0 {
-		log.WithFields(logrus.Fields{
-			"symbol":           s.TokenQueueId,
-			"buyer_id":         buyer.Uid,
-			"seller_id":        seller.Uid,
-			"buyer_entrust_id": buyer.EntrustId,
-			"sell_entrust_id":  seller.EntrustId,
-			"sell_num":         sell_num,
-			"buy_num":          buy_num,
-			"price":            price,
-			"g_num":            g_num,
-			"buyer_type":       buyer.Type,
-			"seller_type":      seller.Type,
-		}).Warn("please check logic")
-		err = s.SurplusBack(seller)
-		if err != nil {
-			return
-		}
-		return
-	}
+
 
 	if price == 0 {
 		log.WithFields(logrus.Fields{
@@ -803,6 +809,15 @@ func (s *EntrustQuene) SurplusBack(e *EntrustDetail) (err error) {
 		session.Rollback()
 		return
 	}
+
+	entry.States = int(proto.TRADE_STATES_TRADE_ALL)
+	e.SurplusNum=0
+	_, err = session.Where("entrust_id=?", e.EntrustId).Cols("states", "surplus_num").Update(entry)
+	if err != nil {
+		session.Rollback()
+		return err
+	}
+
 	err = session.Commit()
 	if err != nil {
 		return
@@ -1559,7 +1574,8 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 	defer sess.Close()
 	err = sess.Begin()
 	e.States = int(proto.TRADE_STATES_TRADE_DEL)
-	_, err = sess.Where("entrust_id=?", e.EntrustId).Update(e)
+	e.SurplusNum = 0
+	_, err = sess.Where("entrust_id=?", e.EntrustId).Cols("states", "surplus_num").Update(e)
 	if err != nil {
 		sess.Rollback()
 		return err
