@@ -126,12 +126,13 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 	engine := dao.DB.GetMysqlConn()
 	var err error
 
-	code, err = this.GetOrder(this.Id)
+	tmpOrder := new(Order)
+	code, err = tmpOrder.GetOrder(Id)
 	if err != nil {
 		msg := "order not exists!"
 		return ERRCODE_ORDER_NOTEXIST, msg
 	}
-	if this.States == 3 {
+	if tmpOrder.States == 3 {
 		msg := "订单已完成!"
 		return ERRCODE_TRADE_HAS_COMPLETED, msg
 	}
