@@ -21,6 +21,15 @@ remote_path="/root/go/src/dig/"
 
 echo $remote_ip 
 
+
+function init_start(){
+    echo "init run ...."
+    cd ../proto/
+    sh run.sh 
+}
+
+
+
 function build_service(){
     for service in $services;
     do
@@ -49,14 +58,12 @@ function restart_service(){
         service_id=`echo $result | awk -F " " '{print $2}'`
         echo  "$service $service_id"
         if [ "$service_id" != "" ];then
-        	echo "service in ..."
             result=`ssh root@$remote_ip  "echo 'cd $remote_path && mv -f $service.nw $service && chmod +x $service && kill -9  $service_id &&  nohup ./$service  > $service.log 2>&1 &' > start_$service.sh && sh start_$service.sh >/dev/null 2>&1 & exit"`
         else
-        	echo "service not in ...."
             result=`ssh root@$remote_ip  "echo 'cd $remote_path && mv -f $service.nw $service && chmod +x $service && nohup ./$service > $service.log  2>&1 & ' > start_$service.sh &&  sh start_$service.sh >/dev/null 2>&1 & exit"`
         fi
-        ssh root@$remote_ip " mv -f  start_$service.sh /tmp/"  
-        start_service_result=`ssh root@$remote_ip  "ps -ef | grep -v grep | grep start_$service.sh"`
+        result=`ssh root@$remote_ip " mv -f  start_$service.sh /tmp/" `        
+        start_service_result=`ssh root@$remote_ip -f -n "ps -ef | grep -v grep | grep start_$service.sh"`
         start_service_id=`echo $start_service_result| awk -F " " '{print $2}'`
         echo $start_service_id
         if [ "$start_service_id" != "" ];then
@@ -76,6 +83,8 @@ function del_local_service(){
     done
 }
 
+
+init_start
 build_service
 push_to_remote
 restart_service
