@@ -34,13 +34,14 @@ func HandlerTransferToTokenDone() {
 	}
 }
 
-//消息重发机制，发送失败或远程处理失败
+//消息重发机制，防止发送失败或远程处理失败导致消息丢失
 func ResendTransferToTokenMsg() {
 	rdsClient := dao.DB.GetCommonRedisConn()
 	transferRecordMD := new(model.TransferRecord)
+	var overSeconds int64 = 10
 
 	for {
-		list, err := transferRecordMD.ListOverime(2)
+		list, err := transferRecordMD.ListOvertime(overSeconds)
 		log.Info("划转到代币消息重发，overtime_list：", len(list), ", error：", err)
 		if err != nil {
 			continue
@@ -55,7 +56,6 @@ func ResendTransferToTokenMsg() {
 				Num:        v.Num,
 				CreateTime: v.CreateTime,
 			})
-			log.Info("!!!!!划转到代币消息重发，err：", err)
 			if err != nil {
 				continue
 			}
@@ -65,6 +65,6 @@ func ResendTransferToTokenMsg() {
 			log.Info("划转到代币消息重发", err, cmd.Err())
 		}
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(time.Duration(overSeconds) * time.Second)
 	}
 }
