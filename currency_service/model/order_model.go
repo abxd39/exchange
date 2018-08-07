@@ -126,6 +126,17 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 	engine := dao.DB.GetMysqlConn()
 	var err error
 
+	code, err = this.GetOrder(this.Id)
+	if err != nil {
+		msg := "order not exists!"
+		return ERRCODE_ORDER_NOTEXIST, msg
+	}
+	if this.States == 3 {
+		msg := "订单已完成!"
+		return ERRCODE_TRADE_HAS_COMPLETED, msg
+	}
+
+
 	uCurrencyCount := new(UserCurrencyCount)
 	has, err := uCurrencyCount.CheckUserCurrencyCountExists(uint64(uid))
 	if err != nil {
@@ -341,6 +352,7 @@ func (this *Order) Confirm(Id uint64, updateTimeStr string, uid int32) (int32, s
 		return ERRCODE_SUCCESS, ""
 	}
 }
+
 
 // 确认放行事务
 func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (code int32, err error) {
