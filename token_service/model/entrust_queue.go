@@ -13,13 +13,13 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 
+	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
-	"github.com/satori/go.uuid"
 )
 
 const (
@@ -359,8 +359,8 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	fee := convert.Int64MulFloat64(buy_num, s.BuyPoundage) //买家消耗手续费0.005个USDT
 
 	//no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
-	uuid ,_:=uuid.NewV1()
-	no:=uuid.String()
+	uuid, _ := uuid.NewV1()
+	no := uuid.String()
 	trade_time := time.Now().Unix()
 	t := &Trade{
 		TradeNo:      no,
@@ -372,7 +372,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Fee:          fee,
 		DealTime:     trade_time,
 		Opt:          int(proto.ENTRUST_OPT_BUY),
-		TokenName:    s.TokenQueueId,
+		Symbol:       s.TokenQueueId,
 		EntrustId:    buyer.EntrustId,
 	}
 
@@ -387,7 +387,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Fee:          sell_fee,
 		DealTime:     trade_time,
 		Opt:          int(proto.ENTRUST_OPT_SELL),
-		TokenName:    s.TokenQueueId,
+		Symbol:       s.TokenQueueId,
 		EntrustId:    seller.EntrustId,
 	}
 
@@ -426,14 +426,14 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		session.Rollback()
 		return
 	}
-	t.States = buyer.States
+	//t.States = buyer.States
 
 	err = seller.SubSurplus(session, deal_num)
 	if err != nil {
 		session.Rollback()
 		return
 	}
-	o.States = seller.States
+	//o.States = seller.States
 	err = buy_token_account.NotifyDelFronzen(session, buy_num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_FROZEN_COMFIRM_DEL)
 
 	if ret != ERRCODE_SUCCESS {

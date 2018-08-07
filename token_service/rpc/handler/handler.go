@@ -131,7 +131,7 @@ func (s *RPCServer) AddTokenNum(ctx context.Context, req *proto.AddTokenNumReque
 	return nil
 }
 
-func (s *RPCServer) SubTokenWithFronze(ctx context.Context, req *proto.SubTokenWithFronzeRequest, rsp *proto.CommonErrResponse) error {
+func (s *RPCServer) SubTokenWithFronzen(ctx context.Context, req *proto.SubTokenWithFronzeRequest, rsp *proto.CommonErrResponse) error {
 	ret, err := model.SubTokenWithFronzen(req)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
@@ -140,7 +140,19 @@ func (s *RPCServer) SubTokenWithFronze(ctx context.Context, req *proto.SubTokenW
 	}
 
 	rsp.Err = ret
-	rsp.Message=GetErrorMessage(rsp.Err)
+	rsp.Message = GetErrorMessage(rsp.Err)
+	return nil
+}
+
+func (s *RPCServer) ConfirmSubFrozen(ctx context.Context, req *proto.ConfirmSubFrozenRequest, rsp *proto.CommonErrResponse) error {
+	err := model.ConfirmSubFrozenToken(req)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	rsp.Err = ERRCODE_SUCCESS
 	return nil
 }
 
@@ -366,7 +378,7 @@ func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeLis
 	for _, v := range list {
 		rsp.Data.Items = append(rsp.Data.Items, &proto.TokenTradeListResponse_Data_Detail{
 			TradeId:   int32(v.TradeId),
-			TokenName: v.TokenName,
+			TokenName: v.Symbol,
 			Opt:       int32(v.Opt),
 			Num:       v.Num,
 			Fee:       v.Fee,
