@@ -18,7 +18,6 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/liudng/godump"
 	"github.com/pkg/errors"
 )
 
@@ -245,7 +244,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 	}
 
 	m := jsonpb.Marshaler{EmitDefaults: true}
-	godump.Dump(r)
+
 	data, err = m.MarshalToString(r)
 	if err != nil {
 		log.Errorln(err.Error())

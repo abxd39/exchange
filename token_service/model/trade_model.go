@@ -22,15 +22,15 @@ type Trade struct {
 	Uid          uint64 `xorm:"comment('买家uid') index unique(uni_reade_no) BIGINT(11)"`
 	TokenId      int    `xorm:"comment('主货币id') index INT(11)"`
 	TokenTradeId int    `xorm:"comment('交易币种') INT(11)"`
-	TokenName    string `xorm:"comment('交易队') VARCHAR(32)"`
+	Symbol       string `xorm:"comment('交易队') VARCHAR(32)"`
 	Price        int64  `xorm:"comment('价格') BIGINT(20)"`
 	Num          int64  `xorm:"comment('数量') BIGINT(20)"`
 	//Balance      int64  `xorm:"BIGINT(20)"`
 	EntrustId string `xorm:"comment('委托ID')  VARCHAR(32)"`
-	Fee       int64  `xorm:"comment('手续费') BIGINT(20)"`
+	Fee       int64  `xorm:"comment('手续费数量') BIGINT(20)"`
 	Opt       int    `xorm:"comment(' buy  1或sell 2') index TINYINT(4)"`
 	DealTime  int64  `xorm:"comment('成交时间') BIGINT(20)"`
-	States    int    `xorm:"comment('0是挂单，1是部分成交,2成交， -1撤销') INT(11)"`
+	//States    int    `xorm:"comment('0是挂单，1是部分成交,2成交， -1撤销') INT(11)"`
 }
 
 func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
@@ -93,7 +93,8 @@ func CaluateAvgPrice(t []*Trade) int64 {
 		amount += convert.Int64MulInt64By8Bit(v.Num, v.Price)
 		sum += v.Num
 	}
-	tt := convert.Int64MulInt64By8Bit(amount, sum)
+	tt := convert.Int64DivInt64By8Bit(amount, sum)
+
 	godump.Dump(tt)
-	return convert.Int64MulInt64By8Bit(amount, sum)
+	return convert.Int64DivInt64By8Bit(amount, sum)
 }

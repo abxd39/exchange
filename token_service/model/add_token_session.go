@@ -123,7 +123,7 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 
 }
 
-
+//扣减金额并冻结
 func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err error) {
 	u := &UserToken{}
 	err = u.GetUserToken(req.Uid, int(req.TokenId))
@@ -143,14 +143,14 @@ func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err e
 	}
 	if u.Balance < req.Num {
 		ret = ERR_TOKEN_LESS
-		return 
+		return
 	}
 
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
-	ret,err = u.SubMoneyWithFronzen(session,req.Num,string(req.Ukey),req.Type)
-	if err != nil ||ret!=ERRCODE_SUCCESS {
+	ret, err = u.SubMoneyWithFronzen(session, req.Num, string(req.Ukey), req.Type)
+	if err != nil || ret != ERRCODE_SUCCESS {
 		session.Rollback()
 		return
 	}
@@ -163,3 +163,34 @@ func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err e
 	return
 }
 
+func ConfirmSubFrozenToken(req *proto.ConfirmSubFrozenRequest) (err error) {
+	u := &UserToken{}
+	err = u.GetUserToken(req.Uid, int(req.TokenId))
+	if err != nil {
+		return
+	}
+	var ok bool
+	r := &MoneyRecord{}
+	ok, err = r.CheckExist(string(req.Ukey), req.Type)
+	if err != nil {
+		return
+	}
+	if ok {
+		return
+	}
+
+	session := DB.GetMysqlConn().NewSession()
+	defer session.Close()
+	err = session.Begin()
+	err = u.NotifyDelFronzen(session, req.Num, string(req.Ukey), req.Type)
+	if err != nil {
+		session.Rollback()
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

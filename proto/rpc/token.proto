@@ -12,8 +12,10 @@ service TokenRPC {
         //新增代币
         rpc AddTokenNum(AddTokenNumRequest) returns (CommonErrResponse) {};
         //扣减币币余额
-        rpc SubTokenWithFronze(SubTokenWithFronzeRequest) returns (CommonErrResponse) {};
+        rpc SubTokenWithFronzen(SubTokenWithFronzeRequest) returns (CommonErrResponse) {};
 
+        //确认扣减币币余额
+        rpc ConfirmSubFrozen(ConfirmSubFrozenRequest) returns (CommonErrResponse) {};
 
         //历史委托队列
         rpc EntrustHistory(EntrustHistoryRequest) returns (EntrustHistoryResponse) {};
@@ -159,6 +161,16 @@ message SubTokenWithFronzeRequest{
     bytes ukey  =8;
     TOKEN_TYPE_OPERATOR type  =9;
 }
+
+message ConfirmSubFrozenRequest{
+    uint64 uid = 3;
+    int32 token_id = 4;
+    int64 num = 6;
+    TOKEN_OPT_TYPE opt = 7;
+    bytes ukey  =8;
+    TOKEN_TYPE_OPERATOR type  =9;
+}
+
 
 message HistoryKlineRequest{
     string symbol   =1;
@@ -431,10 +443,11 @@ message BibiHistoryResponse{
                 string all_num                        =5;
                 string on_price                       =6;
                 string trade_num                      =7;
-                int32 states                          =8;
+                string states                         =8;
                 string create_time                    =9;
                 string mount                          =10;
                 string price                          =11;
+                string sum                            =12;
         }
         int32 page_index           =1;
         int32 page_size            =2;
