@@ -231,6 +231,7 @@ func (s *RPCServer) EntrustHistory(ctx context.Context, req *proto.EntrustHistor
 			Sum:        display,
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     int32(v.States),
+			Price:  convert.Int64ToStringBy8Bit(v.Price),
 			//Sum: convert.Int64ToStringBy8Bit( v.Sum),
 		})
 	}
