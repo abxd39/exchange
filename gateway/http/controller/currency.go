@@ -408,8 +408,7 @@ func (this *CurrencyGroup) UpdatedAds(c *gin.Context) {
 	}
 
 	// 数据过虑暂不做
-	fmt.Println("req:", req, req.IsTwolevel )
-
+	//fmt.Println("req:", req, req.IsTwolevel )
 	// 调用 rpc 修改广告(买卖)
 	code, err := rpc.InnerService.CurrencyService.CallUpdatedAds(&proto.AdsModel{
 		Id:    req.Id,
