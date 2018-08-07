@@ -5,17 +5,16 @@ import (
 	"digicon/gateway/rpc"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"time"
+	"fmt"
 )
 
 type TokenGroup struct{}
 
 func (s *TokenGroup) Router(r *gin.Engine) {
-	action := r.Group("/token", TokenVerify)
+	action := r.Group("/token")
 	{
 		action.POST("/entrust_order", s.EntrustOrder)
 		//action.GET("/market/history/kline", s.HistoryKline)
@@ -182,7 +181,7 @@ func (s *TokenGroup) BibiHistory(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	fmt.Println("参数：12")
+
 	type EntrustListParam struct {
 		Uid       uint64 `form:"uid" binding:"required"`
 		Token     string `form:"token" binding:"required"`
@@ -211,13 +210,13 @@ func (s *TokenGroup) BibiHistory(c *gin.Context) {
 	}
 
 	startTime := param.StartTime
-	if startTime == 0 {
-		startTime = int32(time.Now().Unix()) - 86400
-	}
+	//if startTime == 0 {
+	//	startTime = int32(time.Now().Unix()) - 86400
+	//}
 	endTime := param.EndTime
-	if endTime == 0 {
-		endTime = int32(time.Now().Unix())
-	}
+	//if endTime == 0 {
+	//	endTime = int32(time.Now().Unix())
+	//}
 
 	rsp, err := rpc.InnerService.TokenService.CallBibiHistory(&proto.BibiHistoryRequest{
 		Uid:       param.Uid,
@@ -229,6 +228,8 @@ func (s *TokenGroup) BibiHistory(c *gin.Context) {
 		StartTime: startTime,
 		EndTime:   endTime,
 	})
+
+	fmt.Println("打印：",err,rsp)
 
 	type list struct {
 		PageIndex int32                                  `json:"page_index"`

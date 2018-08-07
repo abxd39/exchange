@@ -443,10 +443,11 @@ message BibiHistoryResponse{
                 string all_num                        =5;
                 string on_price                       =6;
                 string trade_num                      =7;
-                int32 states                          =8;
+                string states                         =8;
                 string create_time                    =9;
                 string mount                          =10;
                 string price                          =11;
+                string sum                            =12;
         }
         int32 page_index           =1;
         int32 page_size            =2;
