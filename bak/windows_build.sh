@@ -1,3 +1,4 @@
+
 #!/bin/sh
 
 
@@ -29,12 +30,11 @@ function init_start(){
 
 
 
-
 function build_service(){
     for service in $services;
     do
         cd ../$service
-	echo "building $service..."
+		echo "building $service..."
         GOOS=linux GOARCH=amd64 go build
     done
 }
@@ -82,6 +82,7 @@ function del_local_service(){
         mv -f ../$service/$service /tmp/$service 
     done
 }
+
 
 init_start
 build_service

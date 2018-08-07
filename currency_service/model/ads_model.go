@@ -111,7 +111,7 @@ func (this *Ads) Update() int {
 		return ERRCODE_ADS_NOTEXIST
 	}
 
-	_, err := dao.DB.GetMysqlConn().Id(this.Id).Update(this)
+	_, err := dao.DB.GetMysqlConn().Id(this.Id).Cols("is_twolevel").Update(this)
 	if err != nil {
 		log.Errorln(err.Error())
 		return ERRCODE_UNKNOWN
@@ -130,7 +130,19 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 	if isGet == nil {
 		return ERRCODE_ADS_NOTEXIST
 	}
-
+	//  上架时候检查币的余额是否足够
+	if status_id == 2 {
+		uCurrency, err  := new(UserCurrency).GetBalance(isGet.Uid, uint32(isGet.TokenId))
+		if err != nil {
+			log.Errorln("查询用户余额错误")
+			return ERRCODE_USER_BALANCE
+		}
+		userBanalce := uCurrency.Balance
+		if uint64(userBanalce) < isGet.Num {
+			log.Errorln("币的余额不足上架失败")
+			return  ERR_TOKEN_LESS
+		}
+	}
 	//// 1下架
 	//fmt.Println("111111111111111111")
 	//if isGet.IsDel == 0 && isGet.States == status_id-1 {
@@ -274,7 +286,7 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, err error){
 	ssAds := new(Ads)
 	engine := dao.DB.GetMysqlConn()
-	sumLimit, err = engine.Where("uid=? AND token_id=?  AND type_id=2  AND is_del = 0", uid, tokenId).SumInt(ssAds, "num")
+	sumLimit, err = engine.Where("uid=? AND token_id=?  AND type_id=2  AND states=1  AND is_del = 0", uid, tokenId).SumInt(ssAds, "num")
 	return
 }
 
@@ -338,13 +350,11 @@ func AutoDownlineUserAds(uid uint64, tokenId uint64) {
 
 	adsList := []Ads{}
 	engine := dao.DB.GetMysqlConn()
-	err = engine.Where("uid = ? and token_id = ? and  states=1 and  type_id=2  and is_del=0", uid, tokenId).Find(&adsList)
+	err = engine.Where("uid = ? and token_id = ? and  states=1 and  type_id=2  and is_del=0", uid, tokenId).Desc("created_time").Find(&adsList)
 	if err != nil {
 		log.Errorln("划转币的时候查询该币的广告错误!")
 		return
 	}
-
-	fmt.Printf("adsList:", adsList)
 
 	var curSumAdsNum uint64
 	var otherAdsIdList []uint64
@@ -360,7 +370,7 @@ func AutoDownlineUserAds(uid uint64, tokenId uint64) {
 			otherAdsIdList = append(otherAdsIdList, adsi.Id)
 		}
 	}
-	//fmt.Println("need to down ads:", otherAdsIdList)
+	fmt.Println("need to down ads:", otherAdsIdList)
 	//downlineSql := "update ads set states=0  where id in ?"
 	//_, err = engine.Exec(downlineSql, otherAdsIdList)
 	if len(otherAdsIdList) <= 0 {
