@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"digicon/common/constant"
 	"digicon/common/errors"
 	"digicon/common/snowflake"
@@ -112,7 +113,7 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, num int64) er
 
 	//1.法币账户
 	newBalance := userCurrency.Balance - num
-	_, err = currencySession.Exec(fmt.Sprintf("UPDATE %s SET"+
+	result, err := currencySession.Exec(fmt.Sprintf("UPDATE %s SET"+
 		" balance=%d,"+
 		" version=version+1"+
 		" WHERE uid=%d"+
@@ -122,21 +123,33 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, num int64) er
 		currencySession.Rollback()
 		return errors.NewSys(err)
 	}
+	if affected, err := result.RowsAffected(); err != nil || affected == 0 { //无影响行数
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
 
 	//2.法币流水
-	_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
+	result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
 		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
 		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(UserCurrencyHistory).TableName(), uid, transferId, tokenId, num, newBalance, 4, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
 	if err != nil {
 		currencySession.Rollback()
 		return errors.NewSys(err)
 	}
+	if affected, err := result.RowsAffected(); err != nil || affected == 0 { //无影响行数
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
 
 	//3.划转记录
-	_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
+	result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
 		" (id, uid, token_id, num, states, create_time) VALUES"+
 		" (%d, %d, %d, %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, num, 1, now))
 	if err != nil {
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
+	if affected, err := result.RowsAffected(); err != nil || affected == 0 { //无影响行数
 		currencySession.Rollback()
 		return errors.NewSys(err)
 	}
@@ -214,32 +227,34 @@ func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMes
 	}
 
 	//1.法币账号
+	var result sql.Result
 	if !has { //法币账户不存在，新建
 		//获取token_name
 		tokensModel := new(CommonTokens)
 		token := tokensModel.Get(uint32(msg.TokenId), "")
 		if token == nil {
+			currencySession.Rollback()
 			return errors.NewNormal("获取token信息失败")
 		}
 
 		//新建法币账户
-		_, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
+		result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
 			" (uid, token_id, token_name, balance, version)"+
 			" VALUES (%d, %d, '%s', %d, 1)", this.TableName(), msg.Uid, msg.TokenId, token.Mark, newCurrBalance))
-		if err != nil {
-			currencySession.Rollback()
-			return errors.NewSys(err)
-		}
 	} else { //法币账户已存在，更新
-		_, err = currencySession.Exec(fmt.Sprintf("UPDATE %s SET balance=%d,version=version+1 WHERE uid=%d AND token_id=%d AND version=%d", this.TableName(), newCurrBalance, msg.Uid, msg.TokenId, userCurrency.Version))
-		if err != nil {
-			currencySession.Rollback()
-			return errors.NewSys(err)
-		}
+		result, err = currencySession.Exec(fmt.Sprintf("UPDATE %s SET balance=%d,version=version+1 WHERE uid=%d AND token_id=%d AND version=%d", this.TableName(), newCurrBalance, msg.Uid, msg.TokenId, userCurrency.Version))
+	}
+	if err != nil {
+		currencySession.Rollback()
+		return errors.NewSys(err)
+	}
+	if affected, err := result.RowsAffected(); err != nil || affected == 0 { //无影响行数
+		currencySession.Rollback()
+		return errors.NewSys(err)
 	}
 
-	//2.法币流水
-	result, err := currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
+	//2.法币流水，再次检查消息是否已处理!!!（order_id是否已存在）
+	result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
 		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
 		" SELECT %d, %[2]d, '%d', %d, %d, %d, %d, '%s'"+
 		" FROM DUAL"+
@@ -248,8 +263,7 @@ func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMes
 		currencySession.Rollback()
 		return errors.NewSys(err)
 	}
-	affected, err := result.RowsAffected()
-	if err != nil || affected == 0 { //再次检查消息是否已处理!!!
+	if affected, err := result.RowsAffected(); err != nil || affected == 0 { //无影响行数
 		currencySession.Rollback()
 		return errors.NewSys(err)
 	}
@@ -278,7 +292,8 @@ func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMes
 //划转到代币成功，把划转记录标记为已完成
 func (this *UserCurrency) TransferToTokenDone(msg *proto.TransferToTokenDoneMessage) error {
 	engine := dao.DB.GetMysqlConn()
-	_, err := engine.Exec(fmt.Sprintf("UPDATE %s SET states=2,update_time=%d WHERE id=%d AND states=1", new(TransferRecord).TableName(), time.Now().Unix(), msg.Id))
+	//判断states为1才更新（消息可能重复发送）
+	_, err := engine.Exec(fmt.Sprintf("UPDATE %s SET states=2,update_time=%d,done_time=%d WHERE id=%d AND states=1", new(TransferRecord).TableName(), time.Now().Unix(), msg.DoneTime, msg.Id))
 	if err != nil {
 		return errors.NewSys(err)
 	}

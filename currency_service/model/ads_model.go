@@ -130,7 +130,19 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 	if isGet == nil {
 		return ERRCODE_ADS_NOTEXIST
 	}
-
+	//  上架时候检查币的余额是否足够
+	if status_id == 2 {
+		uCurrency, err  := new(UserCurrency).GetBalance(isGet.Uid, uint32(isGet.TokenId))
+		if err != nil {
+			log.Errorln("查询用户余额错误")
+			return ERRCODE_USER_BALANCE
+		}
+		userBanalce := uCurrency.Balance
+		if uint64(userBanalce) < isGet.Num {
+			log.Errorln("币的余额不足上架失败")
+			return  ERR_TOKEN_LESS
+		}
+	}
 	//// 1下架
 	//fmt.Println("111111111111111111")
 	//if isGet.IsDel == 0 && isGet.States == status_id-1 {
@@ -274,7 +286,7 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, err error){
 	ssAds := new(Ads)
 	engine := dao.DB.GetMysqlConn()
-	sumLimit, err = engine.Where("uid=? AND token_id=?  AND type_id=2  AND is_del = 0", uid, tokenId).SumInt(ssAds, "num")
+	sumLimit, err = engine.Where("uid=? AND token_id=?  AND type_id=2  AND states=1  AND is_del = 0", uid, tokenId).SumInt(ssAds, "num")
 	return
 }
 
@@ -305,6 +317,10 @@ func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) ( MaxPrice, MinPrice in
 */
 func AdsAutoDownline(id  uint64) {
 	ads := new(Ads).Get(id)
+	if ads.TypeId == 1 {
+		log.Println("这是买价格要购买币的订单")
+		return
+	}
 	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
 	minLimit := ads.MinLimit * 100000000
 	if curCnyPrice < int64(minLimit) {
@@ -319,4 +335,53 @@ func AdsAutoDownline(id  uint64) {
 
 }
 
+/*
+	检查用户广告额度不足余额时自动下架广告
+*/
+func AutoDownlineUserAds(uid uint64, tokenId uint64) {
+	log.Printf("auto check  user balance  uid:%v, tokenid: %v ", uid, tokenId)
+	uCurrency, err  := new(UserCurrency).GetBalance(uid, uint32(tokenId))
+	if err != nil {
+		log.Errorln("查询用户余额错误")
+		return
+	}
+	userBanalce := uCurrency.Balance
+	log.Println(userBanalce)
+
+	adsList := []Ads{}
+	engine := dao.DB.GetMysqlConn()
+	err = engine.Where("uid = ? and token_id = ? and  states=1 and  type_id=2  and is_del=0", uid, tokenId).Desc("created_time").Find(&adsList)
+	if err != nil {
+		log.Errorln("划转币的时候查询该币的广告错误!")
+		return
+	}
+
+	var curSumAdsNum uint64
+	var otherAdsIdList []uint64
+
+	for _, adsi := range adsList{
+		curSumAdsNum  = curSumAdsNum + adsi.Num
+		if int64(curSumAdsNum) >= userBanalce{
+			otherAdsIdList = append(otherAdsIdList, adsi.Id)
+		}
+		curCnyPrice := convert.Int64MulInt64By8Bit(int64(adsi.Num), int64(adsi.Price))
+		minLimit := adsi.MinLimit * 100000000
+		if curCnyPrice < int64(minLimit) {
+			otherAdsIdList = append(otherAdsIdList, adsi.Id)
+		}
+	}
+	fmt.Println("need to down ads:", otherAdsIdList)
+	//downlineSql := "update ads set states=0  where id in ?"
+	//_, err = engine.Exec(downlineSql, otherAdsIdList)
+	if len(otherAdsIdList) <= 0 {
+		log.Println("not need to downline ads...")
+		return
+	}
+	ad := Ads{States:0}
+	_, err = engine.In("id", otherAdsIdList).Cols("states").Update(&ad)
+	if err != nil {
+		log.Errorln("自动下架广告错误", err.Error())
+	}
+
+}
 
