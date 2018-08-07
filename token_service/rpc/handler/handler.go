@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
+	"fmt"
 )
 
 type RPCServer struct {
@@ -483,9 +484,10 @@ func (s *RPCServer) BibiHistory(ctx context.Context, req *proto.BibiHistoryReque
 			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
 			Mount:      display,
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
-			States:     int32(v.States),
-		})
+			States:     strconv.Itoa(v.States),
+			Sum:display})
 	}
+	fmt.Println("测试数据：",rsp.Data.Items)
 
 	return nil
 }
