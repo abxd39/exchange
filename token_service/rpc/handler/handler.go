@@ -536,7 +536,7 @@ func (s *RPCServer) RegisterReward(ctx context.Context, req *proto.RegisterRewar
 
 	//开始赠送
 	userTokenModel := new(model.UserToken)
-	err := userTokenModel.RegisterReward(req.Uid, int64(tokenId), convert.Int64MulInt64By8Bit(int64(rewardNum), 100000000))
+	err := userTokenModel.RegisterReward(req.Uid, int64(tokenId), int64(rewardNum*100000000))
 	if err != nil {
 		rsp.Err = int32(errors.GetErrStatus(err))
 		rsp.Message = errors.GetErrMsg(err)

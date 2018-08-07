@@ -38,8 +38,6 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/bibi_history", s.BibiHistory)
 
 		action.GET("/transfer_list", s.TransferList)
-
-		action.POST("/register_reward", s.RegisterReward)
 	}
 }
 
@@ -578,31 +576,4 @@ func (s *TokenGroup) TransferList(c *gin.Context) {
 	}
 
 	ret.SetDataSection("list", newList)
-}
-
-func (s *TokenGroup) RegisterReward(c *gin.Context) {
-	ret := NewPublciError()
-	defer func() {
-		c.JSON(http.StatusOK, ret.GetResult())
-	}()
-
-	param := &struct {
-		Uid int64 `form:"uid" binding:"required"`
-	}{}
-
-	if err := c.ShouldBind(param); err != nil {
-		log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		return
-	}
-
-	rsp, err := rpc.InnerService.TokenService.CallRegisterReward(&proto.RegisterRewardRequest{
-		Uid: param.Uid,
-	})
-
-	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
-		return
-	}
-	ret.SetErrCode(rsp.Err, rsp.Message)
 }

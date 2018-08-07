@@ -23,6 +23,10 @@ type FrozenHistory struct {
 	Frozen     int64  `xorm:"comment('冻结余额')  BIGINT(20)"`
 }
 
+func (FrozenHistory) TableName() string {
+	return "frozen_history"
+}
+
 //新增一条流水
 func (s *FrozenHistory) InsertRecord(session *xorm.Session, p *FrozenHistory) (err error) {
 	_, err = session.InsertOne(p)
