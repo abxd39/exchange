@@ -70,9 +70,9 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int, symbol string
 	//m := make([]EntrustDetail, 0)
 	var statess []int
 	if states == 0 {
-		statess = []int{0, 1, 2, 3}
+		statess = []int{4, 1, 2, 3}
 	} else if states == 1 {
-		statess = []int{0}
+		statess = []int{4}
 	} else {
 		statess = []int{1, 2, 3}
 	}
