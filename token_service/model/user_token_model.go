@@ -228,7 +228,7 @@ func (s *UserToken) AddFrozen(session *xorm.Session, num int64, ukey string, ty 
 //注册奖励
 func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 	if rewardTokenId == 0 || rewardNum == 0 { //无奖励
-		return nil
+		return errors.NewNormal("请配置奖励币种、数量")
 	}
 
 	//判断是否已领取过奖励
