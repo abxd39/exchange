@@ -92,6 +92,7 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.
 func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
+	fmt.Println("update req:",  req.IsTwolevel , req.Id)
 
 	ads := new(model.Ads)
 	ads.Id = req.Id
@@ -652,7 +653,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.NickName = authInfo.NickName
 	rateAndAuth.HeadSculpture = authInfo.HeadSculpture
 	rateAndAuth.CreatedTime = authInfo.CreatedTime
-	//fmt.Println("rateAndAuth:", rateAndAuth)
+	fmt.Println("rateAndAuth:", rateAndAuth)
 
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
