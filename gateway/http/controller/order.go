@@ -195,6 +195,7 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 		Uid:        param.Uid,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -219,6 +220,7 @@ func (this CurrencyGroup) DeleteOrder(c *gin.Context) {
 		Id: param.Id,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -243,6 +245,7 @@ func (this CurrencyGroup) ReadyOrder(c *gin.Context) {
 		Id: param.Id,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -273,6 +276,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 		Uid: param.Uid,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -308,6 +312,7 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 		//TypeId:param.TypeId,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -429,6 +434,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 		Limit:     req.Limit,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -447,6 +453,7 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	err = json.Unmarshal([]byte(rsp.Data), &uCurrencyHistoryList)
 
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -486,6 +493,7 @@ func (this *CurrencyGroup) GetRecentTransactionPrice(c *gin.Context) {
 		PriceType: req.PriceType,
 	})
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
@@ -497,6 +505,7 @@ func (this *CurrencyGroup) GetRecentTransactionPrice(c *gin.Context) {
 	var transprice TransactionPrice
 	err = json.Unmarshal([]byte(rsp.Data), &transprice)
 	if err != nil {
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
