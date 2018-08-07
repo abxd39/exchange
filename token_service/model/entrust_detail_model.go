@@ -38,7 +38,7 @@ type EntrustDetail struct {
 	SurplusNum  int64  `xorm:"not null comment('剩余数量') BIGINT(20)"`
 	Price       int64  `xorm:"not null comment('实际价格(卖出价格）') BIGINT(20)"`
 	Sum         int64  `xorm:"not null comment('委托总额') BIGINT(20)"`
-	//Mount       int64  `xorm:"not null comment('全部实际价值') BIGINT(20)"`
+	Mount       int64  `xorm:"not null comment('全部实际价值') BIGINT(20)"`
 	Opt         int    `xorm:"not null comment('类型 买入单1 卖出单2 ') TINYINT(4)"`
 	Type        int    `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
 	OnPrice     int64  `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
@@ -87,7 +87,6 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int, symbol string
 	}
 
 	engine := DB.GetMysqlConn()
-	engine.ShowSQL(true)
 	query := engine.Where("uid = ?", uid)
 	if symbol != "" {
 		query.Where("symbol = ?", symbol)
@@ -104,8 +103,6 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int, symbol string
 
 	tempQuery := query.Clone()
 	count, err := tempQuery.Count(s)
-
-	fmt.Println("结果数据：", count, err)
 
 	if err != nil {
 		return nil, nil, err
