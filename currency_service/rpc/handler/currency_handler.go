@@ -745,6 +745,8 @@ func (s *RPCServer) TransferToToken(ctx context.Context, req *proto.TransferToTo
 		rsp.Message = errors.GetErrMsg(err)
 		return nil
 	}
+	// 划转成功后，检查广告是否需要下架
+	go model.AutoDownlineUserAds(req.Uid, uint64(req.TokenId))
 
 	return nil
 }
