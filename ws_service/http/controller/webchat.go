@@ -82,7 +82,7 @@ func (this *WebChatGroup) WSChannel(c *gin.Context) {
 		// todo msg
 		var mesg Message
 		if err := json.Unmarshal(msg, &mesg); err == nil {
-			log.Errorln("mesg:", mesg)
+			log.Println("mesg:", mesg)
 			switch mesg.InfoType {
 			// 认证
 			case 1:
@@ -279,7 +279,7 @@ func (this *WebChatGroup) ChatBroadCast(s *melody.Session, mesg Message, msg []b
 
  */
 func SaveChatMsg(mesg Message) {
-	log.Errorln("go run to save msg :", mesg)
+	log.Println("go run to save msg :", mesg)
 	chat := new(model.Chats)
 	chat.OrderId = mesg.OrderId
 	chat.Uid = mesg.Uid
