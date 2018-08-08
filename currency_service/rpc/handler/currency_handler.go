@@ -720,7 +720,8 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 	err, price := chistory.GetLastPrice(tokenId)
 	//fmt.Println("last price:", price)
 	if err != nil {
-		tp.LatestPrice = 0.00
+		tp.LatestPrice = tp.MarketPrice
+		//tp.LatestPrice = 0.00
 	} else {
 		tp.LatestPrice = utils.Round2(convert.Int64ToFloat64By8Bit(price), 2)
 	}

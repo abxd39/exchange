@@ -16,7 +16,6 @@ import (
 	"digicon/common/convert"
 	"digicon/currency_service/rpc/client"
 	"strconv"
-
 )
 
 // 获取订单列表
@@ -287,6 +286,20 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
+	if len(uOrderHistoryList) <= 0 {
+		ctk := new(model.CommonTokens)
+		fctk := ctk.Get(0, "BTC")
+		tokenId := fctk.Id
+		tctcy := new(model.TokenConfigTokenCNy)
+		tctcy.GetPrice(uint32(tokenId))
+		now := time.Now()
+		for i:=0;  i<20 ;  i++  {
+			mm, _ := time.ParseDuration(fmt.Sprintf("-%dm", 5 * i)) // 过期时间15分钟
+			createtime := now.Add(mm).Format("2006-01-02 15:04:05")
+			uOrderHistoryList = append(uOrderHistoryList, model.Order{Price:tctcy.Price, CreatedTime:createtime})
+		}
+	}
+
 	data, err := json.Marshal(uOrderHistoryList)
 	rsp.Data = string(data)
 	rsp.Code = errdefine.ERRCODE_SUCCESS
