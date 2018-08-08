@@ -16,6 +16,7 @@ import (
 	//"time"
 	. "digicon/proto/common"
 	"encoding/json"
+	"digicon/common/random"
 )
 
 type CurrencyGroup struct{}
@@ -639,7 +640,11 @@ func (this *CurrencyGroup) AdsList(c *gin.Context) {
 			for _, u := range ulist.User {
 				if reaList.List[l].Uid == u.Uid {
 					reaList.List[l].UserName = u.NickName
-					reaList.List[l].UserFace = u.HeadSculpture
+					if u.HeadSculpture == ""{
+						reaList.List[l].UserFace = random.GetRandHead()
+					}else{
+						reaList.List[l].UserFace = u.HeadSculpture
+					}
 					break
 				}
 			}
