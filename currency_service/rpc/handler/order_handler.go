@@ -16,7 +16,6 @@ import (
 	"digicon/common/convert"
 	"digicon/currency_service/rpc/client"
 	"strconv"
-
 )
 
 // 获取订单列表
@@ -278,8 +277,6 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 }
 
 func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
-	//uCurrencyHistory := new(model.UserCurrencyHistory)
-	//uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime, req.Limit)
 	od := new(model.Order)
 	uOrderHistoryList, err := od.GetOrderHistory(req.StartTime, req.EndTime, req.Limit)
 	if err != nil {
@@ -287,10 +284,13 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
+	ohistlen := len(uOrderHistoryList)
+	if ohistlen <= 0 {
+		uOrderHistoryList = model.GenerateKline()
+	}
 	data, err := json.Marshal(uOrderHistoryList)
 	rsp.Data = string(data)
 	rsp.Code = errdefine.ERRCODE_SUCCESS
-
 	return nil
 }
 

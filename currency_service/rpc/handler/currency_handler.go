@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"time"
+	"digicon/common/random"
 )
 
 type RPCServer struct{}
@@ -433,7 +434,6 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				sum += dt.Balance
 				int64valuetion := convert.Int64MulInt64By8Bit(tkconfig.Price, dt.Balance)
 				valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64valuetion), 2)
-				sumcny += int64valuetion
 			} else {
 				var symbol string
 				if dt.TokenName != ""{
@@ -655,6 +655,11 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.CreatedTime = authInfo.CreatedTime
 	fmt.Println("rateAndAuth:", rateAndAuth)
 
+
+	if rateAndAuth.HeadSculpture == ""{
+		rateAndAuth.HeadSculpture = random.GetRandHead()
+	}
+
 	rData, err := json.Marshal(rateAndAuth)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -720,7 +725,8 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 	err, price := chistory.GetLastPrice(tokenId)
 	//fmt.Println("last price:", price)
 	if err != nil {
-		tp.LatestPrice = 0.00
+		tp.LatestPrice = tp.MarketPrice
+		//tp.LatestPrice = 0.00
 	} else {
 		tp.LatestPrice = utils.Round2(convert.Int64ToFloat64By8Bit(price), 2)
 	}

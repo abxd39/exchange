@@ -31,3 +31,34 @@ func Krand(size int, kind int) []byte {
 	}
 	return result
 }
+
+
+
+var headList = []string{"https://sdun.oss-cn-shenzhen.aliyuncs.com/aa6b04d79c699fe229464dd3cd86ce88.png"}
+
+
+func GetRandHead() string {
+	headListLen := len(headList)
+	n := rand.Intn(headListLen)
+	if n >= headListLen {
+		return "https://sdun.oss-cn-shenzhen.aliyuncs.com/aa6b04d79c699fe229464dd3cd86ce88.png"
+	}else{
+		return headList[n]
+	}
+}
+
+
+var randHeadList = []string{"https://sdun.oss-cn-shenzhen.aliyuncs.com/aa6b04d79c699fe229464dd3cd86ce88.png",
+	"https://sdun.oss-cn-shenzhen.aliyuncs.com/dbed8a73d3912c8fae53df635f98706c.png",
+	"https://sdun.oss-cn-shenzhen.aliyuncs.com/6ab58203a1dc916432de00af83c1daca.png",
+	"https://sdun.oss-cn-shenzhen.aliyuncs.com/2490df8d46315a2aaa3e6ef37a60e166.png",
+}
+func SetRegisterRandHeader() string {
+	headListLen := len(randHeadList)
+	n := rand.Intn(headListLen)
+	if n >= headListLen {
+		return "https://sdun.oss-cn-shenzhen.aliyuncs.com/aa6b04d79c699fe229464dd3cd86ce88.png"
+	}else{
+		return randHeadList[n]
+	}
+}
