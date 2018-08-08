@@ -71,6 +71,7 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 		page_num = 10
 	}
 	engine := dao.DB.GetMysqlConn()
+
 	//没有指定 每页的行数
 	var star_row int
 	if page > 1 {
@@ -83,7 +84,7 @@ func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list
 	}
 
 	fmt.Println("total=", total, "type=", req.ArticleType, "page=", page, "起始行star_row=", star_row, "page_num=", page_num)
-	err = engine.Where("type=?", req.ArticleType).Limit(int(page_num), int(star_row)).Find(u)
+	err = engine.GroupBy("id").Where("type=?", req.ArticleType).Limit(int(page_num), int(star_row)).Find(u)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
