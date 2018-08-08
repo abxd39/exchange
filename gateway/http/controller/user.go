@@ -769,9 +769,11 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+
 	var url string
+	var err error
 	if req.Url != ""{
-		url, err := s.upload_picture(req.Url)
+		url, err = s.upload_picture(req.Url)
 		if err != nil {
 			log.Errorf(err.Error())
 			ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
@@ -783,6 +785,8 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 			return
 		}
 	}
+
+	fmt.Println("url:", url )
 
 	rsp, err := rpc.InnerService.UserSevice.CallSetNickName(&proto.UserSetNickNameRequest{
 		Uid:           req.Uid,
