@@ -1,23 +1,24 @@
 package model
 
 import (
+	"digicon/common/convert"
 	"digicon/common/genkey"
 	. "digicon/price_service/dao"
 	proto "digicon/proto/rpc"
-	"fmt"
-	"github.com/golang/protobuf/jsonpb"
-	log "github.com/sirupsen/logrus"
-	"time"
 	"errors"
-	"digicon/common/convert"
+	"fmt"
+	"github.com/go-redis/redis"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/liudng/godump"
+	log "github.com/sirupsen/logrus"
+	"os"
+	"time"
 )
-
 
 const (
 	//OneMinPrice
 
-	FivteenMinPrice=iota
+	FivteenMinPrice = iota
 	OneHourPrice
 	FourHourPrice
 	OneDayPrice
@@ -25,10 +26,15 @@ const (
 )
 
 type PriceInfo struct {
-	Key      string
-	PreData  *proto.PriceCache
-	MinPrice int64
+	Key     string
+	PreData *proto.PriceCache
+
 	UsdPrice int64
+
+	MinPriceKey string
+	MaxPriceKey string
+
+	Period time.Duration
 }
 
 type PriceWorkQuene struct {
@@ -48,6 +54,13 @@ func NewPriceWorkQuene(name string, token_id int32, cny int64, d *proto.PriceCac
 		"4hour",
 		"1day",
 	}
+
+	var period_sec = [MaxPrice]time.Duration{
+		900 * time.Second,
+		3600 * time.Second,
+		14400 * time.Second,
+		86400 * time.Second,
+	}
 	m := &PriceWorkQuene{
 		Symbol:       name,
 		PriceChannel: genkey.GetPulishKey(name),
@@ -57,18 +70,18 @@ func NewPriceWorkQuene(name string, token_id int32, cny int64, d *proto.PriceCac
 		CnyPrice:     cny,
 	}
 
-	c:=&ConfigQuenes{}
-	ok,err := DB.GetMysqlConn2().Where("switch=1").Get(c)
-	if err!=nil {
+	c := &ConfigQuenes{}
+	ok, err := DB.GetMysqlConn2().Where("switch=1").Get(c)
+	if err != nil {
 		log.Fatal(err.Error())
 	}
 	if !ok {
 		log.Fatal(errors.New("err config"))
 	}
-	ids:=make([]int64,0)
-	one:=&Price{}
-	ok,err =DB.GetMysqlConn().Where("symbol=? ",name).Desc("id").Get(one)
-	if err!=nil {
+	ids := make([]int64, 0)
+	one := &Price{}
+	ok, err = DB.GetMysqlConn().Where("symbol=? ", name).Desc("id").Limit(1, 0).Get(one)
+	if err != nil {
 		log.Fatal(err.Error())
 	}
 
@@ -76,109 +89,91 @@ func NewPriceWorkQuene(name string, token_id int32, cny int64, d *proto.PriceCac
 		for i := 0; i < MaxPrice; i++ {
 			v := &PriceInfo{}
 			v.Key = fmt.Sprintf("%s_%s", name, period_key[i])
-			v.PreData=&proto.PriceCache{
-				Id:0,
-				Symbol:name,
-				Price:c.Price,
-				CreatedTime:0,
-				Amount:0,
-				Vol:0,
-				Count:0,
-				UsdVol:0,
+			v.PreData = &proto.PriceCache{
+				Id:          0,
+				Symbol:      name,
+				Price:       c.Price,
+				CreatedTime: 0,
+				Amount:      0,
+				Vol:         0,
+				Count:       0,
+				UsdVol:      0,
 			}
+			v.MinPriceKey = fmt.Sprintf("price:%s:min", v.Key, period_key[i])
+			v.MaxPriceKey = fmt.Sprintf("price:%s:max", v.Key, period_key[i])
+			v.Period = period_sec[i]
 			m.data = append(m.data, v)
 		}
 		go m.Subscribe()
 		return m
 	}
 
-
 	t := time.Unix(one.Id, 0)
 
-	var min5 ,min15 ,hour4,hour1 int
-	if t.Minute()%5 !=0 {
-		min5=t.Minute()%5
-	}
+	var min15, hour4, hour1 int
 
-	five:=t.Add(-time.Duration(60*min5)*time.Second)
-	log.Debug("five add %v",&five)
+	//min5 = t.Minute() % 5
 
-	//ids=append(ids,five.Unix())
+	//five := t.Add(-time.Duration(60*min5) * time.Second)
 
-	if t.Minute()%15 !=0 {
-		min15 = t.Minute()%15
-	}
+	min15 = t.Minute() % 15
 
-	fifteen:=t.Add(-time.Duration(60*min15)*time.Second)
+	fifteen := t.Add(-time.Duration(60*min15) * time.Second)
 
-	log.Debug("fifteen add %v",&fifteen)
-	ids=append(ids,fifteen.Unix())
+	ids = append(ids, fifteen.Unix())
 
-	if t.Minute()%60!=0 {
-		hour1 = t.Minute()%60
-	}
-	onehour:=t.Add(-time.Duration(hour1*60)*time.Second)
-	ids=append(ids,onehour.Unix())
+	hour1 = t.Minute() % 60
 
+	onehour := t.Add(-time.Duration(hour1*60) * time.Second)
+	ids = append(ids, onehour.Unix())
 
-	if t.Hour()%4 !=0 {
-		hour4 = t.Hour()%4
-	}
+	hour4 = t.Hour() % 4
 
-	four:=t.Add(-time.Duration(t.Minute()*60)*time.Second -time.Duration(3600*hour4)*time.Second)
-	ids=append(ids,four.Unix())
+	four := onehour.Add(-time.Duration(3600*hour4) * time.Second)
+	ids = append(ids, four.Unix())
 
-
-	left_hour:=t.Hour()%24
-	left_min:=t.Minute()%60
-	oneday:=t.Add(-time.Duration(left_hour*3600)*time.Second-time.Duration(left_min*60)*time.Second)
-	ids=append(ids,oneday.Unix())
-
-/*
-	week:=t.Weekday()
-	one_week:=oneday.Add( -(time.Duration(week))*86400*time.Second )
-	ids=append(ids,one_week.Unix())
-
-	month:=t.Day()
-	one_month:=oneday.Add(-time.Duration(month-1)*86400*time.Second )
-	ids=append(ids,one_month.Unix())
-*/
+	left_hour := t.Hour() % 24
+	left_min := t.Minute() % 60
+	oneday := t.Add(-time.Duration(left_hour*3600)*time.Second - time.Duration(left_min*60)*time.Second)
+	ids = append(ids, oneday.Unix())
 
 	for i := 0; i < MaxPrice; i++ {
 
 		v := &PriceInfo{}
 		v.Key = fmt.Sprintf("%s_%s", name, period_key[i])
 
-		p:=&Price{}
-		_,err := DB.GetMysqlConn().Where("symbol=? and id=?",name,ids[i]).Asc("created_time").Get(p)
-		if err!=nil {
+		p := &Price{}
+		_, err := DB.GetMysqlConn().Where("symbol=? and id=?", name, ids[i]).Asc("created_time").Get(p)
+		if err != nil {
 			log.Fatal(err.Error())
 		}
 		if !ok {
 			//init
-			v.PreData=&proto.PriceCache{
-				Id:ids[i],
-				Symbol:name,
-				Price:c.Price,
-				CreatedTime:ids[i],
-				Amount:0,
-				Vol:0,
-				Count:0,
-				UsdVol:0,
+			v.PreData = &proto.PriceCache{
+				Id:          ids[i],
+				Symbol:      name,
+				Price:       c.Price,
+				CreatedTime: ids[i],
+				Amount:      0,
+				Vol:         0,
+				Count:       0,
+				UsdVol:      0,
 			}
-		}else{
-			v.PreData=&proto.PriceCache{
-				Id:p.Id,
-				Symbol:p.Symbol,
-				Price:p.Price,
-				CreatedTime:p.CreatedTime,
-				Amount:p.Amount,
-				Vol:p.Vol,
-				Count:p.Count,
-				UsdVol:p.UsdVol,
+		} else {
+			v.PreData = &proto.PriceCache{
+				Id:          p.Id,
+				Symbol:      p.Symbol,
+				Price:       p.Price,
+				CreatedTime: p.CreatedTime,
+				Amount:      p.Amount,
+				Vol:         p.Vol,
+				Count:       p.Count,
+				UsdVol:      p.UsdVol,
 			}
 		}
-
+		v.MinPriceKey = fmt.Sprintf("price:%s:%s:min", name, period_key[i])
+		v.MaxPriceKey = fmt.Sprintf("price:%s:%s:max", name, period_key[i])
+		v.Period = period_sec[i]
 		m.data = append(m.data, v)
 	}
 	go m.Subscribe()
@@ -190,7 +185,7 @@ func (s *PriceWorkQuene) GetEntry() *proto.PriceCache {
 	return s.entry
 }
 
-func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) (err error){
+func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) (err error) {
 	err = InsertPrice(&Price{
 		Id:          k.Id,
 		Vol:         k.Vol,
@@ -201,41 +196,39 @@ func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) (err error){
 		Symbol:      k.Symbol,
 		UsdVol:      k.UsdVol,
 	})
-	return 
+	return
 }
 
-
-func (s *PriceWorkQuene)ReloadKline(stime  int64)  {
+func (s *PriceWorkQuene) ReloadKline(stime int64) {
 
 	godump.Dump(stime)
 	return
-	k:=make([]*Price,0)
-	lastt:=stime+  43200
-	err:=DB.GetMysqlConn().Where("created_time>=? and created_time<? and symbol=?",stime,lastt,s.Symbol).Find(&k)
-	if err!=nil {
+	k := make([]*Price, 0)
+	lastt := stime + 43200
+	err := DB.GetMysqlConn().Where("created_time>=? and created_time<? and symbol=?", stime, lastt, s.Symbol).Find(&k)
+	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	for _,v:=range k  {
+	for _, v := range k {
 
 		t := time.Unix(v.Id, 0)
 		c := &proto.PriceCache{
-			Id:v.Id,
-			Symbol:v.Symbol,
-			Price:v.Price,
-			Amount:v.Amount,
-			Vol:v.Vol,
-			Count:v.Count,
-			UsdVol:v.UsdVol,
-			CreatedTime:v.CreatedTime,
+			Id:          v.Id,
+			Symbol:      v.Symbol,
+			Price:       v.Price,
+			Amount:      v.Amount,
+			Vol:         v.Vol,
+			Count:       v.Count,
+			UsdVol:      v.UsdVol,
+			CreatedTime: v.CreatedTime,
 		}
-
 
 		if t.Second() == 0 {
 			s.entry = c
 			min := t.Minute()
 			if min%15 == 0 {
 				s.save(FivteenMinPrice, c)
-				if min==0 {
+				if min == 0 {
 					s.save(OneHourPrice, c)
 					h := t.Hour()
 					if h%4 == 0 {
@@ -249,9 +242,9 @@ func (s *PriceWorkQuene)ReloadKline(stime  int64)  {
 		}
 	}
 
-	if time.Now().Unix()<=lastt {
+	if time.Now().Unix() <= lastt {
 		return
-	}else {
+	} else {
 		s.ReloadKline(lastt)
 	}
 
@@ -275,15 +268,17 @@ func (s *PriceWorkQuene) Subscribe() {
 		t := time.Unix(c.Id, 0)
 		if t.Second() == 0 {
 			err = s.updatePrice2(c)
-			if err!=nil {
+			if err != nil {
 				continue
 			}
-			s.entry=c
+
+			s.entry = c
+			s.SetPrice(c)
 
 			min := t.Minute()
 			if min%15 == 0 {
 				s.save(FivteenMinPrice, c)
-				if min==0 {
+				if min == 0 {
 					s.save(OneHourPrice, c)
 					h := t.Hour()
 					if h%4 == 0 {
@@ -301,16 +296,17 @@ func (s *PriceWorkQuene) Subscribe() {
 
 func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 	log.WithFields(log.Fields{
-		"Symbol":       s.Symbol,
-		"Key":  data.Id,
-		"id":data.Id,
+		"Symbol": s.Symbol,
+		"Key":    data.Id,
+		"id":     data.Id,
 		"amount": data.Amount,
-		"vol":        data.Vol,
+		"vol":    data.Vol,
 	}).Info("begin price record ")
 
 	p := s.data[period]
 	var h *proto.PeriodPrice
-	var close, amount, vol, low, high, open,count int64
+	var close, amount, vol, low, high, open, count int64
+	var err error
 	if p.PreData.Count == 0 {
 		h = &proto.PeriodPrice{
 			Id:     data.Id,
@@ -328,16 +324,59 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		vol = data.Vol
 		low = data.Price
 		high = data.Price
-		count=data.Count
+		count = data.Count
 	} else {
-		high = GetHigh(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
-		if high==0 {
-			high=data.Price
+		/*
+			high = GetHigh(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
+			if high == 0 {
+				high = data.Price
+			}
+			low = GetLow(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
+			if low == 0 {
+				low = data.Price
+			}
+
+		*/
+		high, err = DB.GetRedisConn().Get(p.MaxPriceKey).Int64()
+		if err == redis.Nil {
+			log.WithFields(log.Fields{
+				"symbol":           s.Symbol,
+				"data.price ":      data.Price,
+				"os_id":            os.Getpid(),
+				"data.id":          data.Id,
+				"max_key":          p.MaxPriceKey,
+				"p.PreData.Dara":   p.PreData.CreatedTime,
+				"data.CreatedTime": data.CreatedTime,
+			}).Info("record price can not found")
+			high = GetHigh(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
+			if high == 0 {
+				high = data.Price
+			}
+		} else if err != nil {
+			log.Error(err)
+			return
 		}
-		low = GetLow(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
-		if low==0 {
-			low=data.Price
+
+		low, err = DB.GetRedisConn().Get(p.MinPriceKey).Int64()
+		if err == redis.Nil {
+			log.WithFields(log.Fields{
+				"symbol":           s.Symbol,
+				"data.price ":      data.Price,
+				"os_id":            os.Getpid(),
+				"data.id":          data.Id,
+				"min_key":          p.MinPriceKey,
+				"p.PreData.Dara":   p.PreData.CreatedTime,
+				"data.CreatedTime": data.CreatedTime,
+			}).Info("record price can not found")
+			low = GetLow(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
+			if low == 0 {
+				low = data.Price
+			}
+		} else if err != nil {
+			log.Error(err)
+			return
 		}
+
 		h = &proto.PeriodPrice{
 			Id:     data.Id,
 			Open:   convert.Int64ToFloat64By8Bit(p.PreData.Price),
@@ -362,15 +401,15 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		return
 	}
 
-	if amount<0 {
+	if amount < 0 {
 		log.WithFields(log.Fields{
-			"Symbol":       s.Symbol,
-			"Key":  p.Key,
-			"id":data.Id,
-			"amount": amount,
-			"vol":        vol,
-			"low":      low,
-			"p.PreData":p.PreData.Id,
+			"Symbol":    s.Symbol,
+			"Key":       p.Key,
+			"id":        data.Id,
+			"amount":    amount,
+			"vol":       vol,
+			"low":       low,
+			"p.PreData": p.PreData.Id,
 		}).Errorf("price record error ")
 		return
 	}
@@ -385,10 +424,10 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		Vol:    vol,
 		Low:    low,
 		High:   high,
-		Count:count,
+		Count:  count,
 	})
 
-	if err!=nil {
+	if err != nil {
 		return
 	}
 	err = DB.GetRedisConn().LPush(p.Key, y).Err()
@@ -396,6 +435,113 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		log.Errorln(err.Error())
 		return
 	}
-	
+
 	p.PreData = data
+}
+
+func (s *PriceWorkQuene) SetPrice(data *proto.PriceCache) {
+	var max, min int64
+	var err error
+	for _, v := range s.data {
+
+		min, err = DB.GetRedisConn().Get(v.MinPriceKey).Int64()
+		if err == redis.Nil {
+			min = GetLow(v.PreData.CreatedTime, data.CreatedTime, s.Symbol)
+			log.WithFields(log.Fields{
+				"min":          min,
+				"symbol":       s.Symbol,
+				"data.price ":  data.Price,
+				"os_id":        os.Getpid(),
+				"data.id":      data.Id,
+				"PreData.Dara": v.PreData.CreatedTime,
+				"CreatedTime":  data.CreatedTime,
+				"MinPriceKey":  v.MinPriceKey,
+			}).Info("record price case redis nil")
+			err = DB.GetRedisConn().Set(v.MinPriceKey, data.Price, v.Period).Err()
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		} else if err != nil {
+			log.Error(err)
+			return
+		}
+		log.WithFields(log.Fields{
+			"min":         min,
+			"symbol":      s.Symbol,
+			"data.price ": data.Price,
+			"os_id":       os.Getpid(),
+			"data.id":     data.Id,
+		}).Info("record price")
+
+		if min <= data.Price {
+			log.WithFields(log.Fields{
+				"min":         min,
+				"symbol":      s.Symbol,
+				"data.price ": data.Price,
+				"os_id":       os.Getpid(),
+				"data.id":     data.Id,
+			}).Info("price is low change price")
+			err = DB.GetRedisConn().Set(v.MinPriceKey, data.Price, v.Period).Err()
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		}
+
+		max, err = DB.GetRedisConn().Get(v.MaxPriceKey).Int64()
+		if err == redis.Nil {
+			max = GetHigh(v.PreData.CreatedTime, data.CreatedTime, s.Symbol)
+			log.WithFields(log.Fields{
+				"max":              max,
+				"symbol":           s.Symbol,
+				"data.price ":      data.Price,
+				"os_id":            os.Getpid(),
+				"data.id":          data.Id,
+				"p.PreData.Dara":   v.PreData.CreatedTime,
+				"data.CreatedTime": data.CreatedTime,
+				"MaxPriceKey":      v.MaxPriceKey,
+			}).Info("record price case redis nil")
+			err = DB.GetRedisConn().Set(v.MaxPriceKey, data.Price, v.Period).Err()
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		} else if err != nil {
+			log.Error(err)
+			return
+		}
+
+		if max >= data.Price {
+			log.WithFields(log.Fields{
+				"max":         max,
+				"symbol":      s.Symbol,
+				"data.price ": data.Price,
+				"os_id":       os.Getpid(),
+				"data.id":     data.Id,
+			}).Info("price is high change price")
+			err = DB.GetRedisConn().Set(v.MaxPriceKey, data.Price, v.Period).Err()
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		}
+	}
+}
+
+func (s *PriceWorkQuene) GetDay1MaxPrice() (min, max int64) {
+	t := s.data[OneDayPrice]
+	var err error
+	min, err = DB.GetRedisConn().Get(t.MinPriceKey).Int64()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	max, err = DB.GetRedisConn().Get(t.MaxPriceKey).Int64()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	return
 }
