@@ -111,7 +111,7 @@ func (s *EntrustDetail) GetBibiHistory(uid int64, limit, page int, symbol string
 
 	var list []*EntrustDetail
 
-	err = query.Limit(modelList.PageSize, offset).Find(&list)
+	err = query.Desc("created_time").Limit(modelList.PageSize, offset).Find(&list)
 
 	if err != nil {
 		log.Errorln(err.Error())

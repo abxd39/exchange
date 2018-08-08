@@ -38,6 +38,8 @@ func (s *TokenGroup) Router(r *gin.Engine) {
 		action.GET("/bibi_history", s.BibiHistory)
 
 		action.GET("/transfer_list", s.TransferList)
+
+		action.GET("/refund_list", s.RefundList)
 	}
 }
 
@@ -511,14 +513,14 @@ func (s *TokenGroup) TransferList(c *gin.Context) {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-	type TokenTradeListParam struct {
+	type TransferParam struct {
 		Uid     uint64 `form:"uid" binding:"required"`
 		Token   string `form:"token" binding:"required"`
 		Page    int32  `form:"page" binding:"required"`
 		PageNum int32  `form:"page_num"`
 	}
 
-	var param TokenTradeListParam
+	var param TransferParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
 		log.Errorf(err.Error())
@@ -527,6 +529,80 @@ func (s *TokenGroup) TransferList(c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.TokenService.CallTransferList(&proto.TransferListRequest{
+		Uid:     param.Uid,
+		Page:    param.Page,
+		PageNum: param.PageNum,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+	ret.SetErrCode(rsp.Err, rsp.Message)
+
+	// 重组data
+	type item struct {
+		Id          int64   `json:"id"`
+		TokenId     int32   `json:"token_id"`
+		TokenName   string  `json:"token_name"`
+		Type        int32   `json:"type"`
+		Num         float64 `json:"num"`
+		CreatedTime int64   `json:"created_time"`
+	}
+	type list struct {
+		PageIndex int32   `json:"page_index"`
+		PageSize  int32   `json:"page_size"`
+		TotalPage int32   `json:"total_page"`
+		Total     int32   `json:"total"`
+		Items     []*item `json:"items"`
+	}
+
+	newItems := make([]*item, len(rsp.Data.Items))
+	for k, v := range rsp.Data.Items {
+		newItems[k] = &item{
+			Id:          v.Id,
+			TokenId:     v.TokenId,
+			TokenName:   v.TokenName,
+			Type:        v.Type,
+			Num:         convert.Int64ToFloat64By8Bit(v.Num),
+			CreatedTime: v.CreatedTime,
+		}
+	}
+
+	newList := &list{
+		PageIndex: rsp.Data.PageIndex,
+		PageSize:  rsp.Data.PageSize,
+		TotalPage: rsp.Data.TotalPage,
+		Total:     rsp.Data.Total,
+		Items:     newItems,
+	}
+
+	ret.SetDataSection("list", newList)
+}
+
+// 退款明细
+func (s *TokenGroup) RefundList(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type RefundListParam struct {
+		Uid     uint64 `form:"uid" binding:"required"`
+		Token   string `form:"token" binding:"required"`
+		Page    int32  `form:"page" binding:"required"`
+		PageNum int32  `form:"page_num"`
+	}
+
+	var param RefundListParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallRefundList(&proto.RefundListRequest{
 		Uid:     param.Uid,
 		Page:    param.Page,
 		PageNum: param.PageNum,
