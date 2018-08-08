@@ -434,7 +434,6 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				sum += dt.Balance
 				int64valuetion := convert.Int64MulInt64By8Bit(tkconfig.Price, dt.Balance)
 				valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64valuetion), 2)
-				sumcny += int64valuetion
 			} else {
 				var symbol string
 				if dt.TokenName != ""{
