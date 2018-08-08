@@ -38,15 +38,15 @@ type Volume struct {
 	Amount int64 `xorm:"BIGINT(20)"`
 }
 
-func InsertPrice(p *Price) {
+func InsertPrice(p *Price) error{
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"id": p.Id,
 		}).Errorln(err.Error())
-		return
+		return err
 	}
-	return
+	return nil
 }
 
 func GetHigh(begin, end int64, symbol string) (high int64) {

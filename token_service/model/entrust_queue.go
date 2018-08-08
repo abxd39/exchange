@@ -1573,20 +1573,20 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 	sess := DB.GetMysqlConn().NewSession()
 	defer sess.Close()
 	err = sess.Begin()
-	e.States = int(proto.TRADE_STATES_TRADE_DEL)
-	e.SurplusNum = 0
-	_, err = sess.Where("entrust_id=?", e.EntrustId).Cols("states", "surplus_num").Update(e)
-	if err != nil {
-		sess.Rollback()
-		return err
-	}
+
 	var ret int32
 	err = u.ReturnFronzen(sess, e.SurplusNum, e.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST_DEL)
 	if err != nil {
 		sess.Rollback()
 		return err
 	}
+	e.States = int(proto.TRADE_STATES_TRADE_DEL)
 
+	_, err = sess.Where("entrust_id=?", e.EntrustId).Decr("surplus_num",e.SurplusNum).Cols("states", "surplus_num").Update(e)
+	if err != nil {
+		sess.Rollback()
+		return err
+	}
 	if ret != ERRCODE_SUCCESS {
 		sess.Rollback()
 		return nil
@@ -1595,7 +1595,7 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 	if err != nil {
 		return err
 	}
-
+	e.SurplusNum = 0
 	err = s.delSource(proto.ENTRUST_OPT(e.Opt), proto.ENTRUST_TYPE(e.Type), e.EntrustId)
 	if err != nil {
 		return err

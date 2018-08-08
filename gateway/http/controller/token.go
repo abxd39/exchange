@@ -14,7 +14,7 @@ import (
 type TokenGroup struct{}
 
 func (s *TokenGroup) Router(r *gin.Engine) {
-	action := r.Group("/token")
+	action := r.Group("/token",TokenVerify)
 	{
 		action.POST("/entrust_order", s.EntrustOrder)
 		//action.GET("/market/history/kline", s.HistoryKline)
