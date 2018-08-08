@@ -319,10 +319,10 @@ func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) ( MaxPrice, MinPrice in
 */
 func AdsAutoDownline(id  uint64) {
 	ads := new(Ads).Get(id)
-	if ads.TypeId == 1 {
-		log.Println("这是买价格要购买币的订单")
-		return
-	}
+	//if ads.TypeId == 1 {
+	//	log.Println("这是买价格要购买币的订单")
+	//	return
+	//}
 	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
 	minLimit := ads.MinLimit * 100000000
 	if curCnyPrice < int64(minLimit) {
