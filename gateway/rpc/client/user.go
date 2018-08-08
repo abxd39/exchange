@@ -12,7 +12,8 @@ import (
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
 	"strings"
-	"digicon/gateway/utils"
+
+	"digicon/common/random"
 )
 
 type UserRPCCli struct {
@@ -301,7 +302,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		nickname = out.NickName
 	}
 	if out.HeadSculpture == ""{
-		headSculpture = utils.GetRandHead()
+		headSculpture = random.GetRandHead()
 	}else{
 		headSculpture = out.HeadSculpture
 	}

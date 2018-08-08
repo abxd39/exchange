@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"time"
+	"digicon/common/random"
 )
 
 type RPCServer struct{}
@@ -657,7 +658,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 
 
 	if rateAndAuth.HeadSculpture == ""{
-		rateAndAuth.HeadSculpture = utils.GetRandHead()
+		rateAndAuth.HeadSculpture = random.GetRandHead()
 	}
 
 	rData, err := json.Marshal(rateAndAuth)
