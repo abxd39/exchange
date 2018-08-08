@@ -63,7 +63,7 @@ func (this *UserCurrencyHistory) GetAssetDetail(uid int32, Page uint32, PageNum 
 	}
 	cAssetDetail := new(UserCurrencyHistory)
 	query := engine.Desc("created_time")
-	query = query.Where("uid=? and (operator= 1 or operator = 2 or operator=5)", uid)
+	query = query.Where("uid=? and (operator= 1 or operator = 2 )", uid)
 	tmpQuery := *query
 	countQuery := &tmpQuery
 	err = query.Limit(int(PageNum), (int(Page)-1)*int(PageNum)).Find(&uAssetDetails)
