@@ -25,10 +25,9 @@ func init() {
 }
 
 func main() {
-	snowflake.Init(1) // todo 环境变量机器ID
 	flag.Parse()
-
 	log.Infof("begin run server")
+	snowflake.Init()
 	dao.InitDao()
 
 	go rpc.RPCServerInit()
@@ -38,12 +37,7 @@ func main() {
 	//model.Test()
 	//go exchange.InitExchange()
 
-	//划入
-	go cron.HandlerTransferFromCurrency()
-
-	//划出
-	go cron.HandlerTransferToCurrencyDone()
-	go cron.ResendTransferToCurrencyMsg()
+	cron.InitCron()
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
