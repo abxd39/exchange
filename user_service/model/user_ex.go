@@ -98,11 +98,28 @@ func (ex *UserEx) SetNickName(req *proto.UserSetNickNameRequest, rsp *proto.User
 	}
 	//验证token
 	var result int64
-	result, err = engine.ID(req.Uid).Update(&UserEx{
-		Uid:           int64(req.Uid),
-		NickName:      req.NickName,
-		HeadSculpture: req.HeadSculpture,
-	})
+	if req.NickName != "" && req.HeadSculpture != "" {
+		result, err = engine.ID(req.Uid).Update(&UserEx{
+			Uid:           int64(req.Uid),
+			NickName:      req.NickName,
+			HeadSculpture: req.HeadSculpture,
+		})
+	}else if req.NickName == "" && req.HeadSculpture != ""{
+		result, err = engine.ID(req.Uid).Update(&UserEx{
+			Uid:           int64(req.Uid),
+			HeadSculpture: req.HeadSculpture,
+		})
+	}else if req.NickName != "" && req.HeadSculpture == ""{
+		result, err = engine.ID(req.Uid).Update(&UserEx{
+			Uid:           int64(req.Uid),
+			NickName:      req.NickName,
+		})
+	}else{
+		result, err = engine.ID(req.Uid).Update(&UserEx{
+			Uid:           int64(req.Uid),
+		})
+	}
+
 	if err != nil {
 		ret = ERRCODE_UNKNOWN
 		return

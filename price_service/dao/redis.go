@@ -26,11 +26,6 @@ func NewRedisCli() *RedisCli {
 		log.Fatalf("redis connect faild ")
 	}
 	log.Infoln(pong)
-	_, err = client.ZRangeWithScores("token:1/2", 0, 1).Result()
-	if err != nil {
-		log.Fatalf("redis connect faild ")
-	}
-
 	return &RedisCli{
 		rcon: client,
 	}

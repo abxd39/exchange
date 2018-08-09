@@ -34,11 +34,11 @@ type Price struct {
 */
 
 type Volume struct {
-	Sum int64 `xorm:"BIGINT(20)"`
+	Sum    int64 `xorm:"BIGINT(20)"`
 	Amount int64 `xorm:"BIGINT(20)"`
 }
 
-func InsertPrice(p *Price) error{
+func InsertPrice(p *Price) error {
 	_, err := DB.GetMysqlConn().InsertOne(p)
 	if err != nil {
 		log.WithFields(logrus.Fields{
@@ -76,27 +76,51 @@ func GetLow(begin, end int64, symbol string) (low int64) {
 }
 
 //计算当前价格数据
-func Calculate(price, amount, cny_price int64, symbol string) *proto.PriceBaseData {
+func Calculate(price, amount, cny_price int64, symbol string,high,low int64) *proto.PriceBaseData {
 	t := time.Now()
-	l := t.Add(-86400 * time.Second)
 
-	begin := l.Unix()
-	end := t.Unix()
+	s:=t.Second()
+	min:=t.Add(-time.Duration(s)*time.Second)
+	same:=min.Unix()
+	log.Info(same)
+	l := min.Add(-86400 * time.Second)
+	yestday:=l.Unix()
+	//begin := l.Unix()
+	//end := t.Unix()
+
+/*
 	h := GetHigh(begin, end, symbol)
 
 	j := GetLow(begin, end, symbol)
-
+*/
 	p := &Price{}
-	_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
+	ok,err :=DB.GetMysqlConn().Where("id=? and symbol=?",yestday,symbol).Get(p)
+	//_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil
 	}
+	if !ok {
+		g:=ConfigQueneInit[symbol]
+		p.Price=g.Price
+		p.Amount=0
 
+	}
+	log.WithFields(log.Fields{
+		"high":          high,
+		"low":       low,
+		"price ":  price,
+		"p.Price":        p.Price,
+		"amount":      amount,
+		"p.Amount": p.Amount,
+		"price":  price,
+		"id":p.Id,
+		"symbol":symbol,
+	}).Info("current price print")
 	return &proto.PriceBaseData{
 		Symbol:   symbol,
-		High:     convert.Int64ToStringBy8Bit(h),
-		Low:      convert.Int64ToStringBy8Bit(j),
+		High:     convert.Int64ToStringBy8Bit(high),
+		Low:      convert.Int64ToStringBy8Bit(low),
 		Scope:    convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 		Amount:   convert.Int64ToStringBy8Bit(amount - p.Amount),
 		Price:    convert.Int64ToStringBy8Bit(price),
@@ -159,31 +183,31 @@ func GetVolumeTotal() *proto.VolumeResponse {
 
 	var err error
 	var res bool
-	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id >= (select max(id) from price) group by symbol order by id desc) as a").Get(&nowVolume)
+	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id >= (select max(id) from price) group by symbol order by id desc) as a").Get(&nowVolume)
 	if err != nil || res != true {
 		log.Warningln(err.Error())
 		return nil
 	}
-	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",dayUnix).Get(&dayVolume)
+	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a", dayUnix).Get(&dayVolume)
 	if err != nil || res != true {
 		log.Warningln(err.Error())
 		return nil
 	}
-	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",weekUnix).Get(&weekVolume)
-	if err != nil || res != true  {
+	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a", weekUnix).Get(&weekVolume)
+	if err != nil || res != true {
 		log.Warningln(err.Error())
 		return nil
 	}
-	res,err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a",mondayUnix).Get(&monthVolume)
+	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a", mondayUnix).Get(&monthVolume)
 	if err != nil || res != true {
 		log.Warningln(err.Error())
 		return nil
 	}
 
 	data := &proto.VolumeResponse{
-		DayVolume:nowVolume.Sum - dayVolume.Sum,
-		WeekVolume:nowVolume.Sum - weekVolume.Sum,
-		MonthVolume:nowVolume.Sum - monthVolume.Sum}
+		DayVolume:   nowVolume.Sum - dayVolume.Sum,
+		WeekVolume:  nowVolume.Sum - weekVolume.Sum,
+		MonthVolume: nowVolume.Sum - monthVolume.Sum}
 	return data
 
 }

@@ -761,25 +761,33 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 	req := struct {
 		Uid      uint64 `form:"uid" binding:"required" json:"uid"`
 		Token    string `form:"token" binding:"required" json:"token"`
-		NickName string `form:"nick_name" json:"nick_name" binding:"required"`
-		Url      string `form:"file" json:"file" binding:"required"`
+		NickName string `form:"nick_name" json:"nick_name" `
+		Url      string `form:"file" json:"file" `
 	}{}
 	if err := c.ShouldBind(&req); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-	url, err := s.upload_picture(req.Url)
-	if err != nil {
-		log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
-		return
+
+	var url string
+	var err error
+	if req.Url != ""{
+		url, err = s.upload_picture(req.Url)
+		if err != nil {
+			log.Errorf(err.Error())
+			ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
+			return
+		}
+		if url == `` {
+			log.Errorf(err.Error())
+			ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
+			return
+		}
 	}
-	if url == `` {
-		log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_UOPLOA_FAILED, err.Error())
-		return
-	}
+
+	fmt.Println("url:", url )
+
 	rsp, err := rpc.InnerService.UserSevice.CallSetNickName(&proto.UserSetNickNameRequest{
 		Uid:           req.Uid,
 		Token:         req.Token,

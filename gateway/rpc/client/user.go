@@ -12,6 +12,8 @@ import (
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
 	"strings"
+
+	"digicon/common/random"
 )
 
 type UserRPCCli struct {
@@ -293,11 +295,18 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		return
 	}
 	var nickname string
+	var headSculpture string
 	if out.NickName == "" {
 		nickname = replaceNickName(out.Account)
 	} else {
 		nickname = out.NickName
 	}
+	if out.HeadSculpture == ""{
+		headSculpture = random.GetRandHead()
+	}else{
+		headSculpture = out.HeadSculpture
+	}
+
 	u = &UserBaseData{
 		Uid:            out.Uid,
 		Account:        out.Account,
@@ -312,7 +321,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		Country:        out.Country,
 		GoogleExist:    out.GoogleExist,
 		NickName:       nickname,
-		HeadSculpture:  out.HeadSculpture,
+		HeadSculpture:  headSculpture,
 	}
 
 	return

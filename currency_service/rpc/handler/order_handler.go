@@ -184,6 +184,11 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.UpdatedTime = now.Format("2006-01-02 15:04:05")
 	od.ExpiryTime = now.Add(mm).Format("2006-01-02 15:04:05")
 
+
+	od.NumTotalPrice = convert.Int64MulInt64By8Bit(od.Num, od.Price)
+	od.FeePrice      = convert.Int64MulInt64By8Bit(od.Fee, od.Price)
+
+
 	//fmt.Println("od:", od)
 	id, code := od.Add(req.Uid)
 	rsp.Code = code
@@ -277,8 +282,6 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 }
 
 func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHistoryRequest, rsp *proto.OtherResponse) error {
-	//uCurrencyHistory := new(model.UserCurrencyHistory)
-	//uCurrencyHistoryList ,err  := uCurrencyHistory.GetHistory(req.StartTime, req.EndTime, req.Limit)
 	od := new(model.Order)
 	uOrderHistoryList, err := od.GetOrderHistory(req.StartTime, req.EndTime, req.Limit)
 	if err != nil {
@@ -286,24 +289,13 @@ func (s *RPCServer) GetTradeHistory(ctx context.Context, req *proto.GetTradeHist
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return err
 	}
-	if len(uOrderHistoryList) <= 0 {
-		ctk := new(model.CommonTokens)
-		fctk := ctk.Get(0, "BTC")
-		tokenId := fctk.Id
-		tctcy := new(model.TokenConfigTokenCNy)
-		tctcy.GetPrice(uint32(tokenId))
-		now := time.Now()
-		for i:=0;  i<20 ;  i++  {
-			mm, _ := time.ParseDuration(fmt.Sprintf("-%dm", 5 * i)) // 过期时间15分钟
-			createtime := now.Add(mm).Format("2006-01-02 15:04:05")
-			uOrderHistoryList = append(uOrderHistoryList, model.Order{Price:tctcy.Price, CreatedTime:createtime})
-		}
+	ohistlen := len(uOrderHistoryList)
+	if ohistlen <= 0 {
+		uOrderHistoryList = model.GenerateKline()
 	}
-
 	data, err := json.Marshal(uOrderHistoryList)
 	rsp.Data = string(data)
 	rsp.Code = errdefine.ERRCODE_SUCCESS
-
 	return nil
 }
 
