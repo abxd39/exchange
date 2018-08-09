@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"fmt"
 )
 
 type ArticleGroup struct{}
@@ -20,7 +21,7 @@ func (this *ArticleGroup) Router(r *gin.Engine) {
 		log.Printf("Router func")
 		article.GET("/des", this.Article)
 		article.GET("/list", this.ArticleList)
-		article.GET("type_list", this.ArticleTypeList)
+		article.GET("/type_list", this.ArticleTypeList)
 
 	}
 }
@@ -95,7 +96,7 @@ func (this *ArticleGroup) Article(c *gin.Context) {
 }
 
 func (this *ArticleGroup) ArticleList(c *gin.Context) {
-
+	//fmt.Println("噢噢噢噢噢噢噢噢噢噢噢噢噢噢噢噢哦哦哦")
 	ret := Err.NewPublciError()
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
@@ -103,7 +104,7 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 	type ArticleListParam struct {
 		ArticleType int32 `form:"type" binding:"required"`
 		Page        int32 `form:"page" binding:"required"`
-		PageNum     int32 `form:"page_num" binding:""`
+		Rows     int32 `form:"rows" `
 	}
 	var param ArticleListParam
 	//fmt.Println("param1:", param)
@@ -112,8 +113,8 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 		ret.SetErrCode(Err.ERRCODE_PARAM, err.Error())
 		return
 	}
-	//fmt.Println("param2:", param)
-	rsp, err := rpc.InnerService.PublicService.CallArticleList(param.ArticleType, param.Page, param.PageNum)
+	fmt.Printf("%#v\n", param)
+	rsp, err := rpc.InnerService.PublicService.CallArticleList(param.ArticleType, param.Page, param.Rows)
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(Err.ERRCODE_UNKNOWN, err.Error())
