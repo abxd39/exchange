@@ -18,4 +18,8 @@ func InitCron() {
 		c.AddFunc("0 30 * * * *", ResendTransferToTokenMsg)
 		c.Start()
 	}
+
+
+	// 定时任务统计
+	go DailyStart()
 }

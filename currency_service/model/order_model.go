@@ -49,6 +49,64 @@ type OrderModel struct {
 	TokenName     string        `xorm:"VARBINARY(36)"  form:"token_name" json:"token_name"`
 }
 
+
+
+type BuyTotal struct {
+	BuyTotalAll       int64    `json:"buy_total_all"`
+	Price             int64    `json:"price"`
+}
+
+type SellTotal struct {
+	SellTotalAll      int64    `json:"sell_total_all"`
+	Price             int64    `json:"price"`
+}
+
+type SumBuyTotal struct {
+	BuyTotalAll       int64    `json:"buy_total_all"`
+	BuyTotalAllCny    int64    `json:"buy_total_all_cny"`
+}
+
+type SumSellTotal struct {
+	SellTotalAll      int64    `json:"sell_total_all"`
+	SellTotalAllCny   int64    `json:"sell_total_all_cny"`
+}
+
+
+/*
+ ====================  sum buy total all =================
+*/
+func (this *Order)  GetCurDaySum(tokenId uint32, startTime, endTime string) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
+	sql := "select sum(num) as  buy_total_all,price  from `order`  where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
+	engine := dao.DB.GetMysqlConn()
+	var btotal BuyTotal
+	_, err = engine.Table("order").SQL(sql, tokenId, SellType, startTime, endTime).Get(&btotal)
+
+	sumBuy.BuyTotalAll = btotal.BuyTotalAll
+	sumBuy.BuyTotalAllCny = convert.Int64MulInt64By8Bit(btotal.BuyTotalAll, btotal.Price)
+
+
+	buysql := "select sum(num) as  sell_total_all, price  from `order` where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
+	var stotal SellTotal
+	_, err = engine.Table("order").SQL(buysql, tokenId, BuyType, startTime, endTime).Get(&stotal)
+
+	log.Printf("tokenId: %v, stotal: %v \n", tokenId,  stotal)
+
+	sumSell.SellTotalAll = stotal.SellTotalAll
+	sumSell.SellTotalAllCny = convert.Int64MulInt64By8Bit(stotal.SellTotalAll, stotal.Price)
+
+	log.Printf("tokenId: %v, sum sell: %v \n", tokenId, sumSell)
+	return
+
+}
+
+
+
+/*
+====================== sum end =======================
+*/
+
+
+
 //列出订单
 func (this *Order) List(Page, PageNum int32,
 	AdType, States uint32, Id, Uid uint64,
@@ -710,9 +768,23 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 
 
 
+/*
+	根据tokenid来获取订单
+*/
+func (this *Order) GetOrderByTokenIdByTime(tokenid uint32, startTime, endTime string) (ods []Order, err error) {
+	engine := dao.DB.GetMysqlConn()
+	err = engine.Where("token_id = ?  AND created_time >= ? AND created_time <= ? AND states = 3", tokenid, startTime, endTime).Find(&ods)
+	return
+}
+
+
+
+
+
+
 
 /*
-
+    获取历史记录
 */
 func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhistory []Order, err error) {
 	now := time.Now()
@@ -744,7 +816,10 @@ func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhis
 	return
 }
 
-///////////////////// func ////////////////
+
+
+////////////////////////////////    func ////////////////////////////////////////
+
 /*
 
  */
