@@ -67,7 +67,7 @@ func (f *FriendlyLink) GetFriendlyLinkList(req *proto.FriendlyLinkRequest, rsp *
 	}
 
 	friendlist := make([]FriendlyLink, 0)
-	err = engine.GroupBy("id").Limit(int(req.Count), int(limit)).Find(&friendlist)
+	err = engine.Desc("id").Limit(int(req.Count), int(limit)).Find(&friendlist)
 	if err != nil {
 		log.Errorln(err.Error())
 		rsp.Code = Err.ERRCODE_UNKNOWN

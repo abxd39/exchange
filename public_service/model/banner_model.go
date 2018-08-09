@@ -19,7 +19,7 @@ type Banner struct {
 func (b *Banner) GetBannerList(req *proto.BannerRequest, rsp *proto.BannerResponse) error {
 	engine := dao.DB.GetMysqlConn()
 	ban := make([]Banner, 0)
-	err := engine.GroupBy("id").Desc("order").Where("status=1").Find(&ban)
+	err := engine.Desc("id").Where("status=1").Find(&ban)
 	if err != nil {
 		fmt.Println(err)
 		return err
