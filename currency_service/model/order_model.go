@@ -37,6 +37,10 @@ type Order struct {
 	ConfirmTime sql.NullString `xorm:"default null comment('确认支付时间')  DATETIME"             json:"confirm_time"`
 	ReleaseTime sql.NullString `xorm:"default null comment('放行时间')     DATETIME"              json:"release_time"`
 	ExpiryTime  string         `xorm:"comment('过期时间')     DATETIME"                           json:"expiry_time"`
+
+	NumTotalPrice  int64       `xorm:"default 0 comment('后台需要的数量总价格') BIGINT(64)"             json:"num_total_price"`
+	FeePrice       int64       `xorm:"default 0 comment('后台需要的计算出费用价格') BIGINT(64)"          json:"fee_price"`
+
 }
 
 
@@ -152,6 +156,7 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 	}
 
 	err  = CancelAction(Id, CancelType)
+
 
 	if err != nil {
 		code = ERRCODE_UNKNOWN

@@ -184,6 +184,11 @@ func (s *RPCServer) AddOrder(ctx context.Context, req *proto.AddOrderRequest, rs
 	od.UpdatedTime = now.Format("2006-01-02 15:04:05")
 	od.ExpiryTime = now.Add(mm).Format("2006-01-02 15:04:05")
 
+
+	od.NumTotalPrice = convert.Int64MulInt64By8Bit(od.Num, od.Price)
+	od.FeePrice      = convert.Int64MulInt64By8Bit(od.Fee, od.Price)
+
+
 	//fmt.Println("od:", od)
 	id, code := od.Add(req.Uid)
 	rsp.Code = code

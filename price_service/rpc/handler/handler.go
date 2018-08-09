@@ -26,7 +26,8 @@ func (s *RPCServer) CurrentPrice(ctx context.Context, req *proto.CurrentPriceReq
 		return nil
 	}
 	e := q.GetEntry()
-	rsp.Data = model.Calculate(e.Price, e.Amount, q.CnyPrice, q.Symbol)
+	h,l:=q.GetDay1MaxPrice()
+	rsp.Data = model.Calculate(e.Price, e.Amount, q.CnyPrice, q.Symbol,h,l)
 	return nil
 }
 
@@ -54,21 +55,21 @@ func (s *RPCServer) LastPrice(ctx context.Context, req *proto.LastPriceRequest, 
 }
 
 func (s *RPCServer) SymbolTitle(ctx context.Context, req *proto.NullRequest, rsp *proto.SymbolTitleResponse) error {
-	g:=make([]*proto.TitleBaseData,0)
+	g := make([]*proto.TitleBaseData, 0)
 
-	for _,v:=range model.ConfigTitles{
-		g=append(g,&proto.TitleBaseData{
-			Mark:v.Mark,
-			TokenId:int32(v.TokenId),
+	for _, v := range model.ConfigTitles {
+		g = append(g, &proto.TitleBaseData{
+			Mark:    v.Mark,
+			TokenId: int32(v.TokenId),
 		})
 	}
-	rsp.Data=g
+	rsp.Data = g
 	return nil
 }
 
 func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdRequest, rsp *proto.SymbolsByIdResponse) error {
 	g := model.GetConfigQuenesByType(req.TokenId)
-	rsp.Data =make([]*proto.SymbolBaseData,0)
+	rsp.Data = make([]*proto.SymbolBaseData, 0)
 
 	for _, v := range g {
 		q, ok := model.GetQueneMgr().GetQueneByUKey(v.Name)
@@ -82,7 +83,7 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 		}
 
 		price := q.GetEntry().Price
-		rsp.Data=append(rsp.Data,&proto.SymbolBaseData{
+		rsp.Data = append(rsp.Data, &proto.SymbolBaseData{
 			Symbol:       v.Name,
 			Price:        convert.Int64ToStringBy8Bit(price),
 			CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
@@ -203,8 +204,8 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 		}
 
 		price := q.GetEntry().Price
-
-		r := model.Calculate(price, q.GetEntry().Amount, q.CnyPrice, q.Symbol)
+		h,l:=q.GetDay1MaxPrice()
+		r := model.Calculate(price, q.GetEntry().Amount, q.CnyPrice, q.Symbol,h,l)
 
 		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
 			Symbol: v.Name,
@@ -287,8 +288,8 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 	price := convert.Int64DivInt64By8Bit(BTCPrice.Price, OtherPrice.Price)
 	cnyPrice := convert.Int64MulInt64By8Bit(OtherPrice.Price, toUSDTQ.CnyPrice)
 	data = &proto.RateBaseData{
-		Symbol:  symbol,
-		Price:   convert.Int64ToStringBy8Bit(price),
+		Symbol:   symbol,
+		Price:    convert.Int64ToStringBy8Bit(price),
 		CnyPrice: convert.Int64ToStringBy8Bit(cnyPrice),
 	}
 	return
