@@ -3,6 +3,7 @@ package errors
 import (
 	. "digicon/proto/common"
 	goErrors "errors"
+	"os"
 )
 
 // 兼容golang errors对象
@@ -24,8 +25,11 @@ func GetErrStatus(err interface{}) int {
 func GetErrMsg(err interface{}) string {
 	switch v := err.(type) {
 	case SysErrorInterface:
-		return v.Error()
-		//return v.String() // todo 根据API_ENV显示错误
+		if os.Getenv("API_ENV") == "prod" { //生产环境只显示概略错误信息
+			return v.Error()
+		} else {
+			return v.String()
+		}
 	case error:
 		return v.Error()
 	case NormalErrorInterface:

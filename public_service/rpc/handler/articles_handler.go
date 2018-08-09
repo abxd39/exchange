@@ -11,11 +11,10 @@ import (
 )
 
 func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListRequest, rsp *proto.ArticleListResponse) error {
-	var total int
 	result := make([]model.Article_list, 0)
 
-	total, rsp.Code = new(model.Article_list).ArticleList(req, &result)
-	rsp.TotalPage = int32(total)
+	list, Code := new(model.Article_list).ArticleList(req, &result)
+	rsp.Code = Code
 	for _, value := range result {
 		rsp.Article = append(rsp.Article, &proto.ArticleListResponse_Article{
 		Id : int32(value.Id),
@@ -25,6 +24,11 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 		})
 
 	}
+	rsp.Total = int32(list.Total)
+	rsp.IsPage = list.IsPage
+	rsp.PageCize = int32(list.PageSize)
+	rsp.PageCount = int32(list.PageCount)
+	rsp.PageIndex =int32(list.PageIndex)
 	//fmt.Println("ArticleList 列表为", ntc)
 	return nil
 }

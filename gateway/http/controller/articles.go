@@ -123,5 +123,11 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 	//fmt.Println("gatway return value ", rsp.Article)
 	ret.SetErrCode(rsp.Code)
 	ret.SetDataSection("list", rsp.Article)
+	ret.SetDataSection("total",rsp.Total)
+	ret.SetDataSection("page_index",rsp.PageIndex)
+	ret.SetDataSection("page_size",rsp.PageCize)
+	ret.SetDataSection("is_page",rsp.IsPage)
+	ret.SetDataSection("page_count",rsp.PageCount)
+	ret.SetDataValue(rsp.PageIndex)
 	return
 }

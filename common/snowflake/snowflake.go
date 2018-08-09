@@ -2,6 +2,8 @@ package snowflake
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -63,14 +65,26 @@ func (n *snowflakeNode) Generate() ID {
 	return result
 }
 
-func Init(node int64) {
-	if node < 0 || node > nodeMax {
-		panic(fmt.Sprintf("snowflake节点数量需要在%d-%d区间内", 0, nodeMax))
+func Init() {
+	machineId := os.Getenv("MACHINE_ID")
+	if machineId == "" {
+		fmt.Println("缺少配置machine_id")
+		os.Exit(1)
+	}
+
+	nodeId, err := strconv.ParseInt(machineId, 10, 64)
+	if err != nil {
+		fmt.Println("machine_id格式错误")
+		os.Exit(1)
+	}
+
+	if nodeId < 0 || nodeId > nodeMax {
+		panic(fmt.Sprintf("machine_id需要在%d-%d区间内", 0, nodeMax))
 	}
 
 	SnowflakeNode = &snowflakeNode{
 		timestamp: 0,
-		node:      node,
+		node:      nodeId,
 		step:      0,
 	}
 }
