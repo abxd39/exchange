@@ -5,18 +5,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type LoginRecord struct {
+type UserLoginLog struct {
 	Id          int64  `xorm:"pk autoincr BIGINT(20)"`
-	Ip          string `xorm:"VARCHAR(64)"`
+	LoginIp     string `xorm:"VARCHAR(64)"`
 	Uid         uint64 `xorm:"BIGINT(20)"`
-	CreatedTime int64  `xorm:"BIGINT(20) created"`
+	LoginTime int64  `xorm:"BIGINT(20) created"`
 }
 
-func (s *LoginRecord) AddLoginRecord(uid uint64, ip string) {
-
-	_, err := DB.GetMysqlConn().InsertOne(&LoginRecord{
+func (s *UserLoginLog) AddLoginRecord(uid uint64, ip string) {
+	_, err := DB.GetMysqlConn().InsertOne(&UserLoginLog{
 		Uid: uid,
-		Ip:  ip,
+		LoginIp:  ip,
 	})
 
 	if err != nil {
@@ -25,9 +24,9 @@ func (s *LoginRecord) AddLoginRecord(uid uint64, ip string) {
 	}
 }
 
-func (s *LoginRecord) GetLoginRecord(uid uint64, page, limit int) []LoginRecord {
-	g := make([]LoginRecord, 0)
-	err := DB.GetMysqlConn().Where("uid=?", uid).Desc("created_time").Limit(limit, page-1).Find(&g)
+func (s *UserLoginLog) GetLoginRecord(uid uint64, page, limit int) []UserLoginLog {
+	g := make([]UserLoginLog, 0)
+	err := DB.GetMysqlConn().Where("uid=?", uid).Desc("login_time").Limit(limit, page-1).Find(&g)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil

@@ -111,7 +111,7 @@ func (s *RPCServer) Login(ctx context.Context, req *proto.LoginRequest, rsp *pro
 	}
 
 	if ret == ERRCODE_SUCCESS {
-		new(model.LoginRecord).AddLoginRecord(u.Uid, req.Ip)
+		new(model.UserLoginLog).AddLoginRecord(u.Uid, req.Ip)
 
 		var p proto.LoginUserBaseData
 		u.GetLoginUser(&p)
@@ -302,11 +302,11 @@ func (s *RPCServer) ChangePwd(ctx context.Context, req *proto.EmailRequest, rsp 
 
 //获取登陆记录
 func (s *RPCServer) GetIpRecord(ctx context.Context, req *proto.CommonPageRequest, rsp *proto.IpRecordResponse) error {
-	g := new(model.LoginRecord).GetLoginRecord(req.Uid, int(req.Page), int(req.Limit))
+	g := new(model.UserLoginLog).GetLoginRecord(req.Uid, int(req.Page), int(req.Limit))
 	for _, v := range g {
 		rsp.Data = append(rsp.Data, &proto.IpRecordBaseData{
-			Ip:          v.Ip,
-			CreatedTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
+			Ip:          v.LoginIp,
+			CreatedTime: time.Unix(v.LoginTime, 0).Format("2006-01-02 15:04:05"),
 		})
 	}
 
