@@ -284,7 +284,7 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 		log.Println(msg)
 		code = ERRCODE_ADS_NOTEXIST
 	}
-	
+
 	if adsM.Num < uint64(this.Num) {
 		msg := "下单失败,购买的数量大于订单的数量!"
 		//fmt.Println(msg)
@@ -914,7 +914,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 		freezeCny = 0
 	}
 
-	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`balance_cny`=`balance_cny`+?, `freeze_cny`=`freeze_cny`-?   `version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
+	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`balance_cny`=`balance_cny`+?, `freeze_cny`=`freeze_cny`-? ,  `version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
 	sqlRest, err := session.Exec(sellSql, sellNum, sellNum,freezeCny, freezeCny, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 
 	if err != nil {
