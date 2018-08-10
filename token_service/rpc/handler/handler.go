@@ -482,7 +482,7 @@ func (s *RPCServer) BibiHistory(ctx context.Context, req *proto.BibiHistoryReque
 			Type:       proto.ENTRUST_TYPE(v.Type),
 			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
 			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
-			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
+			TradeNum:   convert.Int64ToStringBy8Bit(v.TradeNum), //convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
 			Mount:      display,
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     strconv.Itoa(v.States),
