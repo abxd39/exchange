@@ -610,7 +610,7 @@ func (s *UserToken) NotifyDelFronzen(sess *xorm.Session, num int64, ukey string,
 }
 
 //返还冻结资金
-func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id string, ty proto.TOKEN_TYPE_OPERATOR) (err error) {
+func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, ukey string, ty proto.TOKEN_TYPE_OPERATOR) (err error) {
 	if s.Frozen < num {
 		err = errors.New("please check fronze data because fronzn num is not enough")
 		return
@@ -629,7 +629,7 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 
 	_, err = sess.Insert(&FrozenHistory{
 		Uid:     s.Uid,
-		Ukey:    entrust_id,
+		Ukey:    ukey,
 		Num:     num,
 		TokenId: s.TokenId,
 		Type:    int(ty),
@@ -643,7 +643,7 @@ func (s *UserToken) ReturnFronzen(sess *xorm.Session, num int64, entrust_id stri
 	err = InsertRecord(sess, &MoneyRecord{
 		Uid:     s.Uid,
 		TokenId: int(s.TokenId),
-		Ukey:    entrust_id,
+		Ukey:    ukey,
 		Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
 		Type:    int(ty),
 		Balance: s.Balance,

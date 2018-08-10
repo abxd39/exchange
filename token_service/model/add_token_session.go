@@ -194,3 +194,25 @@ func ConfirmSubFrozenToken(req *proto.ConfirmSubFrozenRequest) (err error) {
 	}
 	return
 }
+
+
+func CancelFronzeToken(req *proto.CancelFronzeTokenRequest) (err error) {
+	u:=&UserToken{}
+	err = u.GetUserToken(req.Uid,int(req.TokenId))
+	if err!=nil {
+		return nil
+	}
+	session := DB.GetMysqlConn().NewSession()
+	defer session.Close()
+	err = session.Begin()
+	err = u.ReturnFronzen(session, req.Num, string(req.Ukey), req.Type)
+	if err != nil {
+		session.Rollback()
+		return
+	}
+	err = session.Commit()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+}
