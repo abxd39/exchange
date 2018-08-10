@@ -140,6 +140,10 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
+	if rsp.Code != "0" {
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
+		return
+	}
 	ret.SetDataSection("type", rsp.Data.Type)
 	ret.SetDataSection("addr", rsp.Data.Addr)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))

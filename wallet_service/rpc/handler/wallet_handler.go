@@ -24,10 +24,41 @@ func (s *WalletHandler) Hello(ctx context.Context, req *proto.HelloRequest2, rsp
 
 func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalletRequest, rsp *proto.CreateWalletResponse) error {
 	log.Print("Received Say.CreateWallet request")
-	fmt.Println(req.String())
+
 	var err error
 	var addr string
 	rsp.Data = new(proto.CreateWalletPos)
+
+	//查询token状态
+	tokenP := new(Tokens)
+	b,e := tokenP.GetByid(int(req.Tokenid))
+	if b != true || e != nil {
+		rsp.Code = "1"
+		rsp.Msg = err.Error()
+		rsp.Data.Type = ""
+		rsp.Data.Addr = ""
+		return nil
+	}
+	if tokenP.Status == 2 {
+		rsp.Code = "1"
+		rsp.Msg = "Token暂不可用"
+		rsp.Data.Type = ""
+		rsp.Data.Addr = ""
+		return nil
+	}
+
+	//判断钱包是否存在
+	existsWalletToken := new(WalletToken)
+	boo,address,signature := existsWalletToken.WalletTokenExist(int(req.Userid), int(req.Tokenid))
+	if boo == true {
+		rsp.Code = "0"
+		rsp.Msg = address
+		rsp.Data.Type = signature
+		rsp.Data.Addr = address
+		return nil
+	}
+
+	fmt.Println(req.String())
 	tokenModel := &Tokens{Id: int(req.Tokenid)}
 	_, err = tokenModel.GetByid(int(req.Tokenid))
 
@@ -44,6 +75,13 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	if err != nil {
 		rsp.Code = "1"
 		rsp.Msg = err.Error()
+		rsp.Data.Type = tokenModel.Signature
+		rsp.Data.Addr = ""
+		return nil
+	}
+	if addr == "" {
+		rsp.Code = "1"
+		rsp.Msg = "创建失败"
 		rsp.Data.Type = tokenModel.Signature
 		rsp.Data.Addr = ""
 		return nil

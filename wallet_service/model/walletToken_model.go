@@ -122,3 +122,25 @@ func (this *WalletToken) GetByUidTokenid(uid int,tokenid int) error {
 	}
 	return nil
 }
+
+func (this *WalletToken) WalletTokenExist(uid int,tokenid int) (bool, string,string) {
+	tk := &WalletToken{Uid: uid,Tokenid:tokenid}
+	boo,err := Engine_wallet.Exist(tk)
+	if err != nil {
+		return false,"",""
+	}
+	if boo == true {
+		//存在
+		walletToken := new(WalletToken)
+		errr := walletToken.GetByUidTokenid(uid,tokenid)
+		if errr != nil {
+			return false,"",""
+		}
+		tokenModel := &Tokens{Id: tokenid}
+		_, err = tokenModel.GetByid(tokenid)
+		return true,walletToken.Address,tokenModel.Signature
+	}
+	return false,"",""
+}
+
+
