@@ -99,7 +99,14 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 	}
 
 	if !ok {
+		var token *OutCommonTokens
+		token, err = new(OutCommonTokens).Get(uint32(token_id))
+		if err != nil {
+			return
+		}
+
 		s.Uid = uid
+		s.TokenName = token.Mark
 		s.TokenId = int(token_id)
 
 		_, err = DB.GetMysqlConn().InsertOne(s)
@@ -134,7 +141,14 @@ func (s *UserToken) GetUserTokenInSession(session *xorm.Session, uid uint64, tok
 	}
 
 	if !ok {
+		var token *OutCommonTokens
+		token, err = new(OutCommonTokens).Get(uint32(token_id))
+		if err != nil {
+			return
+		}
+
 		s.Uid = uid
+		s.TokenName = token.Name
 		s.TokenId = int(token_id)
 
 		_, err = DB.GetMysqlConn().InsertOne(s)
@@ -673,6 +687,7 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, num int64) error
 	if s.Balance < num {
 		return errors.NewNormal("余额不足")
 	}
+	tokenName := s.TokenName
 
 	//整理数据
 	transferId := snowflake.SnowflakeNode.Generate()
@@ -721,7 +736,7 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, num int64) error
 	//3.划转记录
 	result, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s"+
 		" (id, uid, token_id, token_name, num, states, create_time) VALUES"+
-		" (%d, %d, %d, '%s', %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, "", num, 1, now))
+		" (%d, %d, %d, '%s', %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, tokenName, num, 1, now))
 	if err != nil {
 		tokenSession.Rollback()
 		return errors.NewSys(err)
