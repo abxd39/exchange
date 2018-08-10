@@ -942,6 +942,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	sql := "UPDATE   `order`   SET   `states`=? , `cancel_type`=?, `updated_time`=?  WHERE  `id`=?"
 	_, err = session.Exec(sql, 4, CancelType, now, od.Id)
 	if err != nil {
+		log.Println("CancelType:", CancelType)
 		log.Errorln(err.Error())
 		session.Rollback()
 		return
