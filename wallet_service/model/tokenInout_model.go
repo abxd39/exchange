@@ -137,61 +137,66 @@ func (this *TokenInout) GetInOutList(pageIndex, pageSize int, filter map[string]
 }
 
 //提币申请
-func (this *TokenInout) TiBiApply(uid int, tokenid int, to string, amount string, fee string) (ret int, err error) {
+func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string) (ret int,err error) {
 	//查询form地址
 	var walletToken = new(WalletToken)
 	err = walletToken.GetByUid(uid)
 	if err != nil {
-		return ERRCODE_UNKNOWN, err
+		return ERRCODE_UNKNOWN,err
 	}
 
 	//根据token_id获取token_name
 	var tokenData = new(Tokens)
-	_, err = tokenData.GetByid(tokenid)
+	_,err = tokenData.GetByid(tokenid)
 	if err != nil {
 		return
 	}
 
 	//根据id获取人民币和美元价格
 	var tokenCny = new(ConfigTokenCny)
-	_, err = tokenCny.GetById(tokenid)
+	_,err = tokenCny.GetById(tokenid)
 	if err != nil {
 		return
 	}
+
+
+
 
 	from := walletToken.Address
 
 	this.From = from
 	this.To = to
-	temp, _ := decimal.NewFromString(amount)
-	amount1, _ := temp.Float64()
-	this.Amount = int64(amount1 * 100000000)
 
-	temp1, _ := decimal.NewFromString(fee) //new(big.Int).SetString(fee,10)
-	fee1, _ := temp1.Float64()             //decimal.NewFromBigInt(temp1, int32(8)).IntPart()
-	this.Fee = int64(fee1 * 100000000)
+	tmp1,_ := new(big.Int).SetString(amount,10)
+	fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
+	this.Fee = fee1
+
+	tmp2,_ := new(big.Int).SetString(fee,10)
+	amount1 := decimal.NewFromBigInt(tmp2, int32(8)).IntPart()
+	this.Amount = amount1
+
 
 	this.Contract = walletToken.Contract
 	this.Chainid = walletToken.Chainid
 	this.Tokenid = tokenid
 	this.Uid = uid
 	this.TokenName = tokenData.Mark
-	this.AmountCny = int64(float64(tokenCny.Price) * amount1)
-	this.FeeCny = int64(float64(tokenCny.Price) * fee1)
+	this.AmountCny = int64(int64(tokenCny.Price) * amount1)
+	this.FeeCny = int64(int64(tokenCny.Price) * fee1)
 	this.CreatedTime = time.Now()
 	this.Contract = tokenData.Contract
-	this.Opt = 2    //提币
-	this.States = 1 //正在提币
+	this.Opt = 2 //提币
+	this.States = 1  //正在提币
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	return int(affected), err
 
 }
 
 //验证支付密码
-func (this *TokenInout) AuthPayPwd(uid int32, password string) (ret int32, err error) {
+func (this *TokenInout) AuthPayPwd(uid int32,password string) (ret int32,err error) {
 	engine := utils.Engine_common
 	var data = new(User)
-	ok, err := engine.Where("uid=?", uid).Get(&data)
+	ok,err := engine.Where("uid=?",uid).Get(&data)
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
@@ -199,13 +204,18 @@ func (this *TokenInout) AuthPayPwd(uid int32, password string) (ret int32, err e
 		return ERRCODE_ACCOUNT_NOTEXIST, nil
 	}
 	if data.PayPwd != password {
-		return ERRCODE_UNKNOWN, nil
+		return ERRCODE_UNKNOWN,nil
 	}
-	return ERRCODE_SUCCESS, nil
+	return ERRCODE_SUCCESS,nil
 }
 
 //取消提币
-func (this *TokenInout) CancelTiBi(uid, id int) (int, error) {
-	affected, err := utils.Engine_wallet.Where("uid = ? and id = ?", uid, id).Update(TokenInout{States: 3}) //提币已取消
-	return int(affected), err
+func (this *TokenInout) CancelTiBi(uid,id int) (int,error) {
+	affected, err := utils.Engine_wallet.Where("uid = ? and id = ?",uid,id).Update(TokenInout{States:3})  //提币已取消
+	return int(affected),err
+}
+
+//查询申请的提币单
+func (this *TokenInout) GetApplyInOut(uid int,id int) (bool,error) {
+	return utils.Engine_wallet.Where("uid = ? and id = ?",uid,id).Limit(1).Get(this)
 }

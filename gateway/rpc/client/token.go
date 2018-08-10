@@ -160,6 +160,15 @@ func (s *TokenRPCCli) CallRegisterReward(p *proto.RegisterRewardRequest) (rsp *p
 	return
 }
 
+func (s *TokenRPCCli) CallSubTokenWithFronze(p *proto.SubTokenWithFronzeRequest) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.SubTokenWithFronzen(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID
 	Open   float64 `json:"open"`   // 开盘价
