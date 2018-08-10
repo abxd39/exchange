@@ -7,7 +7,6 @@ import (
 	"digicon/token_service/model"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 //划出到法币成功，标记消息状态为已完成
@@ -38,31 +37,25 @@ func HandlerTransferToCurrencyDone() {
 func ResendTransferToCurrencyMsg() {
 	rdsClient := dao.DB.GetCommonRedisConn()
 	transferRecordMD := new(model.TransferRecord)
-	var overSeconds int64 = 10
 
-	for {
-		list, err := transferRecordMD.ListOvertime(overSeconds)
-		log.Info("划转到法币消息重发，overtime_list：", len(list), ", error：", err)
+	list, err := transferRecordMD.ListOvertime(10)
+	log.Info("划转到法币消息重发，overtime_list：", len(list), ", error：", err)
+	if err != nil {
+		return
+	}
+
+	for _, v := range list {
+		msg, err := json.Marshal(proto.TransferToCurrencyTodoMessage{
+			Id:         int64(v.Id),
+			Uid:        int32(v.Uid),
+			TokenId:    int32(v.TokenId),
+			Num:        v.Num,
+			CreateTime: v.CreateTime,
+		})
 		if err != nil {
 			continue
 		}
 
-		for _, v := range list {
-			log.Info("划转到法币消息重发，msg：", v, ", redis_list_name：", constant.RDS_TOKEN_TO_CURRENCY_TODO)
-			msg, err := json.Marshal(proto.TransferToCurrencyTodoMessage{
-				Id:         int64(v.Id),
-				Uid:        int32(v.Uid),
-				TokenId:    int32(v.TokenId),
-				Num:        v.Num,
-				CreateTime: v.CreateTime,
-			})
-			if err != nil {
-				continue
-			}
-
-			rdsClient.RPush(constant.RDS_TOKEN_TO_CURRENCY_TODO, msg)
-		}
-
-		time.Sleep(time.Duration(overSeconds) * time.Second)
+		rdsClient.RPush(constant.RDS_TOKEN_TO_CURRENCY_TODO, msg)
 	}
 }

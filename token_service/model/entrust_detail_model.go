@@ -144,7 +144,7 @@ func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 
 func (s *EntrustDetail) SubSurplusInCache(num int64) {
 	s.SurplusNum -= num
-	s.TradeNum+=num
+	s.TradeNum += num
 }
 
 func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
@@ -172,7 +172,7 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 		"os_id":      os.Getpid(),
 	}).Info("just record entrust_detail surplus ")
 	//s.SurplusNum -= deal_num
-	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "price").Decr("surplus_num", deal_num).Incr("trade_num",deal_num).Update(s)
+	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "price").Decr("surplus_num", deal_num).Incr("trade_num", deal_num).Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
 		return err

@@ -17,11 +17,11 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 	rsp.Code = Code
 	for _, value := range result {
 		rsp.Article = append(rsp.Article, &proto.ArticleListResponse_Article{
-		Id : int32(value.Id),
-		Title :value.Title,
-		Description:value.Description,
-		CreateDateTime:value.CreateTime,
-		Covers:value.Covers,
+			Id:             int32(value.Id),
+			Title:          value.Title,
+			Description:    value.Description,
+			CreateDateTime: value.CreateTime,
+			Covers:         value.Covers,
 		})
 
 	}
@@ -29,7 +29,7 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 	rsp.IsPage = list.IsPage
 	rsp.PageCize = int32(list.PageSize)
 	rsp.PageCount = int32(list.PageCount)
-	rsp.PageIndex =int32(list.PageIndex)
+	rsp.PageIndex = int32(list.PageIndex)
 	//fmt.Println("ArticleList 列表为", ntc)
 	return nil
 }

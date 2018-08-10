@@ -16,16 +16,16 @@ import (
 
 // 用户虚拟货币资产表
 type UserCurrency struct {
-	Id        uint64 `xorm:"not null pk autoincr INT(10)" json:"id"`
-	Uid       uint64 `xorm:"INT(10)"     json:"uid"`                                          // 用户ID
-	TokenId   uint32 `xorm:"INT(10)"     json:"token_id"`                                     // 虚拟货币类型
-	TokenName string `xorm:"VARCHAR(36)" json:"token_name"`                                   // 虚拟货币名字
-	Freeze    int64  `xorm:"BIGINT not null default 0"   json:"freeze"`                       // 冻结
-	FreezeCny int64  `xorm:"BIGINT not null default 0"   json:"freeze_cny"`
-	Balance   int64  `xorm:"not null default 0 comment('余额') BIGINT"   json:"balance"`        // 余额
-	BalanceCny  int64 `xorm:"BIGINT not null default 0"                  json:"balance_cny"`
-	Address   string `xorm:"not null default '' comment('充值地址') VARCHAR(255)" json:"address"` // 充值地址
-	Version   int64  `xorm:"version"`
+	Id         uint64 `xorm:"not null pk autoincr INT(10)" json:"id"`
+	Uid        uint64 `xorm:"INT(10)"     json:"uid"`                    // 用户ID
+	TokenId    uint32 `xorm:"INT(10)"     json:"token_id"`               // 虚拟货币类型
+	TokenName  string `xorm:"VARCHAR(36)" json:"token_name"`             // 虚拟货币名字
+	Freeze     int64  `xorm:"BIGINT not null default 0"   json:"freeze"` // 冻结
+	FreezeCny  int64  `xorm:"BIGINT not null default 0"   json:"freeze_cny"`
+	Balance    int64  `xorm:"not null default 0 comment('余额') BIGINT"   json:"balance"` // 余额
+	BalanceCny int64  `xorm:"BIGINT not null default 0"                  json:"balance_cny"`
+	Address    string `xorm:"not null default '' comment('充值地址') VARCHAR(255)" json:"address"` // 充值地址
+	Version    int64  `xorm:"version"`
 }
 
 func (UserCurrency) TableName() string {
@@ -59,7 +59,7 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 func (this *UserCurrency) GetUserCurrency(uid uint64, nozero bool) (uCurrenList []UserCurrency, err error) {
 	engine := dao.DB.GetMysqlConn()
 	if nozero {
-		err = engine.Where("uid = ? AND balance > 0 ", uid).Find(&uCurrenList)
+		err = engine.Where("uid = ? AND (balance > 0  or freeze) ", uid).Find(&uCurrenList)
 	} else {
 		err = engine.Where("uid=?", uid).Find(&uCurrenList)
 	}
@@ -145,8 +145,8 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, num int64) er
 
 	//3.划转记录
 	result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (id, uid, token_id, num, states, create_time) VALUES"+
-		" (%d, %d, %d, %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, num, 1, now))
+		" (id, uid, token_id, token_name, num, states, create_time) VALUES"+
+		" (%d, %d, %d, '%s', %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, userCurrency.TokenName, num, 1, now))
 	if err != nil {
 		currencySession.Rollback()
 		return errors.NewSys(err)

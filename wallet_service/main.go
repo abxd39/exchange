@@ -4,24 +4,22 @@ import (
 	"digicon/wallet_service/rpc"
 	"digicon/wallet_service/rpc/client"
 	"flag"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
-	log "github.com/sirupsen/logrus"
 	//cf "digicon/currency_service/conf"
-	cf "digicon/wallet_service/utils"
 	"digicon/common/xlog"
+	cf "digicon/wallet_service/utils"
 )
 
-func init()  {
+func init() {
 	//cf.Init()
 	path := cf.Cfg.MustValue("log", "log_dir")
 	name := cf.Cfg.MustValue("log", "log_name")
 	level := cf.Cfg.MustValue("log", "log_level")
-	xlog.InitLogger(path,name,level)
+	xlog.InitLogger(path, name, level)
 }
-
-
 
 func main() {
 	flag.Parse()

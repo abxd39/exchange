@@ -13,13 +13,13 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 
+	"digicon/common/random"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
-	"digicon/common/random"
 )
 
 const (
@@ -245,7 +245,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		Symbol:     p.Symbol,
 		Sum:        sum,
 		FeePercent: fee_precent,
-		TradeNum:0,
+		TradeNum:   0,
 	}
 
 	m := &UserToken{}
@@ -351,11 +351,11 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 
 	//no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
 	/*
-	uuid, _ := uuid.NewV1()
-	no := uuid.String()
+		uuid, _ := uuid.NewV1()
+		no := uuid.String()
 	*/
-	rand:=random.Krand(6,random.KC_RAND_KIND_LOWER)
-	no:=fmt.Sprintf("%d_%s",time.Now().Unix(),rand)
+	rand := random.Krand(6, random.KC_RAND_KIND_LOWER)
+	no := fmt.Sprintf("%d_%s", time.Now().Unix(), rand)
 	trade_time := time.Now().Unix()
 	t := &Trade{
 		TradeNo:      no,
@@ -465,26 +465,25 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		return
 	}
 
+	tfree := &TokenFreeHistory{
+		TokenId: buy_trade_token_account.TokenId,
+		Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
+		Type:    int(proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE),
+		Num:     fee,
 
-	tfree:=&TokenFreeHistory{
-		TokenId:buy_trade_token_account.TokenId,
-		Opt:int(proto.TOKEN_OPT_TYPE_ADD),
-		Type:  int(proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE),
-		Num:fee,
-
-		Ukey:t.TradeNo,
+		Ukey: t.TradeNo,
 	}
 
-	ofree:=&TokenFreeHistory{
-		TokenId:sell_trade_token_account.TokenId,
-		Opt:int(proto.TOKEN_OPT_TYPE_ADD),
-		Type:  int(proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE),
-		Num:sell_fee,
+	ofree := &TokenFreeHistory{
+		TokenId: sell_trade_token_account.TokenId,
+		Opt:     int(proto.TOKEN_OPT_TYPE_ADD),
+		Type:    int(proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE),
+		Num:     sell_fee,
 
-		Ukey:o.TradeNo,
+		Ukey: o.TradeNo,
 	}
 
-	err = InsertIntoTokenFreeHistory(session,tfree,ofree)
+	err = InsertIntoTokenFreeHistory(session, tfree, ofree)
 	if err != nil {
 		session.Rollback()
 		return
@@ -690,25 +689,25 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 			buy_num = convert.Int64MulInt64By8Bit(g_num, price)
 			sell_num = g_num
 		}
-	}else{
-			log.WithFields(logrus.Fields{
-				"symbol":           s.TokenQueueId,
-				"buyer_id":         buyer.Uid,
-				"seller_id":        seller.Uid,
-				"buyer_entrust_id": buyer.EntrustId,
-				"sell_entrust_id":  seller.EntrustId,
-				"sell_num":         sell_num,
-				"buy_num":          buy_num,
-				"price":            price,
-				"g_num":            g_num,
-				"buyer_type":       buyer.Type,
-				"seller_type":      seller.Type,
-			}).Warn("please check logic")
-			err = s.SurplusBack(buyer)
-			if err != nil {
-				return
-			}
+	} else {
+		log.WithFields(logrus.Fields{
+			"symbol":           s.TokenQueueId,
+			"buyer_id":         buyer.Uid,
+			"seller_id":        seller.Uid,
+			"buyer_entrust_id": buyer.EntrustId,
+			"sell_entrust_id":  seller.EntrustId,
+			"sell_num":         sell_num,
+			"buy_num":          buy_num,
+			"price":            price,
+			"g_num":            g_num,
+			"buyer_type":       buyer.Type,
+			"seller_type":      seller.Type,
+		}).Warn("please check logic")
+		err = s.SurplusBack(buyer)
+		if err != nil {
 			return
+		}
+		return
 	}
 
 	log.WithFields(logrus.Fields{
@@ -1451,7 +1450,7 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw proto.ENTRUST_T
 	}
 
 	if len(z) == 0 && sw == proto.ENTRUST_TYPE_MARKET_PRICE {
-		return s.PopFirstEntrust(opt, proto.ENTRUST_TYPE_LIMIT_PRICE , count)
+		return s.PopFirstEntrust(opt, proto.ENTRUST_TYPE_LIMIT_PRICE, count)
 	} else if len(z) == 0 && sw == proto.ENTRUST_TYPE_LIMIT_PRICE {
 		err = redis.Nil
 		return
@@ -1468,14 +1467,14 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw proto.ENTRUST_T
 		log.Errorln(err)
 		return
 	}
-	if len(g)>0 && len(en)==0 {
+	if len(g) > 0 && len(en) == 0 {
 		log.WithFields(log.Fields{
 			"opt":         opt,
-			"symbol":         s.TokenQueueId,
-			"sw":    sw,
+			"symbol":      s.TokenQueueId,
+			"sw":          sw,
 			"entrusdt_id": g[0],
-		}).Warnf("data is not consist please check" )
-		s.delSource(opt,sw,g[0])
+		}).Warnf("data is not consist please check")
+		s.delSource(opt, sw, g[0])
 	}
 	/*
 		for _, v := range z {

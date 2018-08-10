@@ -8,13 +8,13 @@ import (
 	//"github.com/gin-gonic/gin/json"
 	"digicon/common/convert"
 	"digicon/common/errors"
+	"digicon/common/random"
 	"digicon/currency_service/rpc/client"
 	"digicon/currency_service/utils"
 	"encoding/json"
 	"golang.org/x/net/context"
 	"log"
 	"time"
-	"digicon/common/random"
 )
 
 type RPCServer struct{}
@@ -93,7 +93,7 @@ func (s *RPCServer) AddAds(ctx context.Context, req *proto.AdsModel, rsp *proto.
 func (s *RPCServer) UpdatedAds(ctx context.Context, req *proto.AdsModel, rsp *proto.CurrencyResponse) error {
 
 	// 数据过虑暂不做
-	fmt.Println("update req:",  req.IsTwolevel , req.Id, req.MinLimit, req.MaxLimit)
+	fmt.Println("update req:", req.IsTwolevel, req.Id, req.MinLimit, req.MaxLimit)
 
 	ads := new(model.Ads)
 	ads.Id = req.Id
@@ -358,8 +358,6 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		return err
 	}
 
-
-
 	tkconfig := new(model.TokenConfigTokenCNy)
 
 	fmt.Println("data:", data)
@@ -370,10 +368,10 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	otherSymbolMap := make(map[uint32]string)
 	for _, dt := range data {
 		if dt.TokenName != "BTC" {
-			if dt.TokenName != ""{
+			if dt.TokenName != "" {
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
 				symbols = append(symbols, symbol)
-			}else{
+			} else {
 				nosymbol = append(nosymbol, int(dt.TokenId))
 			}
 		}
@@ -382,14 +380,13 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 	if len(nosymbol) > 0 {
 		tokensModel := new(model.CommonTokens)
 		otherTokens := tokensModel.GetByTokenIds(nosymbol)
-		for _, otk := range otherTokens{
+		for _, otk := range otherTokens {
 			fmt.Println(otk.Mark)
 			symbol := fmt.Sprintf("BTC/%s", otk.Mark)
 			symbols = append(symbols, symbol)
 			otherSymbolMap[otk.Id] = fmt.Sprintf("%s", otk.Mark)
 		}
 	}
-
 
 	fmt.Println("symbols:", symbols)
 
@@ -428,16 +425,16 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		if err != nil {
 			log.Println("get btc price error:", err)
 			btcConfigPrice = 0
-		}else{
+		} else {
 			btcConfigPrice = tkconfig.Price
 		}
 		for _, dt := range data {
 			var tmp RespBalance
 			var valuation float64
 			if dt.TokenName == "BTC" {
-				if btcConfigPrice <= 0{
+				if btcConfigPrice <= 0 {
 					sumcny += 0
-				}else{
+				} else {
 					int64valuetion := convert.Int64MulInt64By8Bit(btcConfigPrice, dt.Balance)
 					valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64valuetion), 2)
 					sumcny += int64valuetion
@@ -445,9 +442,9 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				sum += dt.Balance
 			} else {
 				var symbol string
-				if dt.TokenName != ""{
+				if dt.TokenName != "" {
 					symbol = fmt.Sprintf("BTC/%s", dt.TokenName)
-				}else{
+				} else {
 					symbol = fmt.Sprintf("BTC/%s", otherSymbolMap[dt.TokenId])
 				}
 				symPrice := symbolData.Data[symbol]
@@ -461,21 +458,21 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 							int64Valueation := convert.Int64MulInt64By8Bit(dt.Balance, int64cynPrice)
 							valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64Valueation), 2)
 							sumcny += int64Valueation
-						}else{
+						} else {
 							sumcny += 0
 						}
-					}else{
+					} else {
 						sum += 0
 						sumcny += 0
 					}
-				}else{
+				} else {
 					sum += 0
 					sumcny += 0
 				}
 			}
-			if dt.TokenName != ""{
+			if dt.TokenName != "" {
 				tmp.TokenName = dt.TokenName
-			}else{
+			} else {
 				tmp.TokenName = otherSymbolMap[dt.TokenId]
 			}
 			tmp.TokenId = dt.TokenId
@@ -484,7 +481,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			tmp.Address = dt.Address
 			tmp.Freeze = convert.Int64ToFloat64By8Bit(dt.Freeze)
 			tmp.Balance = convert.Int64ToFloat64By8Bit(dt.Balance)
-			tmp.Valuation =  utils.Round2(valuation, 2)
+			tmp.Valuation = utils.Round2(valuation, 2)
 			RespUCurrencyList = append(RespUCurrencyList, tmp)
 		}
 	}
@@ -534,7 +531,7 @@ func (s *RPCServer) GetSellingPrice(ctx context.Context, req *proto.SellingPrice
 	var maxmaxprice float64
 	var minminprice float64
 	var price float64
-	maxPrice, minPrice, _  := new(model.Ads).GetOnlineAdsMaxMinPrice(req.TokenId)
+	maxPrice, minPrice, _ := new(model.Ads).GetOnlineAdsMaxMinPrice(req.TokenId)
 	fmt.Println("maxPrice:", maxPrice, "minPrice: ", minPrice)
 	if maxPrice != 0 {
 		maxmaxprice = convert.Int64ToFloat64By8Bit(maxPrice)
@@ -671,8 +668,7 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 	rateAndAuth.CreatedTime = authInfo.CreatedTime
 	fmt.Println("rateAndAuth:", rateAndAuth)
 
-
-	if rateAndAuth.HeadSculpture == ""{
+	if rateAndAuth.HeadSculpture == "" {
 		rateAndAuth.HeadSculpture = random.GetRandHead()
 	}
 

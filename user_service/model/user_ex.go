@@ -1,12 +1,12 @@
 package model
 
 import (
+	. "digicon/common/constant"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	."digicon/common/constant"
 	"time"
 )
 
@@ -50,10 +50,10 @@ func (ex *UserEx) GetNickName(req *proto.UserGetNickNameRequest, rsp *proto.User
 	engine := DB.GetMysqlConn()
 	sql := "SELECT user.`uid`, account, user_ex.`nick_name`, user_ex.`head_sculpture` FROM g_common.`user` LEFT JOIN   user_ex ON user.`uid` = user_ex.`uid`"
 	type UNickName struct {
-		Uid        uint64     `json:"uid"`
-		Account    string      `json:"account"`
-		NickName   string      `json:"nick_name"`
-		HeadSculpture  string   `json:"head_sculpture"`
+		Uid           uint64 `json:"uid"`
+		Account       string `json:"account"`
+		NickName      string `json:"nick_name"`
+		HeadSculpture string `json:"head_sculpture"`
 	}
 	var uex []UNickName
 	err = engine.SQL(sql).In("uid", req.Uid).Find(&uex)
@@ -67,9 +67,9 @@ func (ex *UserEx) GetNickName(req *proto.UserGetNickNameRequest, rsp *proto.User
 	}
 	for _, value := range uex {
 		var nickname string
-		if value.NickName == ""{
+		if value.NickName == "" {
 			nickname = value.Account
-		}else{
+		} else {
 			nickname = value.NickName
 		}
 		userEx := &proto.UserGetNickNameResponse_UserNickName{
@@ -104,19 +104,19 @@ func (ex *UserEx) SetNickName(req *proto.UserSetNickNameRequest, rsp *proto.User
 			NickName:      req.NickName,
 			HeadSculpture: req.HeadSculpture,
 		})
-	}else if req.NickName == "" && req.HeadSculpture != ""{
+	} else if req.NickName == "" && req.HeadSculpture != "" {
 		result, err = engine.ID(req.Uid).Update(&UserEx{
 			Uid:           int64(req.Uid),
 			HeadSculpture: req.HeadSculpture,
 		})
-	}else if req.NickName != "" && req.HeadSculpture == ""{
+	} else if req.NickName != "" && req.HeadSculpture == "" {
 		result, err = engine.ID(req.Uid).Update(&UserEx{
-			Uid:           int64(req.Uid),
-			NickName:      req.NickName,
+			Uid:      int64(req.Uid),
+			NickName: req.NickName,
 		})
-	}else{
+	} else {
 		result, err = engine.ID(req.Uid).Update(&UserEx{
-			Uid:           int64(req.Uid),
+			Uid: int64(req.Uid),
 		})
 	}
 
@@ -172,7 +172,7 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 		return ERRCODE_UNKNOWN, err
 	}
 	//写数据库 如果 user 表上有 该用户，则 表user_ex 此表一定有该 用户affirm_time
-	if _, err = sess.Where("uid=?", req.Uid).Cols("real_name","identify_card","affirm_time","affirm_count").Update(&UserEx{
+	if _, err = sess.Where("uid=?", req.Uid).Cols("real_name", "identify_card", "affirm_time", "affirm_count").Update(&UserEx{
 		RealName:     req.RealName,
 		IdentifyCard: req.IdCode,
 		AffirmTime:   time.Now().Unix(),
@@ -182,7 +182,7 @@ func (ex *UserEx) SetFirstVerify(req *proto.FirstVerifyRequest, rsp *proto.First
 
 		return ERRCODE_UNKNOWN, err
 	}
-	if u.SetTardeMark & APPLY_FOR_FIRST!=APPLY_FOR_FIRST{//重复提交的问题
+	if u.SetTardeMark&APPLY_FOR_FIRST != APPLY_FOR_FIRST { //重复提交的问题
 		u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_FIRST
 	}
 	if _, err = sess.Table("user").Where("uid=?", req.Uid).Cols("set_tarde_mark").Update(&User{
@@ -213,8 +213,8 @@ func (ex *UserEx) GetVerifyCount(req *proto.VerifyCountRequest, rsp *proto.Verif
 		return ERRCODE_UNKNOWN, err
 	}
 	rsp.FirstCount = int32(ex.AffirmCount)
-	if rsp.FirstCount ==0{
-		rsp.FirstCount=1
+	if rsp.FirstCount == 0 {
+		rsp.FirstCount = 1
 	}
 	return ERRCODE_SUCCESS, nil
 }

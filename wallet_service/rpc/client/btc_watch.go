@@ -8,10 +8,10 @@ import (
 
 	"digicon/common/convert"
 	"fmt"
+	"github.com/ouqiang/timewheel"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/ouqiang/timewheel"
 )
 
 type ListUnspentResult struct {
@@ -138,13 +138,13 @@ var btcTw *timewheel.TimeWheel
 
 func (this *BTCWatch) Work() {
 
-	btcTw = timewheel.New(1 * time.Second, 3600, func(data timewheel.TaskData) {
-		btcTw.AddTimer(60 * time.Second, "btc", timewheel.TaskData{})
+	btcTw = timewheel.New(1*time.Second, 3600, func(data timewheel.TaskData) {
+		btcTw.AddTimer(60*time.Second, "btc", timewheel.TaskData{})
 		fmt.Println("btc watch ...")
 		this.Check()
 	})
 	btcTw.Start()
-	btcTw.AddTimer(1 * time.Second, "btc", timewheel.TaskData{})
+	btcTw.AddTimer(1*time.Second, "btc", timewheel.TaskData{})
 
 	//for {
 	//	fmt.Println("btc watch ...")

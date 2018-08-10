@@ -60,10 +60,10 @@ func (s *WorkQueneMgr) Init() {
 		CnyPrice:   s.CnyRate,
 		UsdPrice:   s.UsdRate,
 		UpdateTime: time.Now().Unix(),
-		data:&MsgPricePublish{
-			TokenId:1,
-			TokenTradeId:1,
-			Price:s.CnyRate,
+		data: &MsgPricePublish{
+			TokenId:      1,
+			TokenTradeId: 1,
+			Price:        s.CnyRate,
 		},
 	}
 
@@ -155,8 +155,8 @@ func (s *WorkQueneMgr) GetQueneByUKey(ukey string) (d *PriceWorkQuene, ok bool) 
 }
 
 func Test() {
-	time.Sleep(40*time.Second)
-	for _,v:=range GetQueneMgr().PriceMap  {
-		log.Warnf("token_id=%d,cny %d,usdt %d",v.data.TokenTradeId,v.CnyPrice,v.UsdPrice)
+	time.Sleep(40 * time.Second)
+	for _, v := range GetQueneMgr().PriceMap {
+		log.Warnf("token_id=%d,cny %d,usdt %d", v.data.TokenTradeId, v.CnyPrice, v.UsdPrice)
 	}
 }

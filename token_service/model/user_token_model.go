@@ -17,20 +17,19 @@ import (
 )
 
 type UserToken struct {
-	Id      int64
-	Uid     uint64 `xorm:"unique(currency_uid) INT(11)"`
-	TokenId int    `xorm:"comment('币种') unique(currency_uid) INT(11)"`
-	Balance int64  `xorm:"comment('余额') BIGINT(20)"`
-	Frozen  int64  `xorm:"comment('冻结余额') BIGINT(20)"`
-	Version int    `xorm:"version"`
-	FrozenCny  int64 `xorm:"default 0 BIGINT(20)"`
-	BalanceCny int64 `xorm:"default 0 BIGINT(20)"`
+	Uid        uint64 `xorm:"unique(currency_uid) INT(11)"`
+	TokenId    int    `xorm:"comment('币种') unique(currency_uid) INT(11)"`
+	TokenName  string `xorm:"token_name"`
+	Balance    int64  `xorm:"comment('余额') BIGINT(20)"`
+	Frozen     int64  `xorm:"comment('冻结余额') BIGINT(20)"`
+	Version    int    `xorm:"version"`
+	FrozenCny  int64  `xorm:"default 0 BIGINT(20)"`
+	BalanceCny int64  `xorm:"default 0 BIGINT(20)"`
 }
 
-type UserTokenWithName struct {
+type UserTokenWithWorth struct {
 	UserToken `xorm:"extends"`
 	WorthCny  float64
-	TokenName string
 }
 
 type UserTokenTotalMoney struct {
@@ -60,7 +59,7 @@ func (s *UserToken) CalcTotalMoney(uid uint64) (*UserTokenTotalMoney, error) {
 }
 
 // 用户币币余额列表
-func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithName, error) {
+func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithWorth, error) {
 	engine := DB.GetMysqlConn()
 	query := engine.Where("1=1")
 
@@ -75,12 +74,11 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 		query.And("ut.token_id=?", v)
 	}
 
-	var list []UserTokenWithName
+	var list []UserTokenWithWorth
 	err := query.
 		Table(s).
 		Alias("ut").
-		Select("ut.*, t.mark as token_name, (ut.balance+ut.frozen)/100000000 * ctc.price/100000000 as worth_cny").
-		Join("LEFT", []string{new(OutCommonTokens).TableName(), "t"}, "t.id=ut.token_id").
+		Select("ut.*, (ut.balance+ut.frozen)/100000000 * ctc.price/100000000 as worth_cny").
 		Join("LEFT", []string{new(ConfigTokenCny).TableName(), "ctc"}, "ctc.token_id=ut.token_id").
 		Find(&list)
 	if err != nil {
@@ -100,7 +98,14 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 	}
 
 	if !ok {
+		var token *OutCommonTokens
+		token, err = new(OutCommonTokens).Get(uint32(token_id))
+		if err != nil {
+			return
+		}
+
 		s.Uid = uid
+		s.TokenName = token.Mark
 		s.TokenId = int(token_id)
 
 		_, err = DB.GetMysqlConn().InsertOne(s)
@@ -125,7 +130,7 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 }
 
 //获取实体
-func (s *UserToken) GetUserTokenInSession(session *xorm.Session, uid uint64, token_id int) (userToken *UserToken, err error) {
+func (s *UserToken) GetUserTokenInSession(session *xorm.Session, uid uint64, token_id int, tokenName string) (userToken *UserToken, err error) {
 	var ok bool
 	userToken = &UserToken{}
 	ok, err = session.Where("uid=? and token_id=?", uid, token_id).Get(userToken)
@@ -136,15 +141,16 @@ func (s *UserToken) GetUserTokenInSession(session *xorm.Session, uid uint64, tok
 
 	if !ok {
 		s.Uid = uid
+		s.TokenName = tokenName
 		s.TokenId = int(token_id)
 
-		_, err = DB.GetMysqlConn().InsertOne(s)
+		_, err = session.InsertOne(s)
 		if err != nil {
 			log.Errorln(err.Error())
 			return
 		}
 
-		ok, err = session.Where("uid=? and token_id=?", uid, token_id).Get(s)
+		ok, err = session.Where("uid=? and token_id=?", uid, token_id).Get(userToken)
 		if err != nil {
 			log.Errorln(err.Error())
 			return
@@ -243,6 +249,12 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 		return nil
 	}
 
+	//tokenName
+	token, err := new(OutCommonTokens).Get(uint32(rewardTokenId))
+	if err != nil {
+		return err
+	}
+
 	//整理数据
 	userTokenTableName := s.TableName()
 	FrozenHistoryTableName := new(FrozenHistory).TableName()
@@ -259,7 +271,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 	}
 
 	//1.自己
-	my, err := s.GetUserTokenInSession(tokenSession, uint64(uid), int(rewardTokenId))
+	my, err := s.GetUserTokenInSession(tokenSession, uint64(uid), int(rewardTokenId), token.Mark)
 	newFrozen := my.Frozen + rewardNum
 
 	var result sql.Result
@@ -295,7 +307,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 		return err
 	}
 	if inviteId := userEx.InviteId; inviteId > 0 { //有推荐人
-		invite, err := s.GetUserTokenInSession(tokenSession, uint64(inviteId), int(rewardTokenId))
+		invite, err := s.GetUserTokenInSession(tokenSession, uint64(inviteId), int(rewardTokenId), token.Mark)
 		if err != nil {
 			tokenSession.Rollback()
 			return errors.NewSys(err)
@@ -315,7 +327,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 
 		//流水
 		result, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s (uid, ukey, num, token_id, type, create_time, opt, frozen)"+
-			" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, inviteId, fmt.Sprintf("%d-%d", uid, inviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
+			" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, inviteId, fmt.Sprintf("%d-%d", uid, inviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
 		if err != nil {
 			tokenSession.Rollback()
 			return errors.NewSys(err)
@@ -332,7 +344,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 			return err
 		}
 		if secInviteId := inviteUserEx.InviteId; secInviteId > 0 { //有推荐人
-			secInvite, err := s.GetUserTokenInSession(tokenSession, uint64(secInviteId), int(rewardTokenId))
+			secInvite, err := s.GetUserTokenInSession(tokenSession, uint64(secInviteId), int(rewardTokenId), token.Mark)
 			if err != nil {
 				tokenSession.Rollback()
 				return errors.NewSys(err)
@@ -352,7 +364,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 
 			//流水
 			result, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s (uid, ukey, num, token_id, type, create_time, opt, frozen)"+
-				" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, secInviteId, fmt.Sprintf("%d-%d-%d", uid, inviteId, secInviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
+				" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, secInviteId, fmt.Sprintf("%d-%d-%d", uid, inviteId, secInviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
 			if err != nil {
 				tokenSession.Rollback()
 				return errors.NewSys(err)
@@ -674,6 +686,7 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, num int64) error
 	if s.Balance < num {
 		return errors.NewNormal("余额不足")
 	}
+	tokenName := s.TokenName
 
 	//整理数据
 	transferId := snowflake.SnowflakeNode.Generate()
@@ -721,8 +734,8 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, num int64) error
 
 	//3.划转记录
 	result, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (id, uid, token_id, num, states, create_time) VALUES"+
-		" (%d, %d, %d, %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, num, 1, now))
+		" (id, uid, token_id, token_name, num, states, create_time) VALUES"+
+		" (%d, %d, %d, '%s', %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, tokenName, num, 1, now))
 	if err != nil {
 		tokenSession.Rollback()
 		return errors.NewSys(err)

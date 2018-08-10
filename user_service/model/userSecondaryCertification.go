@@ -1,11 +1,11 @@
 package model
 
 import (
+	. "digicon/common/constant"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	. "digicon/user_service/dao"
 	"fmt"
-	."digicon/common/constant"
 	"time"
 )
 
@@ -28,8 +28,8 @@ func (us *UserSecondaryCertification) GetVerifyCount(uid uint64) (int32, error) 
 		return 0, err
 	}
 	var count = int32(us.VerifyCount)
-	if count ==0{
-		count=1
+	if count == 0 {
+		count = 1
 	}
 	return count, nil
 }
@@ -99,7 +99,7 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 		sess.Rollback()
 		return ERRCODE_UNKNOWN, err
 	}
-	if u.SetTardeMark & APPLY_FOR_SECOND!=APPLY_FOR_SECOND{
+	if u.SetTardeMark&APPLY_FOR_SECOND != APPLY_FOR_SECOND {
 		u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_SECOND
 	}
 	if _, err = engine.Table("user").Where("uid=?", req.Uid).Update(&User{

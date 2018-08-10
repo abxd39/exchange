@@ -42,7 +42,7 @@ func (*MoneyRecord) TableName() string {
 
 //流水列表
 func (s *MoneyRecord) List(pageIndex, pageSize int, filter map[string]interface{}) (*model.ModelList, []*MoneyRecordWithToken, error) {
-	query := DB.GetMysqlConn().Alias("mr").Join("LEFT", []string{new(OutCommonTokens).TableName(), "t"}, "mr.token_id=t.id").Where("1=1")
+	query := DB.GetMysqlConn().Alias("mr").Join("LEFT", []string{new(UserToken).TableName(), "ut"}, "ut.token_id=mr.token_id").Where("1=1")
 
 	//筛选
 	if _, ok := filter["uid"]; ok {
@@ -64,7 +64,7 @@ func (s *MoneyRecord) List(pageIndex, pageSize int, filter map[string]interface{
 	offset, modelList := model.Paging(pageIndex, pageSize, int(total))
 
 	var list []*MoneyRecordWithToken
-	err = query.Select("mr.*,t.mark AS token_name").OrderBy("mr.id DESC").Limit(modelList.PageSize, offset).Find(&list)
+	err = query.Select("mr.*,ut.token_name").OrderBy("mr.id DESC").Limit(modelList.PageSize, offset).Find(&list)
 	if err != nil {
 		return nil, nil, errors.NewSys(err)
 	}

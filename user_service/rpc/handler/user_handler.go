@@ -533,9 +533,9 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 		authInfo.RealName = 1
 	}
 	timeLayout := "2006-01-02 15:04:05"
-	if extu.NickName == ""{
+	if extu.NickName == "" {
 		authInfo.NickName = u.Account
-	}else{
+	} else {
 		authInfo.NickName = extu.NickName
 	}
 	authInfo.HeadSculpture = extu.HeadSculpture

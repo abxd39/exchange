@@ -61,7 +61,7 @@ func (this *WalletToken) AddrExist(addr string, chainid int, contract string) (b
 	//fmt.Println(addr,chainid,contract)
 	return Engine_wallet.Where("address=? and chainid=? and contract=?", addr, chainid, contract).Get(this)
 }
-func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64,nonce int) ([]byte, error) {
+func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64, nonce int) ([]byte, error) {
 	//func Signtx(key *keystore.Key,nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int) ([]byte,error)
 	key, err := Unlock_keystore([]byte(this.Keystore), this.Password)
 	if err != nil {
@@ -113,34 +113,31 @@ func Neweth(userid int, tokenid int, password string, chainid int) (addr string,
 	return walletTokenModel.Address, err
 }
 
-
-func (this *WalletToken) GetByUidTokenid(uid int,tokenid int) error {
-	boo, err := Engine_wallet.Where("uid = ? and tokenid = ?", uid,tokenid).Get(this)
-	fmt.Println("数据：",boo,err,this)
+func (this *WalletToken) GetByUidTokenid(uid int, tokenid int) error {
+	boo, err := Engine_wallet.Where("uid = ? and tokenid = ?", uid, tokenid).Get(this)
+	fmt.Println("数据：", boo, err, this)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (this *WalletToken) WalletTokenExist(uid int,tokenid int) (bool, string,string) {
-	tk := &WalletToken{Uid: uid,Tokenid:tokenid}
-	boo,err := Engine_wallet.Exist(tk)
+func (this *WalletToken) WalletTokenExist(uid int, tokenid int) (bool, string, string) {
+	tk := &WalletToken{Uid: uid, Tokenid: tokenid}
+	boo, err := Engine_wallet.Exist(tk)
 	if err != nil {
-		return false,"",""
+		return false, "", ""
 	}
 	if boo == true {
 		//存在
 		walletToken := new(WalletToken)
-		errr := walletToken.GetByUidTokenid(uid,tokenid)
+		errr := walletToken.GetByUidTokenid(uid, tokenid)
 		if errr != nil {
-			return false,"",""
+			return false, "", ""
 		}
 		tokenModel := &Tokens{Id: tokenid}
 		_, err = tokenModel.GetByid(tokenid)
-		return true,walletToken.Address,tokenModel.Signature
+		return true, walletToken.Address, tokenModel.Signature
 	}
-	return false,"",""
+	return false, "", ""
 }
-
-

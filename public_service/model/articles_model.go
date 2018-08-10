@@ -5,10 +5,10 @@ import (
 	proto "digicon/proto/rpc"
 	"digicon/public_service/dao"
 	//Dlog "digicon/public_service/log"
-	Dlog "github.com/sirupsen/logrus"
-	"log"
 	"digicon/common/model"
 	"fmt"
+	Dlog "github.com/sirupsen/logrus"
+	"log"
 )
 
 type Article struct {
@@ -33,12 +33,12 @@ type Article struct {
 }
 
 type Article_list struct {
-	model.ModelList  `xorm:"-"`
-	Id          int    `xorm:"not null pk autoincr comment('自增ID') INT(10)"`
-	Description string `xorm:"default '' comment('描述') VARCHAR(1000)"`
-	Title       string `xorm:"not null default '' comment('文章标题') VARCHAR(100)"`
-	Covers        string `xorm:"default '' comment('封面图片') VARCHAR(1000)"`
-	CreateTime  string `xorm:"default '' comment('创建时间') VARCHAR(36)"`
+	model.ModelList `xorm:"-"`
+	Id              int    `xorm:"not null pk autoincr comment('自增ID') INT(10)"`
+	Description     string `xorm:"default '' comment('描述') VARCHAR(1000)"`
+	Title           string `xorm:"not null default '' comment('文章标题') VARCHAR(100)"`
+	Covers          string `xorm:"default '' comment('封面图片') VARCHAR(1000)"`
+	CreateTime      string `xorm:"default '' comment('创建时间') VARCHAR(36)"`
 }
 type ArticleType struct {
 	Id       int    `xorm:"not null pk autoincr MEDIUMINT(6)"`
@@ -72,14 +72,13 @@ func (a Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_li
 		Dlog.Errorln(err.Error())
 		return nil, ERRCODE_UNKNOWN
 	}
-	offset,mList:= model.Paging(int(req.Page),int(req.PageNum),int(count))
+	offset, mList := model.Paging(int(req.Page), int(req.PageNum), int(count))
 
-	fmt.Println("total=",mList.Total, "type=", req.ArticleType, "page=", mList.PageSize, "起始行star_row=", mList.PageIndex, "page_num=", offset)
-	err = engine.Desc("id").AllCols().Where("astatus=1 and type=?", req.ArticleType).Limit(mList.PageSize,offset).Find(u)
+	fmt.Println("total=", mList.Total, "type=", req.ArticleType, "page=", mList.PageSize, "起始行star_row=", mList.PageIndex, "page_num=", offset)
+	err = engine.Desc("id").AllCols().Where("astatus=1 and type=?", req.ArticleType).Limit(mList.PageSize, offset).Find(u)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-
 
 	return mList, ERRCODE_SUCCESS
 

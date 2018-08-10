@@ -22,22 +22,20 @@ type CurrencyDailySheet struct {
 	Date            int64 `xorm:"not null comment('时间戳，精确到天') BIGINT(10)"                json:"date"`
 }
 
-
 type FindDailySheet struct {
-	Id                 int32 `xorm:"not null pk comment('自增id') TINYINT(4)"                     json:"id"`
-	DateStr            int64 `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date_str"`
+	Id      int32 `xorm:"not null pk comment('自增id') TINYINT(4)"                     json:"id"`
+	DateStr int64 `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date_str"`
 }
 
-
-func (this *CurrencyDailySheet) Insert () (err error){
+func (this *CurrencyDailySheet) Insert() (err error) {
 	engine := dao.DB.GetMysqlConn()
 	_, err = engine.InsertOne(this)
 	return
 }
 
-func (this *CurrencyDailySheet) InsertOneDay() (err error){
+func (this *CurrencyDailySheet) InsertOneDay() (err error) {
 	sql := "insert into  `currency_daily_sheet` " +
-	"(`token_id`, `sell_total`, `sell_cny`, `buy_total`, `buy_cny`, `fee_sell_total`, `fee_sell_cny`, `fee_buy_total`, " +
+		"(`token_id`, `sell_total`, `sell_cny`, `buy_total`, `buy_cny`, `fee_sell_total`, `fee_sell_cny`, `fee_buy_total`, " +
 		"`fee_buy_cny`,  `buy_total_all`, `buy_total_all_cny`, `sell_total_all`, `sell_total_all_cny`, `total`, `total_cny`, `date` " +
 		") value (?, ?, ?, ?,    ?, ?, ?, ?,    ?, ?, ?, ?,   ?, ?, ?, ?)"
 	engine := dao.DB.GetMysqlConn()
@@ -46,12 +44,9 @@ func (this *CurrencyDailySheet) InsertOneDay() (err error){
 	return
 }
 
-
-
-func (this *CurrencyDailySheet) GetOneDay(tokenid uint32, today int64) (result FindDailySheet,err error) {
+func (this *CurrencyDailySheet) GetOneDay(tokenid uint32, today int64) (result FindDailySheet, err error) {
 	sql := "SELECT  id, FROM_UNIXTIME(?, \"%Y-%m-%d\") as date_str  FROM  `currency_daily_sheet` WHERE token_id=? "
 	engine := dao.DB.GetMysqlConn()
 	_, err = engine.SQL(sql, today, tokenid).Get(&result)
 	return
 }
-

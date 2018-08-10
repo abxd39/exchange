@@ -3,18 +3,16 @@ package model
 import (
 	"digicon/currency_service/dao"
 	//log "github.com/sirupsen/logrus"
+	"digicon/common/convert"
 	. "digicon/proto/common"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"digicon/common/convert"
 )
-
 
 const (
 	SellType = 1
 	BuyType  = 2
 )
-
 
 // 买卖(广告)表
 type Ads struct {
@@ -85,8 +83,7 @@ func (this *Ads) Add() int {
 		return ERRCODE_ADS_SET_PRICE
 	}
 
-
-	if this.TypeId == 2 && (uCurrency.Balance - sumLimit) < int64(this.Num)  { // type_id=2  是发布出售单
+	if this.TypeId == 2 && (uCurrency.Balance-sumLimit) < int64(this.Num) { // type_id=2  是发布出售单
 		log.Errorln("add ads error, user currency balance lower this num!")
 		return ERR_TOKEN_LESS
 	}
@@ -118,7 +115,7 @@ func (this *Ads) Update() int {
 		return ERRCODE_ADS_NOTEXIST
 	}
 	_, err := dao.DB.GetMysqlConn().Id(this.Id).Cols("price",
-		"num","premium", "accept_price", "min_limit", "max_limit",
+		"num", "premium", "accept_price", "min_limit", "max_limit",
 		"is_twolevel", "pays", "remarks", "reply", "updated_time").Update(this)
 	if err != nil {
 		fmt.Println(err)
@@ -145,7 +142,7 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 			log.Errorln("上架时候币额不能为0")
 			return ERRCODE_ADS_NUM_LESS
 		}
-		uCurrency, err  := new(UserCurrency).GetBalance(isGet.Uid, uint32(isGet.TokenId))
+		uCurrency, err := new(UserCurrency).GetBalance(isGet.Uid, uint32(isGet.TokenId))
 		if err != nil {
 			log.Errorln("查询用户余额错误")
 			return ERRCODE_USER_BALANCE
@@ -153,7 +150,7 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 		userBanalce := uCurrency.Balance
 		if uint64(userBanalce) < isGet.Num {
 			log.Errorln("币的余额不足上架失败")
-			return  ERR_TOKEN_LESS
+			return ERR_TOKEN_LESS
 		}
 
 	}
@@ -291,13 +288,11 @@ func (this *Ads) AdsUserList(Uid uint64, TypeId, Page, PageNum uint32) ([]AdsUse
 	return data, total
 }
 
-
-
 /*
 	获取所有这个币种出售广告的总和额度
     type_id = 2 为出售单
 */
-func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, err error){
+func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32) (sumLimit int64, err error) {
 	ssAds := new(Ads)
 	engine := dao.DB.GetMysqlConn()
 	sumLimit, err = engine.Where("uid=? AND token_id=?  AND type_id=2  AND states=1  AND is_del = 0", uid, tokenId).SumInt(ssAds, "num")
@@ -308,28 +303,25 @@ func (this *Ads) GetUserAdsLimit(uid uint64, tokenId uint32)( sumLimit int64, er
 	获取在线广告最高价格和最低价格
 */
 
-func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) ( MaxPrice, MinPrice int64, err error){
+func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) (MaxPrice, MinPrice int64, err error) {
 	//sql := "select MAX(price)  AS max_price,MIN(price) AS min_price from ads where token_id =? and states=1"
 	sql := " SELECT MAX(order.price)  AS max_price,MIN(order.price) AS min_price FROM  `order` LEFT JOIN  `ads`  ON `ads`.`id` = `order`.`ad_id` WHERE order.token_id =? AND   `ads`.`states`=1 AND `ads`.`is_del`=0;"
 	engine := dao.DB.GetMysqlConn()
 	type PriceStruct struct {
-		MaxPrice  int64   `xorm:"BIGINT(20)"  json:"max_price"`
-		MinPrice  int64   `xorm:"BIGINT(20)"  json:"min_price"`
+		MaxPrice int64 `xorm:"BIGINT(20)"  json:"max_price"`
+		MinPrice int64 `xorm:"BIGINT(20)"  json:"min_price"`
 	}
 	price := PriceStruct{}
-	_, err  = engine.SQL(sql, tokenId).Get(&price)
+	_, err = engine.SQL(sql, tokenId).Get(&price)
 	MaxPrice = price.MaxPrice
 	MinPrice = price.MinPrice
 	return
 }
 
-
-
-
 /*
 	广告下架
 */
-func AdsAutoDownline(id  uint64) {
+func AdsAutoDownline(id uint64) {
 	ads := new(Ads).Get(id)
 
 	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
@@ -352,7 +344,7 @@ func AdsAutoDownline(id  uint64) {
 */
 func AutoDownlineUserAds(uid uint64, tokenId uint64) {
 	log.Printf("auto check  user balance  uid:%v, tokenid: %v ", uid, tokenId)
-	uCurrency, err  := new(UserCurrency).GetBalance(uid, uint32(tokenId))
+	uCurrency, err := new(UserCurrency).GetBalance(uid, uint32(tokenId))
 	if err != nil {
 		log.Errorln("查询用户余额错误")
 		return
@@ -371,9 +363,9 @@ func AutoDownlineUserAds(uid uint64, tokenId uint64) {
 	var curSumAdsNum uint64
 	var otherAdsIdList []uint64
 
-	for _, adsi := range adsList{
-		curSumAdsNum  = curSumAdsNum + adsi.Num
-		if int64(curSumAdsNum) >= userBanalce{
+	for _, adsi := range adsList {
+		curSumAdsNum = curSumAdsNum + adsi.Num
+		if int64(curSumAdsNum) >= userBanalce {
 			otherAdsIdList = append(otherAdsIdList, adsi.Id)
 		}
 		curCnyPrice := convert.Int64MulInt64By8Bit(int64(adsi.Num), int64(adsi.Price))
@@ -389,11 +381,10 @@ func AutoDownlineUserAds(uid uint64, tokenId uint64) {
 		log.Println("not need to downline ads...")
 		return
 	}
-	ad := Ads{States:0}
+	ad := Ads{States: 0}
 	_, err = engine.In("id", otherAdsIdList).Cols("states").Update(&ad)
 	if err != nil {
 		log.Errorln("自动下架广告错误", err.Error())
 	}
 
 }
-

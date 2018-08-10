@@ -69,14 +69,14 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 		fmt.Println("create btc token error")
 	}
 	walletToken := new(WalletToken)
-	walletToken.GetByUidTokenid(userId,tokenId)
+	walletToken.GetByUidTokenid(userId, tokenId)
 	return walletToken.Address, err
 }
 
 //
 // btc send to address
 //
-func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int,applyid int) (string, error) {
+func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int, applyid int) (string, error) {
 	wToken := new(WalletToken)
 	wToken.GetByUid(uid)
 	password := wToken.Password
@@ -115,7 +115,7 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int,app
 	//}
 	tio := new(TokenInout) //
 	//更新
-	row,err := tio.UpdateApplyTiBi(applyid,txHash)
+	row, err := tio.UpdateApplyTiBi(applyid, txHash)
 	//row, err := tio.BtcInsert(txHash, wToken.Address, toAddress, "BTC", amount,
 	//	wToken.Chainid, int(tokenId), 0, int(uid),
 	//)
@@ -131,9 +131,9 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int,app
 /*
 	btc tibi
 */
-func BtcTiBiToAddress(toAddress string, mount string, TokenId int32, uid int32,applyid int) (string, error) {
+func BtcTiBiToAddress(toAddress string, mount string, TokenId int32, uid int32, applyid int) (string, error) {
 	//fmt.Println(toAddress, mount, TokenId, uid)
-	txhash, err := BtcSendToAddress(toAddress, mount, TokenId, int(uid),applyid)
+	txhash, err := BtcSendToAddress(toAddress, mount, TokenId, int(uid), applyid)
 	return txhash, err
 }
 

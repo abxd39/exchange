@@ -145,7 +145,7 @@ func (s *RPCServer) SubTokenWithFronzen(ctx context.Context, req *proto.SubToken
 	return nil
 }
 
-func (s *RPCServer) CancelFronzeToken(ctx context.Context, req *proto.CancelFronzeTokenRequest, rsp *proto.CommonErrResponse) error{
+func (s *RPCServer) CancelFronzeToken(ctx context.Context, req *proto.CancelFronzeTokenRequest, rsp *proto.CommonErrResponse) error {
 	err := model.CancelFronzeToken(req)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
