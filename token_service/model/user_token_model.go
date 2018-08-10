@@ -23,6 +23,8 @@ type UserToken struct {
 	Balance int64  `xorm:"comment('余额') BIGINT(20)"`
 	Frozen  int64  `xorm:"comment('冻结余额') BIGINT(20)"`
 	Version int    `xorm:"version"`
+	FrozenCny  int64 `xorm:"default 0 BIGINT(20)"`
+	BalanceCny int64 `xorm:"default 0 BIGINT(20)"`
 }
 
 type UserTokenWithName struct {
@@ -171,6 +173,7 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64, ukey string, ty p
 	}()
 
 	s.Balance += num
+
 	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
 	if err != nil {
 		return

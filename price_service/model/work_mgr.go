@@ -1,8 +1,11 @@
 package model
 
 import (
+	"digicon/common/convert"
+	proto "digicon/proto/rpc"
 	log "github.com/sirupsen/logrus"
 	"sync"
+	"time"
 )
 
 var ins *WorkQueneMgr
@@ -12,32 +15,124 @@ var once sync.Once
 func GetQueneMgr() *WorkQueneMgr {
 	once.Do(func() {
 		ins = &WorkQueneMgr{
-			dataMgr: make(map[string]*PriceWorkQuene),
+			dataMgr:  make(map[string]*PriceWorkQuene),
+			PriceMap: make(map[int32]*PublicPrice),
+			msgChan:  make(chan *MsgPricePublish, 1000),
 		}
 	})
 	return ins
 }
 
+type MsgPricePublish struct {
+	Symbol       string
+	TokenId      int32
+	TokenTradeId int32
+	Price        int64
+}
+
+type PublicPrice struct {
+	data       *MsgPricePublish
+	CnyPrice   int64
+	UsdPrice   int64
+	UpdateTime int64
+}
+
 type WorkQueneMgr struct {
 	dataMgr map[string]*PriceWorkQuene
+
+	PriceMap map[int32]*PublicPrice
+
+	msgChan chan *MsgPricePublish
+
+	UsdRate int64
+	CnyRate int64
 }
 
 func (s *WorkQueneMgr) Init() {
 	InitConfig()
 	InitConfigTitle()
+	InitConfigTokenCny()
+	b := GetTokenCnyPrice(1)
+	s.UsdRate = b.UsdPrice
+	s.CnyRate = b.Price
+
+	s.PriceMap[1] = &PublicPrice{
+		CnyPrice:   s.CnyRate,
+		UsdPrice:   s.UsdRate,
+		UpdateTime: time.Now().Unix(),
+		data:&MsgPricePublish{
+			TokenId:1,
+			TokenTradeId:1,
+			Price:s.CnyRate,
+		},
+	}
 
 	for _, v := range ConfigQueneData {
-		cny := GetTokenCnyPrice2(v.TokenId)
-		p, ok := GetPrice(v.Name)
+		c, ok := ConfigQueneInit[v.Name]
 		if !ok {
-			g := NewPriceWorkQuene(v.Name, int32(v.TokenId), cny, nil)
-			s.AddQuene(g)
-		} else {
-			g := NewPriceWorkQuene(v.Name, int32(v.TokenId), cny, p.SetProtoData())
-			s.AddQuene(g)
+			log.Fatalf("err init quene price")
 		}
 
+		p, ok := GetPrice(v.Name)
+		if !ok {
+			g := NewPriceWorkQuene(v.Name, v.TokenId, v.TokenTradeId, c.Price, &proto.PriceCache{
+				Id:          time.Now().Unix(),
+				Symbol:      v.Name,
+				Price:       c.Price,
+				CreatedTime: time.Now().Unix(),
+			}, s.msgChan)
+			s.AddQuene(g)
+		} else {
+			g := NewPriceWorkQuene(v.Name, v.TokenId, v.TokenTradeId, c.Price, p.SetProtoData(), s.msgChan)
+			s.AddQuene(g)
+		}
 	}
+	go s.Process()
+}
+
+func (s *WorkQueneMgr) Process() {
+	for v := range s.msgChan {
+		if v.TokenId == 1 { //USDT
+			d, ok := s.PriceMap[v.TokenTradeId]
+			if !ok {
+				s.PriceMap[v.TokenTradeId] = &PublicPrice{
+					CnyPrice:   convert.Int64MulInt64By8Bit(v.Price, s.CnyRate),
+					UsdPrice:   convert.Int64MulInt64By8Bit(v.Price, s.UsdRate),
+					UpdateTime: time.Now().Unix(),
+					data:       v,
+				}
+			} else {
+				d.data = v
+				d.CnyPrice = convert.Int64MulInt64By8Bit(v.Price, s.CnyRate)
+				d.UsdPrice = convert.Int64MulInt64By8Bit(v.Price, s.UsdRate)
+				d.UpdateTime = time.Now().Unix()
+			}
+		} else {
+			g, ok := s.PriceMap[v.TokenId]
+			if !ok {
+				continue
+			}
+
+			d, ok := s.PriceMap[v.TokenTradeId]
+			if !ok {
+				s.PriceMap[v.TokenTradeId] = &PublicPrice{
+					CnyPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.CnyRate),
+					UsdPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.UsdRate),
+					UpdateTime: time.Now().Unix(),
+					data:       v,
+				}
+			} else {
+				if d.data.Symbol != v.Symbol { //遇到同一个币的不同队列只保留一个
+					continue
+				}
+				d.CnyPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.CnyRate)
+				d.UsdPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.UsdRate)
+				d.UpdateTime = time.Now().Unix()
+				d.data = v
+			}
+		}
+	}
+
 }
 
 //添加一个币币交易
@@ -57,4 +152,11 @@ func (s *WorkQueneMgr) GetQueneByUKey(ukey string) (d *PriceWorkQuene, ok bool) 
 		return
 	}
 	return
+}
+
+func Test() {
+	time.Sleep(40*time.Second)
+	for _,v:=range GetQueneMgr().PriceMap  {
+		log.Warnf("token_id=%d,cny %d,usdt %d",v.data.TokenTradeId,v.CnyPrice,v.UsdPrice)
+	}
 }

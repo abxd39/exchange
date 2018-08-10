@@ -5,7 +5,6 @@ import (
 	///. "digicon/token_service/dao"
 	"digicon/common/model"
 	"github.com/go-xorm/xorm"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,13 +43,14 @@ type EntrustDetail struct {
 	FeePercent  float64 `xorm:"not null comment('手续费比例') BIGINT(20)"`
 	States      int     `xorm:"not null comment('0是挂单，1是部分成交,2成交， 3撤销') TINYINT(4)"`
 	CreatedTime int64   `xorm:"not null comment('添加时间') created BIGINT(20)"`
+	TradeNum    int64   `xorm:"not null comment('成交数量')  BIGINT(20)"`
 	Version     int     `xorm:"version"`
 }
 
 func Insert(sess *xorm.Session, s *EntrustDetail) error {
 	_, err := sess.Insert(s)
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		log.WithFields(log.Fields{
 			"entrust_id":  s.EntrustId,
 			"uid":         s.Uid,
 			"all_num":     s.AllNum,
@@ -144,6 +144,7 @@ func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 
 func (s *EntrustDetail) SubSurplusInCache(num int64) {
 	s.SurplusNum -= num
+	s.TradeNum+=num
 }
 
 func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
@@ -153,7 +154,7 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 	} else if s.SurplusNum == deal_num {
 		s.States = int(proto.TRADE_STATES_TRADE_ALL)
 	} else {
-		log.WithFields(logrus.Fields{
+		log.WithFields(log.Fields{
 			"uid":        s.Uid,
 			"entrust_id": s.EntrustId,
 			"sulplus":    s.SurplusNum,
@@ -163,7 +164,7 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 		return errors.New(fmt.Sprintf("decr entrust_detail surplus is less deal_num %d", deal_num))
 	}
 
-	log.WithFields(logrus.Fields{
+	log.WithFields(log.Fields{
 		"uid":        s.Uid,
 		"entrust_id": s.EntrustId,
 		"sulplus":    s.SurplusNum,
@@ -171,7 +172,7 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 		"os_id":      os.Getpid(),
 	}).Info("just record entrust_detail surplus ")
 	//s.SurplusNum -= deal_num
-	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "price").Decr("surplus_num", deal_num).Update(s)
+	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "price").Decr("surplus_num", deal_num).Incr("trade_num",deal_num).Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
 		return err

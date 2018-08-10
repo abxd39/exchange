@@ -32,6 +32,7 @@ func main() {
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	model.GetQueneMgr().Init()
+	go model.Test()
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,

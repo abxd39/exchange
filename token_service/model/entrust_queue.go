@@ -53,15 +53,6 @@ type EntrustQuene struct {
 	UUID int64
 
 	lock sync.Mutex
-	//sourceId string
-	//key 是委托ID，委托数据源
-	//sourceData map[string]*EntrustData
-
-	//缓存将要保存的DB的委托请求
-	//newOrderDetail chan *EntrustData
-
-	//缓存将要更新的DB的委托请求
-	//updateOrderDetail chan *EntrustData
 
 	//等待处理的委托请求
 	waitOrderDetail chan *EntrustDetail
@@ -69,7 +60,6 @@ type EntrustQuene struct {
 	//市价等待队列
 	marketOrderDetail chan *EntrustDetail
 
-	//sellMarketOrderDetail chan *EntrustData
 	//上一次成交价格
 	price_c int64
 	//成交量
@@ -96,10 +86,6 @@ type TradeInfo struct {
 	CreateTime int64
 	TradePrice int64
 	Num        int64
-}
-
-func GenSourceKey(en string) string {
-	return fmt.Sprintf("source:%s", en)
 }
 
 func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny, usd int64, amount, vol, count, usd_vol int64) *EntrustQuene {
@@ -259,6 +245,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 		Symbol:     p.Symbol,
 		Sum:        sum,
 		FeePercent: fee_precent,
+		TradeNum:0,
 	}
 
 	m := &UserToken{}
@@ -498,16 +485,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	return
 }
 
-/*
-func (s *EntrustQuene) SetPrice(price int64,buy_entrust_id,sell_entrust_id string)  {
-	log.WithFields(logrus.Fields{
-		"price":       price,
-		"buy_entrust_id": buy_entrust_id,
-		"sell_entrust_id": sell_entrust_id,
-	}).Info("update record price")
-	s.price_c=price
-}
-*/
 func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 	var buyer *EntrustDetail
 	var seller *EntrustDetail
@@ -758,24 +735,6 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 		if err != nil {
 			return
 		}
-		return
-	}
-
-	if price == 0 {
-		log.WithFields(logrus.Fields{
-			"symbol":           s.TokenQueueId,
-			"buyer_id":         buyer.Uid,
-			"seller_id":        seller.Uid,
-			"buyer_entrust_id": buyer.EntrustId,
-			"sell_entrust_id":  seller.EntrustId,
-			"sell_num":         sell_num,
-			"buy_num":          buy_num,
-			"price":            price,
-			"g_num":            g_num,
-			"buyer_type":       buyer.Type,
-			"seller_type":      seller.Type,
-		}).Info("please check logic")
-		err = errors.New("please check logic")
 		return
 	}
 
@@ -1289,8 +1248,6 @@ func (s *EntrustQuene) process() {
 
 //定时器
 func (s *EntrustQuene) Clock() {
-
-	return
 	c := clock.NewClock()
 	job := func() {
 		m := &proto.PriceCache{

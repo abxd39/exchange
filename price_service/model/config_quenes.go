@@ -15,11 +15,6 @@ type ConfigQuenes struct {
 	Price        int64  `xorm:"BIGINT(20)"`
 }
 
-type ConfigTokenCny struct {
-	TokenId int   `xorm:"not null pk comment(' 币类型') INT(10)"`
-	Price   int64 `xorm:"comment('人民币价格') BIGINT(20)"`
-}
-
 /*
 type ConfigQuenes struct {
 	Id           int64  `xorm:"pk autoincr BIGINT(20)"`
@@ -45,28 +40,18 @@ func GetAllQuenes() []*ConfigQuenes {
 }
 
 func InitAllQuene() {
-	k:=make([]*ConfigQuenes,0)
+	k := make([]*ConfigQuenes, 0)
 	err := DB.GetMysqlConn2().Where("switch=1").Find(&k)
 	if err != nil {
 		log.Errorln(err.Error())
 		return
 	}
-	for _,v:=range k{
-		ConfigQueneInit[v.Name]=v
-	
+	for _, v := range k {
+		ConfigQueneInit[v.Name] = v
+
 	}
 
 	return
-}
-
-func GetCnyQuenes() []ConfigTokenCny {
-	t := make([]ConfigTokenCny, 0)
-	err := DB.GetMysqlConn2().Find(&t)
-	if err != nil {
-		log.Errorln(err.Error())
-		return nil
-	}
-	return t
 }
 
 func InitConfig() {
@@ -95,26 +80,28 @@ func InitConfig() {
 	}
 	//m := GetConfigQuenesByType(1)
 
-	h := GetCnyQuenes()
-	for _, v := range h {
-		ConfigCny[int32(v.TokenId)] = &proto.CnyPriceBaseData{
-			TokenId:  int32(v.TokenId),
-			CnyPrice: v.Price,
+	/*
+		h := GetCnyQuenes()
+		for _, v := range h {
+			ConfigCny[int32(v.TokenId)] = &proto.CnyPriceBaseData{
+				TokenId:  int32(v.TokenId),
+				CnyPrice: v.Price,
+			}
 		}
-	}
+	*/
 }
 
 var ConfigQueneData map[string]*proto.ConfigQueneBaseData
 
 var ConfigQueneArr map[int32][]*proto.ConfigQueneBaseData
 
-var ConfigCny map[int32]*proto.CnyPriceBaseData
-
+//var ConfigCny map[int32]*proto.CnyPriceBaseData
 
 var ConfigQueneInit map[string]*ConfigQuenes
 
 var IsFinish bool
 
+/*
 func GetTokenCnyPrice2(token_id int32) int64 {
 	g, ok := ConfigCny[token_id]
 	if ok {
@@ -122,7 +109,7 @@ func GetTokenCnyPrice2(token_id int32) int64 {
 	}
 	return 0
 }
-
+*/
 func GetConfigQuenesByType(token_id int32) []*proto.ConfigQueneBaseData {
 	g, ok := ConfigQueneArr[token_id]
 	if ok {
@@ -135,8 +122,8 @@ func init() {
 	ConfigQueneData = make(map[string]*proto.ConfigQueneBaseData, 0)
 	ConfigQueneArr = make(map[int32][]*proto.ConfigQueneBaseData, 0)
 
-	ConfigCny = make(map[int32]*proto.CnyPriceBaseData, 0)
+	//	ConfigCny = make(map[int32]*proto.CnyPriceBaseData, 0)
 
-	ConfigQueneInit =make(map[string]*ConfigQuenes)
+	ConfigQueneInit = make(map[string]*ConfigQuenes)
 	IsFinish = false
 }

@@ -1,7 +1,7 @@
 package cron
 
 import (
-	cf "digicon/currency_service/conf"
+	cf "digicon/token_service/conf"
 	"github.com/robfig/cron"
 )
 
