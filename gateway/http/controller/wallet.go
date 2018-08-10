@@ -571,6 +571,24 @@ func (this *WalletGroup) TiBiCancel(ctx *gin.Context) {
 	defer func() {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
+	type Param struct {
+		Uid      int32  `form:"uid" binding:"required"`
+		Id int32  `form:"id" binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	_, err := rpc.InnerService.WalletSevice.CallCancelTiBi(param.Uid, param.Id)
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
 }
 
 func (this *WalletGroup) GetAddress(ctx *gin.Context) {

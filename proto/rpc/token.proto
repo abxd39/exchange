@@ -17,6 +17,8 @@ service TokenRPC {
         //确认扣减币币余额
         rpc ConfirmSubFrozen(ConfirmSubFrozenRequest) returns (CommonErrResponse) {};
 
+        //取消冻结资金
+        rpc CancelFronzeToken(CancelFronzeTokenRequest) returns (CommonErrResponse) {};
         //历史委托队列
         rpc EntrustHistory(EntrustHistoryRequest) returns (EntrustHistoryResponse) {};
 
@@ -177,6 +179,13 @@ message ConfirmSubFrozenRequest{
     TOKEN_TYPE_OPERATOR type  =9;
 }
 
+message CancelFronzeTokenRequest{
+    uint64 uid = 3;
+    int32 token_id = 4;
+    int64 num = 6;
+    bytes ukey  =8;
+    TOKEN_TYPE_OPERATOR type  =9;
+}
 
 message HistoryKlineRequest{
     string symbol   =1;

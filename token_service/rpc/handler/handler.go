@@ -145,6 +145,18 @@ func (s *RPCServer) SubTokenWithFronzen(ctx context.Context, req *proto.SubToken
 	return nil
 }
 
+func (s *RPCServer) CancelFronzeToken(ctx context.Context, req *proto.CancelFronzeTokenRequest, rsp *proto.CommonErrResponse) error{
+	err := model.CancelFronzeToken(req)
+	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
+		rsp.Message = err.Error()
+		return nil
+	}
+
+	rsp.Err = ERRCODE_SUCCESS
+	rsp.Message = GetErrorMessage(rsp.Err)
+	return nil
+}
 func (s *RPCServer) ConfirmSubFrozen(ctx context.Context, req *proto.ConfirmSubFrozenRequest, rsp *proto.CommonErrResponse) error {
 	err := model.ConfirmSubFrozenToken(req)
 	if err != nil {
