@@ -81,6 +81,14 @@ func (this *WalletRPCCli) CallTibiApply(uid int32, token_id int32, to string, ga
 	}
 	return
 }
+func (this *WalletRPCCli) CallCancelTiBi(uid int32, id int32,) (rsp *proto.CancelTiBiResponse, err error) {
+	rsp, err = this.conn.CancelTiBi(context.TODO(), &proto.CancelTiBiRequest{Uid: (uid), Id: (id)})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
 func (this *WalletRPCCli) CallGetValue(uid int32, token_id int32) (rsp *proto.GetValueResponse, err error) {
 	rsp, err = this.conn.GetValue(context.TODO(), &proto.GetValueRequest{Uid: (uid), Tokenid: (token_id)})
 	if err != nil {
