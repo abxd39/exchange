@@ -76,46 +76,38 @@ func GetLow(begin, end int64, symbol string) (low int64) {
 }
 
 //计算当前价格数据
-func Calculate(price, amount, cny_price int64, symbol string,high,low int64) *proto.PriceBaseData {
+func Calculate(price, amount, cny_price int64, symbol string, high, low int64) *proto.PriceBaseData {
 	t := time.Now()
 
-	s:=t.Second()
-	min:=t.Add(-time.Duration(s)*time.Second)
-	same:=min.Unix()
+	s := t.Second()
+	min := t.Add(-time.Duration(s) * time.Second)
+	same := min.Unix()
 	log.Info(same)
 	l := min.Add(-86400 * time.Second)
-	yestday:=l.Unix()
-	//begin := l.Unix()
-	//end := t.Unix()
-
-/*
-	h := GetHigh(begin, end, symbol)
-
-	j := GetLow(begin, end, symbol)
-*/
+	yestday := l.Unix()
 	p := &Price{}
-	ok,err :=DB.GetMysqlConn().Where("id=? and symbol=?",yestday,symbol).Get(p)
+	ok, err := DB.GetMysqlConn().Where("id=? and symbol=?", yestday, symbol).Get(p)
 	//_, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil
 	}
 	if !ok {
-		g:=ConfigQueneInit[symbol]
-		p.Price=g.Price
-		p.Amount=0
+		g := ConfigQueneInit[symbol]
+		p.Price = g.Price
+		p.Amount = 0
 
 	}
 	log.WithFields(log.Fields{
-		"high":          high,
-		"low":       low,
-		"price ":  price,
-		"p.Price":        p.Price,
-		"amount":      amount,
+		"high":     high,
+		"low":      low,
+		"price ":   price,
+		"p.Price":  p.Price,
+		"amount":   amount,
 		"p.Amount": p.Amount,
-		"price":  price,
-		"id":p.Id,
-		"symbol":symbol,
+		"price":    price,
+		"id":       p.Id,
+		"symbol":   symbol,
 	}).Info("current price print")
 	return &proto.PriceBaseData{
 		Symbol:   symbol,

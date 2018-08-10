@@ -58,6 +58,16 @@ func Int64MulInt64By8Bit(a int64, b int64) int64 {
 	return n.IntPart()
 }
 
+func Int64MulInt64MulInt64By16Bit(a int64, b ,c int64) int64 {
+	da := decimal.New(a, 0)
+	db := decimal.New(b, 0)
+	dc := decimal.New(c, 0)
+	m := da.Mul(db).Mul(dc)
+	d := decimal.New(100000000, 0)
+	n := m.Div(d).Div(d)
+	return n.IntPart()
+}
+
 func Int64MulInt64By8BitString(a int64, b int64) string {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)

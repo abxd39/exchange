@@ -228,7 +228,7 @@ func (s *RPCServer) EntrustHistory(ctx context.Context, req *proto.EntrustHistor
 			Type:       proto.ENTRUST_TYPE(v.Type),
 			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
 			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
-			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
+			TradeNum:   convert.Int64ToStringBy8Bit(v.TradeNum),
 			Sum:        display,
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     int32(v.States),
@@ -256,7 +256,7 @@ func (s *RPCServer) EntrustList(ctx context.Context, req *proto.EntrustHistoryRe
 			AllNum:     convert.Int64ToStringBy8Bit(v.AllNum),
 			OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 			Sum:        display,
-			TradeNum:   convert.Int64ToStringBy8Bit(v.AllNum - v.SurplusNum),
+			TradeNum:   convert.Int64ToStringBy8Bit(v.TradeNum),
 			CreateTime: time.Unix(v.CreatedTime, 0).Format("2006-01-02 15:04:05"),
 			States:     int32(v.States),
 		})
