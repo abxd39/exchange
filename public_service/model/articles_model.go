@@ -37,6 +37,7 @@ type Article_list struct {
 	Id          int    `xorm:"not null pk autoincr comment('自增ID') INT(10)"`
 	Description string `xorm:"default '' comment('描述') VARCHAR(1000)"`
 	Title       string `xorm:"not null default '' comment('文章标题') VARCHAR(100)"`
+	Covers        string `xorm:"default '' comment('封面图片') VARCHAR(1000)"`
 	CreateTime  string `xorm:"default '' comment('创建时间') VARCHAR(36)"`
 }
 type ArticleType struct {

@@ -21,6 +21,7 @@ func (s *RPCServer) ArticleList(ctx context.Context, req *proto.ArticleListReque
 		Title :value.Title,
 		Description:value.Description,
 		CreateDateTime:value.CreateTime,
+		Covers:value.Covers,
 		})
 
 	}

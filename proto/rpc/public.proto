@@ -49,6 +49,7 @@ message ArticleListResponse{
 		string title 			=2;
 		string description 		=3;
 		string create_dateTime 	=4;
+		string covers=5;
 		
 	} 
 	repeated Article  article =1;
