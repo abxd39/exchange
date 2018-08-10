@@ -130,8 +130,8 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 	defer func() {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
-	userid, _ := strconv.Atoi(ctx.Query("uid"))
-	tokenid, _ := strconv.Atoi(ctx.Query("token_id"))
+	userid, _ := strconv.Atoi(ctx.PostForm("uid"))
+	tokenid, _ := strconv.Atoi(ctx.PostForm("token_id"))
 
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(userid, tokenid)
 	if err != nil {
@@ -152,12 +152,12 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-	userid, err1 := strconv.Atoi(ctx.Query("uid"))
-	tokenid, err2 := strconv.Atoi(ctx.Query("token_id"))
+	userid, err1 := strconv.Atoi(ctx.PostForm("uid"))
+	tokenid, err2 := strconv.Atoi(ctx.PostForm("token_id"))
 	//to := "0x8e430b7fc9c41736911e1699dbcb6d4753cbe3b6"
-	to := ctx.Query("to")
-	gasprice, err3 := strconv.ParseInt(ctx.Query("gasprice"), 10, 64)
-	amount := ctx.Query("amount")
+	to := ctx.PostForm("to")
+	gasprice, err3 := strconv.ParseInt(ctx.PostForm("gasprice"), 10, 64)
+	amount := ctx.PostForm("amount")
 	if err1 != nil || err2 != nil || err3 != nil {
 		// ctx.String(http.StatusOK, "参数错误")
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
@@ -574,8 +574,8 @@ func (this *WalletGroup) GetAddress(ctx *gin.Context) {
 	defer func() {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
-	userid, _ := strconv.Atoi(ctx.Query("uid"))
-	tokenid, _ := strconv.Atoi(ctx.Query("token_id"))
+	userid, _ := strconv.Atoi(ctx.PostForm("uid"))
+	tokenid, _ := strconv.Atoi(ctx.PostForm("token_id"))
 
 	rsp, err := rpc.InnerService.WalletSevice.CallGetAddress(userid, tokenid)
 	if err != nil {
