@@ -106,13 +106,11 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 		rsp.Msg = err.Error()
 		return nil
 	}
-	fmt.Println("生成的签名11：")
 	if !ok {
 		rsp.Code = "1"
 		rsp.Msg = "connot find keystore"
 		return nil
 	}
-	fmt.Println("生成的签名1：")
 	deciml, err := new(Tokens).GetDecimal(int(req.Tokenid))
 	if deciml == 0 || err != nil {
 		rsp.Code = "1"
@@ -126,8 +124,6 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	tokenData := new(Tokens)
 	tokenData.GetByid(int(req.Tokenid))
 	nonce,nonce_err := utils.RpcGetNonce(tokenData.Node,keystore.Address)
-
-	fmt.Println("签名随机数：",nonce,nonce_err)
 
 	if nonce_err != nil  {
 		rsp.Code = "1"
@@ -144,9 +140,9 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 		return nil
 	}
 	
-	signtxstr, err := keystore.Signtx(req.To, mount, gasPrice,nonce+1)
+	signtxstr, err := keystore.Signtx(req.To, mount, gasPrice,nonce)
 
-	fmt.Println("生成的签名：",mount,signtxstr)
+	fmt.Println("生成的签名----------------：", gasPrice,nonce,err,signtxstr)
 
 	if err != nil {
 		rsp.Code = "1"
@@ -422,5 +418,21 @@ func (s *WalletHandler) GetAddress(ctx context.Context, req *proto.GetAddressReq
 	rsp.Msg = "成功"
 	rsp.Addr = walletToken.Address
 	rsp.Type = walletToken.Type
+	return nil
+}
+
+func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBiRequest, rsp *proto.CancelTiBiResponse) error {
+	tokenInoutMD := new(TokenInout)
+	//保存数据
+	_,err := tokenInoutMD.CancelTiBi(int(req.Uid),int(req.Id))
+	if err != nil {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
+	//解除冻结账户金额
+
+	rsp.Code = ERRCODE_SUCCESS
+	rsp.Msg = "修改成功"
 	return nil
 }
