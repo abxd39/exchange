@@ -17,12 +17,13 @@ import (
 )
 
 type UserToken struct {
-	Id      int64
-	Uid     uint64 `xorm:"unique(currency_uid) INT(11)"`
-	TokenId int    `xorm:"comment('币种') unique(currency_uid) INT(11)"`
-	Balance int64  `xorm:"comment('余额') BIGINT(20)"`
-	Frozen  int64  `xorm:"comment('冻结余额') BIGINT(20)"`
-	Version int    `xorm:"version"`
+	Id        int64
+	Uid       uint64 `xorm:"unique(currency_uid) INT(11)"`
+	TokenId   int    `xorm:"comment('币种') unique(currency_uid) INT(11)"`
+	TokenName string `xorm:"token_name"`
+	Balance   int64  `xorm:"comment('余额') BIGINT(20)"`
+	Frozen    int64  `xorm:"comment('冻结余额') BIGINT(20)"`
+	Version   int    `xorm:"version"`
 }
 
 type UserTokenWithName struct {
@@ -77,8 +78,7 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 	err := query.
 		Table(s).
 		Alias("ut").
-		Select("ut.*, t.mark as token_name, (ut.balance+ut.frozen)/100000000 * ctc.price/100000000 as worth_cny").
-		Join("LEFT", []string{new(OutCommonTokens).TableName(), "t"}, "t.id=ut.token_id").
+		Select("ut.*, (ut.balance+ut.frozen)/100000000 * ctc.price/100000000 as worth_cny").
 		Join("LEFT", []string{new(ConfigTokenCny).TableName(), "ctc"}, "ctc.token_id=ut.token_id").
 		Find(&list)
 	if err != nil {
@@ -718,8 +718,8 @@ func (s *UserToken) TransferToCurrency(uid uint64, tokenId int, num int64) error
 
 	//3.划转记录
 	result, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (id, uid, token_id, num, states, create_time) VALUES"+
-		" (%d, %d, %d, %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, num, 1, now))
+		" (id, uid, token_id, token_name, num, states, create_time) VALUES"+
+		" (%d, %d, %d, '%s', %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, "", num, 1, now))
 	if err != nil {
 		tokenSession.Rollback()
 		return errors.NewSys(err)

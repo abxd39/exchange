@@ -143,8 +143,8 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, num int64) er
 
 	//3.划转记录
 	result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (id, uid, token_id, num, states, create_time) VALUES"+
-		" (%d, %d, %d, %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, num, 1, now))
+		" (id, uid, token_id, token_name, num, states, create_time) VALUES"+
+		" (%d, %d, %d, '%s', %d, %d, %d)", new(TransferRecord).TableName(), transferId, uid, tokenId, userCurrency.TokenName, num, 1, now))
 	if err != nil {
 		currencySession.Rollback()
 		return errors.NewSys(err)
