@@ -213,5 +213,8 @@ func (ex *UserEx) GetVerifyCount(req *proto.VerifyCountRequest, rsp *proto.Verif
 		return ERRCODE_UNKNOWN, err
 	}
 	rsp.FirstCount = int32(ex.AffirmCount)
+	if rsp.FirstCount ==0{
+		rsp.FirstCount=1
+	}
 	return ERRCODE_SUCCESS, nil
 }

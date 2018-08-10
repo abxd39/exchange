@@ -27,7 +27,11 @@ func (us *UserSecondaryCertification) GetVerifyCount(uid uint64) (int32, error) 
 	if err != nil {
 		return 0, err
 	}
-	return int32(us.VerifyCount), nil
+	var count = int32(us.VerifyCount)
+	if count ==0{
+		count=1
+	}
+	return count, nil
 }
 
 //申请二级认证
