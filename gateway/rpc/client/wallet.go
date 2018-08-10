@@ -151,3 +151,12 @@ func (this *WalletRPCCli) CallOutList(req *proto.OutListRequest) (rsp *proto.Out
 	}
 	return
 }
+
+func (this *WalletRPCCli) CallGetAddress(userid int, tokenid int) (rsp *proto.GetAddressResponse, err error) {
+	rsp, err = this.conn.GetAddress(context.TODO(), &proto.GetAddressRequest{Userid: int32(userid), Tokenid: int32(tokenid)})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

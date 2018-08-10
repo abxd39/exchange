@@ -24,6 +24,8 @@ service Gateway2Waller {
 
     //提币申请
     rpc TibiApply(TibiApplyRequest) returns (TibiApplyResponse){}
+
+    rpc GetAddress(GetAddressRequest) returns (GetAddressResponse){}
 }
 
 
@@ -270,6 +272,18 @@ message TibiApplyRequest{
 message TibiApplyResponse{
     int32 code=1;
     string msg=2;
+}
+
+message GetAddressRequest{
+    int32 userid=1;
+    int32 tokenid=2;
+}
+
+message GetAddressResponse{
+    string code=1;
+    string msg=2;
+    string addr=3;
+    string type=4;
 }
 
 

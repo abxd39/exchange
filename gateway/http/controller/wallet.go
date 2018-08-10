@@ -37,6 +37,8 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.POST("/tibi_apply", this.TibiApply)           //
 
 	r.POST("/tibi_cancel", this.TiBiCancel)           //
+
+	r.POST("/get_address", this.GetAddress)       // 获取充值地址
 }
 
 ///////////////////////// start btc ///////////////////////////
@@ -138,7 +140,8 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection("type", rsp.Data.Type)
+	ret.SetDataSection("addr", rsp.Data.Addr)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
@@ -169,7 +172,7 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection("signtx", rsp.Data.Signtx)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 
 }
@@ -210,11 +213,11 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	}
 	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx,param.Applyid)
 	if err != nil {
-		fmt.Println(rsp.Code)
+		//fmt.Println(rsp.Code)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection("result", rsp.Data.Result)
 	//ret.SetDataSection("msg", rsp.Msg)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
@@ -564,4 +567,25 @@ func (this *WalletGroup) TiBiCancel(ctx *gin.Context) {
 	defer func() {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
+}
+
+func (this *WalletGroup) GetAddress(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+	userid, _ := strconv.Atoi(ctx.Query("uid"))
+	tokenid, _ := strconv.Atoi(ctx.Query("token_id"))
+
+	rsp, err := rpc.InnerService.WalletSevice.CallGetAddress(userid, tokenid)
+	if err != nil {
+		//ret.SetDataSection("msg", rsp.Msg)
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetDataSection("type", rsp.Type)
+	ret.SetDataSection("addr", rsp.Addr)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
 }

@@ -61,7 +61,7 @@ func (this *WalletToken) AddrExist(addr string, chainid int, contract string) (b
 	//fmt.Println(addr,chainid,contract)
 	return Engine_wallet.Where("address=? and chainid=? and contract=?", addr, chainid, contract).Get(this)
 }
-func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64) ([]byte, error) {
+func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64,nonce int) ([]byte, error) {
 	//func Signtx(key *keystore.Key,nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int) ([]byte,error)
 	key, err := Unlock_keystore([]byte(this.Keystore), this.Password)
 	if err != nil {
@@ -72,7 +72,7 @@ func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64) ([]by
 	if !ok {
 		return nil, err
 	}
-	nonce := this.Nonce
+	//nonce := this.Nonce
 	this.NonceIncr(this.Id)
 	switch token.Signature {
 	case "eip155":
@@ -111,4 +111,14 @@ func Neweth(userid int, tokenid int, password string, chainid int) (addr string,
 	}
 	err = walletTokenModel.Create()
 	return walletTokenModel.Address, err
+}
+
+
+func (this *WalletToken) GetByUidTokenid(uid int,tokenid int) error {
+	boo, err := Engine_wallet.Where("uid = ? and tokenid = ?", uid,tokenid).Get(this)
+	fmt.Println("数据：",boo,err,this)
+	if err != nil {
+		return err
+	}
+	return nil
 }
