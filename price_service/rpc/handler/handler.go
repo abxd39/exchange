@@ -267,7 +267,7 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool) {
 	q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
 	if !ok {
-		//fmt.Println(symbol, ok)
+		fmt.Println(symbol, ok)
 		//return getOtherSymbolRage(symbol)
 		return
 	} else {
@@ -293,13 +293,13 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 	tmpSymToUSDT := fmt.Sprintf("%s/USDT", tmpSym[0])
 	toUSDTQ, ok := model.GetQueneMgr().GetQueneByUKey(tmpSymToUSDT)
 	if !ok {
-		//fmt.Println(tmpSymToUSDT, " not ok!!!")
+		fmt.Println(tmpSymToUSDT, " not ok!!!")
 		return
 	}
 	usdtToTmpSym := fmt.Sprintf("%s/USDT", tmpSym[1])
 	usdtToQ, ok := model.GetQueneMgr().GetQueneByUKey(usdtToTmpSym)
 	if !ok {
-		//fmt.Println(usdtToTmpSym, " not ok!!!!")
+		fmt.Println(usdtToTmpSym, " not ok!!!!")
 		return
 	}
 	BTCPrice := toUSDTQ.GetEntry()
