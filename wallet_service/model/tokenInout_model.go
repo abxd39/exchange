@@ -205,7 +205,7 @@ func (this *TokenInout) AuthPayPwd(uid int32, password string) (ret int32, err e
 }
 
 //取消提币
-func (this *TokenInout) CancelTiBi(uid,id int) (int,error) {
-	affected, err := utils.Engine_wallet.Where("uid = ? and id = ?",uid,id).Update(TokenInout{States:3})  //提币已取消
-	return int(affected),err
+func (this *TokenInout) CancelTiBi(uid, id int) (int, error) {
+	affected, err := utils.Engine_wallet.Where("uid = ? and id = ?", uid, id).Update(TokenInout{States: 3}) //提币已取消
+	return int(affected), err
 }

@@ -195,11 +195,10 @@ func ConfirmSubFrozenToken(req *proto.ConfirmSubFrozenRequest) (err error) {
 	return
 }
 
-
 func CancelFronzeToken(req *proto.CancelFronzeTokenRequest) (err error) {
-	u:=&UserToken{}
-	err = u.GetUserToken(req.Uid,int(req.TokenId))
-	if err!=nil {
+	u := &UserToken{}
+	err = u.GetUserToken(req.Uid, int(req.TokenId))
+	if err != nil {
 		return nil
 	}
 	session := DB.GetMysqlConn().NewSession()

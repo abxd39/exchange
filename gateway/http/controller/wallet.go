@@ -572,8 +572,8 @@ func (this *WalletGroup) TiBiCancel(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type Param struct {
-		Uid      int32  `form:"uid" binding:"required"`
-		Id int32  `form:"id" binding:"required"`
+		Uid int32 `form:"uid" binding:"required"`
+		Id  int32 `form:"id" binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
