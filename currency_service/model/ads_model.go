@@ -332,11 +332,10 @@ func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) ( MaxPrice, MinPrice in
 func AdsAutoDownline(id  uint64) {
 	ads := new(Ads).Get(id)
 
-
 	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
 	minLimit := ads.MinLimit * 100000000
 	log.Println("minLimint:", minLimit, " curCnyPrice:", curCnyPrice)
-	if curCnyPrice < int64(minLimit) {
+	if ads.Num <= 0 || curCnyPrice < int64(minLimit) {
 		log.Errorln("当前广告的总价已小于最小价格的值, 广告自动下架")
 		sql := "update ads set states=0 where id=?"
 		engine := dao.DB.GetMysqlConn()
