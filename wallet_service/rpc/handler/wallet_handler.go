@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"log"
+	"strconv"
 )
 
 type WalletHandler struct{}
@@ -29,7 +30,6 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	rsp.Data = new(proto.CreateWalletPos)
 	tokenModel := &Tokens{Id: int(req.Tokenid)}
 	_, err = tokenModel.GetByid(int(req.Tokenid))
-	fmt.Println("收到的数据",err,req)
 
 	switch tokenModel.Signature {
 	case "eip155", "eth":
@@ -68,11 +68,13 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 		rsp.Msg = err.Error()
 		return nil
 	}
+	fmt.Println("生成的签名11：")
 	if !ok {
 		rsp.Code = "1"
 		rsp.Msg = "connot find keystore"
 		return nil
 	}
+	fmt.Println("生成的签名1：")
 	deciml, err := new(Tokens).GetDecimal(int(req.Tokenid))
 	if deciml == 0 || err != nil {
 		rsp.Code = "1"
@@ -82,6 +84,8 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	deci_temp, err := decimal.NewFromString(req.Mount)
 	mount := deci_temp.Round(int32(deciml)).Coefficient()
 	signtxstr, err := keystore.Signtx(req.To, mount, req.Gasprice)
+
+	fmt.Println("生成的签名：",signtxstr)
 
 	if err != nil {
 		rsp.Code = "1"
@@ -113,6 +117,8 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 	}
 	txhash, ok := rets["result"]
 	if ok {
+		//更新申请单记录
+		new(TokenInout).UpdateApplyTiBi(int(req.Applyid),txhash.(string))
 		rsp.Code = "0"
 		rsp.Msg = "发送成功"
 		rsp.Data = new(proto.SendRawTxPos)
@@ -120,9 +126,9 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 		return nil
 	}
 	if !ok {
-		error := rets["error"].(map[string]string)
-		rsp.Code = error["code"]
-		rsp.Msg = error["message"]
+		error := rets["error"].(map[string]interface{})
+		rsp.Code = strconv.Itoa(int(error["code"].(float64)))
+		rsp.Msg = error["message"].(string)
 		return nil
 	}
 	return nil
@@ -324,12 +330,13 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	//	return nil
 	//}
 	//保存数据
-	_,err := tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.Amount,req.Gasprice)
+	_,err := tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice)
 	if err != nil {
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = err.Error()
 		return nil
 	}
+	//冻结账户金额
 
 	rsp.Code = 0
 	rsp.Msg = "保存成功"

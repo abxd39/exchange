@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"strings"
 )
 
 func RpcGetValue(url string, address string, contract string, deci int) (string, error) {
@@ -56,8 +57,9 @@ func RpcSendRawTx(url string, signtx string) (map[string]interface{}, error) {
 	data["id"] = 1
 	data["jsonrpc"] = "2.0"
 	data["method"] = "eth_sendRawTransaction"
-	data["params"] = []string{signtx}
+	data["params"] = []string{strings.Join([]string{"0x",signtx},"")}
 	rsp, err := RpcPost(url, data)
+	fmt.Println("发送的数据：",data["params"])
 	fmt.Println(string(rsp))
 	if err != nil {
 		return nil, err

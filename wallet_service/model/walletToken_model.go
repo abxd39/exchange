@@ -77,6 +77,16 @@ func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64) ([]by
 	switch token.Signature {
 	case "eip155":
 		gaslimit := 60000
+		fmt.Println("数量")
+		fmt.Println(key)
+		fmt.Println(nonce)
+		fmt.Println(to)
+		fmt.Println(mount)
+		fmt.Println(gaslimit)
+		fmt.Println(gasprice)
+		fmt.Println(token.Contract)
+		fmt.Println(this.Chainid)
+		fmt.Println("数量111")
 		return Signtx(key, nonce, to, mount, gaslimit, gasprice, token.Contract, this.Chainid)
 	case "eth":
 		gaslimit := 60000

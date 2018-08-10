@@ -2,7 +2,7 @@ package main
 
 import (
 	"digicon/wallet_service/rpc"
-	_ "digicon/wallet_service/rpc/client"
+	"digicon/wallet_service/rpc/client"
 	"flag"
 	"os"
 	"os/signal"
@@ -29,6 +29,8 @@ func main() {
 	go rpc.RPCServerInit()
 	//new(client.Watch).Start("https://rinkeby.infura.io/mew")  // need ...
 	//go new(client.BTCWatch).Start()
+	//go new(client.BTCWatch).Start()
+	go new(client.Watch).Start()
 	//return
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
