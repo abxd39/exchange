@@ -9,6 +9,8 @@ import (
 	"math/big"
 	"net/http"
 	"strings"
+	"github.com/tidwall/gjson"
+	"digicon/common/errors"
 )
 
 func RpcGetValue(url string, address string, contract string, deci int) (string, error) {
@@ -97,4 +99,58 @@ func RpcPost(url string, send map[string]interface{}) ([]byte, error) {
 	return respBytes, nil
 	//str := (*string)(unsafe.Pointer(&respBytes))
 	//fmt.Println(*str)
+}
+
+//获取随机数
+func RpcGetNonce(url,address string) (int,error) {
+	data := make(map[string]interface{})
+	data["id"] = 1
+	data["jsonrpc"] = "2.0"
+	data["method"] = "eth_getTransactionCount"
+	data["params"] = []string{address,"latest"}
+	rsp, err := RpcPost(url, data)
+	fmt.Println("随机数获取结果：",err,address,string(rsp))
+	if err != nil {
+		return 0, err
+	}
+	if gjson.Get(string(rsp),"error").String() != "" {
+		return 0,errors.New("获取随机数失败")
+	}
+	num := gjson.Get(string(rsp),"result").String()
+	temp, _ := new(big.Int).SetString(num[2:], 16)
+	amount := decimal.NewFromBigInt(temp, 0).IntPart()
+	return int(amount), nil
+}
+
+//获取gasprice
+func RpcGetGasPrice(url string) (int64,error) {
+	data := make(map[string]interface{})
+	data["id"] = 1
+	data["jsonrpc"] = "2.0"
+	data["method"] = "eth_gasPrice"
+	data["params"] = []string{}
+	rsp, err := RpcPost(url, data)
+	if err != nil {
+		return 0, err
+	}
+
+	if gjson.Get(string(rsp),"error").String() != "" {
+		return 0,errors.New("获取gasprice失败")
+	}
+
+	num := gjson.Get(string(rsp),"result").String()
+
+	temp, _ := new(big.Int).SetString(num[2:], 16)
+	amount := decimal.NewFromBigInt(temp, int32(8-8)).IntPart()
+	//re := decimal.New(amount, -8)
+
+	return int64(amount), nil
+}
+
+//十六进制转十进制
+func ToHex(balance string) decimal.Decimal {
+	temp, _ := new(big.Int).SetString(balance[2:], 16)
+	amount := decimal.NewFromBigInt(temp, 0).IntPart()
+	re := decimal.New(amount, -8)
+	return re
 }
