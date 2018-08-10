@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
+	"io/ioutil"
+	"net/http"
 )
 
 //var btcClient *rpcclient.Client
@@ -109,8 +109,8 @@ func BtcGetNewAddress(url string, account string) (address string, err error) {
 		log.Errorln(err.Error())
 		return "", err
 	}
-	address = gjson.Get(string(result),"result").String()
-	fmt.Println("创建比特币地址：",address,result)
+	address = gjson.Get(string(result), "result").String()
+	fmt.Println("创建比特币地址：", address, result)
 	//address = string(result)
 	return address, nil
 }
@@ -128,7 +128,7 @@ func BtcDumpPrivKey(url string, myaddress string) (privateKey string, err error)
 	params = append(params, myaddress)
 	data["params"] = params
 	result, err := BtcRpcPost(url, data)
-	privateKey = gjson.Get(string(result),"result").String()
+	privateKey = gjson.Get(string(result), "result").String()
 	if err != nil {
 		log.Errorln(err.Error())
 		return "", err

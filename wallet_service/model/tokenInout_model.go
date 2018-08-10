@@ -2,11 +2,11 @@ package models
 
 import (
 	"digicon/common/model"
+	. "digicon/proto/common"
 	"digicon/wallet_service/utils"
 	"github.com/shopspring/decimal"
 	"math/big"
 	"time"
-	. "digicon/proto/common"
 )
 
 // 平台币账户的交易
@@ -29,8 +29,8 @@ type TokenInout struct {
 	CreatedTime time.Time `xorm:"comment('创建时间') TIMESTAMP"`
 	DoneTime    time.Time `xorm:"done_time"`
 	Remarks     string    `xorm:"remarks"`
-	AmountCny         int64     `xorm:"amount_cny"`
-	FeeCny         int64     `xorm:"fee_cny"`
+	AmountCny   int64     `xorm:"amount_cny"`
+	FeeCny      int64     `xorm:"fee_cny"`
 }
 
 type User struct {
@@ -90,16 +90,16 @@ func (this *TokenInout) BtcInsert(txhash, from, to, tokenName string, amount int
 }
 
 //更新比特币申请提币hash
-func (this *TokenInout) UpdateApplyTiBi(applyid int,txhash string) (int,error) {
+func (this *TokenInout) UpdateApplyTiBi(applyid int, txhash string) (int, error) {
 	//var data = new(TokenInout)
 	//data.Txhash = txhash
-	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{Txhash:txhash,States:1})  //提币已经提交区块链，修改交易hash和正在提币状态
+	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{Txhash: txhash, States: 1}) //提币已经提交区块链，修改交易hash和正在提币状态
 	return int(affected), err
 }
 
 //更新提币完成状态
-func (this *TokenInout) BteUpdateAppleDone(txhash string) (int,error) {
-	affected, err := utils.Engine_wallet.Where("txhash = ?",txhash).Update(TokenInout{States:2,DoneTime:time.Now()})  //提币已经完成，修改状态和完成时间
+func (this *TokenInout) BteUpdateAppleDone(txhash string) (int, error) {
+	affected, err := utils.Engine_wallet.Where("txhash = ?", txhash).Update(TokenInout{States: 2, DoneTime: time.Now()}) //提币已经完成，修改状态和完成时间
 	return int(affected), err
 }
 
@@ -137,41 +137,38 @@ func (this *TokenInout) GetInOutList(pageIndex, pageSize int, filter map[string]
 }
 
 //提币申请
-func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string) (ret int,err error) {
+func (this *TokenInout) TiBiApply(uid int, tokenid int, to string, amount string, fee string) (ret int, err error) {
 	//查询form地址
 	var walletToken = new(WalletToken)
 	err = walletToken.GetByUid(uid)
 	if err != nil {
-		return ERRCODE_UNKNOWN,err
+		return ERRCODE_UNKNOWN, err
 	}
 
 	//根据token_id获取token_name
 	var tokenData = new(Tokens)
-	_,err = tokenData.GetByid(tokenid)
+	_, err = tokenData.GetByid(tokenid)
 	if err != nil {
 		return
 	}
 
 	//根据id获取人民币和美元价格
 	var tokenCny = new(ConfigTokenCny)
-	_,err = tokenCny.GetById(tokenid)
+	_, err = tokenCny.GetById(tokenid)
 	if err != nil {
 		return
 	}
-
-
-
 
 	from := walletToken.Address
 
 	this.From = from
 	this.To = to
 	temp, _ := decimal.NewFromString(amount)
-	amount1,_ := temp.Float64()
+	amount1, _ := temp.Float64()
 	this.Amount = int64(amount1 * 100000000)
 
 	temp1, _ := decimal.NewFromString(fee) //new(big.Int).SetString(fee,10)
-	fee1,_ := temp1.Float64() //decimal.NewFromBigInt(temp1, int32(8)).IntPart()
+	fee1, _ := temp1.Float64()             //decimal.NewFromBigInt(temp1, int32(8)).IntPart()
 	this.Fee = int64(fee1 * 100000000)
 
 	this.Contract = walletToken.Contract
@@ -183,18 +180,18 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 	this.FeeCny = int64(float64(tokenCny.Price) * fee1)
 	this.CreatedTime = time.Now()
 	this.Contract = tokenData.Contract
-	this.Opt = 2 //提币
-	this.States = 1  //正在提币
+	this.Opt = 2    //提币
+	this.States = 1 //正在提币
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	return int(affected), err
 
 }
 
 //验证支付密码
-func (this *TokenInout) AuthPayPwd(uid int32,password string) (ret int32,err error) {
+func (this *TokenInout) AuthPayPwd(uid int32, password string) (ret int32, err error) {
 	engine := utils.Engine_common
 	var data = new(User)
-	ok,err := engine.Where("uid=?",uid).Get(&data)
+	ok, err := engine.Where("uid=?", uid).Get(&data)
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
@@ -202,7 +199,7 @@ func (this *TokenInout) AuthPayPwd(uid int32,password string) (ret int32,err err
 		return ERRCODE_ACCOUNT_NOTEXIST, nil
 	}
 	if data.PayPwd != password {
-		return ERRCODE_UNKNOWN,nil
+		return ERRCODE_UNKNOWN, nil
 	}
-	return ERRCODE_SUCCESS,nil
+	return ERRCODE_SUCCESS, nil
 }

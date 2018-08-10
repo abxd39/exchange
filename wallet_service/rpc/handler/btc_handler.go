@@ -44,7 +44,7 @@ func (s *WalletHandler) CreateBTCWallet(ctx context.Context, req *proto.CreateWa
 func (s *WalletHandler) BtcSigntx(ctx context.Context, req *proto.BtcSigntxRequest, rsp *proto.BtcSigntxResponse) error {
 	//fmt.Println("btc signtx request ...")
 	//fmt.Println(req.Uid)
-	txHash, err := BtcSendToAddress(req.Address, req.Amount, req.Tokenid, int(req.Uid),int(req.Applyid))
+	txHash, err := BtcSendToAddress(req.Address, req.Amount, req.Tokenid, int(req.Uid), int(req.Applyid))
 	if err != nil {
 		rsp.Data = ""
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
@@ -66,7 +66,7 @@ func (s *WalletHandler) BtcTibi(ctx context.Context, req *proto.BtcTibiRequest, 
 	toAddress := req.Address
 	mount := req.Amount
 	tokenId := req.Tokenid
-	txHash, err := BtcTiBiToAddress(toAddress, mount, tokenId, req.Uid,int(req.Applyid))
+	txHash, err := BtcTiBiToAddress(toAddress, mount, tokenId, req.Uid, int(req.Applyid))
 	if err != nil {
 		rsp.Data = ""
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
@@ -79,25 +79,6 @@ func (s *WalletHandler) BtcTibi(ctx context.Context, req *proto.BtcTibiRequest, 
 	return nil
 }
 
-
-
-
-
-
-
-
-
 /////////////////////////////////////////
 //比特币相关
 //比特币交易
-
-
-
-
-
-
-
-
-
-
-

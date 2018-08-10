@@ -1,8 +1,8 @@
 package model
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/go-xorm/xorm"
+	log "github.com/sirupsen/logrus"
 )
 
 type TokenFreeHistory struct {
@@ -22,14 +22,15 @@ type Finance struct {
 }
 */
 
-func InsertIntoTokenFreeHistory(sess *xorm.Session,  g... *TokenFreeHistory)  (err error){
-	_,err = sess.Insert(g)
-	if err!=nil {
+func InsertIntoTokenFreeHistory(sess *xorm.Session, g ...*TokenFreeHistory) (err error) {
+	_, err = sess.Insert(g)
+	if err != nil {
 		log.Error(err)
 		return
 	}
 	return nil
 }
+
 /*
 func GetFinance(token_id int) *Finance  {
 	d:=&Finance{}

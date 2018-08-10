@@ -58,7 +58,7 @@ func Int64MulInt64By8Bit(a int64, b int64) int64 {
 	return n.IntPart()
 }
 
-func Int64MulInt64MulInt64By16Bit(a int64, b ,c int64) int64 {
+func Int64MulInt64MulInt64By16Bit(a int64, b, c int64) int64 {
 	da := decimal.New(a, 0)
 	db := decimal.New(b, 0)
 	dc := decimal.New(c, 0)

@@ -1,20 +1,16 @@
 package cron
 
-
 import (
+	"digicon/common/convert"
+	"digicon/currency_service/model"
 	"fmt"
 	"github.com/robfig/cron"
 	log "github.com/sirupsen/logrus"
-	"digicon/currency_service/model"
 	"time"
-	"digicon/common/convert"
 )
 
 type DailyCountSheet struct {
 }
-
-
-
 
 func (this DailyCountSheet) Run() {
 	fmt.Println("DailyCountSheet...")
@@ -30,13 +26,13 @@ func (this DailyCountSheet) Run() {
 	log.Println("startTime:", startTime)
 	log.Println("endTime:", endTime)
 
-	for _, tk := range tokens{
+	for _, tk := range tokens {
 		tkId := tk.Id
 		fmt.Println("count token id: ", tkId)
 
 		/// check exists ....
 		mcuds := new(model.CurrencyDailySheet)
-		checkResult, err  := mcuds.GetOneDay(tkId, nTime.Unix())
+		checkResult, err := mcuds.GetOneDay(tkId, nTime.Unix())
 		if err != nil {
 			log.Errorln(err)
 		}
@@ -47,8 +43,8 @@ func (this DailyCountSheet) Run() {
 		}
 		//////
 
-		orders, err  := mod.GetOrderByTokenIdByTime(tkId, startTime, endTime )
-		if err !=nil {
+		orders, err := mod.GetOrderByTokenIdByTime(tkId, startTime, endTime)
+		if err != nil {
 			log.Errorln(err)
 			continue
 		}
@@ -57,18 +53,18 @@ func (this DailyCountSheet) Run() {
 		var sellTotalCny int64
 		var buyTotaoCny int64
 		var feeSellTotal int64
-		var feeSellCny   int64
-		var feeBuyTotal  int64
-		var feeBuyCny    int64
+		var feeSellCny int64
+		var feeBuyTotal int64
+		var feeBuyCny int64
 
-		for _, od := range orders{
+		for _, od := range orders {
 			if od.AdType == model.BuyType {
 				buyTotal += od.Num
 				buyTotaoCny += convert.Int64MulInt64By8Bit(od.Num, od.Price)
 				feeBuyTotal += od.Fee
 				feeBuyCny += convert.Int64MulInt64By8Bit(od.Fee, od.Price)
 			}
-			if od.AdType == model.SellType{
+			if od.AdType == model.SellType {
 				sellTotal += od.Num
 				sellTotalCny += convert.Int64MulInt64By8Bit(od.Num, od.Price)
 				feeSellTotal += od.Fee
@@ -76,32 +72,31 @@ func (this DailyCountSheet) Run() {
 			}
 		}
 
-	    sumBuy, sumSell, err := mod.GetCurDaySum(tkId, startTime, endTime)
-
+		sumBuy, sumSell, err := mod.GetCurDaySum(tkId, startTime, endTime)
 
 		if err != nil {
 			log.Errorln(err)
 		}
 		mcds := model.CurrencyDailySheet{
-			TokenId:        int32(tkId),
-			SellTotal:       sellTotal,
-			SellCny:         sellTotalCny,
-			BuyTotal:        buyTotal,
-			BuyCny:          buyTotaoCny,
-			FeeSellTotal:    feeSellTotal,
-			FeeSellCny:      feeSellCny,
-			FeeBuyTotal:     feeBuyTotal,
-			FeeBuyCny:       feeBuyCny,
+			TokenId:      int32(tkId),
+			SellTotal:    sellTotal,
+			SellCny:      sellTotalCny,
+			BuyTotal:     buyTotal,
+			BuyCny:       buyTotaoCny,
+			FeeSellTotal: feeSellTotal,
+			FeeSellCny:   feeSellCny,
+			FeeBuyTotal:  feeBuyTotal,
+			FeeBuyCny:    feeBuyCny,
 
-			BuyTotalAll:     sumBuy.BuyTotalAll,
-			BuyTotalAllCny:  sumBuy.BuyTotalAllCny,
+			BuyTotalAll:    sumBuy.BuyTotalAll,
+			BuyTotalAllCny: sumBuy.BuyTotalAllCny,
 
 			SellTotalAll:    sumSell.SellTotalAll,
 			SellTotalAllCny: sumSell.SellTotalAllCny,
 
-			Total:           sumBuy.BuyTotalAll + sumSell.SellTotalAll,
-			TotalCny:        sumBuy.BuyTotalAllCny + sumSell.SellTotalAllCny,
-			Date:            yesTime.Unix(),
+			Total:    sumBuy.BuyTotalAll + sumSell.SellTotalAll,
+			TotalCny: sumBuy.BuyTotalAllCny + sumSell.SellTotalAllCny,
+			Date:     yesTime.Unix(),
 		}
 
 		err = mcds.InsertOneDay()
@@ -109,11 +104,9 @@ func (this DailyCountSheet) Run() {
 			log.Errorln(err)
 		}
 
-
 	}
 
 }
-
 
 //启动多个任务
 func DailyStart() {
@@ -124,7 +117,7 @@ func DailyStart() {
 	c := cron.New()
 
 	//AddFunc
-	spec := "0 0 * * *"   // every day ...
+	spec := "0 0 * * *" // every day ...
 	c.AddFunc(spec, func() {
 		i++
 		log.Println("cron running:", i)

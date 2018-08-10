@@ -3,15 +3,15 @@ package model
 import (
 	"bytes"
 	"database/sql"
+	"digicon/common/convert"
 	"digicon/currency_service/conf"
 	"digicon/currency_service/dao"
+	. "digicon/proto/common"
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
-	. "digicon/proto/common"
-	"digicon/common/convert"
 )
 
 // 订单表
@@ -38,44 +38,39 @@ type Order struct {
 	ReleaseTime sql.NullString `xorm:"default null comment('放行时间')     DATETIME"              json:"release_time"`
 	ExpiryTime  string         `xorm:"comment('过期时间')     DATETIME"                           json:"expiry_time"`
 
-	NumTotalPrice  int64       `xorm:"default 0 comment('后台需要的数量总价格') BIGINT(64)"             json:"num_total_price"`
-	FeePrice       int64       `xorm:"default 0 comment('后台需要的计算出费用价格') BIGINT(64)"          json:"fee_price"`
-
+	NumTotalPrice int64 `xorm:"default 0 comment('后台需要的数量总价格') BIGINT(64)"             json:"num_total_price"`
+	FeePrice      int64 `xorm:"default 0 comment('后台需要的计算出费用价格') BIGINT(64)"          json:"fee_price"`
 }
-
 
 type OrderModel struct {
-	Order         `xorm:"extends"`
-	TokenName     string        `xorm:"VARBINARY(36)"  form:"token_name" json:"token_name"`
+	Order     `xorm:"extends"`
+	TokenName string `xorm:"VARBINARY(36)"  form:"token_name" json:"token_name"`
 }
 
-
-
 type BuyTotal struct {
-	BuyTotalAll       int64    `json:"buy_total_all"`
-	Price             int64    `json:"price"`
+	BuyTotalAll int64 `json:"buy_total_all"`
+	Price       int64 `json:"price"`
 }
 
 type SellTotal struct {
-	SellTotalAll      int64    `json:"sell_total_all"`
-	Price             int64    `json:"price"`
+	SellTotalAll int64 `json:"sell_total_all"`
+	Price        int64 `json:"price"`
 }
 
 type SumBuyTotal struct {
-	BuyTotalAll       int64    `json:"buy_total_all"`
-	BuyTotalAllCny    int64    `json:"buy_total_all_cny"`
+	BuyTotalAll    int64 `json:"buy_total_all"`
+	BuyTotalAllCny int64 `json:"buy_total_all_cny"`
 }
 
 type SumSellTotal struct {
-	SellTotalAll      int64    `json:"sell_total_all"`
-	SellTotalAllCny   int64    `json:"sell_total_all_cny"`
+	SellTotalAll    int64 `json:"sell_total_all"`
+	SellTotalAllCny int64 `json:"sell_total_all_cny"`
 }
-
 
 /*
  ====================  sum buy total all =================
 */
-func (this *Order)  GetCurDaySum(tokenId uint32, startTime, endTime string) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
+func (this *Order) GetCurDaySum(tokenId uint32, startTime, endTime string) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
 	sql := "select sum(num) as  buy_total_all,price  from `order`  where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
 	engine := dao.DB.GetMysqlConn()
 	var btotal BuyTotal
@@ -84,12 +79,11 @@ func (this *Order)  GetCurDaySum(tokenId uint32, startTime, endTime string) (sum
 	sumBuy.BuyTotalAll = btotal.BuyTotalAll
 	sumBuy.BuyTotalAllCny = convert.Int64MulInt64By8Bit(btotal.BuyTotalAll, btotal.Price)
 
-
 	buysql := "select sum(num) as  sell_total_all, price  from `order` where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
 	var stotal SellTotal
 	_, err = engine.Table("order").SQL(buysql, tokenId, BuyType, startTime, endTime).Get(&stotal)
 
-	log.Printf("tokenId: %v, stotal: %v \n", tokenId,  stotal)
+	log.Printf("tokenId: %v, stotal: %v \n", tokenId, stotal)
 
 	sumSell.SellTotalAll = stotal.SellTotalAll
 	sumSell.SellTotalAllCny = convert.Int64MulInt64By8Bit(stotal.SellTotalAll, stotal.Price)
@@ -99,13 +93,9 @@ func (this *Order)  GetCurDaySum(tokenId uint32, startTime, endTime string) (sum
 
 }
 
-
-
 /*
 ====================== sum end =======================
 */
-
-
 
 //列出订单
 func (this *Order) List(Page, PageNum int32,
@@ -199,7 +189,6 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 		return ERRCODE_TRADE_HAS_COMPLETED, msg
 	}
 
-
 	uCurrencyCount := new(UserCurrencyCount)
 	has, err := uCurrencyCount.CheckUserCurrencyCountExists(uint64(uid))
 	if err != nil {
@@ -213,13 +202,12 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 		_, err = dao.DB.GetMysqlConn().Exec(insertSql, uid, 1, 1, 100)
 	}
 
-	err  = CancelAction(Id, CancelType)
-
+	err = CancelAction(Id, CancelType)
 
 	if err != nil {
 		code = ERRCODE_UNKNOWN
 		msg = "cancel error!"
-	}else{
+	} else {
 		code = ERRCODE_SUCCESS
 	}
 	msg = ""
@@ -253,7 +241,6 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	uCurrency := new(UserCurrency)
 	fmt.Println(this.SellId, this.TokenId)
-
 
 	_, err = engine.Table("user_currency").Where("uid =? and token_id =?", this.SellId, this.TokenId).Get(uCurrency)
 	if err != nil {
@@ -297,7 +284,7 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	int64MinLimit := convert.Float64ToInt64By8Bit(float64(adsM.MinLimit))
 	fmt.Println(int64MinLimit, curCnyPrice)
-	if  curCnyPrice  < int64MinLimit{
+	if curCnyPrice < int64MinLimit {
 		msg := "下单失败,买价小于允许的最小价格!"
 		log.Println(msg)
 		code = ERRCODE_TRADE_LOWER_PRICE
@@ -306,27 +293,25 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	int64MaxLimit := convert.Float64ToInt64By8Bit(float64(adsM.MaxLimit))
 	fmt.Println(int64MaxLimit, curCnyPrice)
-	if  curCnyPrice > int64MaxLimit {
+	if curCnyPrice > int64MaxLimit {
 		msg := "下单失败,买价大于允许的最大价格!"
 		log.Println(msg)
 		code = ERRCODE_TRADE_LARGE_PRICE
 		return
 	}
 
-
-
 	session := engine.NewSession()
 	/// 1. 卖家冻结
 	balanceCny := convert.Int64MulInt64By8Bit(uCurrency.Balance, this.Price)
 	freezeCny := convert.Int64MulInt64By8Bit(freeze, this.Price)
 	var newBalanceCny int64
-	if balanceCny >= freezeCny{
+	if balanceCny >= freezeCny {
 		newBalanceCny = balanceCny - freezeCny
-	}else{
+	} else {
 		newBalanceCny = 0
 	}
 	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`balance_cny`=?, `freeze_cny`=`freeze_cny`+? , `version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
-	sqlRest, err := session.Exec(sellSql, freeze, freeze, freezeCny,  newBalanceCny,this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	sqlRest, err := session.Exec(sellSql, freeze, freeze, freezeCny, newBalanceCny, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	//sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
 	//sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
@@ -386,7 +371,7 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 	//////////////////////////////////////////////////////
 
 	updateAdsSql := "update `ads` set `num`=`num`-?, `updated_time`=?  WHERE `id`=? "
-	_,err = session.Exec(updateAdsSql, freeze, nowTime, this.AdId)
+	_, err = session.Exec(updateAdsSql, freeze, nowTime, this.AdId)
 	if err != nil {
 		fmt.Println("update ads num states error:", err.Error())
 		log.Println(err.Error())
@@ -395,30 +380,27 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 		return
 	}
 
-
-
 	/// 4. 自动回复的消息
 	fmt.Println("ads reply: ", adsM.Reply)
-	if adsM.Reply != ""{
+	if adsM.Reply != "" {
 		replaySql := "insert into chats (order_id, is_order_user, uid, uname, content, states, created_time) values (?,?,?,?, ?,?,?)"
-		var isOrderUser  int
-		if adsM.Uid ==  uint64(curUId) {
+		var isOrderUser int
+		if adsM.Uid == uint64(curUId) {
 			isOrderUser = 1
-		}else{
+		} else {
 			isOrderUser = 0
 		}
 		var uname string
-		if adsM.Uid == this.SellId  {
+		if adsM.Uid == this.SellId {
 			uname = this.SellName
-		}else{
+		} else {
 			uname = this.BuyName
 		}
-		_, err = session.Exec(replaySql, this.OrderId, isOrderUser, adsM.Uid, uname ,adsM.Reply, 1, nowTime)
+		_, err = session.Exec(replaySql, this.OrderId, isOrderUser, adsM.Uid, uname, adsM.Reply, 1, nowTime)
 		if err != nil {
 			log.Error(err.Error())
 		}
 	}
-
 
 	err = session.Commit()
 	if err != nil {
@@ -450,7 +432,6 @@ func (this *Order) Confirm(Id uint64, updateTimeStr string, uid int32) (int32, s
 		return ERRCODE_SUCCESS, ""
 	}
 }
-
 
 // 确认放行事务
 func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (code int32, err error) {
@@ -525,7 +506,7 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	////////////////////////////////////////////////////////
 	freezeCny := convert.Int64MulInt64By8Bit(sellNum, this.Price)
 	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`freeze_cny`=`freeze_cny`-? ,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
-	sqlRest, err := session.Exec(sellSql, sellNum,  freezeCny, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	sqlRest, err := session.Exec(sellSql, sellNum, freezeCny, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		log.Println(err.Error())
 		session.Rollback()
@@ -702,7 +683,6 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	now := time.Now().Format("2006-01-02 15:04:05")
 	adsM := new(Ads).Get(this.AdId)
 
-
 	//////////////////////////////////////////////////////
 	// 5. 更新状态
 	//////////////////////////////////////////////////////
@@ -754,9 +734,7 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 	return
 }
 
-
-
-func (this *Order) GetOrdersByStatus()(ods []Order, err error){
+func (this *Order) GetOrdersByStatus() (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
 	err = engine.Where("states = 1 OR states = 2").Find(&ods)
 	if err != nil {
@@ -765,10 +743,6 @@ func (this *Order) GetOrdersByStatus()(ods []Order, err error){
 	}
 	return
 }
-
-
-
-
 
 /*
 
@@ -783,8 +757,6 @@ func (this *Order) GetOrderByTime(uid uint64, startTime, endTime string) (ods []
 	return
 }
 
-
-
 /*
 	根据tokenid来获取订单
 */
@@ -794,14 +766,8 @@ func (this *Order) GetOrderByTokenIdByTime(tokenid uint32, startTime, endTime st
 	return
 }
 
-
-
-
-
-
-
 /*
-    获取历史记录
+   获取历史记录
 */
 func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhistory []Order, err error) {
 	now := time.Now()
@@ -815,15 +781,15 @@ func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhis
 	var tokenId uint32
 	if token != nil {
 		tokenId = token.Id
-	}else{
+	} else {
 		tokenId = 2
 	}
 	engine := dao.DB.GetMysqlConn()
-	if limit != 0  && startTime == "" && endTime == ""{
+	if limit != 0 && startTime == "" && endTime == "" {
 		err = engine.Where("token_id=?", tokenId).Limit(int(limit)).Desc("created_time").Find(&uhistory)
-	} else if limit == 0 && startTime != "" && endTime != ""{
-		err = engine.Where("token_id = ? AND created_time >= ? && created_time <= ?",tokenId, startTime, endTime).Desc("created_time").Find(&uhistory)
-	}else{
+	} else if limit == 0 && startTime != "" && endTime != "" {
+		err = engine.Where("token_id = ? AND created_time >= ? && created_time <= ?", tokenId, startTime, endTime).Desc("created_time").Find(&uhistory)
+	} else {
 		err = engine.Where("token_id =? AND created_time >= ? && created_time <= ?", tokenId, startTime, endTime).Desc("created_time").Limit(int(limit)).Find(&uhistory)
 	}
 	if err != nil {
@@ -832,8 +798,6 @@ func (this *Order) GetOrderHistory(startTime, endTime string, limit int32) (uhis
 	}
 	return
 }
-
-
 
 ////////////////////////////////    func ////////////////////////////////////////
 
@@ -868,8 +832,7 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 	return
 }
 
-
-func CancelAction(id uint64, CancelType uint32) (err error){
+func CancelAction(id uint64, CancelType uint32) (err error) {
 
 	engine := dao.DB.GetMysqlConn()
 	od := new(Order)
@@ -907,15 +870,15 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	sellNum := rateFee + allNum
 	freezeCny := convert.Int64MulInt64By8Bit(sellNum, od.Price)
 
-	if uCurrency.Freeze - sellNum < 0 {
+	if uCurrency.Freeze-sellNum < 0 {
 		sellNum = 0
 	}
-	if uCurrency.FreezeCny - freezeCny <0 {
+	if uCurrency.FreezeCny-freezeCny < 0 {
 		freezeCny = 0
 	}
 
 	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`balance_cny`=`balance_cny`+?, `freeze_cny`=`freeze_cny`-? ,  `version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
-	sqlRest, err := session.Exec(sellSql, sellNum, sellNum,freezeCny, freezeCny, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	sqlRest, err := session.Exec(sellSql, sellNum, sellNum, freezeCny, freezeCny, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 
 	if err != nil {
 		fmt.Println("user_currency 还原 freeze error")
@@ -957,10 +920,6 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 
 	return
 }
-
-
-
-
 
 //获取相差时间
 func GetHourDiffer(start_time, end_time string) int64 {

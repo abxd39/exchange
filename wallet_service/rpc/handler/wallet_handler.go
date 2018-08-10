@@ -31,7 +31,7 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 
 	//查询token状态
 	tokenP := new(Tokens)
-	b,e := tokenP.GetByid(int(req.Tokenid))
+	b, e := tokenP.GetByid(int(req.Tokenid))
 	if b != true || e != nil {
 		rsp.Code = "1"
 		rsp.Msg = err.Error()
@@ -49,7 +49,7 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 
 	//判断钱包是否存在
 	existsWalletToken := new(WalletToken)
-	boo,address,signature := existsWalletToken.WalletTokenExist(int(req.Userid), int(req.Tokenid))
+	boo, address, signature := existsWalletToken.WalletTokenExist(int(req.Userid), int(req.Tokenid))
 	if boo == true {
 		rsp.Code = "0"
 		rsp.Msg = address
@@ -121,32 +121,32 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	}
 	deci_temp, err := decimal.NewFromString(req.Mount)
 	mount := deci_temp.Round(int32(deciml)).Coefficient()
-	
+
 	//获取随机数
 	tokenData := new(Tokens)
 	tokenData.GetByid(int(req.Tokenid))
-	nonce,nonce_err := utils.RpcGetNonce(tokenData.Node,keystore.Address)
+	nonce, nonce_err := utils.RpcGetNonce(tokenData.Node, keystore.Address)
 
-	fmt.Println("签名随机数：",nonce,nonce_err)
+	fmt.Println("签名随机数：", nonce, nonce_err)
 
-	if nonce_err != nil  {
+	if nonce_err != nil {
 		rsp.Code = "1"
 		rsp.Msg = "获取随机数失败"
 		return nil
 	}
 
 	//获取gasprice
-	gasPrice,gasErr := utils.RpcGetGasPrice(tokenData.Node)
-	fmt.Println("获取gasprice:",gasErr,gasPrice)
-	if gasErr != nil  {
+	gasPrice, gasErr := utils.RpcGetGasPrice(tokenData.Node)
+	fmt.Println("获取gasprice:", gasErr, gasPrice)
+	if gasErr != nil {
 		rsp.Code = "1"
 		rsp.Msg = "获取gasprice失败"
 		return nil
 	}
-	
-	signtxstr, err := keystore.Signtx(req.To, mount, gasPrice,nonce+1)
 
-	fmt.Println("生成的签名：",mount,signtxstr)
+	signtxstr, err := keystore.Signtx(req.To, mount, gasPrice, nonce+1)
+
+	fmt.Println("生成的签名：", mount, signtxstr)
 
 	if err != nil {
 		rsp.Code = "1"
@@ -171,7 +171,7 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 		return nil
 	}
 
-	fmt.Println("发送交易：",TokenModel.Node,req.Signtx)
+	fmt.Println("发送交易：", TokenModel.Node, req.Signtx)
 
 	rets, err := utils.RpcSendRawTx(TokenModel.Node, req.Signtx)
 	if err != nil {
@@ -182,7 +182,7 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 	txhash, ok := rets["result"]
 	if ok {
 		//更新申请单记录
-		new(TokenInout).UpdateApplyTiBi(int(req.Applyid),txhash.(string))
+		new(TokenInout).UpdateApplyTiBi(int(req.Applyid), txhash.(string))
 		rsp.Code = "0"
 		rsp.Msg = "发送成功"
 		rsp.Data = new(proto.SendRawTxPos)
@@ -394,7 +394,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	//	return nil
 	//}
 	//保存数据
-	_,err := tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice)
+	_, err := tokenInoutMD.TiBiApply(int(req.Uid), int(req.Tokenid), req.To, req.RealAmount, req.Gasprice)
 	if err != nil {
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = err.Error()

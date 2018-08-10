@@ -3,14 +3,14 @@ package controller
 import (
 	"digicon/common/convert"
 	"digicon/gateway/rpc"
+	"digicon/gateway/utils"
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"fmt"
-	"digicon/gateway/utils"
 )
 
 type OrderRequest struct {
@@ -20,7 +20,7 @@ type OrderRequest struct {
 type CancelOrderRequest struct {
 	OrderRequest
 	CancelType uint32 `form:"cancel_type" json:"cancel_type" binding:"required"` //取消类型: 1卖方 2 买方
-	Uid        int32  `form:"uid" json:"uid"  binding:"required"`        //
+	Uid        int32  `form:"uid" json:"uid"  binding:"required"`                //
 }
 
 type OtherType struct {
@@ -319,10 +319,10 @@ func (this CurrencyGroup) AddOrder(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	if rsp.Code != ERRCODE_SUCCESS{
+	if rsp.Code != ERRCODE_SUCCESS {
 		ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
 		return
-	}else{
+	} else {
 		ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 		ret.SetDataSection("id", rsp.Data)
 	}
@@ -443,12 +443,12 @@ func (this *CurrencyGroup) GetTradeHistory(c *gin.Context) {
 	}
 
 	type UserCurrencyHistory struct {
-		Price         int64  `json:"price"           `
+		Price       int64  `json:"price"           `
 		Fee         int64  `json:"fee"           `
 		CreatedTime string `json:"created_time"  `
 	}
 	type RespUserCurrencyHistory struct {
-		Price         float64 `json:"price"           `
+		Price       float64 `json:"price"           `
 		Fee         float64 `json:"fee"           `
 		CreatedTime string  `json:"created_time"  `
 	}

@@ -9,8 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"fmt"
+	"github.com/gin-gonic/gin"
 )
 
 type ArticleGroup struct{}
@@ -104,7 +104,7 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 	type ArticleListParam struct {
 		ArticleType int32 `form:"type" binding:"required"`
 		Page        int32 `form:"page" binding:"required"`
-		Rows     int32 `form:"rows" `
+		Rows        int32 `form:"rows" `
 	}
 	var param ArticleListParam
 	//fmt.Println("param1:", param)
@@ -123,11 +123,11 @@ func (this *ArticleGroup) ArticleList(c *gin.Context) {
 	//fmt.Println("gatway return value ", rsp.Article)
 	ret.SetErrCode(rsp.Code)
 	ret.SetDataSection("list", rsp.Article)
-	ret.SetDataSection("total",rsp.Total)
-	ret.SetDataSection("page_index",rsp.PageIndex)
-	ret.SetDataSection("page_size",rsp.PageCize)
-	ret.SetDataSection("is_page",rsp.IsPage)
-	ret.SetDataSection("page_count",rsp.PageCount)
+	ret.SetDataSection("total", rsp.Total)
+	ret.SetDataSection("page_index", rsp.PageIndex)
+	ret.SetDataSection("page_size", rsp.PageCize)
+	ret.SetDataSection("is_page", rsp.IsPage)
+	ret.SetDataSection("page_count", rsp.PageCount)
 	ret.SetDataValue(rsp.PageIndex)
 	return
 }

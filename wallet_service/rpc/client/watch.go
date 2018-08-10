@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ouqiang/timewheel"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
-	"unsafe"
-	"github.com/ouqiang/timewheel"
 	"time"
+	"unsafe"
 )
 
 //查询methodid 0x70a08231
@@ -40,7 +40,7 @@ func (this *Watch) Start() {
 
 	//查询ETH节点
 	var data = new(Tokens)
-	bool,er := data.GetByName("ETH")
+	bool, er := data.GetByName("ETH")
 	if bool != true || er != nil {
 		fmt.Println("start fail")
 		return
@@ -72,13 +72,13 @@ func (this *Watch) Start() {
 var ethTw *timewheel.TimeWheel
 
 func (this *Watch) Work() {
-	ethTw = timewheel.New(1 * time.Second, 3600, func(data timewheel.TaskData) {
-		ethTw.AddTimer(60 * time.Second, "eth", timewheel.TaskData{})
+	ethTw = timewheel.New(1*time.Second, 3600, func(data timewheel.TaskData) {
+		ethTw.AddTimer(60*time.Second, "eth", timewheel.TaskData{})
 		fmt.Println("eth watch ...")
 		this.WorkDone()
 	})
 	ethTw.Start()
-	ethTw.AddTimer(1 * time.Second, "eth", timewheel.TaskData{})
+	ethTw.AddTimer(1*time.Second, "eth", timewheel.TaskData{})
 }
 
 func (this *Watch) WorkDone() {
