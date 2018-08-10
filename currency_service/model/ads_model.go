@@ -141,6 +141,10 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 	}
 	//  上架时候检查币的余额是否足够
 	if status_id == 2 {
+		if isGet.Num <= 0 {
+			log.Errorln("上架时候币额不能为0")
+			return ERRCODE_ADS_NUM_LESS
+		}
 		uCurrency, err  := new(UserCurrency).GetBalance(isGet.Uid, uint32(isGet.TokenId))
 		if err != nil {
 			log.Errorln("查询用户余额错误")
@@ -151,6 +155,7 @@ func (this *Ads) UpdatedAdsStatus(id uint64, status_id uint32) int {
 			log.Errorln("币的余额不足上架失败")
 			return  ERR_TOKEN_LESS
 		}
+
 	}
 	//// 1下架
 	//fmt.Println("111111111111111111")
@@ -326,12 +331,11 @@ func (this *Ads) GetOnlineAdsMaxMinPrice(tokenId uint32) ( MaxPrice, MinPrice in
 */
 func AdsAutoDownline(id  uint64) {
 	ads := new(Ads).Get(id)
-	//if ads.TypeId == 1 {
-	//	log.Println("这是买价格要购买币的订单")
-	//	return
-	//}
+
+
 	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
 	minLimit := ads.MinLimit * 100000000
+	log.Println("minLimint:", minLimit, " curCnyPrice:", curCnyPrice)
 	if curCnyPrice < int64(minLimit) {
 		log.Errorln("当前广告的总价已小于最小价格的值, 广告自动下架")
 		sql := "update ads set states=0 where id=?"

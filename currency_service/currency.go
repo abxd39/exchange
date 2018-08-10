@@ -37,6 +37,9 @@ func main() {
 
 	cron.InitCron()
 
+	// 定时任务统计
+	go cron.DailyStart()
+
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
