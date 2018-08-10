@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/ouqiang/timewheel"
 )
 
 type ListUnspentResult struct {
@@ -133,12 +134,23 @@ func (this *BTCWatch) Start() {
 	this.Work()
 }
 
+var btcTw *timewheel.TimeWheel
+
 func (this *BTCWatch) Work() {
-	for {
+
+	btcTw = timewheel.New(1 * time.Second, 3600, func(data timewheel.TaskData) {
+		btcTw.AddTimer(60 * time.Second, "btc", timewheel.TaskData{})
 		fmt.Println("btc watch ...")
 		this.Check()
-		time.Sleep(60 * time.Second) //
-	}
+	})
+	btcTw.Start()
+	btcTw.AddTimer(1 * time.Second, "btc", timewheel.TaskData{})
+
+	//for {
+	//	fmt.Println("btc watch ...")
+	//	this.Check()
+	//	time.Sleep(60 * time.Second) //
+	//}
 }
 
 /*
@@ -255,6 +267,8 @@ func (this *BTCWatch) InsertRecord(curUnspend ListUnspentResult) {
 		fmt.Println(err.Error())
 		log.Errorln(err.Error())
 	}
+	//更新完成状态
+	new(models.TokenInout).BteUpdateAppleDone(curUnspend.TxID)
 
 }
 

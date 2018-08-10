@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"time"
 	. "digicon/proto/common"
-	"fmt"
 )
 
 // 平台币账户的交易
@@ -90,6 +89,20 @@ func (this *TokenInout) BtcInsert(txhash, from, to, tokenName string, amount int
 
 }
 
+//更新比特币申请提币hash
+func (this *TokenInout) UpdateApplyTiBi(applyid int,txhash string) (int,error) {
+	//var data = new(TokenInout)
+	//data.Txhash = txhash
+	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{Txhash:txhash,States:1})  //提币已经提交区块链，修改交易hash和正在提币状态
+	return int(affected), err
+}
+
+//更新提币完成状态
+func (this *TokenInout) BteUpdateAppleDone(txhash string) (int,error) {
+	affected, err := utils.Engine_wallet.Where("txhash = ?",txhash).Update(TokenInout{States:2,DoneTime:time.Now()})  //提币已经完成，修改状态和完成时间
+	return int(affected), err
+}
+
 // 列表
 func (this *TokenInout) GetInOutList(pageIndex, pageSize int, filter map[string]interface{}) (*model.ModelList, []*TokenInout, error) {
 	engine := utils.Engine_wallet
@@ -131,24 +144,48 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 	if err != nil {
 		return ERRCODE_UNKNOWN,err
 	}
+
+	//根据token_id获取token_name
+	var tokenData = new(Tokens)
+	_,err = tokenData.GetByid(tokenid)
+	if err != nil {
+		return
+	}
+
+	//根据id获取人民币和美元价格
+	var tokenCny = new(ConfigTokenCny)
+	_,err = tokenCny.GetById(tokenid)
+	if err != nil {
+		return
+	}
+
+
+
+
 	from := walletToken.Address
 
 	this.From = from
 	this.To = to
-	temp, _ := new(big.Int).SetString(amount,10)
-	amount1 := decimal.NewFromBigInt(temp, int32(8-8)).IntPart()
-	this.Amount = amount1
+	temp, _ := decimal.NewFromString(amount)
+	amount1,_ := temp.Float64()
+	this.Amount = int64(amount1 * 100000000)
 
-	temp1, _ := new(big.Int).SetString(amount,10)
-	fee1 := decimal.NewFromBigInt(temp1, int32(8-8)).IntPart()
-	this.Fee = fee1
+	temp1, _ := decimal.NewFromString(fee) //new(big.Int).SetString(fee,10)
+	fee1,_ := temp1.Float64() //decimal.NewFromBigInt(temp1, int32(8)).IntPart()
+	this.Fee = int64(fee1 * 100000000)
 
 	this.Contract = walletToken.Contract
 	this.Chainid = walletToken.Chainid
 	this.Tokenid = tokenid
 	this.Uid = uid
+	this.TokenName = tokenData.Mark
+	this.AmountCny = int64(float64(tokenCny.Price) * amount1)
+	this.FeeCny = int64(float64(tokenCny.Price) * fee1)
+	this.CreatedTime = time.Now()
+	this.Contract = tokenData.Contract
+	this.Opt = 2 //提币
+	this.States = 1  //正在提币
 	affected, err := utils.Engine_wallet.InsertOne(this)
-	fmt.Println("保存结果：",affected,err)
 	return int(affected), err
 
 }
@@ -158,7 +195,6 @@ func (this *TokenInout) AuthPayPwd(uid int32,password string) (ret int32,err err
 	engine := utils.Engine_common
 	var data = new(User)
 	ok,err := engine.Where("uid=?",uid).Get(&data)
-	fmt.Println("验证资金密码：",ok,err)
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
