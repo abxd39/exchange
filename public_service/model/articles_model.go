@@ -8,6 +8,7 @@ import (
 	Dlog "github.com/sirupsen/logrus"
 	"log"
 	"digicon/common/model"
+	"fmt"
 )
 
 type Article struct {
@@ -72,7 +73,7 @@ func (a Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_li
 	}
 	offset,mList:= model.Paging(int(req.Page),int(req.PageNum),int(count))
 
-	//fmt.Println("total=", total, "type=", req.ArticleType, "page=", page, "起始行star_row=", star_row, "page_num=", page_num)
+	fmt.Println("total=",mList.Total, "type=", req.ArticleType, "page=", mList.PageSize, "起始行star_row=", mList.PageIndex, "page_num=", offset)
 	err = engine.Desc("id").AllCols().Where("astatus=1 and type=?", req.ArticleType).Limit(mList.PageSize,offset).Find(u)
 	if err != nil {
 		log.Fatalf(err.Error())
