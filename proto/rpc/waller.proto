@@ -35,14 +35,16 @@ message BtcSigntxRequest {
     int32    tokenid = 2;     // 币中id
     string   address = 3;     // 要发给的地址
     string   amount  = 4;     // 要发给的金额
+    int32   applyid = 5;     // 申请提币id
 }
 
 message BtcTibiRequest {
     int32    uid     = 1;
     int32    tokenid = 2;
-    string   to      = 3;
+    string   address      = 3;
     string   amount  = 4;
     //int32    gasprice= 5;
+    int32   applyid = 5;     // 申请提币id
 }
 
 message BtcResponse {
@@ -106,6 +108,7 @@ message SendRawTxPos{
 message SendRawTxRequest{
     int32 token_id=1;
     string signtx=2;
+    int32   applyid = 4;     // 申请提币id
 }
 message SendRawTxResponse{
     string code=1;

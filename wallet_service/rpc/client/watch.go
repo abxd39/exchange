@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"unsafe"
+	"github.com/ouqiang/timewheel"
+	"time"
 )
 
 //查询methodid 0x70a08231
@@ -34,8 +36,17 @@ type Watch struct {
 	ContextModel     *Context         //处理上下文
 }
 
-func (this *Watch) Start(url string) {
-	this.Url = url
+func (this *Watch) Start() {
+
+	//查询ETH节点
+	var data = new(Tokens)
+	bool,er := data.GetByName("ETH")
+	if bool != true || er != nil {
+		fmt.Println("start fail")
+		return
+	}
+
+	this.Url = data.Node
 
 	//model初始化
 	//this.WalletToken = new(Blocks)
@@ -52,12 +63,25 @@ func (this *Watch) Start(url string) {
 		return
 	}
 
-	this.BlockNumber, _ = this.ContextModel.MaxNumber(url, this.Chainid)
+	this.BlockNumber, _ = this.ContextModel.MaxNumber(this.Url, this.Chainid)
 	//this.BlockNumber=2464711
 	this.Work()
 
 }
+
+var ethTw *timewheel.TimeWheel
+
 func (this *Watch) Work() {
+	ethTw = timewheel.New(1 * time.Second, 3600, func(data timewheel.TaskData) {
+		ethTw.AddTimer(60 * time.Second, "eth", timewheel.TaskData{})
+		fmt.Println("eth watch ...")
+		this.WorkDone()
+	})
+	ethTw.Start()
+	ethTw.AddTimer(1 * time.Second, "eth", timewheel.TaskData{})
+}
+
+func (this *Watch) WorkDone() {
 	//num,err:=this.Get_balance("0x8e430b7fc9c41736911e1699dbcb6d4753cbe3b6")
 	//当前最高块
 	temp, err := this.Get_blockNumber()

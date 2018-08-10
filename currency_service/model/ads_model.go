@@ -9,6 +9,13 @@ import (
 	"digicon/common/convert"
 )
 
+
+const (
+	SellType = 1
+	BuyType  = 2
+)
+
+
 // 买卖(广告)表
 type Ads struct {
 	Id        uint64 `xorm:"not null pk autoincr INT(10)" json:"id"`

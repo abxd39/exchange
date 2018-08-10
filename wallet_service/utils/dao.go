@@ -24,7 +24,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	Engine_wallet.ShowSQL(true)
+	Engine_wallet.ShowSQL(false)
 	err = Engine_wallet.Ping()
 	if err != nil {
 		panic(err)
@@ -36,7 +36,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	Engine_token.ShowSQL(true)
+	Engine_token.ShowSQL(false)
 	err = Engine_token.Ping()
 	if err != nil {
 		panic(err)
@@ -48,7 +48,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	Engine_common.ShowSQL(true)
+	Engine_common.ShowSQL(false)
 	err = Engine_common.Ping()
 	if err != nil {
 		panic(err)
@@ -61,7 +61,7 @@ func init() {
 		fmt.Println("connect db currency error!")
 		panic(err)
 	}
-	EngineUserCurrency.ShowSQL(true)
+	EngineUserCurrency.ShowSQL(false)
 	err = EngineUserCurrency.Ping()
 	if err != nil {
 		panic(err)
