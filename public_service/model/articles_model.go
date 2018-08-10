@@ -65,7 +65,7 @@ func (a Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_li
 	engine := dao.DB.GetMysqlConn()
 
 	//没有指定 每页的行数
-	count, err := engine.Where("type =?", req.ArticleType).Count(&Article_list{})
+	count, err := engine.Where("type =? and astatus=1", req.ArticleType).Count(&Article_list{})
 	if err != nil {
 		Dlog.Errorln(err.Error())
 		return nil, ERRCODE_UNKNOWN
@@ -73,7 +73,7 @@ func (a Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_li
 	offset,mList:= model.Paging(int(req.Page),int(req.PageNum),int(count))
 
 	//fmt.Println("total=", total, "type=", req.ArticleType, "page=", page, "起始行star_row=", star_row, "page_num=", page_num)
-	err = engine.Desc("id").AllCols().Where("type=?", req.ArticleType).Limit(mList.PageSize,offset).Find(u)
+	err = engine.Desc("id").AllCols().Where("astatus=1 and type=?", req.ArticleType).Limit(mList.PageSize,offset).Find(u)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
