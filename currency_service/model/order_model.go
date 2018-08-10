@@ -505,8 +505,8 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	// 1. user_currency扣, 买家减交易金额，卖家加交易金额和减去费用
 	////////////////////////////////////////////////////////
 	freezeCny := convert.Int64MulInt64By8Bit(sellNum, this.Price)
-	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`freeze_cny`=`freeze_cny`-? ,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
-	sqlRest, err := session.Exec(sellSql, sellNum, freezeCny, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	sellSql := "update g_currency.`user_currency` set  `freeze`=`freeze` - ?,`freeze_cny`=`freeze_cny`-?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
+	sqlRest, err := session.Exec(sellSql, sellNum,  freezeCny, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		log.Println(err.Error())
 		session.Rollback()
