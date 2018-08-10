@@ -20,6 +20,5 @@ func InitCron() {
 	}
 
 
-	// 定时任务统计
-	go DailyStart()
+
 }

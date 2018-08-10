@@ -311,8 +311,12 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	session := engine.NewSession()
 	/// 1. 卖家冻结
-	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
-	sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+
+	freezeCny := convert.Int64MulInt64By8Bit(freeze, this.Price)
+	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`balance_cny`=`balance_cny`-?, `freeze_cny`=`freeze_cny`+? , `version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
+	sqlRest, err := session.Exec(sellSql, freeze, freeze, freezeCny, freezeCny,this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	//sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
+	//sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		log.Errorln(err.Error())
 		session.Rollback()
@@ -339,6 +343,7 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 	buffer.WriteString("(uid, trade_uid, order_id, token_id, num, fee, surplus, operator, address, states, created_time ,updated_time )")
 	buffer.WriteString("values (?, ? ,?, ?, ?, ?,   ?, ?, ?, ?, ? , ?)")
 	insertSql := buffer.String()
+
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
 		this.SellId, this.BuyId, this.OrderId, this.TokenId, this.Num, 0, uCurrency.Balance, 5, "", this.States, nowTime, nowTime, // 卖家记录 , 5 为冻结
 	)
@@ -400,8 +405,7 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	/////    检查是否超时
 	go CheckOrderExiryTime(id, this.ExpiryTime)
-	/////    检查广告是否需要下架
-	go AdsAutoDownline(adsM.Id)
+
 	return
 }
 
@@ -489,9 +493,9 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	/////////////////////////////////////////////////////////
 	// 1. user_currency扣, 买家减交易金额，卖家加交易金额和减去费用
 	////////////////////////////////////////////////////////
-
-	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
-	sqlRest, err := session.Exec(sellSql, sellNum, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	freezeCny := convert.Int64MulInt64By8Bit(sellNum, this.Price)
+	sellSql := "update user_currency set  `freeze`=`freeze` - ?,`freeze_cny`=`freeze_cny`-? ,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
+	sqlRest, err := session.Exec(sellSql, sellNum,  freezeCny, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
 		log.Println(err.Error())
 		session.Rollback()
@@ -523,8 +527,9 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	}
 	if has {
 		fmt.Println("has ....")
-		buySql := "update user_currency set `balance`=`balance`+?, `version`=`version`+1   WHERE uid=? and token_id=? and version=?"
-		buyRest, err := session.Exec(buySql, allNum, this.BuyId, this.TokenId, buyCurrency.Version)
+
+		buySql := "update user_currency set `balance`=`balance`+?, `balance_cny`=`balance_cny`+?, `version`=`version`+1   WHERE uid=? and token_id=? and version=?"
+		buyRest, err := session.Exec(buySql, allNum, freezeCny, this.BuyId, this.TokenId, buyCurrency.Version)
 		if err != nil {
 			fmt.Println("买家添加余额失败, ", err.Error())
 			log.Println(err.Error())
@@ -542,8 +547,8 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		}
 	} else {
 		fmt.Println("no has....")
-		insertSql := "insert into user_currency (uid, token_id, token_name, balance, version) values (?, ?, ?, ?, 0)"
-		buyRest, err := session.Exec(insertSql, this.BuyId, this.TokenId, tokenName, allNum)
+		insertSql := "insert into user_currency (uid, token_id, token_name, balance,balance_cny , version) values (?, ?, ?, ?, ?, 0)"
+		buyRest, err := session.Exec(insertSql, this.BuyId, this.TokenId, tokenName, allNum, freezeCny)
 		if err != nil {
 			fmt.Println("买家添加余额失败, ", err.Error())
 			log.Println(err.Error())
@@ -718,6 +723,9 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 	}
 
 	code = ERRCODE_SUCCESS
+
+	/////    检查广告是否需要下架
+	go AdsAutoDownline(adsM.Id)
 	return
 }
 
@@ -886,9 +894,19 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	/////////////////////////////////////////////////////////
 	// 1. user_currency 还原 freeze
 	////////////////////////////////////////////////////////
+
 	sellNum := rateFee + allNum
-	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
-	sqlRest, err := session.Exec(sellSql, sellNum, sellNum, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	freezeCny := convert.Int64MulInt64By8Bit(sellNum, od.Price)
+
+	if uCurrency.Freeze - sellNum < 0 {
+		sellNum = 0
+	}
+	if uCurrency.FreezeCny - freezeCny <0 {
+		freezeCny = 0
+	}
+
+	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`balance_cny`=`balance_cny`+?, `freeze_cny`=`freeze_cny`-?   `version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
+	sqlRest, err := session.Exec(sellSql, sellNum, sellNum,freezeCny, freezeCny, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 
 	if err != nil {
 		fmt.Println("user_currency 还原 freeze error")
