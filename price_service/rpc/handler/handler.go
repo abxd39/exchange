@@ -26,8 +26,8 @@ func (s *RPCServer) CurrentPrice(ctx context.Context, req *proto.CurrentPriceReq
 		return nil
 	}
 	e := q.GetEntry()
-	h,l:=q.GetDay1MaxPrice()
-	rsp.Data = model.Calculate(e.Price, e.Amount, q.CnyPrice, q.Symbol,h,l)
+	h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
+	rsp.Data = model.Calculate(e.Price, e.Amount, q.CnyPrice, q.Symbol, h, l)
 	return nil
 }
 
@@ -193,6 +193,25 @@ func (s *RPCServer) Symbols(ctx context.Context, req *proto.NullRequest, rsp *pr
 	return nil
 }
 
+func (s *RPCServer) GetCnyPrices(ctx context.Context, req *proto.CnyPriceRequest, rsp *proto.CnyPriceResponse) error {
+
+	d := make([]*proto.CnyBaseData, 0)
+	for _, v := range req.TokenTradeId {
+		g, ok := model.GetQueneMgr().PriceMap[v]
+		if !ok {
+			continue
+		}
+
+		d = append(d, &proto.CnyBaseData{
+			TokenId:  v,
+			CnyPrice: g.CnyPrice,
+			UsdPrice: g.UsdPrice,
+		})
+	}
+
+	return nil
+}
+
 func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
 	g := model.GetConfigQuenesByType(req.TokenId)
 
@@ -204,8 +223,8 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 		}
 
 		price := q.GetEntry().Price
-		h,l:=q.GetDay1MaxPrice()
-		r := model.Calculate(price, q.GetEntry().Amount, q.CnyPrice, q.Symbol,h,l)
+		h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
+		r := model.Calculate(price, q.GetEntry().Amount, q.CnyPrice, q.Symbol, h, l)
 
 		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
 			Symbol: v.Name,
@@ -248,7 +267,7 @@ func (s *RPCServer) GetSymbolsRate(ctx context.Context, req *proto.GetSymbolsRat
 func getSymbolRate(symbol string) (data *proto.RateBaseData, ok bool) {
 	q, ok := model.GetQueneMgr().GetQueneByUKey(symbol)
 	if !ok {
-		//fmt.Println(symbol, ok)
+		fmt.Println(symbol, ok)
 		//return getOtherSymbolRage(symbol)
 		return
 	} else {
@@ -274,13 +293,13 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 	tmpSymToUSDT := fmt.Sprintf("%s/USDT", tmpSym[0])
 	toUSDTQ, ok := model.GetQueneMgr().GetQueneByUKey(tmpSymToUSDT)
 	if !ok {
-		//fmt.Println(tmpSymToUSDT, " not ok!!!")
+		fmt.Println(tmpSymToUSDT, " not ok!!!")
 		return
 	}
 	usdtToTmpSym := fmt.Sprintf("%s/USDT", tmpSym[1])
 	usdtToQ, ok := model.GetQueneMgr().GetQueneByUKey(usdtToTmpSym)
 	if !ok {
-		//fmt.Println(usdtToTmpSym, " not ok!!!!")
+		fmt.Println(usdtToTmpSym, " not ok!!!!")
 		return
 	}
 	BTCPrice := toUSDTQ.GetEntry()

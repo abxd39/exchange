@@ -49,13 +49,18 @@ message ArticleListResponse{
 		string title 			=2;
 		string description 		=3;
 		string create_dateTime 	=4;
+		string covers=5;
 		
 	} 
 	repeated Article  article =1;
 	int32 code               =2;
 	string message          =3;
 	string data				=4;
-	int32 total_page		=5; 
+	bool  isPage =5;  
+	int32 page_index=6;  // 当前页码
+	int32 page_cize=7;     // 每页数据条数
+	int32 page_count=8; // 总页数
+	int32 total=9;      // 总数据条数 
 }
 
 message ArticleRequest{

@@ -6,8 +6,9 @@ import (
 	"digicon/public_service/dao"
 	//Dlog "digicon/public_service/log"
 	Dlog "github.com/sirupsen/logrus"
-	"fmt"
 	"log"
+	"digicon/common/model"
+	"fmt"
 )
 
 type Article struct {
@@ -32,9 +33,11 @@ type Article struct {
 }
 
 type Article_list struct {
+	model.ModelList  `xorm:"-"`
 	Id          int    `xorm:"not null pk autoincr comment('自增ID') INT(10)"`
 	Description string `xorm:"default '' comment('描述') VARCHAR(1000)"`
 	Title       string `xorm:"not null default '' comment('文章标题') VARCHAR(100)"`
+	Covers        string `xorm:"default '' comment('封面图片') VARCHAR(1000)"`
 	CreateTime  string `xorm:"default '' comment('创建时间') VARCHAR(36)"`
 }
 type ArticleType struct {
@@ -57,42 +60,28 @@ func (ArticleType) GetArticleTypeList() ([]ArticleType, error) {
 	return list, nil
 }
 
-func (Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list) (int, int32) {
+func (a Article_list) ArticleList(req *proto.ArticleListRequest, u *[]Article_list) (*model.ModelList, int32) {
 	//err := s.mysql.im.Find(&u)
 	//default_page_count := int(10)
-	fmt.Println("llllllllllllllllllllllllllllllllllllllllll")
-	var total_page int
-	page_num := int(req.PageNum)
-	page := int(req.Page)
-	list := new(Article_list)
-	if page <= 0 {
-		page = 1
-	}
-	if page_num <= 0 {
-		page_num = 10
-	}
+
 	engine := dao.DB.GetMysqlConn()
 
 	//没有指定 每页的行数
-	var star_row int
-	if page > 1 {
-		star_row = (int(page) - 1) * int(page_num)
-	}
-	total, err := engine.Where("type =?", req.ArticleType).Count(list)
+	count, err := engine.Where("type =? and astatus=1", req.ArticleType).Count(&Article_list{})
 	if err != nil {
 		Dlog.Errorln(err.Error())
-		return 0, ERRCODE_UNKNOWN
+		return nil, ERRCODE_UNKNOWN
 	}
+	offset,mList:= model.Paging(int(req.Page),int(req.PageNum),int(count))
 
-	fmt.Println("total=", total, "type=", req.ArticleType, "page=", page, "起始行star_row=", star_row, "page_num=", page_num)
-	err = engine.Desc("id").AllCols().Where("type=?", req.ArticleType).Limit(int(page_num), int(star_row)).Find(u)
+	fmt.Println("total=",mList.Total, "type=", req.ArticleType, "page=", mList.PageSize, "起始行star_row=", mList.PageIndex, "page_num=", offset)
+	err = engine.Desc("id").AllCols().Where("astatus=1 and type=?", req.ArticleType).Limit(mList.PageSize,offset).Find(u)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	total_page = int(total)
-	total_page = total_page / page_num
-	return total_page, ERRCODE_SUCCESS
+
+	return mList, ERRCODE_SUCCESS
 
 }
 

@@ -128,7 +128,7 @@ enum TOKEN_TYPE_OPERATOR
     HISTORY_IVITE                           =4;//邀请奖励
     HISTORY_ENTRUST_DEL                     =5;//撤销委托
     HISTORY_TRADE                           =6;//交易入账
-    HISTORY_FRONZE_BACK                     =7;//
+    HISTORY_FRONZE_BACK                     =7;//冻结退回
     HISTORY_FRONZE_SYS_SURPLUS              =8;//系统自动退小额余额
     FROZEN_COMFIRM_DEL                      =9;//交易确认扣减冻结数量
     TRANSFER_TO_CURRENCY                    =10;//划转到法币

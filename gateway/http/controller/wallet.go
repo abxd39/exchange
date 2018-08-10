@@ -35,6 +35,10 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.GET("out_list", this.OutList)
 
 	r.POST("/tibi_apply", this.TibiApply)           //
+
+	r.POST("/tibi_cancel", this.TiBiCancel)           //
+
+	r.POST("/get_address", this.GetAddress)       // 获取充值地址
 }
 
 ///////////////////////// start btc ///////////////////////////
@@ -48,7 +52,8 @@ func (this *WalletGroup) BtcSigntx(ctx *gin.Context) {
 		Uid     int32  `form:"uid"          json:"uid"        binding:"required"` // 用户 id
 		TokenId int32  `form:"token_id"     json:"token_id"   binding:"required"` // 币种ID
 		Address string `form:"address"      json:"address"    binding:"required"` // 要发送给的地址
-		Amount  string `form:"amount"       json:"amount"     binding:"required"`
+		Amount  string `form:"amount"       json:"amount"     binding:"required"` //交易总量
+		Applyid int32 `form:"apply_id"     json:"amount"     binding:"required"` //申请提币id
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -62,6 +67,7 @@ func (this *WalletGroup) BtcSigntx(ctx *gin.Context) {
 		Tokenid: param.TokenId,
 		Address: param.Address,
 		Amount:  param.Amount,
+		Applyid:param.Applyid,
 	})
 	if err != nil {
 		log.Errorln(err.Error())
@@ -84,9 +90,10 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	type Param struct {
 		Uid     int32  `form:"uid"      json:"uid"       binding:"required"`
 		TokenId int32  `form:"token_id" json:"token_id"  binding:"required"`
-		To      string `form:"to"       json:"to"        binding:"required"`
+		Address      string `form:"address"       json:"address"        binding:"required"`
 		Amount  string `form:"amount"   json:"amount"    binding:"required"`
 		//Gasprice int32  `form:"gasprice" binding:"required"`
+		Applyid int32 `form:"apply_id"     json:"amount"     binding:"required"` //申请提币id
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -98,8 +105,9 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.CallBtcTibi(&proto.BtcTibiRequest{
 		Uid:     param.Uid,
 		Tokenid: param.TokenId,
-		To:      param.To,
+		Address:      param.Address,
 		Amount:  param.Amount,
+		Applyid:param.Applyid,
 	})
 	if err != nil {
 		log.Errorln(err.Error())
@@ -122,8 +130,8 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 	defer func() {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
-	userid, _ := strconv.Atoi(ctx.Query("uid"))
-	tokenid, _ := strconv.Atoi(ctx.Query("token_id"))
+	userid, _ := strconv.Atoi(ctx.PostForm("uid"))
+	tokenid, _ := strconv.Atoi(ctx.PostForm("token_id"))
 
 	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(userid, tokenid)
 	if err != nil {
@@ -132,7 +140,12 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
+	if rsp.Code != "0" {
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
+		return
+	}
+	ret.SetDataSection("type", rsp.Data.Type)
+	ret.SetDataSection("addr", rsp.Data.Addr)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
@@ -143,12 +156,12 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-	userid, err1 := strconv.Atoi(ctx.Query("uid"))
-	tokenid, err2 := strconv.Atoi(ctx.Query("token_id"))
+	userid, err1 := strconv.Atoi(ctx.PostForm("uid"))
+	tokenid, err2 := strconv.Atoi(ctx.PostForm("token_id"))
 	//to := "0x8e430b7fc9c41736911e1699dbcb6d4753cbe3b6"
-	to := ctx.Query("to")
-	gasprice, err3 := strconv.ParseInt(ctx.Query("gasprice"), 10, 64)
-	amount := ctx.Query("amount")
+	to := ctx.PostForm("to")
+	gasprice, err3 := strconv.ParseInt(ctx.PostForm("gasprice"), 10, 64)
+	amount := ctx.PostForm("amount")
 	if err1 != nil || err2 != nil || err3 != nil {
 		// ctx.String(http.StatusOK, "参数错误")
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
@@ -163,7 +176,7 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection("signtx", rsp.Data.Signtx)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 
 }
@@ -194,6 +207,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	type Param struct {
 		TokenId int32  `form:"token_id" binding:"required"`
 		Signtx  string `form:"signtx" binding:"required"`
+		Applyid int32 `form:"apply_id"     json:"amount"     binding:"required"` //申请提币id
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -201,13 +215,13 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx)
+	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx,param.Applyid)
 	if err != nil {
-		fmt.Println(rsp.Code)
+		//fmt.Println(rsp.Code)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	ret.SetDataSection("data", rsp.Data)
+	ret.SetDataSection("result", rsp.Data.Result)
 	//ret.SetDataSection("msg", rsp.Msg)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
@@ -538,7 +552,7 @@ func (this *WalletGroup) TibiApply(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	rsp, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount,param.RealAmount,param.SmsCode,param.EmailCode,param.Password)
+	_, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount,param.RealAmount,param.SmsCode,param.EmailCode,param.Password)
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
 		log.Errorln(err.Error())
@@ -546,7 +560,36 @@ func (this *WalletGroup) TibiApply(ctx *gin.Context) {
 		return
 	}
 	//ctx.JSON(http.StatusOK, rsp)
-	ret.SetDataSection("msg", rsp.Msg)
+	//ret.SetDataSection("msg", rsp.Msg)
+	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
+}
+
+//撤销提币
+func (this *WalletGroup) TiBiCancel(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+}
+
+func (this *WalletGroup) GetAddress(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+	userid, _ := strconv.Atoi(ctx.PostForm("uid"))
+	tokenid, _ := strconv.Atoi(ctx.PostForm("token_id"))
+
+	rsp, err := rpc.InnerService.WalletSevice.CallGetAddress(userid, tokenid)
+	if err != nil {
+		//ret.SetDataSection("msg", rsp.Msg)
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetDataSection("type", rsp.Type)
+	ret.SetDataSection("addr", rsp.Addr)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }

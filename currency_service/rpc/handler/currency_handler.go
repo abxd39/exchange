@@ -369,7 +369,6 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 
 	otherSymbolMap := make(map[uint32]string)
 	for _, dt := range data {
-		fmt.Println("dt:", dt)
 		if dt.TokenName != "BTC" {
 			if dt.TokenName != ""{
 				symbol := fmt.Sprintf("BTC/%s", dt.TokenName)
@@ -421,20 +420,29 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		rsp.Data = "{}"
 		//return err
 	} else {
+		commontk := new(model.CommonTokens)
+		BtcToken := commontk.Get(0, "BTC")
+		btcTokenId := BtcToken.Id
+		err = tkconfig.GetPrice(btcTokenId)
+		var btcConfigPrice int64
+		if err != nil {
+			log.Println("get btc price error:", err)
+			btcConfigPrice = 0
+		}else{
+			btcConfigPrice = tkconfig.Price
+		}
 		for _, dt := range data {
 			var tmp RespBalance
 			var valuation float64
 			if dt.TokenName == "BTC" {
-				err = tkconfig.GetPrice(dt.TokenId)
-				if err != nil {
+				if btcConfigPrice <= 0{
 					sumcny += 0
 				}else{
-					int64valuetion := convert.Int64MulInt64By8Bit(tkconfig.Price, dt.Balance)
+					int64valuetion := convert.Int64MulInt64By8Bit(btcConfigPrice, dt.Balance)
 					valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64valuetion), 2)
 					sumcny += int64valuetion
 				}
 				sum += dt.Balance
-
 			} else {
 				var symbol string
 				if dt.TokenName != ""{
@@ -443,20 +451,26 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 					symbol = fmt.Sprintf("BTC/%s", otherSymbolMap[dt.TokenId])
 				}
 				symPrice := symbolData.Data[symbol]
-
 				fmt.Println("symPrice:", symPrice, " symbol: ", symbol)
 				if symPrice != nil {
-					//fmt.Println("cnyPrice: ", symPrice.Price, symPrice.CnyPrice, dt.TokenName)
 					int64price, _ := convert.StringToInt64By8Bit(symPrice.Price)
 					if int64price > 0 {
 						sum += convert.Int64DivInt64By8Bit(dt.Balance, int64price)
+						int64cynPrice := convert.Int64DivInt64By8Bit(btcConfigPrice, int64price)
+						if int64cynPrice > 0 {
+							int64Valueation := convert.Int64MulInt64By8Bit(dt.Balance, int64cynPrice)
+							valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64Valueation), 2)
+							sumcny += int64Valueation
+						}else{
+							sumcny += 0
+						}
+					}else{
+						sum += 0
+						sumcny += 0
 					}
-					int64cynPrice, _ := convert.StringToInt64By8Bit(symPrice.CnyPrice)
-					if int64cynPrice > 0 {
-						int64Valueation := convert.Int64MulInt64By8Bit(dt.Balance, int64cynPrice)
-						valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64Valueation), 2)
-						sumcny += int64Valueation
-					}
+				}else{
+					sum += 0
+					sumcny += 0
 				}
 			}
 			if dt.TokenName != ""{
@@ -464,7 +478,6 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			}else{
 				tmp.TokenName = otherSymbolMap[dt.TokenId]
 			}
-
 			tmp.TokenId = dt.TokenId
 			tmp.Id = dt.Id
 			tmp.Uid = dt.Uid
@@ -622,7 +635,9 @@ func (s *RPCServer) GetUserRating(ctx context.Context, req *proto.GetUserRatingR
 
 	var allminute int64
 	for _, od := range Orders {
+		fmt.Println(model.GetHourDiffer(od.CreatedTime, od.ConfirmTime.String))
 		allminute = allminute + model.GetHourDiffer(od.CreatedTime, od.ConfirmTime.String)
+
 	}
 
 	rateAndAuth := new(UserRateAndAuth)

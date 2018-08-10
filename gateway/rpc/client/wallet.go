@@ -57,8 +57,8 @@ func (this *WalletRPCCli) CallSigntx(userid int, tokenid int, to string, gaspric
 	}
 	return
 }
-func (this *WalletRPCCli) CallSendRawTx(tokenid int32, signtx string) (rsp *proto.SendRawTxResponse, err error) {
-	rsp, err = this.conn.SendRawTx(context.TODO(), &proto.SendRawTxRequest{TokenId: tokenid, Signtx: signtx})
+func (this *WalletRPCCli) CallSendRawTx(tokenid int32, signtx string,applyId int32) (rsp *proto.SendRawTxResponse, err error) {
+	rsp, err = this.conn.SendRawTx(context.TODO(), &proto.SendRawTxRequest{TokenId: tokenid, Signtx: signtx,Applyid:applyId})
 	if err != nil {
 		log.Errorln(err.Error())
 		return
@@ -74,7 +74,7 @@ func (this *WalletRPCCli) CallTibi(uid int32, token_id int32, to string, gaspric
 	return
 }
 func (this *WalletRPCCli) CallTibiApply(uid int32, token_id int32, to string, gasprice string, amount string,real_amount string,sms_code string,email_code string,password string) (rsp *proto.TibiApplyResponse, err error) {
-	rsp, err = this.conn.TibiApply(context.TODO(), &proto.TibiApplyRequest{Uid: (uid), Tokenid: (token_id), To: to, Gasprice: (gasprice), Amount: amount})
+	rsp, err = this.conn.TibiApply(context.TODO(), &proto.TibiApplyRequest{Uid: (uid), Tokenid: (token_id), To: to, Gasprice: (gasprice), Amount: amount,RealAmount:real_amount})
 	if err != nil {
 		log.Errorln(err.Error())
 		return
@@ -147,6 +147,15 @@ func (this *WalletRPCCli) CallOutList(req *proto.OutListRequest) (rsp *proto.Out
 	rsp, err = this.conn.OutList(context.TODO(), req)
 	if err != nil {
 		log.Error(err.Error())
+		return
+	}
+	return
+}
+
+func (this *WalletRPCCli) CallGetAddress(userid int, tokenid int) (rsp *proto.GetAddressResponse, err error) {
+	rsp, err = this.conn.GetAddress(context.TODO(), &proto.GetAddressRequest{Userid: int32(userid), Tokenid: int32(tokenid)})
+	if err != nil {
+		log.Errorln(err.Error())
 		return
 	}
 	return

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"digicon/common/convert"
 	. "digicon/wallet_service/utils"
 	"encoding/json"
 	"errors"
@@ -69,13 +68,15 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 	if err != nil {
 		fmt.Println("create btc token error")
 	}
-	return walletTokenModel.Address, err
+	walletToken := new(WalletToken)
+	walletToken.GetByUidTokenid(userId,tokenId)
+	return walletToken.Address, err
 }
 
 //
 // btc send to address
 //
-func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (string, error) {
+func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int,applyid int) (string, error) {
 	wToken := new(WalletToken)
 	wToken.GetByUid(uid)
 	password := wToken.Password
@@ -108,14 +109,16 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (s
 		log.Errorf(err.Error())
 		return "", err
 	}
-	amount, err := convert.StringToInt64By8Bit(mount)
-	if err != nil {
-		fmt.Println(err)
-	}
+	//amount, err := convert.StringToInt64By8Bit(mount)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
 	tio := new(TokenInout) //
-	row, err := tio.BtcInsert(txHash, wToken.Address, toAddress, "BTC", amount,
-		wToken.Chainid, int(tokenId), 0, int(uid),
-	)
+	//更新
+	row,err := tio.UpdateApplyTiBi(applyid,txHash)
+	//row, err := tio.BtcInsert(txHash, wToken.Address, toAddress, "BTC", amount,
+	//	wToken.Chainid, int(tokenId), 0, int(uid),
+	//)
 
 	if err != nil || row <= 0 {
 		log.Errorln(err.Error())
@@ -128,9 +131,9 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int) (s
 /*
 	btc tibi
 */
-func BtcTiBiToAddress(toAddress string, mount string, TokenId int32, uid int32) (string, error) {
+func BtcTiBiToAddress(toAddress string, mount string, TokenId int32, uid int32,applyid int) (string, error) {
 	//fmt.Println(toAddress, mount, TokenId, uid)
-	txhash, err := BtcSendToAddress(toAddress, mount, TokenId, int(uid))
+	txhash, err := BtcSendToAddress(toAddress, mount, TokenId, int(uid),applyid)
 	return txhash, err
 }
 
