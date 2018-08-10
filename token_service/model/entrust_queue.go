@@ -13,13 +13,13 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
 
-	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
+	"digicon/common/random"
 )
 
 const (
@@ -350,8 +350,12 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	fee := convert.Int64MulFloat64(buy_num, s.BuyPoundage) //买家消耗手续费0.005个USDT
 
 	//no := encryption.CreateOrderId(buyer.Uid, int32(s.TokenId))
+	/*
 	uuid, _ := uuid.NewV1()
 	no := uuid.String()
+	*/
+	rand:=random.Krand(6,random.KC_RAND_KIND_LOWER)
+	no:=fmt.Sprintf("%d_%s",time.Now().Unix(),rand)
 	trade_time := time.Now().Unix()
 	t := &Trade{
 		TradeNo:      no,
@@ -456,6 +460,31 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	}
 
 	err = new(Trade).Insert(session, t, o)
+	if err != nil {
+		session.Rollback()
+		return
+	}
+
+
+	tfree:=&TokenFreeHistory{
+		TokenId:buy_trade_token_account.TokenId,
+		Opt:int(proto.TOKEN_OPT_TYPE_ADD),
+		Type:  int(proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE),
+		Num:fee,
+
+		Ukey:t.TradeNo,
+	}
+
+	ofree:=&TokenFreeHistory{
+		TokenId:sell_trade_token_account.TokenId,
+		Opt:int(proto.TOKEN_OPT_TYPE_ADD),
+		Type:  int(proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE),
+		Num:sell_fee,
+
+		Ukey:o.TradeNo,
+	}
+
+	err = InsertIntoTokenFreeHistory(session,tfree,ofree)
 	if err != nil {
 		session.Rollback()
 		return

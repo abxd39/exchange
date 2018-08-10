@@ -18,6 +18,7 @@ type Tokens struct {
 	Logo      string `xorm:"default '' comment('货币logo') VARCHAR(255)"`
 	Contract  string `xorm:"default '' comment('合约地址') VARCHAR(255)"`
 	Node      string `xorm:"default '' comment('节点地址') VARCHAR(100)"`
+	Status    int `xorm:"default '' comment('状态') VARCHAR(64)"`
 	Decimal   int    `xorm:"not null default 1 comment('精度 1个eos最小精度的10的18次方') INT(11)"`
 }
 

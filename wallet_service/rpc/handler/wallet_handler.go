@@ -24,10 +24,41 @@ func (s *WalletHandler) Hello(ctx context.Context, req *proto.HelloRequest2, rsp
 
 func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalletRequest, rsp *proto.CreateWalletResponse) error {
 	log.Print("Received Say.CreateWallet request")
-	fmt.Println(req.String())
+
 	var err error
 	var addr string
 	rsp.Data = new(proto.CreateWalletPos)
+
+	//查询token状态
+	tokenP := new(Tokens)
+	b,e := tokenP.GetByid(int(req.Tokenid))
+	if b != true || e != nil {
+		rsp.Code = "1"
+		rsp.Msg = err.Error()
+		rsp.Data.Type = ""
+		rsp.Data.Addr = ""
+		return nil
+	}
+	if tokenP.Status == 2 {
+		rsp.Code = "1"
+		rsp.Msg = "Token暂不可用"
+		rsp.Data.Type = ""
+		rsp.Data.Addr = ""
+		return nil
+	}
+
+	//判断钱包是否存在
+	existsWalletToken := new(WalletToken)
+	boo,address,signature := existsWalletToken.WalletTokenExist(int(req.Userid), int(req.Tokenid))
+	if boo == true {
+		rsp.Code = "0"
+		rsp.Msg = address
+		rsp.Data.Type = signature
+		rsp.Data.Addr = address
+		return nil
+	}
+
+	fmt.Println(req.String())
 	tokenModel := &Tokens{Id: int(req.Tokenid)}
 	_, err = tokenModel.GetByid(int(req.Tokenid))
 
@@ -44,6 +75,13 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	if err != nil {
 		rsp.Code = "1"
 		rsp.Msg = err.Error()
+		rsp.Data.Type = tokenModel.Signature
+		rsp.Data.Addr = ""
+		return nil
+	}
+	if addr == "" {
+		rsp.Code = "1"
+		rsp.Msg = "创建失败"
 		rsp.Data.Type = tokenModel.Signature
 		rsp.Data.Addr = ""
 		return nil
@@ -83,9 +121,32 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	}
 	deci_temp, err := decimal.NewFromString(req.Mount)
 	mount := deci_temp.Round(int32(deciml)).Coefficient()
-	signtxstr, err := keystore.Signtx(req.To, mount, req.Gasprice)
+	
+	//获取随机数
+	tokenData := new(Tokens)
+	tokenData.GetByid(int(req.Tokenid))
+	nonce,nonce_err := utils.RpcGetNonce(tokenData.Node,keystore.Address)
 
-	fmt.Println("生成的签名：",signtxstr)
+	fmt.Println("签名随机数：",nonce,nonce_err)
+
+	if nonce_err != nil  {
+		rsp.Code = "1"
+		rsp.Msg = "获取随机数失败"
+		return nil
+	}
+
+	//获取gasprice
+	gasPrice,gasErr := utils.RpcGetGasPrice(tokenData.Node)
+	fmt.Println("获取gasprice:",gasErr,gasPrice)
+	if gasErr != nil  {
+		rsp.Code = "1"
+		rsp.Msg = "获取gasprice失败"
+		return nil
+	}
+	
+	signtxstr, err := keystore.Signtx(req.To, mount, gasPrice,nonce+1)
+
+	fmt.Println("生成的签名：",mount,signtxstr)
 
 	if err != nil {
 		rsp.Code = "1"
@@ -109,6 +170,9 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 		rsp.Msg = "token不存在"
 		return nil
 	}
+
+	fmt.Println("发送交易：",TokenModel.Node,req.Signtx)
+
 	rets, err := utils.RpcSendRawTx(TokenModel.Node, req.Signtx)
 	if err != nil {
 		rsp.Code = "1"
@@ -340,5 +404,23 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 
 	rsp.Code = 0
 	rsp.Msg = "保存成功"
+	return nil
+}
+
+func (s *WalletHandler) GetAddress(ctx context.Context, req *proto.GetAddressRequest, rsp *proto.GetAddressResponse) error {
+	log.Print("Received Say.CreateWallet request")
+	fmt.Println(req.String())
+	walletToken := new(WalletToken)
+	err := walletToken.GetByUidTokenid(int(req.Userid), int(req.Tokenid))
+	if err != nil {
+		rsp.Code = "1"
+		rsp.Msg = err.Error()
+		rsp.Addr = ""
+		return nil
+	}
+	rsp.Code = "0"
+	rsp.Msg = "成功"
+	rsp.Addr = walletToken.Address
+	rsp.Type = walletToken.Type
 	return nil
 }

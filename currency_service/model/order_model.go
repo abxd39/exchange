@@ -279,6 +279,12 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	/// 0
 	adsM := new(Ads).Get(this.AdId)
+	if adsM.States == 0 {
+		msg := "订单已下架"
+		log.Println(msg)
+		code = ERRCODE_ADS_NOTEXIST
+	}
+
 	if adsM.Num < uint64(this.Num) {
 		msg := "下单失败,购买的数量大于订单的数量!"
 		//fmt.Println(msg)
@@ -311,10 +317,16 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	session := engine.NewSession()
 	/// 1. 卖家冻结
-
+	balanceCny := convert.Int64MulInt64By8Bit(uCurrency.Balance, this.Price)
 	freezeCny := convert.Int64MulInt64By8Bit(freeze, this.Price)
-	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`balance_cny`=`balance_cny`-?, `freeze_cny`=`freeze_cny`+? , `version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
-	sqlRest, err := session.Exec(sellSql, freeze, freeze, freezeCny, freezeCny,this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
+	var newBalanceCny int64
+	if balanceCny >= freezeCny{
+		newBalanceCny = balanceCny - freezeCny
+	}else{
+		newBalanceCny = 0
+	}
+	sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`balance_cny`=?, `freeze_cny`=`freeze_cny`+? , `version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
+	sqlRest, err := session.Exec(sellSql, freeze, freeze, freezeCny,  newBalanceCny,this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	//sellSql := "update user_currency set  `freeze`=`freeze`+ ?, `balance`=`balance`-?,`version`=`version`+1  WHERE  `uid` = ? and `token_id` = ? and `version`=?"
 	//sqlRest, err := session.Exec(sellSql, freeze, freeze, this.SellId, this.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 	if err != nil {
@@ -369,6 +381,22 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 		return
 	}
 
+	//////////////////////////////////////////////////////
+	// 4. 广告个数减去相应的数量
+	//////////////////////////////////////////////////////
+
+	updateAdsSql := "update `ads` set `num`=`num`-?, `updated_time`=?  WHERE `id`=? "
+	_,err = session.Exec(updateAdsSql, freeze, nowTime, this.AdId)
+	if err != nil {
+		fmt.Println("update ads num states error:", err.Error())
+		log.Println(err.Error())
+		session.Rollback()
+		code = ERRCODE_TRADE_ERROR_ADS_NUM
+		return
+	}
+
+
+
 	/// 4. 自动回复的消息
 	fmt.Println("ads reply: ", adsM.Reply)
 	if adsM.Reply != ""{
@@ -405,6 +433,8 @@ func (this *Order) Add(curUId int32) (id uint64, code int32) {
 
 	/////    检查是否超时
 	go CheckOrderExiryTime(id, this.ExpiryTime)
+	/////    检查广告是否需要下架
+	go AdsAutoDownline(adsM.Id)
 
 	return
 }
@@ -669,29 +699,8 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		code = ERRCODE_UNKNOWN
 		return code, err
 	}
-
-
-	//////////////////////////////////////////////////////
-	// 4. 广告个数减去相应的数量
-	//////////////////////////////////////////////////////
-	adsM := new(Ads).Get(this.AdId)
-	if adsM.Num < uint64(allNum) {
-		fmt.Println("下单失败,购买的数量大于订单的数量!", err.Error())
-		log.Println(err.Error())
-		session.Rollback()
-		code = ERRCODE_TRADE_ERROR_ADS_NUM
-		return code, err
-	}
 	now := time.Now().Format("2006-01-02 15:04:05")
-	updateAdsSql := "update `ads` set `num`=`num`-?, `updated_time`=?  WHERE `id`=? "
-	_,err = session.Exec(updateAdsSql, allNum, now, this.AdId)
-	if err != nil {
-		fmt.Println("update ads num states error:", err.Error())
-		log.Println(err.Error())
-		session.Rollback()
-		code = ERRCODE_TRADE_ERROR_ADS_NUM
-		return code, err
-	}
+	adsM := new(Ads).Get(this.AdId)
 
 
 	//////////////////////////////////////////////////////
@@ -905,7 +914,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 		freezeCny = 0
 	}
 
-	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`balance_cny`=`balance_cny`+?, `freeze_cny`=`freeze_cny`-?   `version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
+	sellSql := "update user_currency set   `balance`=`balance`+?, `freeze`=`freeze` - ?,`balance_cny`=`balance_cny`+?, `freeze_cny`=`freeze_cny`-? ,  `version`=`version`+1  WHERE  uid = ? and token_id = ? and version = ?"
 	sqlRest, err := session.Exec(sellSql, sellNum, sellNum,freezeCny, freezeCny, od.SellId, od.TokenId, uCurrency.Version) // 卖家 扣除平台费用
 
 	if err != nil {
@@ -933,6 +942,7 @@ func CancelAction(id uint64, CancelType uint32) (err error){
 	sql := "UPDATE   `order`   SET   `states`=? , `cancel_type`=?, `updated_time`=?  WHERE  `id`=?"
 	_, err = session.Exec(sql, 4, CancelType, now, od.Id)
 	if err != nil {
+		log.Println("CancelType:", CancelType)
 		log.Errorln(err.Error())
 		session.Rollback()
 		return

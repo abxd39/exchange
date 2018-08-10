@@ -68,7 +68,9 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 	if err != nil {
 		fmt.Println("create btc token error")
 	}
-	return walletTokenModel.Address, err
+	walletToken := new(WalletToken)
+	walletToken.GetByUidTokenid(userId,tokenId)
+	return walletToken.Address, err
 }
 
 //

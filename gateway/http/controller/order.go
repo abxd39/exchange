@@ -19,8 +19,8 @@ type OrderRequest struct {
 
 type CancelOrderRequest struct {
 	OrderRequest
-	CancelType uint32 `form:"id" json:"cancel_type" binding:"required"` //取消类型: 1卖方 2 买方
-	Uid        int32  `form:"id" json:"uid"  binding:"required"`        //
+	CancelType uint32 `form:"cancel_type" json:"cancel_type" binding:"required"` //取消类型: 1卖方 2 买方
+	Uid        int32  `form:"uid" json:"uid"  binding:"required"`        //
 }
 
 type OtherType struct {
@@ -189,6 +189,9 @@ func (this CurrencyGroup) CancelOrder(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
+
+	fmt.Println(param)
+
 	rsp, err := rpc.InnerService.CurrencyService.CallCancelOrder(&proto.CancelOrderRequest{
 		Id:         param.Id,
 		CancelType: param.CancelType,
