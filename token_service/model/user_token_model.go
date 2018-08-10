@@ -131,7 +131,7 @@ func (s *UserToken) GetUserToken(uid uint64, token_id int) (err error) {
 }
 
 //获取实体
-func (s *UserToken) GetUserTokenInSession(session *xorm.Session, uid uint64, token_id int) (userToken *UserToken, err error) {
+func (s *UserToken) GetUserTokenInSession(session *xorm.Session, uid uint64, token_id int, tokenName string) (userToken *UserToken, err error) {
 	var ok bool
 	userToken = &UserToken{}
 	ok, err = session.Where("uid=? and token_id=?", uid, token_id).Get(userToken)
@@ -141,23 +141,17 @@ func (s *UserToken) GetUserTokenInSession(session *xorm.Session, uid uint64, tok
 	}
 
 	if !ok {
-		var token *OutCommonTokens
-		token, err = new(OutCommonTokens).Get(uint32(token_id))
-		if err != nil {
-			return
-		}
-
 		s.Uid = uid
-		s.TokenName = token.Name
+		s.TokenName = tokenName
 		s.TokenId = int(token_id)
 
-		_, err = DB.GetMysqlConn().InsertOne(s)
+		_, err = session.InsertOne(s)
 		if err != nil {
 			log.Errorln(err.Error())
 			return
 		}
 
-		ok, err = session.Where("uid=? and token_id=?", uid, token_id).Get(s)
+		ok, err = session.Where("uid=? and token_id=?", uid, token_id).Get(userToken)
 		if err != nil {
 			log.Errorln(err.Error())
 			return
@@ -256,6 +250,12 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 		return nil
 	}
 
+	//tokenName
+	token, err := new(OutCommonTokens).Get(uint32(rewardTokenId))
+	if err != nil {
+		return err
+	}
+
 	//整理数据
 	userTokenTableName := s.TableName()
 	FrozenHistoryTableName := new(FrozenHistory).TableName()
@@ -272,7 +272,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 	}
 
 	//1.自己
-	my, err := s.GetUserTokenInSession(tokenSession, uint64(uid), int(rewardTokenId))
+	my, err := s.GetUserTokenInSession(tokenSession, uint64(uid), int(rewardTokenId), token.Mark)
 	newFrozen := my.Frozen + rewardNum
 
 	var result sql.Result
@@ -308,7 +308,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 		return err
 	}
 	if inviteId := userEx.InviteId; inviteId > 0 { //有推荐人
-		invite, err := s.GetUserTokenInSession(tokenSession, uint64(inviteId), int(rewardTokenId))
+		invite, err := s.GetUserTokenInSession(tokenSession, uint64(inviteId), int(rewardTokenId), token.Mark)
 		if err != nil {
 			tokenSession.Rollback()
 			return errors.NewSys(err)
@@ -328,7 +328,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 
 		//流水
 		result, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s (uid, ukey, num, token_id, type, create_time, opt, frozen)"+
-			" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, inviteId, fmt.Sprintf("%d-%d", uid, inviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
+			" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, inviteId, fmt.Sprintf("%d-%d", uid, inviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
 		if err != nil {
 			tokenSession.Rollback()
 			return errors.NewSys(err)
@@ -345,7 +345,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 			return err
 		}
 		if secInviteId := inviteUserEx.InviteId; secInviteId > 0 { //有推荐人
-			secInvite, err := s.GetUserTokenInSession(tokenSession, uint64(secInviteId), int(rewardTokenId))
+			secInvite, err := s.GetUserTokenInSession(tokenSession, uint64(secInviteId), int(rewardTokenId), token.Mark)
 			if err != nil {
 				tokenSession.Rollback()
 				return errors.NewSys(err)
@@ -365,7 +365,7 @@ func (s *UserToken) RegisterReward(uid, rewardTokenId, rewardNum int64) error {
 
 			//流水
 			result, err = tokenSession.Exec(fmt.Sprintf("INSERT INTO %s (uid, ukey, num, token_id, type, create_time, opt, frozen)"+
-				" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, secInviteId, fmt.Sprintf("%d-%d-%d", uid, inviteId, secInviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_REGISTER, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
+				" VALUES (%d, '%s', %d, %d, %d, %d, %d, %d)", FrozenHistoryTableName, secInviteId, fmt.Sprintf("%d-%d-%d", uid, inviteId, secInviteId), rewardNum, rewardTokenId, proto.TOKEN_TYPE_OPERATOR_HISTORY_IVITE, now, proto.TOKEN_OPT_TYPE_ADD, newFrozen))
 			if err != nil {
 				tokenSession.Rollback()
 				return errors.NewSys(err)
