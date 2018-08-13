@@ -755,6 +755,29 @@ func (s *RPCServer) GetRecentTransactionPrice(ctx context.Context, req *proto.Ge
 	}
 }
 
+// 获取需要广告显示的币种
+func (s *RPCServer) DisplayCurrencyTokens(ctx context.Context, req *proto.CurrencyTokensRequest, rsp *proto.CurrencyTokensListResponse) error {
+	data := new(model.CommonTokens).DisplayCurrencyTokens()
+	//fmt.Println("data:", data)
+	if data == nil {
+		return nil
+	}
+	listLen := len(data)
+	listData := make([]*proto.CurrencyTokens, listLen)
+	for i := 0; i < listLen; i++ {
+		adsLists := &proto.CurrencyTokens{
+			Id:     data[i].Id,
+			Name:   data[i].Mark,
+			CnName: data[i].Name,
+		}
+		listData[i] = adsLists
+	}
+	rsp.Data = listData
+	return nil
+}
+
+
+
 // 法币划转到代币
 func (s *RPCServer) TransferToToken(ctx context.Context, req *proto.TransferToTokenRequest, rsp *proto.OtherResponse) error {
 	userCurrencyModel := &model.UserCurrency{}

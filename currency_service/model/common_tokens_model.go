@@ -79,3 +79,15 @@ func (this *CommonTokens) GetByTokenIds(ids []int) (data []CommonTokens){
 	}
 	return
 }
+
+
+// 获取需要广告显示的币种
+func (this *CommonTokens) DisplayCurrencyTokens() []CommonTokens {
+	data := make([]CommonTokens, 0)
+	err := dao.DB.GetCommonMysqlConn().Table("tokens").Where("display = 1").Find(&data)
+	if err != nil {
+		log.Errorln(err.Error())
+		return nil
+	}
+	return data
+}
