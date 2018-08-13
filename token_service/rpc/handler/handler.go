@@ -354,9 +354,18 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		var cnyPrice int64
 		for _, v2 := range cnyPricesRsp.Data {
 			if v.TokenId == int(v2.TokenId) {
-				cnyPrice = v2.CnyPrice
+				cnyPrice = v2.CnyPriceInt
 				break
 			}
+		}
+
+		worthCny, err := strconv.ParseFloat(fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(convert.Int64MulInt64By8Bit(v.TotalBalance, cnyPrice))), 64)
+		if err != nil {
+			err = errors.NewSys(err)
+
+			rsp.Err = int32(errors.GetErrStatus(err))
+			rsp.Message = errors.GetErrMsg(err)
+			return nil
 		}
 
 		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
@@ -364,7 +373,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			TokenName: v.TokenName,
 			Balance:   convert.Int64ToFloat64By8Bit(v.Balance),
 			Frozen:    convert.Int64ToFloat64By8Bit(v.Frozen),
-			WorthCny:  convert.Int64ToFloat64By8Bit(convert.Int64MulInt64By8Bit(v.TotalBalance, cnyPrice)),
+			WorthCny:  worthCny,
 		}
 	}
 
@@ -376,12 +385,13 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		return nil
 	}
 
-	var totalCny int64
+	// 1.折合人民币
+	var totalCnyInt int64
 	for _, total := range totalList {
 		var cnyPrice int64
 		for _, v := range cnyPricesRsp.Data {
 			if total.TokenId == int(v.TokenId) {
-				cnyPrice = v.CnyPrice
+				cnyPrice = v.CnyPriceInt
 				break
 			}
 		}
@@ -394,14 +404,23 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			return nil
 		}
 
-		totalCny += total.TotalBalance * cnyPrice
+		totalCnyInt += convert.Int64MulInt64By8Bit(total.TotalBalance, cnyPrice)
 	}
 
-	// 根据人民币折合Btc
+	rsp.Data.TotalWorthCny, err = strconv.ParseFloat(fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(totalCnyInt, 100000000))), 64)
+	if err != nil {
+		err = errors.NewSys(err)
+
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
+	}
+
+	// 2.根据人民币折合BTC
 	var btcCnyPrice int64
 	for _, v := range cnyPricesRsp.Data {
 		if 2 == v.TokenId { // BTC
-			btcCnyPrice = v.CnyPrice
+			btcCnyPrice = v.CnyPriceInt
 			break
 		}
 	}
@@ -413,7 +432,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		return nil
 	}
 
-	totalBtc, err := strconv.ParseFloat(fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(totalCny, btcCnyPrice))), 64)
+	rsp.Data.TotalWorthBtc, err = strconv.ParseFloat(fmt.Sprintf("%.8f", convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(convert.Int64DivInt64By8Bit(totalCnyInt, btcCnyPrice), 100000000))), 64)
 	if err != nil {
 		err = errors.NewSys(err)
 
@@ -421,9 +440,6 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		rsp.Message = errors.GetErrMsg(err)
 		return nil
 	}
-
-	rsp.Data.TotalWorthCny = convert.Int64ToFloat64By8Bit(totalCny)
-	rsp.Data.TotalWorthBtc = totalBtc
 
 	return nil
 }
@@ -587,12 +603,13 @@ func (s *RPCServer) TransferList(ctx context.Context, req *proto.TransferListReq
 
 	for k, v := range list {
 		rsp.Data.Items[k] = &proto.TransferListResponse_Data_Item{
-			Id:          int64(v.Id),
-			TokenId:     int32(v.TokenId),
-			TokenName:   v.TokenName,
-			Type:        int32(v.Type),
-			Num:         v.Num,
-			CreatedTime: v.CreatedTime,
+			Id:           int64(v.Id),
+			TokenId:      int32(v.TokenId),
+			TokenName:    v.TokenName,
+			Type:         int32(v.Type),
+			Num:          v.Num,
+			CreatedTime:  v.CreatedTime,
+			TransferTime: v.TransferTime,
 		}
 	}
 

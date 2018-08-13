@@ -157,7 +157,7 @@ func (this *BTCWatch) Work() {
 	检查数据库中是否已经存在
 */
 func (this *BTCWatch) Check() {
-	resultInterface, err := this.BtcListUnspent(0, 12)
+	resultInterface, err := this.BtcListUnspent(6, 12)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

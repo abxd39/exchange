@@ -61,8 +61,6 @@ func RpcSendRawTx(url string, signtx string) (map[string]interface{}, error) {
 	data["method"] = "eth_sendRawTransaction"
 	data["params"] = []string{strings.Join([]string{"0x", signtx}, "")}
 	rsp, err := RpcPost(url, data)
-	fmt.Println("发送的数据：", data["params"])
-	fmt.Println(string(rsp))
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +107,6 @@ func RpcGetNonce(url,address string) (int,error) {
 	data["method"] = "eth_getTransactionCount"
 	data["params"] = []string{address,"latest"}
 	rsp, err := RpcPost(url, data)
-	fmt.Println("随机数获取结果：",err,address,string(rsp))
 	if err != nil {
 		return 0, err
 	}
@@ -153,4 +150,38 @@ func ToHex(balance string) decimal.Decimal {
 	amount := decimal.NewFromBigInt(temp, 0).IntPart()
 	re := decimal.New(amount, -8)
 	return re
+}
+
+//验证交易结果
+func RpcGetTransactionReceipt(url string, signtx string) (error,string) {
+	data := make(map[string]interface{})
+	data["id"] = 1
+	data["jsonrpc"] = "2.0"
+	data["method"] = "eth_getTransactionReceipt"
+	data["params"] = []string{signtx}
+	rsp, err := RpcPost(url, data)
+	if err != nil {
+		return err,""
+	}
+	if gjson.Get(string(rsp),"error").String() != "" {
+		return errors.New("error"),""
+	}
+	return nil,gjson.Get(string(rsp),"result").String()
+}
+
+//查询交易信息
+func RpcGetTransaction(url string, signtx string) (error,string) {
+	data := make(map[string]interface{})
+	data["id"] = 1
+	data["jsonrpc"] = "2.0"
+	data["method"] = "eth_getTransactionByHash"
+	data["params"] = []string{signtx}
+	rsp, err := RpcPost(url, data)
+	if err != nil {
+		return err,""
+	}
+	if gjson.Get(string(rsp),"error").String() != "" {
+		return errors.New("error"),""
+	}
+	return nil,gjson.Get(string(rsp),"result").String()
 }

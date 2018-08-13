@@ -26,7 +26,9 @@ func (p *PriceRPCCli) CallGetSymbolsRate(symbols []string) (rsp *proto.GetSymbol
 	return p.conn.GetSymbolsRate(context.TODO(), &proto.GetSymbolsRateRequest{Symbols: symbols})
 }
 
-
+func (p *PriceRPCCli) CallGetCnyPrices(tokenIds []int32) (rsp *proto.CnyPriceResponse, err error) {
+	return p.conn.GetCnyPrices(context.TODO(), &proto.CnyPriceRequest{TokenTradeId: tokenIds})
+}
 
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")

@@ -12,10 +12,20 @@ import (
 
 type UserRPCCli struct {
 	conn proto.Gateway2WallerService
+	userconn proto.UserRPCService
 }
 
 func (s *UserRPCCli) CallGreet(name string) (rsp *proto.HelloResponse2, err error) {
 	rsp, err = s.conn.Hello(context.TODO(), &proto.HelloRequest2{})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (s *UserRPCCli) CallAuthVerify (name string) (rsp *proto.AuthVerifyResponse, err error) {
+	rsp, err = s.userconn.AuthVerify(context.TODO(), &proto.AuthVerifyRequest{})
 	if err != nil {
 		log.Errorln(err.Error())
 		return
