@@ -214,6 +214,8 @@ func (s *RPCServer) GetCnyPrices(ctx context.Context, req *proto.CnyPriceRequest
 			TokenId:  v,
 			CnyPrice: convert.Int64ToStringBy8Bit( g.CnyPrice),
 			UsdPrice: convert.Int64ToStringBy8Bit( g.UsdPrice),
+			CnyPriceInt:g.CnyPrice,
+			UsdPriceInt:g.UsdPrice,
 		})
 	}
 	rsp.Data=d
