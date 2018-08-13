@@ -25,6 +25,15 @@ func RPCServerInit() {
 	)
 	service.Init()
 
+
+	pubsub := service.Server().Options().Broker
+	if err := pubsub.Connect(); err != nil {
+		log.Fatal(err)
+	}
+
+
+	micro.RegisterSubscriber("topic.go.micro.srv.price",service.Server(),new(handler.RPCServer))
+
 	proto.RegisterTokenRPCHandler(service.Server(), new(handler.RPCServer))
 
 	if err := service.Run(); err != nil {

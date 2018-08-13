@@ -9,9 +9,50 @@ import (
 	"golang.org/x/net/context"
 	"log"
 	"strings"
+	"github.com/micro/go-micro/broker"
+	"encoding/json"
+	"github.com/micro/go-micro"
 )
 
-type RPCServer struct{}
+type RPCServer struct{
+	PubSub       micro.Publisher
+	topic string
+}
+
+func NewRPCServer(pb  micro.Publisher)*RPCServer  {
+	r:=&RPCServer{
+		PubSub:pb,
+		topic:"topic.go.micro.srv.price",
+	}
+	return r
+}
+
+func (s *RPCServer) Process(ch <-chan *proto.CnyPriceResponse)  {
+	for v:=range ch  {
+		s.publishEvent(v)
+	}
+}
+
+func (s *RPCServer) publishEvent(data interface{}) error {
+	// Marshal to JSON string
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// Create a broker message
+	msg := &broker.Message{
+		Body: body,
+	}
+
+	// Publish message to broker
+	if err := s.PubSub.Publish( context.TODO(), msg); err != nil {
+		log.Printf("[pub] failed: %v", err)
+	}
+
+	return nil
+}
+
 
 func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *proto.AdminResponse) error {
 	log.Print("Received Say.Hello request")

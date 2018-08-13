@@ -2,7 +2,6 @@ package rpc
 
 import (
 	cf "digicon/price_service/conf"
-	"digicon/price_service/rpc/handler"
 	proto "digicon/proto/rpc"
 	"fmt"
 	"github.com/micro/go-micro"
@@ -10,6 +9,9 @@ import (
 	"github.com/micro/go-plugins/registry/consul"
 	"log"
 	"time"
+	"digicon/price_service/rpc/handler"
+	"github.com/micro/go-micro/broker"
+	"encoding/json"
 )
 
 func RPCServerInit() {
@@ -25,7 +27,20 @@ func RPCServerInit() {
 	)
 	service.Init()
 
-	proto.RegisterPriceRPCHandler(service.Server(), new(handler.RPCServer))
+	//pubsub := micro.NewPublisher("user.created", service.Client())
+	pubsub := service.Server().Options().Broker
+	if err := pubsub.Connect(); err != nil {
+		log.Fatal(err)
+	}
+	_, err := pubsub.Subscribe("", func(p broker.Publication) error {
+
+		return nil
+	})
+	if err!=nil {
+		log.Fatalln(err)
+	}
+	//proto.RegisterPriceRPCHandler(service.Server(), new(handler.RPCServer))
+	proto.RegisterPriceRPCHandler(service.Server(), handler.NewRPCServer(pubsub))
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err.Error())

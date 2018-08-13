@@ -17,4 +17,5 @@ func NewRPCClient() (c *RPCClient) {
 
 func InitInnerService() {
 	InnerService = NewRPCClient()
+
 }
