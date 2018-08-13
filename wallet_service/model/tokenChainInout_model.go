@@ -20,9 +20,10 @@ type TokenChainInout struct {
 	TokenName   string    `xorm:"not null comment('币名称') VARCHAR(10)"`
 	Uid         int       `xorm:"not null comment('用户id') INT(11)"`
 	CreatedTime time.Time `xorm:"default 'CURRENT_TIMESTAMP' TIMESTAMP"`
+	Address        string    `xorm:"comment('交易账号(2018-8-13新增)') VARCHAR(42)"`
 }
 
-func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string) (int, error) {
+func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string,opt int) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
 	this.From = from
@@ -30,7 +31,7 @@ func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, ch
 	this.Value = value
 	this.Contract = contract
 	this.Chainid = chainid
-	this.Type = 1
+	this.Type = opt
 
 	this.Tokenid = tokenid
 	this.TokenName = tokenname

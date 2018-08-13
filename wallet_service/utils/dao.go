@@ -2,9 +2,11 @@ package utils
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
+	//"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
+	"github.com/go-redis/redis"
+	"log"
 )
 
 var Engine_wallet *xorm.Engine
@@ -13,7 +15,7 @@ var Engine_common *xorm.Engine
 
 var EngineUserCurrency *xorm.Engine
 
-var Redis *redis.Conn
+var Redis *redis.Client
 
 func init() {
 	var err error
@@ -70,6 +72,26 @@ func init() {
 	////
 
 	//redis初始化
-	Redis = nil
+	//Redis = nil
 
+	addr := Cfg.MustValue("redis", "addr")
+	pass := Cfg.MustValue("redis", "pass")
+	num := Cfg.MustInt("redis", "num")
+	client := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: pass, // no password set
+		DB:       num,  // use default DB
+	})
+
+	pong, err := client.Ping().Result()
+	if err != nil {
+		log.Fatalf("redis connect faild ")
+	}
+	fmt.Println(pong)
+	_, err = client.ZRangeWithScores("token:1/2", 0, 1).Result()
+	if err != nil {
+		log.Fatalf("redis connect faild ")
+	}
+
+	Redis = client
 }

@@ -25,6 +25,7 @@ func New_keystore(auth string) (address string, store string, privatekey string,
 		//fmt.Println("Can't load private key: %v", err)
 		return "", "", "", err
 	}
+
 	//id := uuid.NewRandom()
 	key := &keystore.Key{
 		//Id:         id,
@@ -60,6 +61,9 @@ func Signtx(key *keystore.Key, nonce int, to string, amount *big.Int, gasLimit i
 		}
 	}
 
+	fmt.Println("签名字符串：",data)
+	fmt.Println("签名数据：",uint64(nonce), common.HexToAddress(to), amount, uint64(gasLimit), big.NewInt((gasPrice)), data)
+
 	tx := types.NewTransaction(uint64(nonce), common.HexToAddress(to), amount, uint64(gasLimit), big.NewInt((gasPrice)), data)
 	//fmt.Println(uint64(nonce),common.HexToAddress(to),to,amount,uint64(gasLimit),big.NewInt((gasPrice)),data)
 	//fmt.Println(tx.Data(),tx.Gas(),tx.GasPrice(),tx.Value(), tx.Nonce(),tx.CheckNonce(),chainid,to)
@@ -71,11 +75,13 @@ func Signtx(key *keystore.Key, nonce int, to string, amount *big.Int, gasLimit i
 	} else {
 		sgtx, err = types.SignTx(tx, types.HomesteadSigner{}, key.PrivateKey)
 	}
+	fmt.Println("签名字符串1：",err,sgtx)
 	if err != nil {
 		return nil, err
 	}
 	w := new(bytes.Buffer)
 	err = sgtx.EncodeRLP(w)
+	fmt.Println("签名字符串2：",err)
 	if err != nil {
 		return nil, err
 	}

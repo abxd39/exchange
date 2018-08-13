@@ -141,3 +141,26 @@ func (this *WalletToken) WalletTokenExist(uid int, tokenid int) (bool, string, s
 	}
 	return false, "", ""
 }
+
+//查询所有比特币地址
+func (this *WalletToken) GetAllAddress(tokenid int) (err error,data []WalletToken) {
+	data = make([]WalletToken,0)
+	Engine_wallet.ShowSQL(true)
+	err = Engine_wallet.Select("uid,address").Where("tokenid = ?",tokenid).Find(&data)
+	return
+}
+
+//查询注册时间大于某个点的地址
+func (this *WalletToken) GetAddressByTime(tokenid int,time string) (bool,error) {
+	boo,err := Engine_wallet.Select("uid,address").Where("tokenid = ? and created_time > ?",tokenid,time).Get(this)
+	return boo,err
+}
+
+//根据地址获取uid
+func (this *WalletToken) GetUidByAddress(address string) error {
+	_, err := Engine_wallet.Select("uid").Where("address =?", address).Get(this)
+	if err != nil {
+		return err
+	}
+	return nil
+}
