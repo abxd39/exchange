@@ -11,6 +11,7 @@ import (
 	"digicon/common/errors"
 	"digicon/token_service/conf"
 	"digicon/token_service/rpc/client"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
@@ -327,8 +328,22 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	userTokenMD := &model.UserToken{}
 	list, err := userTokenMD.GetUserTokenList(filter)
 	if err != nil {
-		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message = err.Error()
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
+	}
+
+	// 调用price服获取币种人民币价格
+	// 该用户拥有的所有币种，顺带查询BTC的价格
+	myTokenIdList := make([]int32, len(list)+1)
+	myTokenIdList[0] = 2 // BTC
+	for k, v := range list {
+		myTokenIdList[k+1] = int32(v.TokenId)
+	}
+	cnyPricesRsp, err := client.InnerService.PriceService.CallGetCnyPrices(myTokenIdList)
+	if err != nil {
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
 		return nil
 	}
 
@@ -336,36 +351,79 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	rsp.Data = &proto.TokenBalanceListResponse_Data{}
 	rsp.Data.List = make([]*proto.TokenBalanceListResponse_Data_List, len(list))
 	for k, v := range list {
+		var cnyPrice int64
+		for _, v2 := range cnyPricesRsp.Data {
+			if v.TokenId == int(v2.TokenId) {
+				cnyPrice = v2.CnyPrice
+				break
+			}
+		}
+
 		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
-			Balance:   convert.Int64ToStringBy8Bit(v.Balance),
-			Frozen:    convert.Int64ToStringBy8Bit(v.Frozen),
-			WorthCny:  convert.Int64ToStringBy8Bit(int64(v.WorthCny * 100000000)),
+			Balance:   convert.Int64ToFloat64By8Bit(v.Balance),
+			Frozen:    convert.Int64ToFloat64By8Bit(v.Frozen),
+			WorthCny:  convert.Int64ToFloat64By8Bit(convert.Int64MulInt64By8Bit(v.TotalBalance, cnyPrice)),
 		}
 	}
 
 	// 折合人民币、Btc
-	totalMoney, err := userTokenMD.CalcTotalMoney(req.Uid)
+	totalList, err := userTokenMD.CalcTotal(req.Uid)
 	if err != nil {
-		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message = err.Error()
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
 		return nil
 	}
 
-	symbol := "BTC/USDT"
-	priceRsp, err := client.InnerService.PriceService.CallGetSymbolsRate([]string{symbol})
-	if err != nil {
-		rsp.Err = ERRCODE_UNKNOWN
-		rsp.Message = err.Error()
+	var totalCny int64
+	for _, total := range totalList {
+		var cnyPrice int64
+		for _, v := range cnyPricesRsp.Data {
+			if total.TokenId == int(v.TokenId) {
+				cnyPrice = v.CnyPrice
+				break
+			}
+		}
+
+		if cnyPrice == 0 {
+			err = errors.NewSys(fmt.Sprintf("折合人民币为0，token_id：%d", total.TokenId))
+
+			rsp.Err = int32(errors.GetErrStatus(err))
+			rsp.Message = errors.GetErrMsg(err)
+			return nil
+		}
+
+		totalCny += total.TotalBalance * cnyPrice
+	}
+
+	// 根据人民币折合Btc
+	var btcCnyPrice int64
+	for _, v := range cnyPricesRsp.Data {
+		if 2 == v.TokenId { // BTC
+			btcCnyPrice = v.CnyPrice
+			break
+		}
+	}
+	if btcCnyPrice == 0 { //除数不能为0
+		err = errors.NewSys("BTC折合人民币为0")
+
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
 		return nil
 	}
 
-	price, _ := strconv.ParseFloat(priceRsp.Data[symbol].Price, 64)
-	log.Info(symbol, " price=", price, ", total_usd=", totalMoney.TotalUsd)
+	totalBtc, err := strconv.ParseFloat(fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(totalCny, btcCnyPrice))), 64)
+	if err != nil {
+		err = errors.NewSys(err)
 
-	rsp.Data.TotalWorthCny = convert.Int64ToFloat64By8Bit(int64(totalMoney.TotalCny * 100000000))
-	rsp.Data.TotalWorthBtc = convert.Int64ToFloat64By8Bit(int64(totalMoney.TotalUsd / price * 100000000))
+		rsp.Err = int32(errors.GetErrStatus(err))
+		rsp.Message = errors.GetErrMsg(err)
+		return nil
+	}
+
+	rsp.Data.TotalWorthCny = convert.Int64ToFloat64By8Bit(totalCny)
+	rsp.Data.TotalWorthBtc = totalBtc
 
 	return nil
 }

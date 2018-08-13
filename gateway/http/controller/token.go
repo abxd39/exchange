@@ -14,7 +14,7 @@ import (
 type TokenGroup struct{}
 
 func (s *TokenGroup) Router(r *gin.Engine) {
-	action := r.Group("/token",TokenVerify)
+	action := r.Group("/token", TokenVerify)
 	{
 		action.POST("/entrust_order", s.EntrustOrder)
 		//action.GET("/market/history/kline", s.HistoryKline)
@@ -359,13 +359,32 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 		NoZero:  param.NoZero,
 		TokenId: param.TokenId,
 	})
-
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
+
+	// 重组list
+	type NewList struct {
+		TokenId   int32   `json:"token_id"`
+		TokenName string  `json:"token_name"`
+		Balance   float64 `json:"balance"`
+		Frozen    float64 `json:"frozen"`
+		WorthCny  float64 `json:"worth_cny"`
+	}
+	newList := make([]*NewList, len(rsp.Data.List))
+	for k, v := range rsp.Data.List {
+		newList[k] = &NewList{
+			TokenId:   v.TokenId,
+			TokenName: v.TokenName,
+			Balance:   v.Balance,
+			Frozen:    v.Frozen,
+			WorthCny:  v.WorthCny,
+		}
+	}
+
 	ret.SetErrCode(rsp.Err, rsp.Message)
-	ret.SetDataSection("list", rsp.Data.List)
+	ret.SetDataSection("list", newList)
 	ret.SetDataSection("total_worth_cny", rsp.Data.TotalWorthCny)
 	ret.SetDataSection("total_worth_btc", rsp.Data.TotalWorthBtc)
 }

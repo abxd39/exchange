@@ -315,9 +315,9 @@ message TokenBalanceListResponse{
         message List{
             int32 token_id                    =1;
             string token_name                 =2;
-            string balance                    =3;
-            string frozen                     =4;
-            string worth_cny                  =5;
+            double balance                    =3;
+            double frozen                     =4;
+            double worth_cny                  =5;
         }
 
         double total_worth_cny              =1;
