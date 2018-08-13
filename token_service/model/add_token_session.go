@@ -214,6 +214,9 @@ func CancelFronzeToken(req *proto.CancelFronzeTokenRequest) (err error) {
 		log.Errorln(err.Error())
 		return
 	}
+<<<<<<< HEAD
+=======
 
+>>>>>>> a4641696254f26731d7f49bf5b73590df53fd7bc
 	return nil
 }

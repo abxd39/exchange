@@ -76,7 +76,7 @@ func GetLow(begin, end int64, symbol string) (low int64) {
 }
 
 //计算当前价格数据
-func Calculate(price, amount, cny_price int64, symbol string, high, low int64) *proto.PriceBaseData {
+func Calculate(token_id int32 ,price, amount, cny_price int64, symbol string, high, low int64) *proto.PriceBaseData {
 	t := time.Now()
 
 	s := t.Second()
@@ -109,6 +109,12 @@ func Calculate(price, amount, cny_price int64, symbol string, high, low int64) *
 		"id":       p.Id,
 		"symbol":   symbol,
 	}).Info("current price print")
+
+	c,ok:=GetQueneMgr().PriceMap[token_id]
+	if !ok {
+		return nil
+	}
+
 	return &proto.PriceBaseData{
 		Symbol:   symbol,
 		High:     convert.Int64ToStringBy8Bit(high),
@@ -116,7 +122,8 @@ func Calculate(price, amount, cny_price int64, symbol string, high, low int64) *
 		Scope:    convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 		Amount:   convert.Int64ToStringBy8Bit(amount - p.Amount),
 		Price:    convert.Int64ToStringBy8Bit(price),
-		CnyPrice: convert.Int64MulInt64By8BitString(cny_price, price),
+		//CnyPrice: convert.Int64MulInt64By8BitString(cny_price, price),
+		CnyPrice :convert.Int64ToStringBy8Bit(c.CnyPrice),
 	}
 
 }

@@ -27,7 +27,8 @@ func (s *RPCServer) CurrentPrice(ctx context.Context, req *proto.CurrentPriceReq
 	}
 	e := q.GetEntry()
 	h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-	rsp.Data = model.Calculate(e.Price, e.Amount, q.CnyPrice, q.Symbol, h, l)
+	
+	rsp.Data = model.Calculate(q.ToekenTradeId, e.Price, e.Amount, q.CnyPrice, q.Symbol, h, l)
 	return nil
 }
 
@@ -83,10 +84,17 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 		}
 
 		price := q.GetEntry().Price
+
+		c,ok:=model.GetQueneMgr().PriceMap[v.TokenId]
+		if !ok {
+			continue
+		}
+
 		rsp.Data = append(rsp.Data, &proto.SymbolBaseData{
 			Symbol:       v.Name,
 			Price:        convert.Int64ToStringBy8Bit(price),
-			CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
+			//CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
+			CnyPrice:	   convert.Int64ToStringBy8Bit(c.CnyPrice),
 			Scope:        convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 			TradeTokenId: int32(v.TokenTradeId),
 		})
