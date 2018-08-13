@@ -27,10 +27,9 @@ type UserToken struct {
 	BalanceCny int64  `xorm:"default 0 BIGINT(20)"`
 }
 
-type UserTokenWithName struct {
+type UserTokenWithWorth struct {
 	UserToken `xorm:"extends"`
 	WorthCny  float64
-	TokenName string
 }
 
 type UserTokenTotalMoney struct {
@@ -60,7 +59,7 @@ func (s *UserToken) CalcTotalMoney(uid uint64) (*UserTokenTotalMoney, error) {
 }
 
 // 用户币币余额列表
-func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithName, error) {
+func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithWorth, error) {
 	engine := DB.GetMysqlConn()
 	query := engine.Where("1=1")
 
@@ -75,7 +74,7 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 		query.And("ut.token_id=?", v)
 	}
 
-	var list []UserTokenWithName
+	var list []UserTokenWithWorth
 	err := query.
 		Table(s).
 		Alias("ut").

@@ -59,7 +59,7 @@ func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurre
 func (this *UserCurrency) GetUserCurrency(uid uint64, nozero bool) (uCurrenList []UserCurrency, err error) {
 	engine := dao.DB.GetMysqlConn()
 	if nozero {
-		err = engine.Where("uid = ? AND balance > 0 ", uid).Find(&uCurrenList)
+		err = engine.Where("uid = ? AND (balance > 0  or freeze) ", uid).Find(&uCurrenList)
 	} else {
 		err = engine.Where("uid=?", uid).Find(&uCurrenList)
 	}
