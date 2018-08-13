@@ -25,6 +25,7 @@ func (this *CurrencyGroup) NewRouter(r *gin.Engine) {
 	NCurrency := r.Group("/currency")
 	{
 		NCurrency.GET("/tokens", this.GetTokens)                    // 获取货币类型
+		NCurrency.GET("/display_currency_tokens", this.DisplayCurrencyTokens)      // 法币处要显示的币种
 		NCurrency.GET("/otc_list", this.AdsList)                    // 法币交易列表 - (广告(买卖))
 		NCurrency.GET("/otc_user_list", this.AdsUserList)           // 个人法币交易列表 - (广告(买卖))
 		NCurrency.POST("/user_currency_rating", this.GetUserRating) // 获取用戶评级
@@ -799,6 +800,25 @@ func (this *CurrencyGroup) GetTokensList(c *gin.Context) {
 	ret.SetDataValue(data.Data)
 	ret.SetErrCode(ERRCODE_SUCCESS)
 }
+
+
+//
+func (this *CurrencyGroup) DisplayCurrencyTokens(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetData())
+	}()
+	// 调用 rpc 获取货币类型列表
+	data, err := rpc.InnerService.CurrencyService.CallDisplayCurrencyTokens(&proto.CurrencyTokensRequest{})
+	if err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetDataValue(data.Data)
+	ret.SetErrCode(ERRCODE_SUCCESS)
+}
+
 
 // 获取支付方式
 func (this *CurrencyGroup) GetPays(c *gin.Context) {

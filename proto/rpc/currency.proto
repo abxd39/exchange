@@ -101,6 +101,11 @@ service CurrencyRPC {
         // 交易划转
         rpc TransferToToken(TransferToTokenRequest) returns (OtherResponse) {};
 
+
+
+        // 获取要显示的币种
+        rpc DisplayCurrencyTokens(CurrencyTokensRequest) returns (CurrencyTokensListResponse){}
+
 }
 
 ////////////////////////
