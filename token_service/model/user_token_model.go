@@ -27,39 +27,37 @@ type UserToken struct {
 	BalanceCny int64  `xorm:"default 0 BIGINT(20)"`
 }
 
-type UserTokenWithWorth struct {
-	UserToken `xorm:"extends"`
-	WorthCny  float64
+type UserTokenWithBalance struct {
+	UserToken    `xorm:"extends"`
+	TotalBalance int64
 }
 
-type UserTokenTotalMoney struct {
-	TotalCny float64
-	TotalUsd float64
+type UserTokenTotal struct {
+	TokenId      int   `xorm:"token_id"`
+	TotalBalance int64 `xorm:"total_balance"`
 }
 
 func (*UserToken) TableName() string {
 	return "user_token"
 }
 
-// 计算用户所有币的总金额，人民币、美元等
-func (s *UserToken) CalcTotalMoney(uid uint64) (*UserTokenTotalMoney, error) {
-	userTokenTotal := &UserTokenTotalMoney{}
+// 计算用户所有币的总额
+func (s *UserToken) CalcTotal(uid uint64) ([]*UserTokenTotal, error) {
+	var userTokenTotal []*UserTokenTotal
 
 	engine := DB.GetMysqlConn()
-	_, err := engine.SQL(fmt.Sprintf("SELECT SUM(tmp.cny) AS total_cny,SUM(tmp.usd) AS total_usd FROM"+
-		" (SELECT SUM(ut.balance+ut.frozen)/100000000 * ctc.price/100000000 AS cny,"+
-		" SUM(ut.balance+ut.frozen)/100000000 * ctc.usd_price/100000000 AS usd"+
-		" FROM %s ut LEFT JOIN %s ctc ON ctc.token_id=ut.token_id WHERE ut.uid=%d GROUP BY ut.token_id"+
-		") tmp", s.TableName(), new(ConfigTokenCny).TableName(), uid)).Get(userTokenTotal)
+	err := engine.SQL(fmt.Sprintf("SELECT token_id, SUM(balance+frozen) AS total_balance"+
+		" FROM %s WHERE uid=%d GROUP BY token_id",
+		s.TableName(), uid)).Find(&userTokenTotal)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewSys(err)
 	}
 
 	return userTokenTotal, nil
 }
 
 // 用户币币余额列表
-func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithWorth, error) {
+func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithBalance, error) {
 	engine := DB.GetMysqlConn()
 	query := engine.Where("1=1")
 
@@ -74,15 +72,15 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 		query.And("ut.token_id=?", v)
 	}
 
-	var list []UserTokenWithWorth
+	var list []UserTokenWithBalance
 	err := query.
 		Table(s).
 		Alias("ut").
-		Select("ut.*, (ut.balance+ut.frozen)/100000000 * ctc.price/100000000 as worth_cny").
+		Select("ut.*, (ut.balance+ut.frozen) as total_balance").
 		Join("LEFT", []string{new(ConfigTokenCny).TableName(), "ctc"}, "ctc.token_id=ut.token_id").
 		Find(&list)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewSys(err)
 	}
 
 	return list, nil

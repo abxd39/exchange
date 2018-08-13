@@ -89,6 +89,12 @@ func (s *CurrencyRPCCli) CallCurrencyTokensList(req *proto.CurrencyTokensRequest
 	return rsp, err
 }
 
+//
+func (s *CurrencyRPCCli) CallDisplayCurrencyTokens ( req *proto.CurrencyTokensRequest) ( *proto.CurrencyTokensListResponse, error){
+	rsp, err := s.conn.DisplayCurrencyTokens(context.TODO(), req)
+	return rsp, err
+}
+
 // 调用 rpc 获取支付方式
 func (s *CurrencyRPCCli) CallGetCurrencyPays(req *proto.CurrencyPaysRequest) (*proto.CurrencyPays, error) {
 	rsp, err := s.conn.GetCurrencyPays(context.TODO(), req)

@@ -8,7 +8,6 @@ import (
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
-	log "github.com/sirupsen/logrus"
 )
 
 type PriceRPCCli struct {
@@ -27,15 +26,7 @@ func (p *PriceRPCCli) CallGetSymbolsRate(symbols []string) (rsp *proto.GetSymbol
 	return p.conn.GetSymbolsRate(context.TODO(), &proto.GetSymbolsRateRequest{Symbols: symbols})
 }
 
-func (p *PriceRPCCli) CallGetCnyPrices(token_ids []int32) (rsp *proto.CnyPriceResponse, err error) {
-	rsp, err = p.conn.GetCnyPrices(context.TODO(), &proto.CnyPriceRequest{
-		TokenTradeId: token_ids,
-	})
-	if err != nil {
-		log.Error(err)
-	}
-	return
-}
+
 
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")

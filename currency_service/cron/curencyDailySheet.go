@@ -117,7 +117,7 @@ func DailyStart() {
 	c := cron.New()
 
 	//AddFunc
-	spec := "0 0 * * *" // every day ...
+	spec := "0 0 1 * *" // every day ...
 	c.AddFunc(spec, func() {
 		i++
 		log.Println("cron running:", i)
