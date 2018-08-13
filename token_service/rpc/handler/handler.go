@@ -603,12 +603,13 @@ func (s *RPCServer) TransferList(ctx context.Context, req *proto.TransferListReq
 
 	for k, v := range list {
 		rsp.Data.Items[k] = &proto.TransferListResponse_Data_Item{
-			Id:          int64(v.Id),
-			TokenId:     int32(v.TokenId),
-			TokenName:   v.TokenName,
-			Type:        int32(v.Type),
-			Num:         v.Num,
-			CreatedTime: v.CreatedTime,
+			Id:           int64(v.Id),
+			TokenId:      int32(v.TokenId),
+			TokenName:    v.TokenName,
+			Type:         int32(v.Type),
+			Num:          v.Num,
+			CreatedTime:  v.CreatedTime,
+			TransferTime: v.TransferTime,
 		}
 	}
 

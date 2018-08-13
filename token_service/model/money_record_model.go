@@ -20,15 +20,16 @@ const (
 )
 */
 type MoneyRecord struct {
-	Id          uint64 `xorm:"pk autoincr BIGINT(20)"`
-	Uid         uint64 `xorm:"comment('用户ID') unique(hash_index)  INT(11)"`
-	TokenId     int    `xorm:"comment('代币ID') INT(11)"`
-	Ukey        string `xorm:"comment('联合key') unique(hash_index) VARCHAR(128)"`
-	Type        int    `xorm:"comment('流水类型1区块2委托') INT(11)"`
-	Opt         int    `xorm:"comment('操作方向1加2减') unique(hash_index) TINYINT(4)"`
-	Num         int64  `xorm:"comment('数量') BIGINT(20)"`
-	Balance     int64  `xorm:"comment('余额') BIGINT(20)"`
-	CreatedTime int64  `xorm:"comment('操作时间')  created BIGINT(20)"`
+	Id           uint64 `xorm:"pk autoincr BIGINT(20)"`
+	Uid          uint64 `xorm:"comment('用户ID') unique(hash_index)  INT(11)"`
+	TokenId      int    `xorm:"comment('代币ID') INT(11)"`
+	Ukey         string `xorm:"comment('联合key') unique(hash_index) VARCHAR(128)"`
+	Type         int    `xorm:"comment('流水类型1区块2委托') INT(11)"`
+	Opt          int    `xorm:"comment('操作方向1加2减') unique(hash_index) TINYINT(4)"`
+	Num          int64  `xorm:"comment('数量') BIGINT(20)"`
+	Balance      int64  `xorm:"comment('余额') BIGINT(20)"`
+	CreatedTime  int64  `xorm:"comment('操作时间')  created BIGINT(20)"`
+	TransferTime int64  `xorm:"transfer_time"`
 }
 
 type MoneyRecordWithToken struct {
@@ -45,11 +46,13 @@ func (s *MoneyRecord) List(pageIndex, pageSize int, filter map[string]interface{
 	query := DB.GetMysqlConn().Alias("mr").Join("LEFT", []string{new(UserToken).TableName(), "ut"}, "ut.token_id=mr.token_id AND ut.uid=mr.uid").Where("1=1")
 
 	//筛选
+	orderBy := "mr.id DESC"
 	if _, ok := filter["uid"]; ok {
 		query.And("mr.uid=?", filter["uid"])
 	}
 	if _, ok := filter["transfer"]; ok { //划转流水
 		query.And("mr.type IN (?,?)", proto.TOKEN_TYPE_OPERATOR_TRANSFER_TO_CURRENCY, proto.TOKEN_TYPE_OPERATOR_TRANSFER_FROM_CURRENCY)
+		orderBy = "mr.transfer_time DESC, mr.id DESC"
 	}
 	if v, ok := filter["type"]; ok {
 		query.And("mr.type=?", v)
@@ -64,7 +67,7 @@ func (s *MoneyRecord) List(pageIndex, pageSize int, filter map[string]interface{
 	offset, modelList := model.Paging(pageIndex, pageSize, int(total))
 
 	var list []*MoneyRecordWithToken
-	err = query.Select("mr.*,ut.token_name").OrderBy("mr.id DESC").Limit(modelList.PageSize, offset).Find(&list)
+	err = query.Select("mr.*,ut.token_name").OrderBy(orderBy).Limit(modelList.PageSize, offset).Find(&list)
 	if err != nil {
 		return nil, nil, errors.NewSys(err)
 	}
