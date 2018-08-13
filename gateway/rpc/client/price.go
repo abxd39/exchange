@@ -60,6 +60,15 @@ func (s *PriceRPCCli) CallSymbolsById(p *proto.SymbolsByIdRequest) (rsp *proto.S
 	return
 }
 
+func (s *PriceRPCCli) CallCnyPrices(p *proto.CnyPriceRequest) (rsp *proto.CnyPriceResponse, err error) {
+	rsp, err = s.conn.GetCnyPrices(context.TODO(),p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 func NewPriceRPCCli() (u *PriceRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

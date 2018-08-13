@@ -29,6 +29,8 @@ func (s *MarketGroup) Router(r *gin.Engine) {
 		action.GET("/symbols_title", s.SymbolsTitle)
 
 		action.GET("/symbols_id", s.SymbolsById)
+
+		action.POST("/cny_prices", s.CnyPrices)
 	}
 }
 
@@ -260,5 +262,34 @@ func (s *MarketGroup) SymbolsById(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(ERRCODE_SUCCESS)
+	ret.SetDataSection("list", rsp.Data)
+}
+
+
+
+func (s *MarketGroup) CnyPrices(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	param:= &struct {
+		TokenId []int32 `json:"token_id" binding:"required"`
+	}{}
+
+
+	if err := c.ShouldBindJSON(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	rsp, err := rpc.InnerService.PriceService.CallCnyPrices(&proto.CnyPriceRequest{
+		TokenTradeId:param.TokenId,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(ERRCODE_SUCCESS)
+
 	ret.SetDataSection("list", rsp.Data)
 }

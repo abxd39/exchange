@@ -46,6 +46,8 @@ type WorkQueneMgr struct {
 
 	UsdRate int64
 	CnyRate int64
+
+	IsRun bool
 }
 
 func (s *WorkQueneMgr) Init() {
@@ -92,6 +94,10 @@ func (s *WorkQueneMgr) Init() {
 
 func (s *WorkQueneMgr) Process() {
 	for v := range s.msgChan {
+
+		if !s.IsRun {
+			s.IsRun=true
+		}
 		if v.TokenId == 1 { //USDT
 			d, ok := s.PriceMap[v.TokenTradeId]
 			if !ok {

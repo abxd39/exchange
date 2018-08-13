@@ -19,7 +19,7 @@ type UserLoginLog struct {
 	TerminalType int    `xorm:"not null comment('终端类型') TINYINT(4)"`
 	TerminalName string `xorm:"not null default 'web' comment('登录的终端名称') VARCHAR(100)"`
 	LoginIp      string `xorm:"not null comment('登录IP') VARCHAR(15)"`
-	LoginTime    int64  `xorm:"comment('登录时间戳') BIGINT(11)"`
+	LoginTime    int64  `xorm:"comment('登录时间戳') created BIGINT(11)"`
 }
 
 func (s *UserLoginLog) AddLoginRecord(uid uint64, ip string) {

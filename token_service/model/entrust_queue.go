@@ -320,6 +320,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		return errors.New("wrong type")
 	}
 
+
 	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {

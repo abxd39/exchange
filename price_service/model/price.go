@@ -109,10 +109,12 @@ func Calculate(token_id int32 ,price, amount, cny_price int64, symbol string, hi
 		"id":       p.Id,
 		"symbol":   symbol,
 	}).Info("current price print")
-
+	var cny string
 	c,ok:=GetQueneMgr().PriceMap[token_id]
 	if !ok {
-		return nil
+		cny="0"
+	}else{
+		cny=convert.Int64ToStringBy8Bit(c.CnyPrice)
 	}
 
 	return &proto.PriceBaseData{
@@ -123,7 +125,7 @@ func Calculate(token_id int32 ,price, amount, cny_price int64, symbol string, hi
 		Amount:   convert.Int64ToStringBy8Bit(amount - p.Amount),
 		Price:    convert.Int64ToStringBy8Bit(price),
 		//CnyPrice: convert.Int64MulInt64By8BitString(cny_price, price),
-		CnyPrice :convert.Int64ToStringBy8Bit(c.CnyPrice),
+		CnyPrice :cny,
 	}
 
 }

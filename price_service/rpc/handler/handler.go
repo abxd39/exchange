@@ -85,7 +85,7 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 
 		price := q.GetEntry().Price
 
-		c,ok:=model.GetQueneMgr().PriceMap[v.TokenId]
+		c,ok:=model.GetQueneMgr().PriceMap[v.TokenTradeId]
 		if !ok {
 			continue
 		}
@@ -212,15 +212,16 @@ func (s *RPCServer) GetCnyPrices(ctx context.Context, req *proto.CnyPriceRequest
 
 		d = append(d, &proto.CnyBaseData{
 			TokenId:  v,
-			CnyPrice: g.CnyPrice,
-			UsdPrice: g.UsdPrice,
+			CnyPrice: convert.Int64ToStringBy8Bit( g.CnyPrice),
+			UsdPrice: convert.Int64ToStringBy8Bit( g.UsdPrice),
 		})
 	}
-
+	rsp.Data=d
 	return nil
 }
 
 func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
+
 	g := model.GetConfigQuenesByType(req.TokenId)
 
 	for _, v := range g {
@@ -232,7 +233,7 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 
 		price := q.GetEntry().Price
 		h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-		r := model.Calculate(price, q.GetEntry().Amount, q.CnyPrice, q.Symbol, h, l)
+		r := model.Calculate(q.ToekenTradeId,price, q.GetEntry().Amount, q.CnyPrice, q.Symbol, h, l)
 
 		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
 			Symbol: v.Name,
