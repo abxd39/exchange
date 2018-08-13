@@ -53,10 +53,11 @@ type User struct {
 	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
 }
 
-func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string, decim int) (int, error) {
+func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
 	this.From = from
+	this.Opt = opt
 	this.To = to
 	this.Value = value
 	temp, _ := new(big.Int).SetString(value[2:], 16)

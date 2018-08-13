@@ -137,6 +137,24 @@ func BtcDumpPrivKey(url string, myaddress string) (privateKey string, err error)
 	return privateKey, nil
 }
 
+//列出最近的交易记录
+func BtcListtransactions(url string) (error,string) {
+	data := make(map[string]interface{})
+	data["jsonrpc"] = "1.0"
+	data["id"] = 1
+	data["method"] = "listtransactions"
+	params := []string{""}
+	data["params"] = params
+	result, err := BtcRpcPost(url, data)
+	if err != nil {
+		return err,""
+	}
+	if gjson.Get(string(result), "error").String() != "" {
+		return errors.New("error"),""
+	}
+	return nil,gjson.Get(string(result), "result").String()
+}
+
 /*
 	btc rpc
 */
