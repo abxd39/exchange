@@ -378,7 +378,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	}
 
 	// 折合人民币、Btc
-	totalList, err := userTokenMD.CalcTotal(req.Uid)
+	totalList, err := userTokenMD.CalcTotal(req.Uid) // 按token_id分组
 	if err != nil {
 		rsp.Err = int32(errors.GetErrStatus(err))
 		rsp.Message = errors.GetErrMsg(err)
@@ -388,6 +388,11 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	// 1.折合人民币
 	var totalCnyInt int64
 	for _, total := range totalList {
+		if total.TotalBalance == 0 {
+			continue
+		}
+
+		// 得到人民币价格
 		var cnyPrice int64
 		for _, v := range cnyPricesRsp.Data {
 			if total.TokenId == int(v.TokenId) {
@@ -395,7 +400,11 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 				break
 			}
 		}
+		if cnyPrice == 0 {
+			log.Error("调用price_service获取人民币价格失败，token_id：", total.TokenId)
+		}
 
+		// 合计token_id分组
 		totalCnyInt += convert.Int64MulInt64By8Bit(total.TotalBalance, cnyPrice)
 	}
 
@@ -416,11 +425,10 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			break
 		}
 	}
-	if btcCnyPrice == 0 { //除数不能为0
-		err = errors.NewSys("BTC折合人民币为0")
+	if btcCnyPrice == 0 { //除数不能为0，记录错误后直接return
+		log.Error("调用price_service获取BTC价格失败，token_id：2")
 
-		rsp.Err = int32(errors.GetErrStatus(err))
-		rsp.Message = errors.GetErrMsg(err)
+		rsp.Data.TotalWorthBtc = 0
 		return nil
 	}
 
