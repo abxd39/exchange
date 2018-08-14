@@ -21,6 +21,12 @@ func ByteToInt64(b []byte) (x int64) {
 	return
 }
 
+func Int64ToInt64By8Bit(b int64) int64 {
+	a := decimal.New(b, 0)
+	r := a.Mul(decimal.New(100000000, 0))
+	return  r.IntPart()
+}
+
 func Int64ToFloat64By8Bit(b int64) (x float64) {
 	a := decimal.New(b, -8)
 	x, _ = a.Float64()
