@@ -49,5 +49,6 @@ func (s *CommonGroup) GetSiteConfig(c *gin.Context) {
 	}
 
 	ret.SetErrCode(rsp.Code)
-	ret.SetDataSection("config", rsp.Data)
+	ret.SetDataSection("site_config", rsp.Data.Site)
+	ret.SetDataSection("kefu_config", rsp.Data.Kefu)
 }
