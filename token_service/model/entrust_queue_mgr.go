@@ -57,7 +57,7 @@ func (s *EntrustQueneMgr) CallBackFunc(f func(*EntrustQuene)) {
 //初始化配置
 func (s *EntrustQueneMgr) Init() bool {
 	InitConfigTokenCny()
-
+	InitCnyPrice()
 	d := new(ConfigQuenes).GetAllQuenes()
 
 	for _, v := range d {

@@ -1277,6 +1277,46 @@ func (s *EntrustQuene) process() {
 
 //定时器
 func (s *EntrustQuene) Clock() {
+	for   {
+		c := clock.NewClock()
+		t:=time.Now()
+		diff:=60-t.Second()
+		job := func() {
+			m := &proto.PriceCache{
+				Id:          time.Now().Unix(),
+				Symbol:      s.TokenQueueId,
+				Price:       s.price_c,
+				CreatedTime: time.Now().Unix(),
+				Amount:      s.amount,
+				Count:       s.count,
+				Vol:         s.vol,
+				UsdVol:      s.usd_vol,
+			}
+
+			t := jsonpb.Marshaler{EmitDefaults: true}
+			data, err := t.MarshalToString(m)
+			if err != nil {
+				log.Errorln(err.Error())
+				return
+			}
+
+			err = DB.GetRedisConn().Publish(s.PriceChannel, data).Err()
+
+			if err != nil {
+				log.Errorln(err.Error())
+				return
+			}
+
+		}
+
+		d:=time.Duration(diff+30)*time.Second
+		c.AddJobWithInterval(d,  job)
+		time.Sleep(d)
+		//c.AddJobWithInterval(time.Duration(diff+30)*time.Second,  job)
+		log.Info("circle process send trade")
+	}
+
+	/*
 	c := clock.NewClock()
 	job := func() {
 		m := &proto.PriceCache{
@@ -1306,7 +1346,10 @@ func (s *EntrustQuene) Clock() {
 
 	}
 
-	c.AddJobRepeat(1*time.Second, 0, job)
+	t:=time.Now()
+	diff:=60-t.Second()
+	c.AddJobRepeat(time.Duration(diff)*time.Second, 0, job)
+	*/
 }
 
 //委托入队列

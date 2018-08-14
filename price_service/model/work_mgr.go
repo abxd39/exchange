@@ -31,7 +31,7 @@ type MsgPricePublish struct {
 }
 
 type PublicPrice struct {
-	data       *MsgPricePublish
+	Data       *MsgPricePublish
 	CnyPrice   int64
 	UsdPrice   int64
 	UpdateTime int64
@@ -62,7 +62,7 @@ func (s *WorkQueneMgr) Init() {
 		CnyPrice:   s.CnyRate,
 		UsdPrice:   s.UsdRate,
 		UpdateTime: time.Now().Unix(),
-		data: &MsgPricePublish{
+		Data: &MsgPricePublish{
 			TokenId:      1,
 			TokenTradeId: 1,
 			Price:        s.CnyRate,
@@ -94,10 +94,6 @@ func (s *WorkQueneMgr) Init() {
 
 func (s *WorkQueneMgr) Process() {
 	for v := range s.msgChan {
-
-		if !s.IsRun {
-			s.IsRun=true
-		}
 		if v.TokenId == 1 { //USDT
 			d, ok := s.PriceMap[v.TokenTradeId]
 			if !ok {
@@ -105,10 +101,10 @@ func (s *WorkQueneMgr) Process() {
 					CnyPrice:   convert.Int64MulInt64By8Bit(v.Price, s.CnyRate),
 					UsdPrice:   convert.Int64MulInt64By8Bit(v.Price, s.UsdRate),
 					UpdateTime: time.Now().Unix(),
-					data:       v,
+					Data:       v,
 				}
 			} else {
-				d.data = v
+				d.Data = v
 				d.CnyPrice = convert.Int64MulInt64By8Bit(v.Price, s.CnyRate)
 				d.UsdPrice = convert.Int64MulInt64By8Bit(v.Price, s.UsdRate)
 				d.UpdateTime = time.Now().Unix()
@@ -122,19 +118,19 @@ func (s *WorkQueneMgr) Process() {
 			d, ok := s.PriceMap[v.TokenTradeId]
 			if !ok {
 				s.PriceMap[v.TokenTradeId] = &PublicPrice{
-					CnyPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.CnyRate),
-					UsdPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.UsdRate),
+					CnyPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.CnyRate),
+					UsdPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.UsdRate),
 					UpdateTime: time.Now().Unix(),
-					data:       v,
+					Data:       v,
 				}
 			} else {
-				if d.data.Symbol != v.Symbol { //遇到同一个币的不同队列只保留一个
+				if d.Data.Symbol != v.Symbol { //遇到同一个币的不同队列只保留一个
 					continue
 				}
-				d.CnyPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.CnyRate)
-				d.UsdPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.data.Price, s.UsdRate)
+				d.CnyPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.CnyRate)
+				d.UsdPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.UsdRate)
 				d.UpdateTime = time.Now().Unix()
-				d.data = v
+				d.Data = v
 			}
 		}
 	}
@@ -163,6 +159,6 @@ func (s *WorkQueneMgr) GetQueneByUKey(ukey string) (d *PriceWorkQuene, ok bool) 
 func Test() {
 	time.Sleep(40 * time.Second)
 	for _, v := range GetQueneMgr().PriceMap {
-		log.Warnf("token_id=%d,cny %d,usdt %d", v.data.TokenTradeId, v.CnyPrice, v.UsdPrice)
+		log.Warnf("token_id=%d,cny %d,usdt %d", v.Data.TokenTradeId, v.CnyPrice, v.UsdPrice)
 	}
 }

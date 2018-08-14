@@ -10,11 +10,9 @@ import (
 	"log"
 	"time"
 	"digicon/price_service/rpc/handler"
-	"github.com/micro/go-micro/broker"
-	"encoding/json"
 )
 
-func RPCServerInit() {
+func RPCServerInit() (*handler.RPCServer){
 	service_name := cf.Cfg.MustValue("base", "service_name")
 
 	addr := cf.Cfg.MustValue("consul", "addr")
@@ -27,24 +25,15 @@ func RPCServerInit() {
 	)
 	service.Init()
 
-	//pubsub := micro.NewPublisher("user.created", service.Client())
-	pubsub := service.Server().Options().Broker
-	if err := pubsub.Connect(); err != nil {
-		log.Fatal(err)
-	}
-	_, err := pubsub.Subscribe("", func(p broker.Publication) error {
+	publisher := micro.NewPublisher("topic.go.micro.srv.price", service.Client())
 
-		return nil
-	})
-	if err!=nil {
-		log.Fatalln(err)
-	}
 	//proto.RegisterPriceRPCHandler(service.Server(), new(handler.RPCServer))
-	proto.RegisterPriceRPCHandler(service.Server(), handler.NewRPCServer(pubsub))
+	h:=handler.NewRPCServer(publisher)
+	proto.RegisterPriceRPCHandler(service.Server(), h)
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err.Error())
 		log.Fatal(err)
 	}
-
+	return h
 }

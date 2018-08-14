@@ -7,49 +7,67 @@ import (
 	proto "digicon/proto/rpc"
 	"fmt"
 	"golang.org/x/net/context"
-	"log"
 	"strings"
-	"github.com/micro/go-micro/broker"
-	"encoding/json"
 	"github.com/micro/go-micro"
+	"time"
+	"github.com/alex023/clock"
+	log "github.com/sirupsen/logrus"
 )
 
 type RPCServer struct{
-	PubSub       micro.Publisher
+	Publisher       micro.Publisher
 	topic string
 }
 
 func NewRPCServer(pb  micro.Publisher)*RPCServer  {
 	r:=&RPCServer{
-		PubSub:pb,
+		Publisher:pb,
 		topic:"topic.go.micro.srv.price",
 	}
+	go r.Process()
 	return r
 }
 
-func (s *RPCServer) Process(ch <-chan *proto.CnyPriceResponse)  {
-	for v:=range ch  {
-		s.publishEvent(v)
+func (s *RPCServer) Process()  {
+	//fifteen := t.Add(-time.Duration(sec) * time.Second)
+	for{
+		c := clock.NewClock()
+		t:=time.Now()
+		diff:=60-t.Second()
+		job := func() {
+			d:=make([]*proto.CnyBaseData,0)
+			for _,v:=range model.GetQueneMgr().PriceMap  {
+
+				d =append(d,&proto.CnyBaseData{
+					TokenId:v.Data.TokenTradeId,
+					CnyPrice: convert.Int64ToStringBy8Bit( v.CnyPrice),
+					UsdPrice:convert.Int64ToStringBy8Bit(v.UsdPrice),
+					CnyPriceInt:v.CnyPrice,
+					UsdPriceInt:v.UsdPrice,
+				})
+			}
+
+			if len(d)>1 {
+				s.publishEvent(&proto.CnyPriceResponse{
+					Data:d,
+				})
+			}
+		}
+		d:=time.Duration(diff+30)*time.Second
+		c.AddJobWithInterval(d,  job)
+		time.Sleep(10*time.Second)
+		log.Info("circle process send trade")
 	}
 }
 
-func (s *RPCServer) publishEvent(data interface{}) error {
+func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 	// Marshal to JSON string
-	body, err := json.Marshal(data)
-	if err != nil {
+
+	if err := s.Publisher.Publish(context.TODO(), data); err != nil {
+		log.Error(err)
 		return err
 	}
-
-	// Create a broker message
-	msg := &broker.Message{
-		Body: body,
-	}
-
-	// Publish message to broker
-	if err := s.PubSub.Publish( context.TODO(), msg); err != nil {
-		log.Printf("[pub] failed: %v", err)
-	}
-
+	log.Info("succedd send")
 	return nil
 }
 

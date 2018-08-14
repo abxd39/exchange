@@ -3,6 +3,7 @@ package model
 import (
 	. "digicon/token_service/dao"
 	log "github.com/sirupsen/logrus"
+	proto "digicon/proto/rpc"
 )
 
 type ConfigTokenCny struct {
@@ -24,6 +25,8 @@ func InitConfigTokenCny() {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
+	
+	
 }
 
 func GetTokenCnyPrice(token_id int) int64 {
@@ -44,4 +47,10 @@ func GetTokenUsdPrice(token_id int) int64 {
 		return g.UsdPrice
 	}
 	return 0
+}
+
+var CnyPriceMap   map[int32]*proto.CnyBaseData
+
+func InitCnyPrice()  {
+	CnyPriceMap =make(map[int32]*proto.CnyBaseData,0)
 }

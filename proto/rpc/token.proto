@@ -138,7 +138,8 @@ enum TOKEN_TYPE_OPERATOR
     TRANSFER_FROM_TIBI                      =12;//提币
     TRANSFER_FROM_CANCELTIBI                =13;//取消提币
     BACKSTAGE_PUT                           =14;//后台充币
-
+    HISTORY_ENTRUST_BUY                     =15;//委托买入
+    HISTORY_ENTRUST_SELL                    =16;//委托卖出
 }
 
 message  EntrustOrderRequest {
