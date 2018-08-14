@@ -77,7 +77,8 @@ func (this *Ads) Add() int {
 	}
 
 	curCnyPrice := convert.Int64MulInt64By8Bit(int64(this.Num), int64(this.Price))
-	minLimit := this.MinLimit * 100000000
+	minLimit := convert.Int64ToInt64By8Bit(int64(this.MinLimit))
+	fmt.Println("curCnyPrice:", curCnyPrice, "minLimit:", minLimit, curCnyPrice < int64(minLimit))
 	if curCnyPrice < int64(minLimit) {
 		log.Errorln("当前广告的总价已小于最小价格的值")
 		return ERRCODE_ADS_SET_PRICE
@@ -118,6 +119,14 @@ func (this *Ads) Update() int {
 	if isGet.MinLimit < 100 {
 		log.Errorln("限制最小价格要大于等于100")
 		return ERRCODE_ADS_MIN_LIMIT
+	}
+
+	curCnyPrice := convert.Int64MulInt64By8Bit(int64(isGet.Num), int64(isGet.Price))
+	minLimit := convert.Int64ToInt64By8Bit(int64(isGet.MinLimit))
+	fmt.Println("curCnyPrice:", curCnyPrice, "minLimit:", minLimit, curCnyPrice < int64(minLimit))
+	if curCnyPrice < int64(minLimit) {
+		log.Errorln("当前广告的总价已小于最小价格的值")
+		return ERRCODE_ADS_SET_PRICE
 	}
 
 	_, err := dao.DB.GetMysqlConn().Id(this.Id).Cols("price",
