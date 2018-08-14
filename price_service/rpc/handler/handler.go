@@ -3,60 +3,60 @@ package handler
 import (
 	"digicon/common/convert"
 	//"digicon/price_service/exchange"
+	. "digicon/price_service/dao"
 	"digicon/price_service/model"
 	proto "digicon/proto/rpc"
 	"fmt"
+	"github.com/alex023/clock"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/liudng/godump"
+	"github.com/micro/go-micro"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"strings"
-	"github.com/micro/go-micro"
 	"time"
-	"github.com/alex023/clock"
-	log "github.com/sirupsen/logrus"
-	"github.com/golang/protobuf/jsonpb"
-	. "digicon/price_service/dao"
-	"github.com/liudng/godump"
 )
 
-type RPCServer struct{
-	Publisher       micro.Publisher
-	topic string
+type RPCServer struct {
+	Publisher micro.Publisher
+	topic     string
 }
 
-func NewRPCServer(pb  micro.Publisher)*RPCServer  {
-	r:=&RPCServer{
-		Publisher:pb,
-		topic:"topic.go.micro.srv.price",
+func NewRPCServer(pb micro.Publisher) *RPCServer {
+	r := &RPCServer{
+		Publisher: pb,
+		topic:     "topic.go.micro.srv.price",
 	}
 	go r.Process()
 	return r
 }
 
-func (s *RPCServer) Process()  {
-	for{
+func (s *RPCServer) Process() {
+	for {
 		c := clock.NewClock()
-		t:=time.Now()
-		diff:=60-t.Second()
+		t := time.Now()
+		diff := 60 - t.Second()
 		job := func() {
-			d:=make([]*proto.CnyBaseData,0)
-			for _,v:=range model.GetQueneMgr().PriceMap  {
+			d := make([]*proto.CnyBaseData, 0)
+			for _, v := range model.GetQueneMgr().PriceMap {
 
-				d =append(d,&proto.CnyBaseData{
-					TokenId:v.Data.TokenTradeId,
-					CnyPrice: convert.Int64ToStringBy8Bit( v.CnyPrice),
-					UsdPrice:convert.Int64ToStringBy8Bit(v.UsdPrice),
-					CnyPriceInt:v.CnyPrice,
-					UsdPriceInt:v.UsdPrice,
+				d = append(d, &proto.CnyBaseData{
+					TokenId:     v.Data.TokenTradeId,
+					CnyPrice:    convert.Int64ToStringBy8Bit(v.CnyPrice),
+					UsdPrice:    convert.Int64ToStringBy8Bit(v.UsdPrice),
+					CnyPriceInt: v.CnyPrice,
+					UsdPriceInt: v.UsdPrice,
 				})
 			}
 
-			if len(d)>1 {
+			if len(d) > 1 {
 				s.publishEvent(&proto.CnyPriceResponse{
-					Data:d,
+					Data: d,
 				})
 			}
 		}
-		d:=time.Duration(diff+5)*time.Second
-		c.AddJobWithInterval(d,  job)
+		d := time.Duration(diff+5) * time.Second
+		c.AddJobWithInterval(d, job)
 		time.Sleep(d)
 		log.Info("circle process send trade")
 	}
@@ -72,7 +72,7 @@ func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 		return err
 	}
 	godump.Dump(g)
-	err =DB.GetRedisConn().Set("history.price.go.micro",g,0).Err()
+	err = DB.GetRedisConn().Set("history.price.go.micro", g, 0).Err()
 	if err != nil {
 		log.Errorln(err.Error())
 		return err
@@ -85,7 +85,6 @@ func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 	log.Info("succedd send")
 	return nil
 }
-
 
 func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *proto.AdminResponse) error {
 	log.Print("Received Say.Hello request")
@@ -101,7 +100,7 @@ func (s *RPCServer) CurrentPrice(ctx context.Context, req *proto.CurrentPriceReq
 	}
 	e := q.GetEntry()
 	h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-	
+
 	rsp.Data = model.Calculate(q.ToekenTradeId, e.Price, e.Amount, q.CnyPrice, q.Symbol, h, l)
 	return nil
 }
@@ -159,16 +158,16 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 
 		price := q.GetEntry().Price
 
-		c,ok:=model.GetQueneMgr().PriceMap[v.TokenTradeId]
+		c, ok := model.GetQueneMgr().PriceMap[v.TokenTradeId]
 		if !ok {
 			continue
 		}
 
 		rsp.Data = append(rsp.Data, &proto.SymbolBaseData{
-			Symbol:       v.Name,
-			Price:        convert.Int64ToStringBy8Bit(price),
+			Symbol: v.Name,
+			Price:  convert.Int64ToStringBy8Bit(price),
 			//CnyPrice:     convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(q.CnyPrice, price)),
-			CnyPrice:	   convert.Int64ToStringBy8Bit(c.CnyPrice),
+			CnyPrice:     convert.Int64ToStringBy8Bit(c.CnyPrice),
 			Scope:        convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
 			TradeTokenId: int32(v.TokenTradeId),
 		})
@@ -285,14 +284,14 @@ func (s *RPCServer) GetCnyPrices(ctx context.Context, req *proto.CnyPriceRequest
 		}
 
 		d = append(d, &proto.CnyBaseData{
-			TokenId:  v,
-			CnyPrice: convert.Int64ToStringBy8Bit( g.CnyPrice),
-			UsdPrice: convert.Int64ToStringBy8Bit( g.UsdPrice),
-			CnyPriceInt:g.CnyPrice,
-			UsdPriceInt:g.UsdPrice,
+			TokenId:     v,
+			CnyPrice:    convert.Int64ToStringBy8Bit(g.CnyPrice),
+			UsdPrice:    convert.Int64ToStringBy8Bit(g.UsdPrice),
+			CnyPriceInt: g.CnyPrice,
+			UsdPriceInt: g.UsdPrice,
 		})
 	}
-	rsp.Data=d
+	rsp.Data = d
 	return nil
 }
 
@@ -309,7 +308,7 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 
 		price := q.GetEntry().Price
 		h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-		r := model.Calculate(q.ToekenTradeId,price, q.GetEntry().Amount, q.CnyPrice, q.Symbol, h, l)
+		r := model.Calculate(q.ToekenTradeId, price, q.GetEntry().Amount, q.CnyPrice, q.Symbol, h, l)
 
 		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
 			Symbol: v.Name,

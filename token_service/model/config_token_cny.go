@@ -3,8 +3,8 @@ package model
 import (
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
-	log "github.com/sirupsen/logrus"
 	"github.com/golang/protobuf/jsonpb"
+	log "github.com/sirupsen/logrus"
 )
 
 /*
@@ -27,8 +27,8 @@ func InitConfigTokenCny() {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	
-	
+
+
 }
 
 func GetTokenCnyPrice(token_id int) int64 {
@@ -51,31 +51,31 @@ func GetTokenUsdPrice(token_id int) int64 {
 	return 0
 }
 */
-var CnyPriceMap   map[int32]*proto.CnyBaseData
+var CnyPriceMap map[int32]*proto.CnyBaseData
 
-func InitCnyPrice()  {
-	CnyPriceMap =make(map[int32]*proto.CnyBaseData,0)
+func InitCnyPrice() {
+	CnyPriceMap = make(map[int32]*proto.CnyBaseData, 0)
 
-	r,err:=DB.GetRedisConn().Get("history.price.go.micro").Result()
-	if err!=nil {
+	r, err := DB.GetRedisConn().Get("history.price.go.micro").Result()
+	if err != nil {
 		log.Fatal("please init price first")
 	}
 
 	out := &proto.CnyPriceResponse{}
 	err = jsonpb.UnmarshalString(r, out)
 	if err != nil {
-		log.Fatal("please init price first err %s",err.Error())
+		log.Fatal("please init price first err %s", err.Error())
 		return
 	}
 
-	for _,v:=range out.Data {
-		CnyPriceMap[v.TokenId]=v
+	for _, v := range out.Data {
+		CnyPriceMap[v.TokenId] = v
 	}
 
 }
 
 func GetCnyPrice(token_id int32) int64 {
-	g,ok:=CnyPriceMap[token_id]
+	g, ok := CnyPriceMap[token_id]
 	if ok {
 		return g.CnyPriceInt
 	}
@@ -83,7 +83,7 @@ func GetCnyPrice(token_id int32) int64 {
 }
 
 func GetUsdPrice(token_id int32) int64 {
-	g,ok:=CnyPriceMap[token_id]
+	g, ok := CnyPriceMap[token_id]
 	if ok {
 		return g.UsdPriceInt
 	}
