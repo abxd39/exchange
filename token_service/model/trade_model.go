@@ -7,8 +7,6 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/liudng/godump"
 	log "github.com/sirupsen/logrus"
-	proto "digicon/proto/rpc"
-	"fmt"
 )
 
 /*
@@ -101,6 +99,7 @@ func CaluateAvgPrice(t []*Trade) int64 {
 	return convert.Int64DivInt64By8Bit(amount, sum)
 }
 
+/*
 func (s *Trade) AfterInsert()  {
 	if s.Opt==int(proto.ENTRUST_OPT_BUY) {
 		_,err :=DB.GetMysqlConn().Incr("fee_buy_total",s.Fee).Incr("FeeBuyCny",s.Fee*1).Incr("BuyTotal",s.Num).Incr("BuyTotalCny",s.Num).Update(&TokenDailySheet{})
@@ -113,3 +112,4 @@ func (s *Trade) AfterInsert()  {
 
 
 }
+*/
