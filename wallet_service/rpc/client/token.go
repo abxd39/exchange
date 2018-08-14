@@ -32,6 +32,27 @@ func (s *TokenRPCCli) CallCancelSubTokenWithFronze(p *proto.CancelFronzeTokenReq
 	return
 }
 
+//确认消耗冻结的数量
+func (s *TokenRPCCli) CallConfirmSubFrozen(p *proto.ConfirmSubFrozenRequest) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.ConfirmSubFrozen(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+//添加token的数量
+func (s *TokenRPCCli) CallAddTokenNum(p *proto.AddTokenNumRequest) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.AddTokenNum(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+
 func NewTokenRPCCli() (u *TokenRPCCli) {
 	consul_addr := Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

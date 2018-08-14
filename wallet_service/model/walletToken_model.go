@@ -3,7 +3,6 @@ package models
 import (
 	. "digicon/wallet_service/utils"
 	"errors"
-	"fmt"
 	"math/big"
 	"time"
 )
@@ -77,16 +76,6 @@ func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64, nonce
 	switch token.Signature {
 	case "eip155":
 		gaslimit := 60000
-		fmt.Println("数量")
-		fmt.Println(key)
-		fmt.Println(nonce)
-		fmt.Println(to)
-		fmt.Println(mount)
-		fmt.Println(gaslimit)
-		fmt.Println(gasprice)
-		fmt.Println(token.Contract)
-		fmt.Println(this.Chainid)
-		fmt.Println("数量111")
 		return Signtx(key, nonce, to, mount, gaslimit, gasprice, token.Contract, this.Chainid)
 	case "eth":
 		gaslimit := 60000
@@ -98,7 +87,7 @@ func (this *WalletToken) Signtx(to string, mount *big.Int, gasprice int64, nonce
 }
 func (this *WalletToken) NonceIncr(id int) {
 	Engine_wallet.Exec("update wallet_token set nonce=nonce+1 where id=?", id)
-	fmt.Println("update wallet_token set nonce=nonce+1 where id=?", id)
+	//fmt.Println("update wallet_token set nonce=nonce+1 where id=?", id)
 }
 
 //创建以太坊钱包
@@ -114,8 +103,7 @@ func Neweth(userid int, tokenid int, password string, chainid int) (addr string,
 }
 
 func (this *WalletToken) GetByUidTokenid(uid int, tokenid int) error {
-	boo, err := Engine_wallet.Where("uid = ? and tokenid = ?", uid, tokenid).Get(this)
-	fmt.Println("数据：", boo, err, this)
+	_, err := Engine_wallet.Where("uid = ? and tokenid = ?", uid, tokenid).Get(this)
 	if err != nil {
 		return err
 	}
@@ -143,17 +131,17 @@ func (this *WalletToken) WalletTokenExist(uid int, tokenid int) (bool, string, s
 }
 
 //查询所有比特币地址
-func (this *WalletToken) GetAllAddress(tokenid int) (err error,data []WalletToken) {
+func (this *WalletToken) GetAllAddress() (err error,data []WalletToken) {
 	data = make([]WalletToken,0)
-	Engine_wallet.ShowSQL(true)
-	err = Engine_wallet.Select("uid,address").Where("tokenid = ?",tokenid).Find(&data)
+	err = Engine_wallet.Select("chainid,address,contract,created_time").Find(&data)
 	return
 }
 
 //查询注册时间大于某个点的地址
-func (this *WalletToken) GetAddressByTime(tokenid int,time string) (bool,error) {
-	boo,err := Engine_wallet.Select("uid,address").Where("tokenid = ? and created_time > ?",tokenid,time).Get(this)
-	return boo,err
+func (this *WalletToken) GetAddressByTime(time string) (err error,data []WalletToken) {
+	data = make([]WalletToken,0)
+	err = Engine_wallet.Select("chainid,address,contract,created_time").Where("created_time > ?",time).Find(&data)
+	return
 }
 
 //根据地址获取uid

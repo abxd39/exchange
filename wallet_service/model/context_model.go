@@ -34,6 +34,7 @@ func (this *Context) Save(node string, chainid int, blocknumber int) (int, error
 	this.Node = node
 	this.Chainid = chainid
 	this.Number = blocknumber
+	utils.Engine_wallet.ShowSQL(false)
 	affected, err := utils.Engine_wallet.Where("node=? and chainid=?", node, chainid).Update(this)
 	if err != nil {
 		return 0, err

@@ -7,6 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"math/big"
 	"time"
+	"strconv"
 )
 
 // 平台币账户的交易
@@ -60,6 +61,7 @@ func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid
 	this.Opt = opt
 	this.To = to
 	this.Value = value
+	this.Amount,_ = strconv.ParseInt(value,10,64)
 	temp, _ := new(big.Int).SetString(value[2:], 16)
 	amount := decimal.NewFromBigInt(temp, int32(8-decim)).IntPart()
 	this.Amount = amount
@@ -219,4 +221,19 @@ func (this *TokenInout) CancelTiBi(uid,id int) (int,error) {
 //查询申请的提币单
 func (this *TokenInout) GetApplyInOut(uid int,id int) (bool,error) {
 	return utils.Engine_wallet.Where("uid = ? and id = ?",uid,id).Limit(1).Get(this)
+}
+
+func (this *TokenInout) TxhashExist(hash string, chainid int) (bool, error) {
+	utils.Engine_wallet.ShowSQL(false)
+	return utils.Engine_wallet.Where("txhash=?", hash).Get(this)
+
+}
+
+//根据交易hash，查询数据
+func (this *TokenInout) GetByHash(txhash string) error {
+	_, err := utils.Engine_wallet.Where("txhash =?", txhash).Get(this)
+	if err != nil {
+		return err
+	}
+	return nil
 }

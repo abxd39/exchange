@@ -1,4 +1,4 @@
-package client
+package watch
 
 import (
 	"github.com/ouqiang/timewheel"
@@ -91,6 +91,11 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 		return
 	}
 	status := gjson.Get(data,"status").String()
+	if status == "" {
+		//暂未打包成功，重新放入队列，等待下次执行
+		p.PushRedisList(txhash)
+		return
+	}
 	temp, _ := new(big.Int).SetString(status[2:], 16)
 	statuss := decimal.NewFromBigInt(temp, 0).IntPart()
 	if statuss == 1 {
@@ -104,12 +109,17 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 		var data TranInfo
 		err = json.Unmarshal([]byte(tranInfo),&data)
 		if err != nil {
+			log.Println("eth tibi unmatshal error",err.Error())
 			return
 		}
-		//新增数据
-		p.WriteEthInRecord(data)
+		//新增数据，不需要新增，因为只检查提币是否成功
+		//p.WriteEthInRecord(data)
 		//修改提币申请订单
 		new(models.TokenInout).BteUpdateAppleDone(txhash)
+		//写一条数据到链记录表中
+		p.WriteChainTx(data)
+		//确认消耗冻结数量
+		new(Common).ETHConfirmSubFrozen(data)
 		return
 	}
 	//暂未打包成功，重新放入队列，等待下次执行
@@ -118,7 +128,6 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 
 //保存数据到redis队列
 func (p *EthTiBiWatch) PushRedisList(txhash string) {
-	fmt.Println("收到一个eth交易检查请求：",txhash)
 	redis := utils.Redis
 	err := redis.RPush(ETH_CHECK_LIST_KEY,txhash).Err()
 	if err != nil {
@@ -140,8 +149,8 @@ func (p *EthTiBiWatch) GetDataFromRedis() (error,string) {
 
 //写入一条订单数据到表：token_chain_inout
 func (p *EthTiBiWatch) WriteEthInRecord(data TranInfo) {
-	tmp1,_ := new(big.Int).SetString(data.Value,10)
-	value := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
+	//tmp1,_ := new(big.Int).SetString(data.Value,10)
+	//value := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
 
 	var inOutToken = new(models.TokenInout)
 
@@ -156,9 +165,10 @@ func (p *EthTiBiWatch) WriteEthInRecord(data TranInfo) {
 	inOutToken.Txhash = data.Hash
 	inOutToken.From = data.From
 	inOutToken.To = data.To
+	inOutToken.Opt = 1  //提币
 	//inOutToken.Value = value
-	inOutToken.Amount = value
-	inOutToken.Tokenid = 1  //提币
+	//inOutToken.Amount = value
+	inOutToken.Tokenid = 3  //以太坊tokenid
 	inOutToken.TokenName = "ETH"
 	inOutToken.Uid = walletToken.Uid
 	inOutToken.Tokenid = walletToken.Tokenid
@@ -167,6 +177,52 @@ func (p *EthTiBiWatch) WriteEthInRecord(data TranInfo) {
 		log.Println("WriteEthInRecord error",err.Error())
 	}
 	fmt.Println(affected)
+}
+
+//写一条数据到链记录表中
+func (p *EthTiBiWatch) WriteChainTx(data TranInfo) {
+	//交易是否已经收录
+	exist, err := new(models.TokenChainInout).TxhashExist(data.Hash,0)
+
+	if err != nil {
+		return
+	}
+	if exist {
+		return
+	}
+	tokenInout := new(TokenInout)
+	err = tokenInout.GetByHash(data.Hash)
+	if err != nil || tokenInout.Tokenid <= 0 {
+		log.Printf("get data by hash error,hash %s,error:%s",data.Hash,err.Error())
+	}
+	var opt int = 1  //提币
+
+	//查询token数据
+	tokens := new(Tokens)
+	var boo bool
+	boo,err = tokens.GetByid(tokenInout.Tokenid)
+	if boo != true || err != nil || tokens.Id <= 0 {
+		log.Printf("get token by id error,tokenid:%d,error:%s",tokenInout.Tokenid,err.Error())
+	}
+
+	//格式化数量
+	temp, _ := new(big.Int).SetString(data.Value[2:],16)
+	value := decimal.NewFromBigInt(temp, int32(8 - tokens.Decimal)).String()
+
+	txmodel := &models.TokenChainInout{
+		Txhash:    data.Hash,
+		From:      data.From,
+		To:        data.To,
+		Value:     value,
+		Type:      opt,
+		Tokenid:   tokenInout.Tokenid,
+		TokenName: tokenInout.TokenName,
+		Chainid:tokenInout.Chainid,
+	}
+	row, err := txmodel.InsertThis()
+	if row <= 0 || err != nil {
+		log.Println(err.Error())
+	}
 }
 
 
@@ -182,6 +238,7 @@ func (p *EthTiBiWatch) WriteEthInRecord(data TranInfo) {
 
 type EthCBiWatch struct {
 	ethCheckCBTranNewTW *timewheel.TimeWheel  //时间轮，检查交易状态
+	ethUpdateWalletTokenNewTW *timewheel.TimeWheel  //更新wallet_token数据到redis中
 	Url string //节点链接
 	Chainid     int
 	BlockNumber int //当前处理到的高度
@@ -191,10 +248,13 @@ type EthCBiWatch struct {
 	TokenInoutModel  *TokenInout      //平台交易记录
 	TokenModel       *Tokens          //币种类
 	ContextModel     *Context         //处理上下文
+	GetWalletTokenLastTime time.Time     //获取wallet_token最后时间，用于增量更新
 }
 
 const (
-	ETH_CBI_INTERVAL_TW = 5 //时间轮定时器间隔时间
+	ETH_CBI_INTERVAL_TW = 10 //时间轮定时器间隔时间
+	ETH_ADDRESS_INTERVAL_TW = 10 //时间轮定时器间隔时间
+	ETH_CBI_ADDRESS_REDIS_KEY = "h_wallet_token"
 )
 
 //开始
@@ -234,7 +294,7 @@ func (p *EthCBiWatch) Init() {
 
 	//初始化同步区块时间轮
 	p.ethCheckCBTranNewTW = timewheel.New(1 * time.Second, 3600, func(data timewheel.TaskData) {
-		fmt.Println("start eth.cbi.watch.new...")
+		fmt.Println("----------------------------------start eth.cbi.watch.new...")
 		//区块操作处理
 		p.WorkerDone()
 		//继续添加定时器
@@ -244,10 +304,27 @@ func (p *EthCBiWatch) Init() {
 	//开始一个事件处理
 	p.ethCheckCBTranNewTW.AddTimer(ETH_CBI_INTERVAL_TW * time.Second, "eth_check_cbi", timewheel.TaskData{})
 
+	//读取wallet_token数据写到redis中
+	p.WriteAllWalletTokenToRedis()
+
+	//ethUpdateWalletTokenNewTW
+	p.ethUpdateWalletTokenNewTW = timewheel.New(1 * time.Second, 3600, func(data timewheel.TaskData) {
+		fmt.Println("start eth.cbi.wallet_token.new...")
+		//更新操作
+		p.WriteIncrWalletTokenToRedis()
+		//继续添加定时器
+		p.ethUpdateWalletTokenNewTW.AddTimer(ETH_ADDRESS_INTERVAL_TW * time.Second, "eth_wallet_token_cbi", timewheel.TaskData{})
+	})
+	p.ethUpdateWalletTokenNewTW.Start()
+	//开始一个事件处理
+	p.ethUpdateWalletTokenNewTW.AddTimer(ETH_ADDRESS_INTERVAL_TW * time.Second, "eth_wallet_token_cbi", timewheel.TaskData{})
+
 }
 
 //处理区块
 func (p *EthCBiWatch) WorkerDone() {
+	//查询数据库中的区块数
+	p.BlockNumber, _ = p.ContextModel.MaxNumber(p.Url, p.Chainid)
 	//当前最高块
 	temp, err := p.Get_blockNumber()
 	hight := int(temp)
@@ -256,8 +333,11 @@ func (p *EthCBiWatch) WorkerDone() {
 		return
 	}
 	if p.BlockNumber <= 0 {
-		p.BlockNumber = hight - 10
-	}
+			p.BlockNumber = hight - 10
+		}
+	//p.BlockNumber = hight - 10
+
+	fmt.Println("区块高度\\\\\\\\\\\\\\\\\\：",p.BlockNumber,hight)
 
 	if p.BlockNumber < hight-6 {
 		for i := p.BlockNumber + 1; i <= hight-6; i++ {
@@ -279,20 +359,24 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 	//fmt.Println(string(ret))
 	json.Unmarshal(ret, &block)
 	txs := block["result"].(map[string]interface{})["transactions"].([]interface{})
+
 	//fmt.Println(txs)
 	for i := 0; i < len(txs); i++ {
 		tx := txs[i].(map[string]interface{})
 		if tx["to"] == nil { //部署合约交易直接跳过
 			continue
 		}
+		fmt.Println("交易数据：",txs[i])
 
 		//检查eth转账
-		ext, err := p.WalletTokenModel.AddrExist(tx["to"].(string), p.Chainid, "")
+		ext := p.ExistsAddress(tx["to"].(string), p.Chainid, "")
+		fmt.Println("是否存在：",ext,tx["to"].(string) == "0x870f49783e9d8c9707a72b252a0e56d3b7628f31",p.Chainid)
+		//ext, err := p.WalletTokenModel.AddrExist(tx["to"].(string), p.Chainid, "")
 
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
+		//if err != nil {
+		//	fmt.Println(err)
+		//	return err
+		//}
 		if ext {
 			fmt.Println("发现一个eth转账")
 			//TODO:
@@ -308,7 +392,8 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 			continue
 		}
 
-		ext, err = p.WalletTokenModel.AddrExist(fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string))
+		ext = p.ExistsAddress(fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string))
+		//ext, err = p.WalletTokenModel.AddrExist(fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string))
 		//fmt.Println(ext,err,this.WalletTokenModel)
 		if !ext {
 			continue
@@ -387,8 +472,8 @@ func (p *EthCBiWatch) getChainid() (int, error) {
 	send["params"] = []string{}
 	send["id"] = 67
 	rsp, err := p.post(send)
-	str := (*string)(unsafe.Pointer(&rsp))
-	fmt.Println(*str)
+	//str := (*string)(unsafe.Pointer(&rsp))
+	//fmt.Println(*str)
 	if err != nil {
 		return 0, err
 	}
@@ -464,10 +549,75 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 		return false, errors.New("token not exist")
 	}
 	fmt.Println("this.TxModel.Insert")
-	var opt int = 2  //充币
-	p.TxModel.Insert(txhash, from, to, value, contract, chainid, uid, p.TokenModel.Id, p.TokenModel.Mark,opt)
 
-	p.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, uid, p.TokenModel.Id, p.TokenModel.Mark, deci,opt)
+	//把总量转成本系统使用的十进制保留八位小数的整数部分
+	temp, _ := new(big.Int).SetString(value[2:],16)
+	value = decimal.NewFromBigInt(temp, int32(8 - p.TokenModel.Decimal)).String()
+
+	//查询uid
+	walletToken := new(models.WalletToken)
+	err = walletToken.GetByAddress(to)
+	if err != nil || walletToken.Uid <= 0 {
+		log.Println("get uid by address error",err.Error())
+		return false,err
+	}
+
+
+	fmt.Println("uid::::",walletToken.Uid)
+
+	var opt int = 1  //充币
+	p.TxModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, p.TokenModel.Id, p.TokenModel.Mark,opt)
+
+	p.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, p.TokenModel.Id, p.TokenModel.Mark, deci,opt)
+
+	//添加用户token
+	intValue := decimal.NewFromBigInt(temp, int32(8 - p.TokenModel.Decimal)).IntPart()
+	new(Common).AddETHTokenNum(to,tokenid,intValue,txhash)
+
 	return true, nil
+}
+
+//写入所有wallet_token到redis中
+func (p *EthCBiWatch) WriteAllWalletTokenToRedis() {
+	walletToken := new(models.WalletToken)
+	err,data := walletToken.GetAllAddress()
+	if err != nil {
+		return
+	}
+	for _,v := range data {
+		key := ETH_CBI_ADDRESS_REDIS_KEY
+		field := "%d:%s:%s"  //chainid:address:contract
+		field = fmt.Sprintf(field,v.Chainid,v.Address,v.Contract)
+		utils.Redis.HSet(key,strings.ToLower(field),strings.ToLower(v.Address))
+		//修改时间
+		p.GetWalletTokenLastTime = v.CreatedTime
+	}
+}
+
+//增量更新写入wallet_token到redis中
+func (p *EthCBiWatch) WriteIncrWalletTokenToRedis() {
+	createdTime := p.GetWalletTokenLastTime.Format("2006-01-02 15:04:05")
+	walletToken := new(models.WalletToken)
+	err,data := walletToken.GetAddressByTime(createdTime)
+	if err != nil {
+		return
+	}
+	for _,v := range data {
+		key := ETH_CBI_ADDRESS_REDIS_KEY
+		field := "%d:%s:%s"  //chainid:address:contract
+		field = fmt.Sprintf(field,v.Chainid,v.Address,v.Contract)
+		utils.Redis.HSet(key,strings.ToLower(field),strings.ToLower(v.Address))
+		//修改时间
+		p.GetWalletTokenLastTime = v.CreatedTime
+	}
+}
+
+//判断地址是否存在
+func (p *EthCBiWatch) ExistsAddress(address string,chainid int,contract string) bool {
+	key := ETH_CBI_ADDRESS_REDIS_KEY
+	field := "%d:%s:%s"  //chainid:address:contract
+	field = fmt.Sprintf(field,chainid,strings.ToLower(address),contract)
+	fmt.Println("redis查询结果：",field,utils.Redis.HExists(key,strings.ToLower(field)).Val())
+	return utils.Redis.HExists(key,strings.ToLower(field)).Val()
 }
 

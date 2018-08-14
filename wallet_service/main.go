@@ -2,7 +2,6 @@ package main
 
 import (
 	"digicon/wallet_service/rpc"
-	"digicon/wallet_service/rpc/client"
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -11,7 +10,8 @@ import (
 	//cf "digicon/currency_service/conf"
 	"digicon/common/xlog"
 	cf "digicon/wallet_service/utils"
-	"digicon/wallet_service/rpc/handler"
+	"digicon/wallet_service/rpc/watch"
+	"digicon/wallet_service/rpc/client"
 )
 
 func init() {
@@ -26,14 +26,14 @@ func main() {
 	flag.Parse()
 
 	//比特币充币提币监控
-	go client.StartBtcWatch()
+	go watch.StartBtcWatch()
 	//以太币、ERC20代币提币检查
-	go client.StartEthCheckNew()
+	go watch.StartEthCheckNew()
 	//以太币、ERC20代币充币检查
-	go client.StartEthCBiWatch()
+	go watch.StartEthCBiWatch()
 
 	go rpc.RPCServerInit()
-	go handler.InitInnerService()
+	go client.InitInnerService()
 	//new(client.Watch).Start("https://rinkeby.infura.io/mew")  // need ...
 	//go new(client.BTCWatch).Start()
 	//go new(client.BTCWatch).Start()
