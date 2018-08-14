@@ -366,27 +366,27 @@ func (s *TokenGroup) TokenBalanceList(c *gin.Context) {
 
 	// 重组list
 	type NewList struct {
-		TokenId   int32   `json:"token_id"`
-		TokenName string  `json:"token_name"`
-		Balance   float64 `json:"balance"`
-		Frozen    float64 `json:"frozen"`
-		WorthCny  float64 `json:"worth_cny"`
+		TokenId   int32  `json:"token_id"`
+		TokenName string `json:"token_name"`
+		Balance   string `json:"balance"`
+		Frozen    string `json:"frozen"`
+		WorthCny  string `json:"worth_cny"`
 	}
 	newList := make([]*NewList, len(rsp.Data.List))
 	for k, v := range rsp.Data.List {
 		newList[k] = &NewList{
 			TokenId:   v.TokenId,
 			TokenName: v.TokenName,
-			Balance:   v.Balance,
-			Frozen:    v.Frozen,
-			WorthCny:  v.WorthCny,
+			Balance:   convert.Int64ToStringBy8Bit(v.Balance),
+			Frozen:    convert.Int64ToStringBy8Bit(v.Frozen),
+			WorthCny:  fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(v.WorthCny)),
 		}
 	}
 
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("list", newList)
-	ret.SetDataSection("total_worth_cny", rsp.Data.TotalWorthCny)
-	ret.SetDataSection("total_worth_btc", rsp.Data.TotalWorthBtc)
+	ret.SetDataSection("total_worth_cny", fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(rsp.Data.TotalWorthCny)))
+	ret.SetDataSection("total_worth_btc", convert.Int64ToStringBy8Bit(rsp.Data.TotalWorthBtc))
 }
 
 // 代币订单明细
@@ -561,12 +561,12 @@ func (s *TokenGroup) TransferList(c *gin.Context) {
 
 	// 重组data
 	type item struct {
-		Id          int64   `json:"id"`
-		TokenId     int32   `json:"token_id"`
-		TokenName   string  `json:"token_name"`
-		Type        int32   `json:"type"`
-		Num         float64 `json:"num"`
-		CreatedTime int64   `json:"created_time"`
+		Id          int64  `json:"id"`
+		TokenId     int32  `json:"token_id"`
+		TokenName   string `json:"token_name"`
+		Type        int32  `json:"type"`
+		Num         string `json:"num"`
+		CreatedTime int64  `json:"created_time"`
 	}
 	type list struct {
 		PageIndex int32   `json:"page_index"`
@@ -583,7 +583,7 @@ func (s *TokenGroup) TransferList(c *gin.Context) {
 			TokenId:     v.TokenId,
 			TokenName:   v.TokenName,
 			Type:        v.Type,
-			Num:         convert.Int64ToFloat64By8Bit(v.Num),
+			Num:         convert.Int64ToStringBy8Bit(v.Num),
 			CreatedTime: v.TransferTime,
 		}
 	}
@@ -635,12 +635,12 @@ func (s *TokenGroup) RefundList(c *gin.Context) {
 
 	// 重组data
 	type item struct {
-		Id          int64   `json:"id"`
-		TokenId     int32   `json:"token_id"`
-		TokenName   string  `json:"token_name"`
-		Type        int32   `json:"type"`
-		Num         float64 `json:"num"`
-		CreatedTime int64   `json:"created_time"`
+		Id          int64  `json:"id"`
+		TokenId     int32  `json:"token_id"`
+		TokenName   string `json:"token_name"`
+		Type        int32  `json:"type"`
+		Num         string `json:"num"`
+		CreatedTime int64  `json:"created_time"`
 	}
 	type list struct {
 		PageIndex int32   `json:"page_index"`
@@ -657,7 +657,7 @@ func (s *TokenGroup) RefundList(c *gin.Context) {
 			TokenId:     v.TokenId,
 			TokenName:   v.TokenName,
 			Type:        v.Type,
-			Num:         convert.Int64ToFloat64By8Bit(v.Num),
+			Num:         convert.Int64ToStringBy8Bit(v.Num),
 			CreatedTime: v.CreatedTime,
 		}
 	}

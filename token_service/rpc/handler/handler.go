@@ -11,7 +11,6 @@ import (
 	"digicon/common/errors"
 	"digicon/token_service/conf"
 	"digicon/token_service/rpc/client"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
@@ -359,21 +358,12 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			}
 		}
 
-		worthCny, err := strconv.ParseFloat(fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(convert.Int64MulInt64By8Bit(v.TotalBalance, cnyPrice))), 64)
-		if err != nil {
-			err = errors.NewSys(err)
-
-			rsp.Err = int32(errors.GetErrStatus(err))
-			rsp.Message = errors.GetErrMsg(err)
-			return nil
-		}
-
 		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
-			Balance:   convert.Int64ToFloat64By8Bit(v.Balance),
-			Frozen:    convert.Int64ToFloat64By8Bit(v.Frozen),
-			WorthCny:  worthCny,
+			Balance:   v.Balance,
+			Frozen:    v.Frozen,
+			WorthCny:  convert.Int64MulInt64By8Bit(v.TotalBalance, cnyPrice),
 		}
 	}
 
@@ -386,9 +376,9 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	}
 
 	// 1.折合人民币
-	var totalCnyInt int64
+	var totalCny int64
 	for _, total := range totalList {
-		if total.TotalBalance == 0 {
+		if total.TotalBalance == 0 { // 分组数量为0，跳过
 			continue
 		}
 
@@ -405,17 +395,10 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		}
 
 		// 合计token_id分组
-		totalCnyInt += convert.Int64MulInt64By8Bit(total.TotalBalance, cnyPrice)
+		totalCny += convert.Int64MulInt64By8Bit(total.TotalBalance, cnyPrice)
 	}
 
-	rsp.Data.TotalWorthCny, err = strconv.ParseFloat(fmt.Sprintf("%.2f", convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(totalCnyInt, 100000000))), 64)
-	if err != nil {
-		err = errors.NewSys(err)
-
-		rsp.Err = int32(errors.GetErrStatus(err))
-		rsp.Message = errors.GetErrMsg(err)
-		return nil
-	}
+	rsp.Data.TotalWorthCny = totalCny
 
 	// 2.根据人民币折合BTC
 	var btcCnyPrice int64
@@ -432,14 +415,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		return nil
 	}
 
-	rsp.Data.TotalWorthBtc, err = strconv.ParseFloat(fmt.Sprintf("%.8f", convert.Int64ToFloat64By8Bit(convert.Int64DivInt64By8Bit(convert.Int64DivInt64By8Bit(totalCnyInt, btcCnyPrice), 100000000))), 64)
-	if err != nil {
-		err = errors.NewSys(err)
-
-		rsp.Err = int32(errors.GetErrStatus(err))
-		rsp.Message = errors.GetErrMsg(err)
-		return nil
-	}
+	rsp.Data.TotalWorthBtc = convert.Int64DivInt64By8Bit(totalCny, btcCnyPrice)
 
 	return nil
 }
