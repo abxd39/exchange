@@ -48,8 +48,8 @@ func main() {
 
 	///////////////////
 	//  统计每天的币数
-	//go cron.DailyStart()
-	go new(cron.WalletDailyCountSheet).Run()
+	go cron.DailyStart()
+	//go new(cron.WalletDailyCountSheet).Run()
 
 	/////////////////////
 
