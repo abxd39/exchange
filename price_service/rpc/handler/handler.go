@@ -12,6 +12,9 @@ import (
 	"time"
 	"github.com/alex023/clock"
 	log "github.com/sirupsen/logrus"
+	"github.com/golang/protobuf/jsonpb"
+	. "digicon/price_service/dao"
+	"github.com/liudng/godump"
 )
 
 type RPCServer struct{
@@ -52,15 +55,28 @@ func (s *RPCServer) Process()  {
 				})
 			}
 		}
-		d:=time.Duration(diff+30)*time.Second
+		d:=time.Duration(diff+5)*time.Second
 		c.AddJobWithInterval(d,  job)
-		time.Sleep(time.Duration(diff+30)*time.Second)
+		time.Sleep(d)
 		log.Info("circle process send trade")
 	}
 }
 
 func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 	// Marshal to JSON string
+	m := jsonpb.Marshaler{EmitDefaults: true}
+
+	g, err := m.MarshalToString(data)
+	if err != nil {
+		log.Errorln(err.Error())
+		return err
+	}
+	godump.Dump(g)
+	err =DB.GetRedisConn().Set("history.price.go.micro",g,0).Err()
+	if err != nil {
+		log.Errorln(err.Error())
+		return err
+	}
 
 	if err := s.Publisher.Publish(context.TODO(), data); err != nil {
 		log.Error(err)
