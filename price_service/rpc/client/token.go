@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	cf "digicon/price_service/conf"
 	proto "digicon/proto/rpc"
 	"github.com/micro/go-micro"
@@ -14,6 +13,7 @@ type TokenRPCCli struct {
 	conn proto.TokenRPCService
 }
 
+/*
 func (s *TokenRPCCli) CallGetConfigQuene() (rsp *proto.ConfigQueneResponse, err error) {
 	rsp, err = s.conn.GetConfigQuene(context.TODO(), &proto.NullRequest{})
 	if err != nil {
@@ -22,7 +22,7 @@ func (s *TokenRPCCli) CallGetConfigQuene() (rsp *proto.ConfigQueneResponse, err 
 	}
 	return
 }
-
+*/
 func NewTokenRPCCli() (u *TokenRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

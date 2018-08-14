@@ -180,6 +180,9 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
+	
+	Cny:=model.GetCnyPrice(int32(q.TokenTradeId))
+	
 	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, req.Num)
 	if err == redis.Nil {
 
@@ -188,11 +191,12 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = err.Error()
 		return nil
 	} else {
+		
 		for _, v := range others {
 			g := &proto.EntrustBaseData{
 				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 				SurplusNum: convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum, v.OnPrice)),
-				CnyPrice:   q.GetCnyPrice(v.OnPrice),
+				CnyPrice:   convert.Int64MulInt64By8BitString(v.OnPrice,Cny),
 			}
 			g.Price = convert.Int64ToStringBy8Bit(v.SurplusNum)
 			rsp.Buy = append(rsp.Buy, g)
@@ -211,7 +215,8 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 			g := &proto.EntrustBaseData{
 				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 				SurplusNum: convert.Int64ToStringBy8Bit(v.SurplusNum),
-				CnyPrice:   q.GetCnyPrice(v.OnPrice),
+				//CnyPrice:   q.GetCnyPrice(v.OnPrice),
+				CnyPrice:   convert.Int64MulInt64By8BitString(v.OnPrice,Cny),
 			}
 
 			g.Price = convert.Int64MulInt64By8BitString(v.OnPrice, v.SurplusNum)
@@ -453,7 +458,9 @@ func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeLis
 	return nil
 }
 
+/*
 func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, rsp *proto.ConfigQueneResponse) error {
+	
 	t := new(model.ConfigQuenes).GetAllQuenes()
 
 	for _, v := range t {
@@ -474,7 +481,7 @@ func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, 
 
 	return nil
 }
-
+*/
 func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest, rsp *proto.DelEntrustResponse) error {
 	e := model.GetEntrust(req.EntrustId)
 	if e == nil {

@@ -155,10 +155,3 @@ func (s *WorkQueneMgr) GetQueneByUKey(ukey string) (d *PriceWorkQuene, ok bool) 
 	}
 	return
 }
-
-func Test() {
-	time.Sleep(40 * time.Second)
-	for _, v := range GetQueneMgr().PriceMap {
-		log.Warnf("token_id=%d,cny %d,usdt %d", v.Data.TokenTradeId, v.CnyPrice, v.UsdPrice)
-	}
-}

@@ -84,6 +84,8 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 	}
 
 	return list, nil
+
+	return nil, nil
 }
 
 //获取实体
