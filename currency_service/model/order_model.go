@@ -910,6 +910,10 @@ func CancelAction(id uint64, CancelType uint32) (err error) {
 		session.Rollback()
 		return
 	}
+
+	resetCancelNumSql := "UPDATE `ads` set `num`=`num`+? where `id`=?"
+	_, err = session.Exec(resetCancelNumSql, od.Num, od.AdId)
+
 	fmt.Println("session commit ....")
 	err = session.Commit()
 	if err != nil {
