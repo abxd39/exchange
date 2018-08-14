@@ -396,14 +396,6 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			}
 		}
 
-		if cnyPrice == 0 {
-			err = errors.NewSys(fmt.Sprintf("折合人民币为0，token_id：%d", total.TokenId))
-
-			rsp.Err = int32(errors.GetErrStatus(err))
-			rsp.Message = errors.GetErrMsg(err)
-			return nil
-		}
-
 		totalCnyInt += convert.Int64MulInt64By8Bit(total.TotalBalance, cnyPrice)
 	}
 
