@@ -375,6 +375,7 @@ message TransferListResponse{
             int32 type          =4; //10-划转到法币,11-划转到币币
             int64 num           =5;
             int64 created_time  =6;
+            int64 transfer_time =7;
         }
 
         int32 page_index           =1;

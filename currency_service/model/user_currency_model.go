@@ -132,8 +132,8 @@ func (this *UserCurrency) TransferToToken(uid uint64, tokenId int, num int64) er
 
 	//2.法币流水
 	result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
-		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s')", new(UserCurrencyHistory).TableName(), uid, transferId, tokenId, num, newBalance, 4, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
+		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time, transfer_time)"+
+		" VALUES (%d, %[2]d, '%d', %d, %d, %d, %d, '%s', %d)", new(UserCurrencyHistory).TableName(), uid, transferId, tokenId, num, newBalance, 4, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME), now))
 	if err != nil {
 		currencySession.Rollback()
 		return errors.NewSys(err)
@@ -257,10 +257,10 @@ func (this *UserCurrency) TransferFromToken(msg *proto.TransferToCurrencyTodoMes
 
 	//2.法币流水，再次检查消息是否已处理!!!（order_id是否已存在）
 	result, err = currencySession.Exec(fmt.Sprintf("INSERT INTO %s"+
-		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time)"+
-		" SELECT %d, %[2]d, '%d', %d, %d, %d, %d, '%s'"+
+		" (uid, trade_uid, order_id, token_id, num, surplus, operator, created_time, transfer_time)"+
+		" SELECT %d, %[2]d, '%d', %d, %d, %d, %d, '%s', %d"+
 		" FROM DUAL"+
-		" WHERE NOT EXISTS (SELECT order_id FROM %[1]s WHERE order_id='%[3]d')", new(UserCurrencyHistory).TableName(), msg.Uid, msg.Id, msg.TokenId, msg.Num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME)))
+		" WHERE NOT EXISTS (SELECT order_id FROM %[1]s WHERE order_id='%[3]d')", new(UserCurrencyHistory).TableName(), msg.Uid, msg.Id, msg.TokenId, msg.Num, newCurrBalance, 3, xtime.Unix2Date(now, xtime.LAYOUT_DATE_TIME), msg.CreateTime))
 	if err != nil {
 		currencySession.Rollback()
 		return errors.NewSys(err)

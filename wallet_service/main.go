@@ -11,6 +11,7 @@ import (
 	//cf "digicon/currency_service/conf"
 	"digicon/common/xlog"
 	cf "digicon/wallet_service/utils"
+	"digicon/wallet_service/rpc/handler"
 )
 
 func init() {
@@ -24,11 +25,19 @@ func init() {
 func main() {
 	flag.Parse()
 
+	//比特币充币提币监控
+	go client.StartBtcWatch()
+	//以太币、ERC20代币提币检查
+	go client.StartEthCheckNew()
+	//以太币、ERC20代币充币检查
+	go client.StartEthCBiWatch()
+
 	go rpc.RPCServerInit()
+	go handler.InitInnerService()
 	//new(client.Watch).Start("https://rinkeby.infura.io/mew")  // need ...
 	//go new(client.BTCWatch).Start()
 	//go new(client.BTCWatch).Start()
-	go new(client.Watch).Start()
+	//go new(client.Watch).Start()
 	//return
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,

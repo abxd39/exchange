@@ -12,8 +12,8 @@ import (
 	"github.com/shopspring/decimal"
 	"log"
 	"strconv"
-	"digicon/wallet_service/rpc"
 	"math/big"
+	"digicon/wallet_service/rpc/client"
 )
 
 type WalletHandler struct{}
@@ -181,6 +181,8 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 	if ok {
 		//更新申请单记录
 		new(TokenInout).UpdateApplyTiBi(int(req.Applyid),txhash.(string))
+		//添加txhash到监控队列
+		new(client.EthTiBiWatch).PushRedisList(txhash.(string))
 		rsp.Code = "0"
 		rsp.Msg = "发送成功"
 		rsp.Data = new(proto.SendRawTxPos)
@@ -370,6 +372,7 @@ func (this *WalletHandler) OutList(ctx context.Context, req *proto.OutListReques
 
 func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRequest, rsp *proto.TibiApplyResponse) error {
 	tokenInoutMD := new(TokenInout)
+	fmt.Println("提币开始")
 	//验证短信验证码
 	//ret,err := AuthSms(req.Phone,SMS_CARRY_COIN,req.SmsCode)
 	//if ret != ERRCODE_SUCCESS {
@@ -395,7 +398,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	//先冻结资金
 	tmp1,_ := new(big.Int).SetString(req.Amount,10)
 	fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
-	_,rErr := rpc.InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
+	_,rErr := InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
 		Uid:uint64(req.Uid),
 		TokenId:req.Tokenid,
 		Num:fee1,
@@ -403,6 +406,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		Ukey:[]byte{1},
 		Type:12,  //提币
 	})
+	fmt.Println("提币开始1",rErr)
 	if rErr != nil {
 		rsp.Code = 1
 		rsp.Msg = "冻结资金失败"
@@ -458,7 +462,7 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 		return nil
 	}
 	//调用rpc解冻
-	_,errr := rpc.InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
+	_,errr := InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
 		Uid:uint64(req.Uid),
 		TokenId:int32(tokenInout.Tokenid),
 		Num:tokenInout.Amount + tokenInout.Fee,

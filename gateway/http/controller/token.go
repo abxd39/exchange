@@ -584,7 +584,7 @@ func (s *TokenGroup) TransferList(c *gin.Context) {
 			TokenName:   v.TokenName,
 			Type:        v.Type,
 			Num:         convert.Int64ToFloat64By8Bit(v.Num),
-			CreatedTime: v.CreatedTime,
+			CreatedTime: v.TransferTime,
 		}
 	}
 
