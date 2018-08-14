@@ -595,8 +595,8 @@ func (s *RPCServer) TransferList(ctx context.Context, req *proto.TransferListReq
 //退回列表
 func (s *RPCServer) RefundList(ctx context.Context, req *proto.RefundListRequest, rsp *proto.RefundListResponse) error {
 	filter := map[string]interface{}{
-		"uid":  req.Uid,
-		"type": proto.TOKEN_TYPE_OPERATOR_HISTORY_FRONZE_SYS_SURPLUS,
+		"uid":   req.Uid,
+		"other": true,
 	}
 
 	modelList, list, err := new(model.MoneyRecord).List(int(req.Page), int(req.PageNum), filter)

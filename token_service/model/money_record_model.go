@@ -54,6 +54,9 @@ func (s *MoneyRecord) List(pageIndex, pageSize int, filter map[string]interface{
 		query.And("mr.type IN (?,?)", proto.TOKEN_TYPE_OPERATOR_TRANSFER_TO_CURRENCY, proto.TOKEN_TYPE_OPERATOR_TRANSFER_FROM_CURRENCY)
 		orderBy = "mr.transfer_time DESC, mr.id DESC"
 	}
+	if _, ok := filter["other"]; ok { //其他流水，退回、后台充值
+		query.And("mr.type IN (?,?)", proto.TOKEN_TYPE_OPERATOR_HISTORY_FRONZE_SYS_SURPLUS, proto.TOKEN_TYPE_OPERATOR_BACKSTAGE_PUT)
+	}
 	if v, ok := filter["type"]; ok {
 		query.And("mr.type=?", v)
 	}
