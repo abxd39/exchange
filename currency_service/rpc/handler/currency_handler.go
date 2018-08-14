@@ -396,15 +396,15 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		TokenId   uint32  `json:"token_id"`
 		TokenName string  `json:"token_name"`
 		Address   string  `json:"address"`
-		Freeze    float64 `json:"freeze"`
-		Balance   float64 `json:"balance"`
-		Valuation float64 `json:"valuation"`
+		Freeze    string `json:"freeze"`
+		Balance   string `json:"balance"`
+		Valuation string `json:"valuation"`
 	}
 	var RespUCurrencyList []RespBalance
 	type RespData struct {
 		UCurrencyList []RespBalance
-		Sum           float64 `json:"sum"`
-		SumCNY        float64 `json:"sum_cny"`
+		Sum           string `json:"sum"`
+		SumCNY        string `json:"sum_cny"`
 	}
 
 	var sum int64
@@ -412,8 +412,8 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 
 	symbolData, err := client.InnerService.UserSevice.CallGetSymbolsRate(symbols)
 	if err != nil {
-		log.Println(err.Error())
-		fmt.Println(err.Error())
+		log.Println(err)
+		fmt.Println(err)
 		rsp.Data = "{}"
 		//return err
 	} else {
@@ -430,13 +430,13 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 		}
 		for _, dt := range data {
 			var tmp RespBalance
-			var valuation float64
+			var valuation string
 			if dt.TokenName == "BTC" {
 				if btcConfigPrice <= 0 {
 					sumcny += 0
 				} else {
 					int64valuetion := convert.Int64MulInt64By8Bit(btcConfigPrice, dt.Balance)
-					valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64valuetion), 2)
+					valuation = utils.Int64ToStringBy8Bit(int64valuetion)
 					sumcny += int64valuetion
 				}
 				sum += dt.Balance
@@ -447,6 +447,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 				} else {
 					symbol = fmt.Sprintf("BTC/%s", otherSymbolMap[dt.TokenId])
 				}
+
 				symPrice := symbolData.Data[symbol]
 				fmt.Println("symPrice:", symPrice, " symbol: ", symbol)
 				if symPrice != nil {
@@ -456,7 +457,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 						int64cynPrice := convert.Int64DivInt64By8Bit(btcConfigPrice, int64price)
 						if int64cynPrice > 0 {
 							int64Valueation := convert.Int64MulInt64By8Bit(dt.Balance, int64cynPrice)
-							valuation = utils.Round2(convert.Int64ToFloat64By8Bit(int64Valueation), 2)
+							valuation = utils.Int64ToStringBy8Bit(int64Valueation)
 							sumcny += int64Valueation
 						} else {
 							sumcny += 0
@@ -479,23 +480,26 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 			tmp.Id = dt.Id
 			tmp.Uid = dt.Uid
 			tmp.Address = dt.Address
-			tmp.Freeze = convert.Int64ToFloat64By8Bit(dt.Freeze)
-			tmp.Balance = convert.Int64ToFloat64By8Bit(dt.Balance)
-			tmp.Valuation = utils.Round2(valuation, 2)
+			tmp.Freeze = convert.Int64ToStringBy8Bit(dt.Freeze)
+			tmp.Balance = convert.Int64ToStringBy8Bit(dt.Balance)
+			tmp.Valuation = valuation
 			RespUCurrencyList = append(RespUCurrencyList, tmp)
 		}
 	}
 
 	var respdata RespData
 	respdata.UCurrencyList = RespUCurrencyList
-	respdata.Sum = convert.Int64ToFloat64By8Bit(sum)
-	respdata.SumCNY = convert.Int64ToFloat64By8Bit(sumcny)
+	respdata.Sum = convert.Int64ToStringBy8Bit(sum)
+	respdata.SumCNY = utils.Int64ToStringBy8Bit(sumcny)
+
 	result, err := json.Marshal(respdata)
 	if err != nil {
+		fmt.Println(err)
 		rsp.Data = "{}"
 		rsp.Message = err.Error()
 		return err
 	}
+
 	rsp.Data = string(result)
 	return nil
 }
