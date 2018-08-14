@@ -71,3 +71,7 @@ func (s *PublciRPCCli) CallGetBannerList(req *proto.BannerRequest) (rsp *proto.B
 func (s *PublciRPCCli) CallGetArticleTypeList(req *proto.ArticleTypeRequest) (rsp *proto.ArticleTypeListResponse, err error) {
 	return s.conn.ArticleTypeList(context.TODO(), req)
 }
+
+func (s *PublciRPCCli) CallGetSiteConfig() (rsp *proto.GetSiteConfigResponse, err error) {
+	return s.conn.GetSiteConfig(context.TODO(), &proto.NullRequest{})
+}

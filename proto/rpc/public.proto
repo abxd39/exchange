@@ -3,6 +3,7 @@ package g2u;
 
 import "rpc/currency.proto";
 import "rpc/backstage.proto";
+import "rpc/define.proto";
 
 service PublicRPC {
 	rpc AdminCmd(AdminRequest) returns (AdminResponse) {};
@@ -20,6 +21,8 @@ service PublicRPC {
 	rpc  GetTokensList (TokensRequest) returns (TokensResponse){};
 	//获取文章类型表
 	rpc ArticleTypeList (ArticleTypeRequest) returns (ArticleTypeListResponse){};
+
+	rpc GetSiteConfig(NullRequest) returns (GetSiteConfigResponse){};
 }
 
 message ArticleTypeRequest{
@@ -106,4 +109,35 @@ message TokensData {
 
 message TokensResponse{
 	repeated TokensData tokens	=1;
+}
+
+message GetSiteConfigResponse{
+	message Data{
+	    message Site{
+	        string name                 =1;
+	        string english_name         =2;
+	        string title                =3;
+	        string english_title        =4;
+	        string logo                 =5;
+            string keyword              =6;
+            string english_keyword      =7;
+            string desc                 =8;
+            string english_desc         =9;
+            string beian                =10;
+            string statistic_script     =11;
+	    }
+
+	    message Kefu{
+            string phone                =1;
+            string email                =2;
+            string address              =3;
+	    }
+
+	    Site site               =1;
+	    Kefu kefu               =2;
+	}
+
+	int32       code            =1;
+	string      message         =2;
+    Data	    data			=3;
 }
