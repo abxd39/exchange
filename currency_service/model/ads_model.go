@@ -114,6 +114,12 @@ func (this *Ads) Update() int {
 	if isGet == nil {
 		return ERRCODE_ADS_NOTEXIST
 	}
+
+	if isGet.MinLimit < 100 {
+		log.Errorln("限制最小价格要大于等于100")
+		return ERRCODE_ADS_MIN_LIMIT
+	}
+
 	_, err := dao.DB.GetMysqlConn().Id(this.Id).Cols("price",
 		"num", "premium", "accept_price", "min_limit", "max_limit",
 		"is_twolevel", "pays", "remarks", "reply", "updated_time").Update(this)
