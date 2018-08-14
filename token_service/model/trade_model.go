@@ -31,6 +31,8 @@ type Trade struct {
 	Opt       int    `xorm:"comment(' buy  1或sell 2') index TINYINT(4)"`
 	DealTime  int64  `xorm:"comment('成交时间') BIGINT(20)"`
 	//States    int    `xorm:"comment('0是挂单，1是部分成交,2成交， -1撤销') INT(11)"`
+	FeeCny    int64  `xorm:"comment('手续费人民币') BIGINT(20)"`
+	TotleCny  int64  `xorm:"comment('成交额人民币') BIGINT(20)"`
 }
 
 func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
@@ -99,17 +101,3 @@ func CaluateAvgPrice(t []*Trade) int64 {
 	return convert.Int64DivInt64By8Bit(amount, sum)
 }
 
-/*
-func (s *Trade) AfterInsert()  {
-	if s.Opt==int(proto.ENTRUST_OPT_BUY) {
-		_,err :=DB.GetMysqlConn().Incr("fee_buy_total",s.Fee).Incr("FeeBuyCny",s.Fee*1).Incr("BuyTotal",s.Num).Incr("BuyTotalCny",s.Num).Update(&TokenDailySheet{})
-		SQL:= fmt.Sprintf( "INSERT INTO TABLE token_daily_sheet on  DUPLICATE key update fee_buy_total=fee_buy_total+%d,")
-
-		if err!=nil {
-			log.Error("update")
-		}
-	}
-
-
-}
-*/

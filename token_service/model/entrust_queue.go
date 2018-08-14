@@ -69,10 +69,10 @@ type EntrustQuene struct {
 	//成交笔数
 	count int64
 	//主币兑人民币价格
-	cny int64
+	//cny int64
 
 	//主币兑美元价格
-	usd int64
+	//usd int64
 	//人民币成交额
 	usd_vol int64
 
@@ -88,7 +88,8 @@ type TradeInfo struct {
 	Num        int64
 }
 
-func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny, usd int64, amount, vol, count, usd_vol int64) *EntrustQuene {
+//func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny, usd int64, amount, vol, count, usd_vol int64) *EntrustQuene {
+func NewEntrustQueue(token_id, token_trade_id int, price int64, name string,  amount, vol, count, usd_vol int64) *EntrustQuene {
 	quene_id := name
 	log.Infof("load config symbol %s", name)
 	m := &EntrustQuene{
@@ -105,8 +106,8 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny
 		waitOrderDetail:   make(chan *EntrustDetail, 1000),
 		marketOrderDetail: make(chan *EntrustDetail, 1000),
 		price_c:           price,
-		cny:               cny,
-		usd:               usd,
+		//cny:               cny,
+		//usd:               usd,
 		usd_vol:           usd_vol,
 		amount:            amount,
 		vol:               vol,
@@ -197,7 +198,7 @@ func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 	s.vol += convert.Int64MulInt64By8Bit(price, deal_num)
 	s.amount += deal_num
 
-	s.usd_vol = convert.Int64MulInt64By8Bit(s.vol, s.usd)
+	s.usd_vol += convert.Int64MulInt64By8Bit(s.vol, GetUsdPrice(int32(s.TokenTradeId)))
 }
 
 //委托请求检查
@@ -357,6 +358,12 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	*/
 	rand := random.Krand(6, random.KC_RAND_KIND_LOWER)
 	no := fmt.Sprintf("%d_%s", time.Now().Unix(), rand)
+
+	buyCnyRate:=GetCnyPrice(int32(s.TokenTradeId))
+	if buyCnyRate==0 {
+		err=errors.New("not found cny price")
+		return
+	}
 	trade_time := time.Now().Unix()
 	t := &Trade{
 		TradeNo:      no,
@@ -370,8 +377,15 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Opt:          int(proto.ENTRUST_OPT_BUY),
 		Symbol:       s.TokenQueueId,
 		EntrustId:    buyer.EntrustId,
+		FeeCny:convert.Int64MulInt64By8Bit(fee,buyCnyRate),
+		TotleCny:convert.Int64MulInt64By8Bit(buy_num,buyCnyRate),
 	}
 
+	sellCnyRate:=GetCnyPrice(int32(s.TokenId))
+	if sellCnyRate==0 {
+		err=errors.New("not found cny price")
+		return
+	}
 	sell_fee := convert.Int64MulFloat64(deal_num, s.SellPoundage)
 	o := &Trade{
 		TradeNo:      no,
@@ -385,6 +399,8 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Opt:          int(proto.ENTRUST_OPT_SELL),
 		Symbol:       s.TokenQueueId,
 		EntrustId:    seller.EntrustId,
+		FeeCny:convert.Int64MulInt64By8Bit(sell_fee,sellCnyRate),
+		TotleCny:convert.Int64MulInt64By8Bit(deal_num,sellCnyRate),
 	}
 
 	if buyer.SurplusNum < buy_num {
@@ -1598,10 +1614,11 @@ func (s *EntrustQuene) GetTradeList(count int64) []*TradeInfo {
 	return g
 }
 
+/*
 func (s *EntrustQuene) GetCnyPrice(price int64) string {
 	return convert.Int64ToStringBy8Bit(convert.Int64MulInt64By8Bit(s.cny, price))
 }
-
+*/
 //撤销委托
 func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 

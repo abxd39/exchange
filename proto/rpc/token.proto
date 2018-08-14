@@ -58,7 +58,7 @@ service TokenRPC {
 
 
         //获取队列配置
-        rpc GetConfigQuene(NullRequest) returns (ConfigQueneResponse) {}
+       // rpc GetConfigQuene(NullRequest) returns (ConfigQueneResponse) {}
 
         //划转到代币
         rpc TransferToCurrency(TransferToCurrencyRequest) returns (TransferToCurrencyResponse) {};

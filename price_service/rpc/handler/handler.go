@@ -29,7 +29,6 @@ func NewRPCServer(pb  micro.Publisher)*RPCServer  {
 }
 
 func (s *RPCServer) Process()  {
-	//fifteen := t.Add(-time.Duration(sec) * time.Second)
 	for{
 		c := clock.NewClock()
 		t:=time.Now()
@@ -55,7 +54,7 @@ func (s *RPCServer) Process()  {
 		}
 		d:=time.Duration(diff+30)*time.Second
 		c.AddJobWithInterval(d,  job)
-		time.Sleep(10*time.Second)
+		time.Sleep(time.Duration(diff+30)*time.Second)
 		log.Info("circle process send trade")
 	}
 }

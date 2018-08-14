@@ -173,6 +173,12 @@ func NewPriceWorkQuene(name string, token_id, token_trade_id int32, init_price i
 	}
 	go m.Subscribe(ch)
 
+	ch <- &MsgPricePublish{
+		Symbol:       m.Symbol,
+		TokenId:      m.TokenId,
+		TokenTradeId: m.ToekenTradeId,
+		Price:        m.entry.Price,
+	}
 	return m
 }
 
