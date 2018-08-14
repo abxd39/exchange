@@ -130,12 +130,22 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 	defer func() {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
-	userid, _ := strconv.Atoi(ctx.PostForm("uid"))
-	tokenid, _ := strconv.Atoi(ctx.PostForm("token_id"))
 
-	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(userid, tokenid)
+	type Param struct {
+		Uid     int  `form:"uid"      json:"uid"       binding:"required"`
+		TokenId int  `form:"token_id" json:"token_id"  binding:"required"`
+	}
+
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		fmt.Println(err.Error())
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallCreateWallet(param.Uid, param.TokenId)
 	if err != nil {
-		//ret.SetDataSection("msg", rsp.Msg)
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
@@ -156,22 +166,24 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 
-	userid, err1 := strconv.Atoi(ctx.PostForm("uid"))
-	tokenid, err2 := strconv.Atoi(ctx.PostForm("token_id"))
-	//to := "0x8e430b7fc9c41736911e1699dbcb6d4753cbe3b6"
-	to := ctx.PostForm("to")
-	gasprice, err3 := strconv.ParseInt(ctx.PostForm("gasprice"), 10, 64)
-	amount := ctx.PostForm("amount")
-	if err1 != nil || err2 != nil || err3 != nil {
-		// ctx.String(http.StatusOK, "参数错误")
+	type Param struct {
+		Uid     int  `form:"uid"      json:"uid"       binding:"required"`
+		TokenId int  `form:"token_id" json:"token_id"  binding:"required"`
+		To string  `form:"to" json:"to"  binding:"required"`
+		Gasprice int64  `form:"gasprice" json:"gasprice"  binding:"required"`
+		Amount string  `form:"amount" json:"amount"  binding:"required"`
+	}
+
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		fmt.Println(err.Error())
+		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
 
-	rsp, err := rpc.InnerService.WalletSevice.CallSigntx(userid, tokenid, to, gasprice, amount)
+	rsp, err := rpc.InnerService.WalletSevice.CallSigntx(param.Uid, param.TokenId, param.To, param.Gasprice, param.Amount)
 	if err != nil {
-		//fmt.Println(rsp.Code, rsp.Msg)
-		//ret.SetDataSection("msg", rsp.Msg)
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
@@ -191,11 +203,9 @@ func (this *WalletGroup) Update(ctx *gin.Context) {
 	if err != nil {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
-		//ctx.String(http.StatusOK, "err 0000 rsp")
 		return
 	}
 	ret.SetDataSection("data", rsp)
-	//fmt.Println("")
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 }
 
@@ -217,12 +227,10 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	}
 	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx, param.Applyid)
 	if err != nil {
-		//fmt.Println(rsp.Code)
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
 	ret.SetDataSection("result", rsp.Data.Result)
-	//ret.SetDataSection("msg", rsp.Msg)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
