@@ -137,6 +137,7 @@ enum TOKEN_TYPE_OPERATOR
     TRANSFER_FROM_CURRENCY                  =11;//划转到币币
     TRANSFER_FROM_TIBI                      =12;//提币
     TRANSFER_FROM_CANCELTIBI                =13;//取消提币
+    BACKSTAGE_PUT                           =14;//后台充币
 
 }
 
