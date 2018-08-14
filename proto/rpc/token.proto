@@ -315,16 +315,16 @@ message TokenBalanceListRequest{
 message TokenBalanceListResponse{
     message Data{
         message List{
-            int32 token_id                    =1;
-            string token_name                 =2;
-            double balance                    =3;
-            double frozen                     =4;
-            double worth_cny                  =5;
+            int32 token_id                   =1;
+            string token_name                =2;
+            int64 balance                    =3;
+            int64 frozen                     =4;
+            int64 worth_cny                  =5;
         }
 
-        double total_worth_cny              =1;
-        double total_worth_btc              =2;
-        repeated List list                  =3;
+        int64 total_worth_cny                =1;
+        int64 total_worth_btc                =2;
+        repeated List list                   =3;
     }
 
     int32 err                             =1;

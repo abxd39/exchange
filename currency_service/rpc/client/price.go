@@ -33,3 +33,8 @@ import (
 func (p *UserRPCCli) CallGetSymbolsRate(symbols []string) (rsp *proto.GetSymbolsRateResponse, err error){
 	return  p.priceconn.GetSymbolsRate(context.TODO(), &proto.GetSymbolsRateRequest{Symbols:symbols})
 }
+
+func (p *UserRPCCli) CallGetCnyPrices(tokenTradeId []int32)(rsp *proto.CnyPriceResponse, err error){
+	return p.priceconn.GetCnyPrices(context.TODO(), &proto.CnyPriceRequest{TokenTradeId:tokenTradeId})
+}
+

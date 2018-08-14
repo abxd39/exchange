@@ -1069,14 +1069,14 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 		TokenId   uint32  `json:"token_id"`
 		TokenName string  `json:"token_name"`
 		Address   string  `json:"address"`
-		Freeze    float64 `json:"freeze"`
-		Balance   float64 `json:"balance"`
-		Valuation float64 `json:"valuation"`
+		Freeze    string `json:"freeze"`
+		Balance   string `json:"balance"`
+		Valuation string `json:"valuation"`
 	}
 	type RespData struct {
 		UCurrencyList []RespBalance
-		Sum           float64 `json:"sum"`
-		SumCNY        float64 `json:"sum_cny"`
+		Sum           string `json:"sum"`
+		SumCNY        string `json:"sum_cny"`
 	}
 
 	var respdata RespData
@@ -1089,7 +1089,7 @@ func (this *CurrencyGroup) GetUserCurrency(c *gin.Context) {
 	//fmt.Println("respdata:", respdata)
 	ret.SetDataSection("list", respdata.UCurrencyList)
 	ret.SetDataSection("sum", respdata.Sum)
-	ret.SetDataSection("sum_cny", utils.Round2(respdata.SumCNY, 2))
+	ret.SetDataSection("sum_cny", respdata.SumCNY)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 }
 
@@ -1149,11 +1149,13 @@ func (this *CurrencyGroup) GetCurrencyBalance(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("===================================")
 	// 获取当前法币账户余额
 	data, err := rpc.InnerService.CurrencyService.CallGetCurrencyBalance(&proto.GetCurrencyBalanceRequest{
 		Uid:     req.Uid,
 		TokenId: req.TokenId,
 	})
+
 	if err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())

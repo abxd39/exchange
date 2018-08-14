@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"regexp"
 )
 
 type UserGroup struct{}
@@ -769,9 +770,14 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-
 	var url string
 	var err error
+	if ok, err := regexp.MatchString("^[A-Za-z0-9_\\u4e00-\\u9fa5]{3,10}$", req.NickName);err!=nil || !ok{
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
 	if req.Url != ""{
 		url, err = s.upload_picture(req.Url)
 		if err != nil {
