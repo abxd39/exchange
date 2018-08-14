@@ -19,7 +19,7 @@ func (this DailyCountSheet) Run() {
 	mod := new(model.Order)
 
 	nTime := time.Now()
-	yesTime := nTime.AddDate(0, 0, -5)
+	yesTime := nTime.AddDate(0, 0, -1)     // 统计昨天的
 	startTime := yesTime.Format("2006-01-02 15:04:05")
 	endTime := nTime.Format("2006-01-02 15:04:05")
 
@@ -102,8 +102,9 @@ func (this DailyCountSheet) Run() {
 		err = mcds.InsertOneDay()
 		if err != nil {
 			log.Errorln(err)
+		}else{
+			log.Println("统计成功!", tkId)
 		}
-
 	}
 
 }
