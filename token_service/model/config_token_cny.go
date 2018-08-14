@@ -2,6 +2,9 @@ package model
 
 import (
 	proto "digicon/proto/rpc"
+	. "digicon/token_service/dao"
+	log "github.com/sirupsen/logrus"
+	"github.com/golang/protobuf/jsonpb"
 )
 
 /*
@@ -52,6 +55,23 @@ var CnyPriceMap   map[int32]*proto.CnyBaseData
 
 func InitCnyPrice()  {
 	CnyPriceMap =make(map[int32]*proto.CnyBaseData,0)
+
+	r,err:=DB.GetRedisConn().Get("history.price.go.micro").Result()
+	if err!=nil {
+		log.Fatal("please init price first")
+	}
+
+	out := &proto.CnyPriceResponse{}
+	err = jsonpb.UnmarshalString(r, out)
+	if err != nil {
+		log.Fatal("please init price first err %s",err.Error())
+		return
+	}
+
+	for _,v:=range out.Data {
+		CnyPriceMap[v.TokenId]=v
+	}
+
 }
 
 func GetCnyPrice(token_id int32) int64 {

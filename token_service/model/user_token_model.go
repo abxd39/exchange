@@ -71,7 +71,7 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 	if v, ok := filter["token_id"]; ok {
 		query.And("ut.token_id=?", v)
 	}
-
+/*
 	var list []UserTokenWithBalance
 	err := query.
 		Table(s).
@@ -84,7 +84,7 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 	}
 
 	return list, nil
-
+*/
 	return nil, nil
 }
 

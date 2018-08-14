@@ -112,6 +112,8 @@ func (s *WorkQueneMgr) Process() {
 		} else {
 			g, ok := s.PriceMap[v.TokenId]
 			if !ok {
+				log.Errorf("get err price token_id %d",v.TokenId)
+				s.msgChan<-v
 				continue
 			}
 
