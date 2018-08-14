@@ -10,7 +10,6 @@ import (
 
 	"digicon/common/errors"
 	"digicon/token_service/conf"
-	"digicon/token_service/rpc/client"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
@@ -180,9 +179,9 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-	
-	Cny:=model.GetCnyPrice(int32(q.TokenTradeId))
-	
+
+	Cny := model.GetCnyPrice(int32(q.TokenTradeId))
+
 	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, req.Num)
 	if err == redis.Nil {
 
@@ -191,12 +190,12 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = err.Error()
 		return nil
 	} else {
-		
+
 		for _, v := range others {
 			g := &proto.EntrustBaseData{
 				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 				SurplusNum: convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum, v.OnPrice)),
-				CnyPrice:   convert.Int64MulInt64By8BitString(v.OnPrice,Cny),
+				CnyPrice:   convert.Int64MulInt64By8BitString(v.OnPrice, Cny),
 			}
 			g.Price = convert.Int64ToStringBy8Bit(v.SurplusNum)
 			rsp.Buy = append(rsp.Buy, g)
@@ -216,7 +215,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
 				SurplusNum: convert.Int64ToStringBy8Bit(v.SurplusNum),
 				//CnyPrice:   q.GetCnyPrice(v.OnPrice),
-				CnyPrice:   convert.Int64MulInt64By8BitString(v.OnPrice,Cny),
+				CnyPrice: convert.Int64MulInt64By8BitString(v.OnPrice, Cny),
 			}
 
 			g.Price = convert.Int64MulInt64By8BitString(v.OnPrice, v.SurplusNum)
@@ -337,38 +336,16 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 		return nil
 	}
 
-	// 调用price服获取币种人民币价格
-	// 该用户拥有的所有币种，顺带查询BTC的价格
-	myTokenIdList := make([]int32, len(list)+1)
-	myTokenIdList[0] = 2 // BTC
-	for k, v := range list {
-		myTokenIdList[k+1] = int32(v.TokenId)
-	}
-	cnyPricesRsp, err := client.InnerService.PriceService.CallGetCnyPrices(myTokenIdList)
-	if err != nil {
-		rsp.Err = int32(errors.GetErrStatus(err))
-		rsp.Message = errors.GetErrMsg(err)
-		return nil
-	}
-
 	// 拼接返回数据
 	rsp.Data = &proto.TokenBalanceListResponse_Data{}
 	rsp.Data.List = make([]*proto.TokenBalanceListResponse_Data_List, len(list))
 	for k, v := range list {
-		var cnyPrice int64
-		for _, v2 := range cnyPricesRsp.Data {
-			if v.TokenId == int(v2.TokenId) {
-				cnyPrice = v2.CnyPriceInt
-				break
-			}
-		}
-
 		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
 			Balance:   v.Balance,
 			Frozen:    v.Frozen,
-			WorthCny:  convert.Int64MulInt64By8Bit(v.TotalBalance, cnyPrice),
+			WorthCny:  convert.Int64MulInt64By8Bit(v.TotalBalance, model.GetCnyPrice(int32(v.TokenId))),
 		}
 	}
 
@@ -382,44 +359,23 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 
 	// 1.折合人民币
 	var totalCny int64
-	for _, total := range totalList {
-		if total.TotalBalance == 0 { // 分组数量为0，跳过
+	for _, v := range totalList {
+		if v.TotalBalance == 0 { // 分组数量为0，跳过
 			continue
 		}
 
-		// 得到人民币价格
-		var cnyPrice int64
-		for _, v := range cnyPricesRsp.Data {
-			if total.TokenId == int(v.TokenId) {
-				cnyPrice = v.CnyPriceInt
-				break
-			}
-		}
-		if cnyPrice == 0 {
-			log.Error("调用price_service获取人民币价格失败，token_id：", total.TokenId)
-		}
-
 		// 合计token_id分组
-		totalCny += convert.Int64MulInt64By8Bit(total.TotalBalance, cnyPrice)
+		totalCny += convert.Int64MulInt64By8Bit(v.TotalBalance, model.GetCnyPrice(int32(v.TokenId)))
 	}
 
 	rsp.Data.TotalWorthCny = totalCny
 
 	// 2.根据人民币折合BTC
-	var btcCnyPrice int64
-	for _, v := range cnyPricesRsp.Data {
-		if 2 == v.TokenId { // BTC
-			btcCnyPrice = v.CnyPriceInt
-			break
-		}
-	}
-	if btcCnyPrice == 0 { //除数不能为0，记录错误后直接return
-		log.Error("调用price_service获取BTC价格失败，token_id：2")
-
+	btcCnyPrice := model.GetCnyPrice(2)
+	if btcCnyPrice == 0 { //除数不能为0
 		rsp.Data.TotalWorthBtc = 0
 		return nil
 	}
-
 	rsp.Data.TotalWorthBtc = convert.Int64DivInt64By8Bit(totalCny, btcCnyPrice)
 
 	return nil
@@ -460,7 +416,7 @@ func (s *RPCServer) TokenTradeList(ctx context.Context, req *proto.TokenTradeLis
 
 /*
 func (s *RPCServer) GetConfigQuene(ctx context.Context, req *proto.NullRequest, rsp *proto.ConfigQueneResponse) error {
-	
+
 	t := new(model.ConfigQuenes).GetAllQuenes()
 
 	for _, v := range t {

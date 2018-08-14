@@ -77,15 +77,12 @@ func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserToken
 		Table(s).
 		Alias("ut").
 		Select("ut.*, (ut.balance+ut.frozen) as total_balance").
-		Join("LEFT", []string{new(ConfigTokenCny).TableName(), "ctc"}, "ctc.token_id=ut.token_id").
 		Find(&list)
 	if err != nil {
 		return nil, errors.NewSys(err)
 	}
 
 	return list, nil
-
-	return nil, nil
 }
 
 //获取实体
