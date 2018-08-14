@@ -54,6 +54,17 @@ type User struct {
 	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
 }
 
+
+type SumTokenOut struct {
+	TotalFee   int64   `json:"total_fee"`
+	Total      int64   `json:"total"`
+}
+
+type SumTokenIn struct {
+	TotalPut   int64 `json:"total_put"`
+}
+
+
 func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
@@ -237,3 +248,33 @@ func (this *TokenInout) GetByHash(txhash string) error {
 	}
 	return nil
 }
+
+
+/*
+	获取所有今天的转账
+*/
+func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime string) (tokensIntout []TokenInout, err error){
+	err = utils.Engine_wallet.Table("token_inout").
+		Where("tokenid=? AND created_time >= ? AND created_time <= ? AND states=2", tkid, startTime, endTime).
+		Find(&tokensIntout)
+	return
+}
+
+/*
+	提币累计总金额
+*/
+func (this *TokenInout) GetOutSumByTokenId(tkid uint32) (outsum SumTokenOut, err error) {
+	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2"
+	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid).Get(&outsum)
+	return
+}
+
+/*
+	充币累计总额
+*/
+func (this *TokenInout) GetInSumByTokenId(tkid uint32)(insum SumTokenIn, err error) {
+	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1"
+	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid).Get(&insum)
+	return
+}
+

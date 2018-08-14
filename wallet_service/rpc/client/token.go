@@ -7,7 +7,8 @@ import (
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-plugins/registry/consul"
-	. "digicon/wallet_service/utils"
+	//. "digicon/wallet_service/utils"
+	cf "digicon/wallet_service/conf"
 )
 
 type TokenRPCCli struct {
@@ -54,7 +55,7 @@ func (s *TokenRPCCli) CallAddTokenNum(p *proto.AddTokenNumRequest) (rsp *proto.C
 
 
 func NewTokenRPCCli() (u *TokenRPCCli) {
-	consul_addr := Cfg.MustValue("consul", "addr")
+	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))
 	service := micro.NewService(
 		micro.Name("token.client"),
@@ -62,7 +63,7 @@ func NewTokenRPCCli() (u *TokenRPCCli) {
 	)
 	service.Init()
 
-	service_name := Cfg.MustValue("base", "service_client_token")
+	service_name := cf.Cfg.MustValue("base", "service_client_token")
 	greeter := proto.NewTokenRPCService(service_name, service.Client())
 	u = &TokenRPCCli{
 		conn: greeter,

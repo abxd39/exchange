@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"math/big"
 	"digicon/wallet_service/rpc/watch"
+	"digicon/wallet_service/rpc/client"
 )
 
 type WalletHandler struct{}
@@ -393,7 +394,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	//先冻结资金
 	tmp1,_ := new(big.Int).SetString(req.Amount,10)
 	fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
-	_,rErr := InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
+	_,rErr := client.InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
 		Uid:uint64(req.Uid),
 		TokenId:req.Tokenid,
 		Num:fee1,
@@ -456,7 +457,7 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 		return nil
 	}
 	//调用rpc解冻
-	_,errr := InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
+	_,errr := client.InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
 		Uid:uint64(req.Uid),
 		TokenId:int32(tokenInout.Tokenid),
 		Num:tokenInout.Amount + tokenInout.Fee,
