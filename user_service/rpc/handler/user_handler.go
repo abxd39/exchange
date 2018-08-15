@@ -425,7 +425,8 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Message = msg
 	}
-	u.RefreshCache(req.Uid)
+	
+	u.ForceRefreshCache(req.Uid)
 	rsp.Code = ERRCODE_SUCCESS
 	return nil
 }
