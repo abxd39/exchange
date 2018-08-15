@@ -29,7 +29,7 @@ func (this *Tokens) GetByid(id int) (bool, error) {
 
 func (this *Tokens) GetidByContract(contract string, chainid int) (int, error) {
 	this.Id = 0
-	ok, err := Engine_common.Where("contract=? and chainid=?", contract, chainid).Get(this)
+	ok, err := Engine_common.Where("contract=?", contract).Get(this)
 	//fmt.Println(contract,chainid)
 	if err != nil {
 		return 0, err
@@ -63,8 +63,6 @@ func (this *Tokens) GetByName(name string) (bool, error) {
 	}
 	return exists, nil
 }
-
-
 
 
 /*

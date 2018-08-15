@@ -133,7 +133,9 @@ func (this *WalletToken) WalletTokenExist(uid int, tokenid int) (bool, string, s
 //查询所有比特币地址
 func (this *WalletToken) GetAllAddress() (err error,data []WalletToken) {
 	data = make([]WalletToken,0)
-	err = Engine_wallet.Select("chainid,address,contract,created_time").Find(&data)
+	sql := `select created_time,address,g_common.tokens.contract contract from wallet_token left join g_common.tokens on wallet_token.tokenid = g_common.tokens.id`
+	err = Engine_wallet.SQL(sql).Find(&data)
+	//err = Engine_wallet.Select("chainid,address,contract,created_time").Find(&data)
 	return
 }
 

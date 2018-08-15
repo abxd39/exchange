@@ -5,6 +5,7 @@ import (
 	"digicon/wallet_service/model"
 	proto "digicon/proto/rpc"
 	"digicon/wallet_service/rpc/client"
+	"fmt"
 )
 
 type Common struct{}
@@ -38,6 +39,7 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 	//查询用户uid
 	walletToken := new(models.WalletToken)
 	err := walletToken.GetByAddress(data.Address)
+	fmt.Println("错误数据：",err,walletToken.Uid)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Println("get user token error",err.Error())
 		return
@@ -63,17 +65,17 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 
 //确认消耗
 //**以太坊提币成功调用
-func (p *Common) ETHConfirmSubFrozen(data TranInfo) {
+func (p *Common) ETHConfirmSubFrozen(from string,txhash string) {
 	//查询用户uid
 	walletToken := new(models.WalletToken)
-	err := walletToken.GetByAddress(data.From)
+	err := walletToken.GetByAddress(from)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Println("get user token error",err.Error())
 		return
 	}
 	//根据交易hash查询申请提币数据
 	tokenInout := new(models.TokenInout)
-	err = tokenInout.GetByHash(data.Hash)
+	err = tokenInout.GetByHash(txhash)
 	if err != nil || tokenInout.Uid <= 0 {
 		log.Println("get data by hash error",err.Error())
 		return
@@ -82,7 +84,7 @@ func (p *Common) ETHConfirmSubFrozen(data TranInfo) {
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
 		Num:tokenInout.Amount,
-		Ukey:[]byte(data.Hash),
+		Ukey:[]byte(txhash),
 		Type:1,  //区块入账
 	})
 	if errr != nil {

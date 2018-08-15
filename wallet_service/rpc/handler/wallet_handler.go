@@ -151,6 +151,8 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 		return nil
 	}
 
+	fmt.Println("生成结果：",hex.EncodeToString(signtxstr))
+
 	rsp.Code = "0"
 	rsp.Msg = "生成成功"
 	//rsp.Data = new(proto.SigntxPos)

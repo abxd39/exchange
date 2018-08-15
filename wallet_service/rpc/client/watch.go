@@ -197,9 +197,12 @@ func (this *Watch) newOrder(uid int, from string, to string, chainid int, contra
 		return false, errors.New("token not exist")
 	}
 	fmt.Println("this.TxModel.Insert")
-	this.TxModel.Insert(txhash, from, to, value, contract, chainid, uid, this.TokenModel.Id, this.TokenModel.Mark,2)
 
-	this.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, uid, this.TokenModel.Id, this.TokenModel.Mark, deci,2)
+	opt := 1  //充币
+
+	this.TxModel.Insert(txhash, from, to, value, contract, chainid, uid, this.TokenModel.Id, this.TokenModel.Mark,opt)
+
+	this.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, uid, this.TokenModel.Id, this.TokenModel.Mark, deci,opt)
 	return true, nil
 }
 func (this *Watch) GetblockBynumber(num int) ([]byte, error) {

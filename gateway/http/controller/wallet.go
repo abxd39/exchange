@@ -92,8 +92,7 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 		TokenId int32  `form:"token_id" json:"token_id"  binding:"required"`
 		Address string `form:"address"       json:"address"        binding:"required"`
 		Amount  string `form:"amount"   json:"amount"    binding:"required"`
-		//Gasprice int32  `form:"gasprice" binding:"required"`
-		Applyid int32 `form:"apply_id"     json:"amount"     binding:"required"` //申请提币id
+		Applyid int32 `form:"apply_id"     json:"apply_id"     binding:"required"` //申请提币id
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -188,6 +187,11 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
+	if rsp.Code == "1" {
+		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Msg)
+		return
+	}
+	fmt.Println(rsp)
 	ret.SetDataSection("signtx", rsp.Data.Signtx)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 
