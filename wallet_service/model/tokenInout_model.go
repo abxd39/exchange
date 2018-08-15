@@ -7,6 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"math/big"
 	"time"
+	"strconv"
 )
 
 // 平台币账户的交易
@@ -53,6 +54,17 @@ type User struct {
 	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
 }
 
+
+type SumTokenOut struct {
+	TotalFee   int64   `json:"total_fee"`
+	Total      int64   `json:"total"`
+}
+
+type SumTokenIn struct {
+	TotalPut   int64 `json:"total_put"`
+}
+
+
 func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
@@ -60,6 +72,7 @@ func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid
 	this.Opt = opt
 	this.To = to
 	this.Value = value
+	this.Amount,_ = strconv.ParseInt(value,10,64)
 	temp, _ := new(big.Int).SetString(value[2:], 16)
 	amount := decimal.NewFromBigInt(temp, int32(8-decim)).IntPart()
 	this.Amount = amount
@@ -220,3 +233,48 @@ func (this *TokenInout) CancelTiBi(uid,id int) (int,error) {
 func (this *TokenInout) GetApplyInOut(uid int,id int) (bool,error) {
 	return utils.Engine_wallet.Where("uid = ? and id = ?",uid,id).Limit(1).Get(this)
 }
+
+func (this *TokenInout) TxhashExist(hash string, chainid int) (bool, error) {
+	utils.Engine_wallet.ShowSQL(false)
+	return utils.Engine_wallet.Where("txhash=?", hash).Get(this)
+
+}
+
+//根据交易hash，查询数据
+func (this *TokenInout) GetByHash(txhash string) error {
+	_, err := utils.Engine_wallet.Where("txhash =?", txhash).Get(this)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+
+/*
+	获取所有今天的转账
+*/
+func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime string) (tokensIntout []TokenInout, err error){
+	err = utils.Engine_wallet.Table("token_inout").
+		Where("tokenid=? AND created_time >= ? AND created_time <= ? AND states=2", tkid, startTime, endTime).
+		Find(&tokensIntout)
+	return
+}
+
+/*
+	提币累计总金额
+*/
+func (this *TokenInout) GetOutSumByTokenId(tkid uint32) (outsum SumTokenOut, err error) {
+	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2"
+	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid).Get(&outsum)
+	return
+}
+
+/*
+	充币累计总额
+*/
+func (this *TokenInout) GetInSumByTokenId(tkid uint32)(insum SumTokenIn, err error) {
+	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1"
+	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid).Get(&insum)
+	return
+}
+

@@ -63,3 +63,14 @@ func (this *Tokens) GetByName(name string) (bool, error) {
 	}
 	return exists, nil
 }
+
+
+
+
+/*
+	列出所有币种
+*/
+func (this *Tokens) ListTokens() (tokens []Tokens, err error){
+	err = Engine_common.Table("tokens").Find(&tokens)
+	return
+}

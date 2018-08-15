@@ -96,7 +96,6 @@ func Calculate(token_id int32 ,price, amount, cny_price int64, symbol string, hi
 		g := ConfigQueneInit[symbol]
 		p.Price = g.Price
 		p.Amount = 0
-
 	}
 	log.WithFields(log.Fields{
 		"high":     high,

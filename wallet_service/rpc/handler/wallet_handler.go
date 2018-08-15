@@ -13,6 +13,7 @@ import (
 	"log"
 	"strconv"
 	"math/big"
+	"digicon/wallet_service/rpc/watch"
 	"digicon/wallet_service/rpc/client"
 )
 
@@ -144,8 +145,6 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	
 	signtxstr, err := keystore.Signtx(req.To, mount, gasPrice,nonce)
 
-	fmt.Println("生成的签名----------------：", gasPrice,nonce,err,signtxstr)
-
 	if err != nil {
 		rsp.Code = "1"
 		rsp.Msg = err.Error()
@@ -169,8 +168,6 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 		return nil
 	}
 
-	fmt.Println("发送交易：",TokenModel.Node,req.Signtx)
-
 	rets, err := utils.RpcSendRawTx(TokenModel.Node, req.Signtx)
 	if err != nil {
 		rsp.Code = "1"
@@ -182,7 +179,7 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 		//更新申请单记录
 		new(TokenInout).UpdateApplyTiBi(int(req.Applyid),txhash.(string))
 		//添加txhash到监控队列
-		new(client.EthTiBiWatch).PushRedisList(txhash.(string))
+		new(watch.EthTiBiWatch).PushRedisList(txhash.(string))
 		rsp.Code = "0"
 		rsp.Msg = "发送成功"
 		rsp.Data = new(proto.SendRawTxPos)
@@ -372,33 +369,32 @@ func (this *WalletHandler) OutList(ctx context.Context, req *proto.OutListReques
 
 func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRequest, rsp *proto.TibiApplyResponse) error {
 	tokenInoutMD := new(TokenInout)
-	fmt.Println("提币开始")
 	//验证短信验证码
-	//ret,err := AuthSms(req.Phone,SMS_CARRY_COIN,req.SmsCode)
-	//if ret != ERRCODE_SUCCESS {
-	//	rsp.Code = ERRCODE_UNKNOWN
-	//	rsp.Msg = err.Error()
-	//	return nil
-	//}
+	ret,err := AuthSms(req.Phone,2,req.SmsCode)
+	if ret != ERRCODE_SUCCESS {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
 	////验证邮箱验证码
-	//ret,err = AuthEmail(req.Email,SMS_CARRY_COIN,req.EmailCode)
-	//if ret != ERRCODE_SUCCESS {
-	//	rsp.Code = ERRCODE_UNKNOWN
-	//	rsp.Msg = err.Error()
-	//	return nil
-	//}
+	ret,err = AuthEmail(req.Email,2,req.EmailCode)
+	if ret != ERRCODE_SUCCESS {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
 	//验证资金密码
-	//ret,err := tokenInoutMD.AuthPayPwd(req.Uid,req.Password)
-	//if ret != ERRCODE_SUCCESS {
-	//	rsp.Code = ERRCODE_UNKNOWN
-	//	rsp.Msg = err.Error()
-	//	return nil
-	//}
+	ret,err = tokenInoutMD.AuthPayPwd(req.Uid,req.Password)
+	if ret != ERRCODE_SUCCESS {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
 
 	//先冻结资金
 	tmp1,_ := new(big.Int).SetString(req.Amount,10)
 	fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
-	_,rErr := InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
+	_,rErr := client.InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
 		Uid:uint64(req.Uid),
 		TokenId:req.Tokenid,
 		Num:fee1,
@@ -406,7 +402,6 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		Ukey:[]byte{1},
 		Type:12,  //提币
 	})
-	fmt.Println("提币开始1",rErr)
 	if rErr != nil {
 		rsp.Code = 1
 		rsp.Msg = "冻结资金失败"
@@ -414,7 +409,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	}
 
 	//保存数据
-	_,err := tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice)
+	_,err = tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice)
 	if err != nil {
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = err.Error()
@@ -462,7 +457,7 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 		return nil
 	}
 	//调用rpc解冻
-	_,errr := InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
+	_,errr := client.InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
 		Uid:uint64(req.Uid),
 		TokenId:int32(tokenInout.Tokenid),
 		Num:tokenInout.Amount + tokenInout.Fee,

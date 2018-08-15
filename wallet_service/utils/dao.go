@@ -2,11 +2,11 @@ package utils
 
 import (
 	"fmt"
-	//"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	"github.com/go-redis/redis"
-	"log"
+	log "github.com/sirupsen/logrus"
+	cf "digicon/wallet_service/conf"
 )
 
 var Engine_wallet *xorm.Engine
@@ -17,13 +17,14 @@ var EngineUserCurrency *xorm.Engine
 
 var Redis *redis.Client
 
-func init() {
+func Init() {
 	var err error
 
 	//mysql初始化
-	dsource := Cfg.MustValue("mysql", "wallet_conn")
+	dsource := cf.Cfg.MustValue("mysql", "wallet_conn")
 	Engine_wallet, err = xorm.NewEngine("mysql", dsource)
 	if err != nil {
+		fmt.Println("mysql connect error!.")
 		panic(err)
 	}
 	Engine_wallet.ShowSQL(false)
@@ -32,7 +33,7 @@ func init() {
 		panic(err)
 	}
 
-	dsource = Cfg.MustValue("mysql", "token_conn")
+	dsource = cf.Cfg.MustValue("mysql", "token_conn")
 	Engine_token, err = xorm.NewEngine("mysql", dsource)
 
 	if err != nil {
@@ -44,7 +45,7 @@ func init() {
 		panic(err)
 	}
 
-	dsource = Cfg.MustValue("mysql", "common_conn")
+	dsource = cf.Cfg.MustValue("mysql", "common_conn")
 	Engine_common, err = xorm.NewEngine("mysql", dsource)
 
 	if err != nil {
@@ -57,7 +58,7 @@ func init() {
 	}
 
 	// ------------- user currency ----------------
-	dsource = Cfg.MustValue("mysql", "currency_conn")
+	dsource = cf.Cfg.MustValue("mysql", "currency_conn")
 	EngineUserCurrency, err = xorm.NewEngine("mysql", dsource)
 	if err != nil {
 		fmt.Println("connect db currency error!")
@@ -74,9 +75,9 @@ func init() {
 	//redis初始化
 	//Redis = nil
 
-	addr := Cfg.MustValue("redis", "addr")
-	pass := Cfg.MustValue("redis", "pass")
-	num := Cfg.MustInt("redis", "num")
+	addr := cf.Cfg.MustValue("redis", "addr")
+	pass := cf.Cfg.MustValue("redis", "pass")
+	num := cf.Cfg.MustInt("redis", "num")
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: pass, // no password set
