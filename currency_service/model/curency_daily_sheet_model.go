@@ -19,12 +19,12 @@ type CurrencyDailySheet struct {
 	SellTotalAllCny int64 `xorm:"not null comment('累计卖出总额折合') BIGINT(20)"                 json:"sell_total_all_cny"`
 	Total           int64 `xorm:"not null comment('总数') BIGINT(20)"                           json:"total"`
 	TotalCny        int64 `xorm:"not null comment('总数折合') BIGINT(20)"                       json:"total_cny"`
-	Date            int64 `xorm:"not null comment('时间戳，精确到天') BIGINT(10)"                json:"date"`
+	Date            string `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date"`
 }
 
 type FindDailySheet struct {
 	Id      int32 `xorm:"not null pk comment('自增id') TINYINT(4)"                     json:"id"`
-	DateStr int64 `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date_str"`
+	//DateStr int64 `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date_str"`
 }
 
 func (this *CurrencyDailySheet) Insert() (err error) {
@@ -44,9 +44,9 @@ func (this *CurrencyDailySheet) InsertOneDay() (err error) {
 	return
 }
 
-func (this *CurrencyDailySheet) GetOneDay(tokenid uint32, today int64) (result FindDailySheet, err error) {
-	sql := "SELECT  id, FROM_UNIXTIME(?, \"%Y-%m-%d\") as date_str  FROM  `currency_daily_sheet` WHERE token_id=? "
+func (this *CurrencyDailySheet) GetOneDay(tokenid uint32, today string) (result FindDailySheet, err error) {
+	sql := "SELECT  id   FROM  `currency_daily_sheet` WHERE token_id=? and `date` >= ? and `date` <= ?; "
 	engine := dao.DB.GetMysqlConn()
-	_, err = engine.SQL(sql, today, tokenid).Get(&result)
+	_, err = engine.SQL(sql, tokenid, today, today).Get(&result)
 	return
 }
