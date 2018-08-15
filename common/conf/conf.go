@@ -49,12 +49,12 @@ type ConfDiscovery struct {
 }
 
 type ServiceDiscoveryServer struct {
-	ServiceName string
-	RPCAddr     string
-	EtcdAddr    string
-	Interval    xtime.Duration
-	TTL         xtime.Duration
-}
+	ServiceName string `json:"service_name"`
+	RPCAddr     string `json:"rpc_addr"`
+	ConsulAddr    string `json:"consul_addr"`
+	Interval    xtime.Duration `json:"interval"`
+	TTL         xtime.Duration `json:"ttl"`
+ }
 
 type ServiceDiscoveryClient struct {
 	ServiceName string
@@ -77,15 +77,15 @@ type Zookeeper struct {
 
 // Redis client settings.
 type Redis struct {
-	Name         string // redis name, for trace
-	Proto        string
-	Addr         string
-	Active       int // pool
-	Idle         int // pool
-	DialTimeout  xtime.Duration
-	ReadTimeout  xtime.Duration
-	WriteTimeout xtime.Duration
-	IdleTimeout  xtime.Duration
+	Name         string  `json:"name"`
+	Proto        string `json:"proto"`
+	Addr         string `json:"addr"`
+	Active       int  `json:"active"`
+	Idle         int  `json:"idle"`
+	DialTimeout  xtime.Duration `json:"dial_timeout"`
+	ReadTimeout  xtime.Duration `json:"read_timeout"`
+	WriteTimeout xtime.Duration `json:"write_timeout"`
+	IdleTimeout  xtime.Duration `json:"idle_timeout"`
 }
 
 // KafkaProducer kafka producer settings.
@@ -104,10 +104,10 @@ type KafkaConsumer struct {
 }
 
 type MySQL struct {
-	Name   string // for trace
-	DSN    string // data source name
-	Active int    // pool
-	Idle   int    // pool
+	Name   string `json:"name"` // for trace
+	DSN    string `json:"dsn"` // data source name
+	Active int    `json:"active"` // pool
+	Idle   int    `json:"idle"` // pool
 }
 
 type MongoDB struct {

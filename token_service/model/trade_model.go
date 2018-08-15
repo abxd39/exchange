@@ -7,6 +7,7 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/liudng/godump"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 /*
@@ -102,3 +103,12 @@ func CaluateAvgPrice(t []*Trade) int64 {
 	return convert.Int64DivInt64By8Bit(amount, sum)
 }
 
+func Test2()  {
+	log.Infof("beigin %d",time.Now().Unix())
+	_,err:=DB.GetMysqlConn().Exec("call statisticss_daily_fee()")
+	if err!=nil {
+		log.Fatalln(err.Error())
+	}
+
+	log.Infof("end %d",time.Now().Unix())
+}

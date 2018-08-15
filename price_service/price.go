@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"digicon/common/convert"
 )
 
 func init() {
@@ -33,8 +32,6 @@ func main() {
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	model.GetQueneMgr().Init()
-
-	convert.A()
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
