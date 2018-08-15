@@ -2,11 +2,10 @@ package models
 
 import (
 	"digicon/wallet_service/utils"
-	"fmt"
 )
 
 type TokenInoutDailySheet struct {
-	Id             int    `xorm:"not null pk autoincr comment('自增id') TINYINT(4)"   json:"id"`
+	Id             int    `xorm:"not null pk autoincr comment('自增id') BIGINT(20)"   json:"id"`
 	TokenId        int    `xorm:"not null comment('货币id') TINYINT(4)"               json:"token_id"`
 	TokenName      string `xorm:"not null comment('货币名称') VARCHAR(20)"             json:"token_name"`
 	TotalDayNum    int64  `xorm:"not null comment('日提币总量') BIGINT(20)"             json:"total_day_num"`
@@ -18,12 +17,12 @@ type TokenInoutDailySheet struct {
 	Total          int64  `xorm:"not null comment('提币累计总金额') BIGINT(20)"         json:"total"`
 	TotalFee       int64  `xorm:"not null comment('提币手续费累计总金额') BIGINT(20)"    json:"total_fee"`
 	TotalPut       int64  `xorm:"not null comment('充币累计总额') BIGINT(20)"           json:"total_put"`
-	Date           int64  `xorm:"not null comment('时间戳') BIGINT(20)"                json:"date"`
+	Date           string  `xorm:"not null comment('时间戳') VARCHAR(20)"                json:"date"`
 }
 
 type FindDailySheet struct {
-	Id      int     `xorm:"not null pk comment('自增id') TINYINT(4)"                     json:"id"`
-	DateStr string  `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date_str"`
+	Id      int     `xorm:"not null pk comment('自增id') BIGINT(20)"                     json:"id"`
+	//DateStr string  `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date_str"`
 }
 
 
@@ -42,11 +41,8 @@ func (this *TokenInoutDailySheet) InsertOneDayTotal() (err error){
 
 
 func (this *TokenInoutDailySheet) CheckOneDay(tkId uint32, today string)(result FindDailySheet, err error) {
-	//sql := "SELECT  id, FROM_UNIXTIME(?, \"%Y-%m-%d\") as date_str  FROM  `token_inout_daily_sheet` WHERE token_id=?  and "
-	sql := "SELECT id FROM g_wallet.`token_inout_daily_sheet` WHERE token_id=? AND FROM_UNIXTIME(`date`, \"%Y-%m-%d\")=\"?\";"
 	engine := utils.Engine_wallet
-	fmt.Println("today:", today)
-	//engine.ShowSQL(true)
-	_, err = engine.SQL(sql, tkId, today).Get(&result)
+	sql := "SELECT id FROM g_wallet.`token_inout_daily_sheet` WHERE token_id=? AND `date` >= ? and `date` <= ?;"
+	_, err = engine.SQL(sql, tkId, today, today).Get(&result)
 	return
 }

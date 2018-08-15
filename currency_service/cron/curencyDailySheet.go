@@ -23,6 +23,8 @@ func (this DailyCountSheet) Run() {
 	startTime := yesTime.Format("2006-01-02 15:04:05")
 	endTime := nTime.Format("2006-01-02 15:04:05")
 
+	today := nTime.Format("2006-01-02")
+
 	log.Println("startTime:", startTime)
 	log.Println("endTime:", endTime)
 
@@ -32,7 +34,7 @@ func (this DailyCountSheet) Run() {
 
 		/// check exists ....
 		mcuds := new(model.CurrencyDailySheet)
-		checkResult, err := mcuds.GetOneDay(tkId, nTime.Unix())
+		checkResult, err := mcuds.GetOneDay(tkId, today)
 		if err != nil {
 			log.Errorln(err)
 		}
@@ -96,7 +98,7 @@ func (this DailyCountSheet) Run() {
 
 			Total:    sumBuy.BuyTotalAll + sumSell.SellTotalAll,
 			TotalCny: sumBuy.BuyTotalAllCny + sumSell.SellTotalAllCny,
-			Date:     yesTime.Unix(),
+			Date:     today,
 		}
 
 		err = mcds.InsertOneDay()

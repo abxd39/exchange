@@ -115,6 +115,7 @@ func (this WalletDailyCountSheet) Run(){
 		}
 		total_put = intotal.TotalPut
 
+
 		onedayInOutModel := models.TokenInoutDailySheet{
 			TokenId:     tkId,
 			TokenName:   tokenName,
@@ -127,9 +128,11 @@ func (this WalletDailyCountSheet) Run(){
 			Total:           total,
 			TotalFee:        total_fee,
 			TotalPut:        total_put,
-			Date:            nTime.Unix(),
+			Date:            today,
 		}
 		err = onedayInOutModel.InsertOneDayTotal()
+		fmt.Println(onedayInOutModel.Id)
+
 		if err != nil {
 			log.Errorln("wallet统计失败", err)
 			fmt.Println(err)
@@ -137,6 +140,7 @@ func (this WalletDailyCountSheet) Run(){
 			log.Println("统计成功!", tkId)
 		}
 
+		fmt.Println(" insert ......")
 
 	}
 

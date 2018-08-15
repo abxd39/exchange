@@ -10,11 +10,11 @@ import (
 	//cf "digicon/currency_service/conf"
 	"digicon/common/xlog"
 	cf "digicon/wallet_service/conf"
-	"digicon/wallet_service/rpc/watch"
 	"digicon/wallet_service/rpc/client"
 	"fmt"
 	"digicon/wallet_service/utils"
 	"digicon/wallet_service/cron"
+	"digicon/wallet_service/rpc/watch"
 )
 
 func init() {
