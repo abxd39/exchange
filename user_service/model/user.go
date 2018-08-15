@@ -228,6 +228,7 @@ func (s *User) SerialJsonData() (data string, err error) {
 			GoogleExist:    s.authSecurityCode(AUTH_GOOGLE),
 			NickName:       ex.NickName,
 			HeadSculpture:  ex.HeadSculpture,
+			TradePwd:		s.authTradeCode(AUTH_TRADEMARK),
 		},
 
 		Real: &proto.UserRealData{
@@ -628,6 +629,16 @@ func (s *User) GetAuthMethodExpectGoogle() int32 {
 //验证类型是否设置
 func (s *User) authSecurityCode(code int) bool {
 	g := s.SecurityAuth & code
+	if g > 0 {
+		return true
+	}
+	return false
+}
+
+
+//验证类型是否设置
+func (s *User) authTradeCode(code int) bool {
+	g := s.SetTardeMark & code
 	if g > 0 {
 		return true
 	}

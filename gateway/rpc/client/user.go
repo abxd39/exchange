@@ -257,6 +257,7 @@ type UserBaseData struct {
 	GoogleExist    bool   `json:"google_exist"`
 	NickName       string `json:"nick_name"`
 	HeadSculpture  string `json:"head_scul"`
+	TradePwd             bool   `json:"trade_pwd"`
 }
 
 func replaceNickName(nickname string) (rpname string) {
@@ -322,6 +323,7 @@ func (s *UserRPCCli) CallGetUserBaseInfo(uid uint64) (rsp *proto.UserInfoRespons
 		GoogleExist:    out.GoogleExist,
 		NickName:       nickname,
 		HeadSculpture:  headSculpture,
+		TradePwd:out.TradePwd,
 	}
 
 	return
