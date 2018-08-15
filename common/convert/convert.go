@@ -1,10 +1,11 @@
 package convert
 
 import (
+	"github.com/shopspring/decimal"
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/shopspring/decimal"
+	//"math/big"
 )
 
 func ByteToInt32(b []byte) (x uint32) {
@@ -22,6 +23,7 @@ func ByteToInt64(b []byte) (x int64) {
 }
 
 func Int64ToInt64By8Bit(b int64) int64 {
+
 	a := decimal.New(b, 0)
 	r := a.Mul(decimal.New(100000000, 0))
 	return  r.IntPart()

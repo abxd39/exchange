@@ -370,6 +370,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Uid:          buyer.Uid,
 		TokenId:      s.TokenId,
 		TokenTradeId: s.TokenTradeId,
+		TokenAdmissionId:s.TokenTradeId,
 		Price:        price,
 		Num:          buy_num - fee, //记录消耗本来USDT数量
 		Fee:          fee,
@@ -392,6 +393,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Uid:          seller.Uid,
 		TokenId:      s.TokenId,
 		TokenTradeId: s.TokenTradeId,
+		TokenAdmissionId:s.TokenId,
 		Price:        price,
 		Num:          deal_num - sell_fee,
 		Fee:          sell_fee,
