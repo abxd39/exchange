@@ -113,7 +113,14 @@ func (this *Order) List(Page, PageNum int32,
 	orderModel := new(Order)
 
 	query := engine.Table("order").Join("LEFT", "ads", "ads.id=order.ad_id").Desc("order.id")
-	query = query.Where("order.sell_id=? or order.buy_id=?", Uid, Uid)
+	if AdType == 1 {
+		query = query.Where("order.sell_id=?",  Uid)
+	}else if AdType == 2{
+		query = query.Where("order.buy_id=?", Uid)
+	}else{
+		query = query.Where("order.sell_id=? or order.buy_id=?", Uid, Uid)
+	}
+
 
 	if States == 0 { // 状态为0，表示已经删除
 		return 0, 0, 0, ERRCODE_SUCCESS
@@ -126,9 +133,9 @@ func (this *Order) List(Page, PageNum int32,
 	if Id != 0 {
 		query = query.Where("order.id = ?", Id)
 	}
-	if AdType != 0 {
-		query = query.Where("order.ad_type = ?", AdType)
-	}
+	//if AdType != 0 {
+	//	query = query.Where("order.ad_type = ?", AdType)
+	//}
 	if TokenId != 0 {
 		query = query.Where("order.token_id = ?", TokenId)
 	}
