@@ -39,7 +39,7 @@ func main() {
 	go watch.StartEthCBiWatch()
 
 	go rpc.RPCServerInit()
-	go client.InitInnerService()
+	client.InitInnerService()
 	//new(client.Watch).Start("https://rinkeby.infura.io/mew")  // need ...
 	//go new(client.BTCWatch).Start()
 	//go new(client.BTCWatch).Start()
