@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"github.com/shopspring/decimal"
 	"strings"
+	log "github.com/sirupsen/logrus"
 )
 
 func Round2(f float64, n int) float64 {
@@ -15,14 +16,23 @@ func Round2(f float64, n int) float64 {
 
 
 
+/*
+保留两位小数
+ */
 func Int64ToStringBy8Bit(b int64) string {
 	a := decimal.New(b, 0)
 	r := a.Div(decimal.New(100000000, 0))
 	s  := r.String()
 	splitResult := strings.Split(s, ".")
+	log.Println("splitResult s:", splitResult)
 	var result string
 	if len(splitResult) >= 2 {
-		result = splitResult[0] + "." + splitResult[1][:3]
+		//fmt.Println("splitResult:", splitResult)
+		if len(splitResult[1]) >= 3{
+			result = splitResult[0] + "." + splitResult[1][:3]
+		}else{
+			result = splitResult[0] + "." + splitResult[1][:]
+		}
 	}else{
 		result = splitResult[0]
 	}

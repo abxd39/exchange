@@ -448,6 +448,7 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 					symbol = fmt.Sprintf("BTC/%s", otherSymbolMap[dt.TokenId])
 				}
 
+				//fmt.Println("symbol:", symbolData)
 				symPrice := symbolData.Data[symbol]
 				fmt.Println("symPrice:", symPrice, " symbol: ", symbol)
 				if symPrice != nil {
@@ -471,11 +472,13 @@ func (s *RPCServer) GetUserCurrency(ctx context.Context, req *proto.UserCurrency
 					sumcny += 0
 				}
 			}
+
 			if dt.TokenName != "" {
 				tmp.TokenName = dt.TokenName
 			} else {
 				tmp.TokenName = otherSymbolMap[dt.TokenId]
 			}
+
 			tmp.TokenId = dt.TokenId
 			tmp.Id = dt.Id
 			tmp.Uid = dt.Uid
