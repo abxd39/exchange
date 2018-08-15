@@ -14,7 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/golang/protobuf/jsonpb"
 	. "digicon/price_service/dao"
-	"github.com/liudng/godump"
 )
 
 type RPCServer struct{
@@ -55,10 +54,10 @@ func (s *RPCServer) Process()  {
 				})
 			}
 		}
-		d:=time.Duration(diff+5)*time.Second
+		d:=time.Duration(diff+10)*time.Second
 		c.AddJobWithInterval(d,  job)
 		time.Sleep(d)
-		log.Info("circle process send trade")
+		log.Info("circle process send price")
 	}
 }
 
@@ -71,7 +70,7 @@ func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 		log.Errorln(err.Error())
 		return err
 	}
-	godump.Dump(g)
+
 	err =DB.GetRedisConn().Set("history.price.go.micro",g,0).Err()
 	if err != nil {
 		log.Errorln(err.Error())
@@ -82,7 +81,6 @@ func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 		log.Error(err)
 		return err
 	}
-	log.Info("succedd send")
 	return nil
 }
 
@@ -154,13 +152,17 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 
 		p, ok := model.Get24HourPrice(v.Name)
 		if !ok {
-			return nil
+			g := model.ConfigQueneInit[v.Name]
+			p.Price = g.Price
+			p.Amount = 0
+			log.Errorf("SymbolsById not found name %s",v.Name)
 		}
 
 		price := q.GetEntry().Price
 
 		c,ok:=model.GetQueneMgr().PriceMap[v.TokenTradeId]
 		if !ok {
+			log.Errorf("SymbolsById not found TokenTradeId %s",v.TokenTradeId)
 			continue
 		}
 
