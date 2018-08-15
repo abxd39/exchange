@@ -7,7 +7,6 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/liudng/godump"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 /*
@@ -34,7 +33,7 @@ type Trade struct {
 	DealTime  int64  `xorm:"comment('成交时间') BIGINT(20)"`
 	//States    int    `xorm:"comment('0是挂单，1是部分成交,2成交， -1撤销') INT(11)"`
 	FeeCny    int64  `xorm:"comment('手续费人民币') BIGINT(20)"`
-	TotleCny  int64  `xorm:"comment('成交额人民币') BIGINT(20)"`
+	TotalCny  int64  `xorm:"comment('成交额人民币') BIGINT(20)"`
 }
 
 func (s *Trade) Insert(session *xorm.Session, t ...*Trade) (err error) {
@@ -103,7 +102,41 @@ func CaluateAvgPrice(t []*Trade) int64 {
 	return convert.Int64DivInt64By8Bit(amount, sum)
 }
 
-func Test2()  {
+func Test2(beid,endid int64)  {
+	log.Infof("begin id=%d,endid=%d",beid,endid)
+	g:=make([]*Trade,0)
+	err:=DB.GetMysqlConn().Where("trade_id>=? and trade_id<?",beid,endid).Find(&g)
+	if err!=nil {
+		log.Fatalln(err.Error())
+		return
+	}
+	if len(g)==0 {
+		return
+	}
+
+	for _,v:=range g{
+		log.Infof("process id %d",v.TradeId)
+		if v.Opt==1 {
+			v.TokenAdmissionId=v.TokenTradeId
+			_,err = DB.GetMysqlConn().Where("trade_id=?",v.TradeId).Cols("token_admission_id").Update(v)
+			if err!=nil {
+				log.Fatalln(err.Error())
+				return
+			}
+		}else{
+			v.TokenAdmissionId=v.TokenId
+			_,err = DB.GetMysqlConn().Where("trade_id=?",v.TradeId).Cols("token_admission_id").Update(v)
+			if err!=nil {
+				log.Fatalln(err.Error())
+				return
+			}
+		}
+	}
+
+	Test2(beid+1000,endid+1000)
+	/*
+	lastt := stime + 43200
+
 	log.Infof("beigin %d",time.Now().Unix())
 	_,err:=DB.GetMysqlConn().Exec("call statisticss_daily_fee()")
 	if err!=nil {
@@ -111,4 +144,6 @@ func Test2()  {
 	}
 
 	log.Infof("end %d",time.Now().Unix())
+
+	*/
 }

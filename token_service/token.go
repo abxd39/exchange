@@ -29,11 +29,11 @@ func main() {
 	log.Infof("begin run server")
 	snowflake.Init()
 	dao.InitDao()
-
+	//model.Test2(1,1000)
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	model.GetQueneMgr().Init()
-	//model.Test2()
+
 	//model.GetKLine("BTC/USDT","1min",10)
 	//model.Test()
 	//go exchange.InitExchange()

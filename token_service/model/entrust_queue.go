@@ -379,7 +379,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Symbol:       s.TokenQueueId,
 		EntrustId:    buyer.EntrustId,
 		FeeCny:convert.Int64MulInt64By8Bit(fee,buyCnyRate),
-		TotleCny:convert.Int64MulInt64By8Bit(buy_num,buyCnyRate),
+		TotalCny:convert.Int64MulInt64By8Bit(buy_num,buyCnyRate),
 	}
 
 	sellCnyRate:=GetCnyPrice(int32(s.TokenId))
@@ -402,7 +402,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		Symbol:       s.TokenQueueId,
 		EntrustId:    seller.EntrustId,
 		FeeCny:convert.Int64MulInt64By8Bit(sell_fee,sellCnyRate),
-		TotleCny:convert.Int64MulInt64By8Bit(deal_num,sellCnyRate),
+		TotalCny:convert.Int64MulInt64By8Bit(deal_num,sellCnyRate),
 	}
 
 	if buyer.SurplusNum < buy_num {
