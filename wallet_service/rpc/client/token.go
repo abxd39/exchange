@@ -9,6 +9,7 @@ import (
 	"github.com/micro/go-plugins/registry/consul"
 	//. "digicon/wallet_service/utils"
 	cf "digicon/wallet_service/conf"
+	"fmt"
 )
 
 type TokenRPCCli struct {
@@ -64,6 +65,7 @@ func NewTokenRPCCli() (u *TokenRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_client_token")
+	fmt.Println("NewTokenRPCCli：",service_name)
 	greeter := proto.NewTokenRPCService(service_name, service.Client())
 	u = &TokenRPCCli{
 		conn: greeter,

@@ -14,6 +14,7 @@ import (
 
 func RPCServerInit() {
 	service_name := cf.Cfg.MustValue("base", "service_name")
+	fmt.Println("RPCServerInit：",service_name)
 	addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(addr))
 	service := micro.NewService(
