@@ -33,7 +33,7 @@ func (s *CurrencyRPCCli) CallCancelOrder(req *proto.CancelOrderRequest) (rsp *pr
 	return
 }
 
-func (s *CurrencyRPCCli) CallConfirmOrder(req *proto.OrderRequest) (rsp *proto.OrderResponse, err error) {
+func (s *CurrencyRPCCli) CallConfirmOrder(req *proto.ConfirmOrderRequest) (rsp *proto.OrderResponse, err error) {
 
 	rsp, err = s.conn.ConfirmOrder(context.TODO(), req)
 	if err != nil {

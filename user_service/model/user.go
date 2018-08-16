@@ -723,10 +723,10 @@ func (s *User) BindUserEmail(email string, uid uint64) (has bool, err error) {
 /*
 	func: bind user phone
 */
-func (s *User) BindUserPhone(phone string, uid uint64) (has bool, err error) {
+func (s *User) BindUserPhone(phone, country string, uid uint64) (has bool, err error) {
 	engine := DB.GetMysqlConn()
 	s.Phone = phone
-	nu := User{Phone: phone}
+	nu := User{Phone: phone, Country: country}
 	has, err = engine.Where(" account=? or phone=?", phone, phone).Exist(&nu)
 	if err != nil {
 		log.Errorln(err.Error())

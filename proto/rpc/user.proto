@@ -166,6 +166,7 @@ message BindEmailRequest{
 }
 
 message BindPhoneRequest {
+    string    country        = 1;     // country
     string    phone          = 2;    // 需要绑定的电话
     string    phone_code     = 3;    // 需要绑定的电 验证码
     string    verify_code    = 4;    // 短信验证码 or 谷歌验证码

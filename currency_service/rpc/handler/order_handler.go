@@ -56,8 +56,11 @@ func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rs
 }
 
 // 确认放行
-func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {
+func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.ConfirmOrderRequest, rsp *proto.OrderResponse) error {
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
+
+	fmt.Println("pay pwd:", req.PayPwd)
+
 	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg

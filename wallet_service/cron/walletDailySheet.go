@@ -141,12 +141,10 @@ func (this WalletDailyCountSheet) Run(){
 		}
 
 		fmt.Println(" insert ......")
-
 	}
 
-
-
 }
+
 
 //启动
 func DailyStart() {

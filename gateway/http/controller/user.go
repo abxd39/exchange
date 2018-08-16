@@ -890,6 +890,8 @@ func (s *UserGroup) BindUserPhone(c *gin.Context) {
 		Uid        uint64 `form:"uid"          json:"uid"          binding:"required"`
 		Phone      string `form:"phone"        json:"phone"        binding:"required"`
 		PhoneCode  string `form:"phone_code"   json:"phone_code"   binding:"required"`
+		Country    string  `form:"country"      json:"country"      binding:"required"`
+
 		VerifyCode string `form:"verify_code"  json:"verify_code"  binding:"required"`
 		VerifyType uint64 `form:"verify_type"  json:"verify_type"  binding:"required"` // 验证类型 ( 1邮箱验证, 2谷歌验证 )
 	}{}
@@ -901,6 +903,7 @@ func (s *UserGroup) BindUserPhone(c *gin.Context) {
 	rsp, err := rpc.InnerService.UserSevice.CallBindPhone(&proto.BindPhoneRequest{
 		Uid:        req.Uid,
 		Phone:      req.Phone,
+		Country:    req.Country,
 		PhoneCode:  req.PhoneCode,
 		VerifyCode: req.VerifyCode,
 		VerifyType: req.VerifyType,
