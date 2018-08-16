@@ -4,11 +4,9 @@ import (
 	"digicon/common/convert"
 	"digicon/common/model"
 	. "digicon/token_service/dao"
-	"fmt"
 	"github.com/go-xorm/xorm"
 	"github.com/liudng/godump"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 /*
@@ -150,111 +148,3 @@ func Test2(beid, endid int64) {
 	*/
 }
 
-func Test3(begin, end int64) {
-	//g:=make([]*Trade,0)
-	//buy
-	sql := fmt.Sprintf("select sum(num) as a,sum(fee) as b ,sum(fee_cny) as c ,sum(total_cny) as d,token_admission_id  from trade where deal_time>=%d and deal_time<%d  and opt=1 group by token_admission_id", begin, end)
-	r, err := DB.GetMysqlConn().Query(sql)
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
-	}
-
-	l := make(map[int]*TokenDailySheet)
-
-	if len(r) > 0 {
-		for _, v := range r {
-			h:=&TokenDailySheet{}
-			t, ok := v["token_admission_id"]
-			if !ok {
-				log.Fatal("ok u")
-			}
-
-			a, ok := v["a"]
-			if !ok {
-				log.Fatal("ok a")
-			}
-			b, ok := v["b"]
-			if !ok {
-				log.Fatal("ok b")
-			}
-			c, ok := v["c"]
-			if !ok {
-				log.Fatal("ok c")
-			}
-			d, ok := v["d"]
-			if !ok {
-				log.Fatal("ok d")
-			}
-
-			h.TokenId  = convert.BytesToIntAscii(t)
-			h.BuyTotal= convert.BytesToInt64Ascii(a)
-			h.FeeBuyTotal= convert.BytesToInt64Ascii(b)
-			h.FeeBuyCny = convert.BytesToInt64Ascii(c)
-			h.BuyTotalCny= convert.BytesToInt64Ascii(d)
-
-			l[h.TokenId] = h
-		}
-
-	}
-
-
-	sql = fmt.Sprintf("select sum(num) as a,sum(fee) as b ,sum(fee_cny) as c ,sum(total_cny) as d,token_admission_id  from trade where deal_time>=%d and deal_time<%d  and opt=2 group by token_admission_id", begin, end)
-	r, err = DB.GetMysqlConn().Query(sql)
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
-	}
-
-	if len(r) > 0 {
-		for _, v := range r {
-			h:=&TokenDailySheet{}
-			t, _ := v["token_admission_id"]
-			a, _ := v["a"]
-			b, _ := v["b"]
-			c, _ := v["c"]
-			d, _ := v["d"]
-
-			t_ := convert.BytesToIntAscii(t)
-			m, ok := l[t_]
-			if !ok {
-				h.TokenId  = convert.BytesToIntAscii(t)
-				h.SellTotal= convert.BytesToInt64Ascii(a)
-				h.FeeSellTotal = convert.BytesToInt64Ascii(b)
-				h.FeeSellCny = convert.BytesToInt64Ascii(c)
-				h.SellTotalCny = convert.BytesToInt64Ascii(d)
-				l[h.TokenId] = h
-			} else {
-				m.SellTotal  = convert.BytesToInt64Ascii(a)
-				m.FeeSellTotal = convert.BytesToInt64Ascii(b)
-				m.FeeSellCny = convert.BytesToInt64Ascii(c)
-				m.SellTotalCny = convert.BytesToInt64Ascii(d)
-			}
-		}
-	}
-
-	for _,v:=range l  {
-		p:=time.Unix(begin, 0).Format("2006-01-02 ")
-		log.Infof("insert into token_id %d,time %s",v.TokenId,p)
-		v.Date=begin
-		_,err = DB.GetMysqlConn().Cols("token_id","fee_buy_cny","fee_buy_total","fee_sell_cny","fee_sell_total","buy_total","sell_total_cny","sell_total","date").InsertOne(v)
-		if err != nil {
-			log.Fatalln(err.Error())
-			return
-		}
-	}
-	//sql := fmt.Sprintf("insert into TokenDailySheet (`token_id`,`FeeBuyCny`,`FeeBuyTotal`,`FeeSellCny`,`FeeSellTotal`,`BuyTotal`,`BuyTotalCny`,`SellTotalCny`,`SellTotal`)  values(20001,0,1) on  DUPLICATE key update num=num+values(num)")
-/*
-	_,err = DB.GetMysqlConn().Insert(l)
-	if err != nil {
-		log.Fatalln(err.Error())
-		return
-	}
-*/
-
-	be:=begin+86400
-	if be>time.Now().Unix() {
-		return
-	}
-	Test3(begin+86400,end+86400)
-}
