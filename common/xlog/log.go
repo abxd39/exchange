@@ -18,9 +18,11 @@ func InitLogger(path, name, level string) {
 		rotatelogs.WithMaxAge(7*24*time.Hour),     // 文件最大保存时间
 		rotatelogs.WithRotationTime(24*time.Hour), // 日志切割时间间隔
 	)
+
 	if err != nil {
 		panic("config local file system logger error. ")
 	}
+
 
 	switch level {
 
