@@ -112,3 +112,17 @@ func (*RPCServer) GetVerifyCount(c context.Context, req *proto.VerifyCountReques
 	}
 	return nil
 }
+
+
+/*
+	VerifyPaypwd
+*/
+func (*RPCServer) GetVerifyPayPwd(c context.Context, req *proto.VerifyPayPwdRequest, rsp *proto.VerifyPayPwdRespose) ( err error) {
+	u := model.User{}
+	rsp.Code, err = u.VerifyPayPwd(req.Uid, req.PayPwd)
+	if err != nil {
+		log.Errorln(err)
+		return err
+	}
+	return nil
+}

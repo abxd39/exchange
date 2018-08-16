@@ -86,7 +86,26 @@ service UserRPC {
 
 
     rpc Refresh(RefreshRequest) returns (CommonErrResponse) {}
+
+
+
+    // 校验pay_pwd
+    rpc GetVerifyPayPwd(VerifyPayPwdRequest) returns(VerifyPayPwdRespose){};
+
+
 }
+
+message VerifyPayPwdRequest {
+    uint64 uid     =1;
+    string pay_pwd =2;
+}
+
+message VerifyPayPwdRespose{
+        int32 code =1;
+        string date =2;
+        string msg =3;
+}
+
 
 message VerifyCountRequest{
     uint64 uid=1; 

@@ -16,6 +16,7 @@ import (
 	"digicon/common/convert"
 	"digicon/currency_service/rpc/client"
 	"strconv"
+	"digicon/common/errors"
 )
 
 // 获取订单列表
@@ -57,10 +58,23 @@ func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rs
 
 // 确认放行
 func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.ConfirmOrderRequest, rsp *proto.OrderResponse) error {
-	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
 
 	fmt.Println("pay pwd:", req.PayPwd)
+	verifyRsp, err :=  client.InnerService.UserSevice.CallGetVerifyPayPwd(uint64(req.Uid), req.PayPwd)
+	if err != nil {
+		rsp.Code = errdefine.ERRCODE_UNKNOWN
+		err := errors.New("verify paypwd error !")
+		return err
+	}
+	if verifyRsp.Code != errdefine.ERRCODE_SUCCESS {
+		rsp.Code = verifyRsp.Code
+		rsp.Message = verifyRsp.Msg
+		rsp.Data = verifyRsp.Date
+		err := errors.New("verify paypwd not right!")
+		return err
+	}
 
+	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
 	code, msg := new(model.Order).Confirm(req.Id, updateTimeStr, req.Uid)
 	rsp.Code = code
 	rsp.Message = msg
