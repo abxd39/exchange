@@ -87,3 +87,13 @@ func (s *CurrencyRPCCli) CallGetRecentTransactionPrice(req *proto.GetRecentTrans
 	}
 	return
 }
+
+
+func (s *CurrencyRPCCli) CallGetUserBalanceUids(req *proto.GetUserBalanceUids)(rsp *proto.OtherResponse, err error)  {
+	rsp, err = s.conn.GetUsersBalance(context.TODO(), req)
+	if err != nil {
+		log.Errorln(err)
+		return
+	}
+	return
+}

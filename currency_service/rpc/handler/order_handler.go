@@ -221,8 +221,18 @@ func (s *RPCServer) TradeDetail(ctx context.Context, req *proto.TradeDetailReque
 	wechatPay := new(model.UserCurrencyWechatPay)
 
 	ctoken := new(model.CommonTokens)
+	var code int32
+	var err error
+	if req.OrderId != "" {
+		code, err = order.GetOrderByOrderId(req.OrderId)
+	}else{
+		code , err = order.GetOrder(req.Id)
+	}
+	if err != nil {
+		rsp.Code = code
+		return err
+	}
 
-	order.GetOrder(req.Id)
 	sellid := order.SellId
 	aliPay.GetByUid(sellid)
 	bankPay.GetByUid(sellid)
@@ -386,3 +396,7 @@ func (s *RPCServer) GetAssetDetail(ctx context.Context, req *proto.GetAssetDetai
 	rsp.Code = errdefine.ERRCODE_SUCCESS
 	return nil
 }
+
+
+
+
