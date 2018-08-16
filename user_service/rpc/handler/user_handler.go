@@ -425,7 +425,7 @@ func (this *RPCServer) BindEmail(ctx context.Context, req *proto.BindEmailReques
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Message = msg
 	}
-	
+
 	u.ForceRefreshCache(req.Uid)
 	rsp.Code = ERRCODE_SUCCESS
 	return nil
@@ -461,7 +461,7 @@ func (this *RPCServer) BindPhone(ctx context.Context, req *proto.BindPhoneReques
 		rsp.Code = ERRCODE_UNKNOWN
 		return nil
 	}
-	has, err := u.BindUserPhone(req.Phone, req.Uid)
+	has, err := u.BindUserPhone(req.Phone, req.Country, req.Uid )
 	if err != nil {
 		log.Errorln("bind user phone err!", err.Error())
 		rsp.Code = ERRCODE_UNKNOWN

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"digicon/common/snowflake"
 	"digicon/common/xlog"
 	cf "digicon/token_service/conf"
 	"digicon/token_service/cron"
@@ -14,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"fmt"
 )
 
 func init() {
@@ -26,14 +26,22 @@ func init() {
 
 func main() {
 	flag.Parse()
+	fmt.Println("main run ...")
 	log.Infof("begin run server")
-	snowflake.Init()
+	//snowflake.Init()
 	dao.InitDao()
+	fmt.Println("init dao ....")
 	//model.Test2(1,1000)
 	go rpc.RPCServerInit()
+
+
 	client.InitInnerService()
+
+	fmt.Println("cliet init ...")
+
 	model.GetQueneMgr().Init()
 
+	fmt.Println("model get ...")
 	//model.GetKLine("BTC/USDT","1min",10)
 	//model.Test()
 	//go exchange.InitExchange()

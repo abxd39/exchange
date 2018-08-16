@@ -43,7 +43,7 @@ service CurrencyRPC {
         // 准备放行
         rpc ReadyOrder(OrderRequest) returns (OrderResponse) {};
         // 确认放行
-        rpc ConfirmOrder(OrderRequest) returns (OrderResponse) {};
+        rpc ConfirmOrder(ConfirmOrderRequest) returns (OrderResponse) {};
         // 取消订单
         rpc CancelOrder(CancelOrderRequest) returns(OrderResponse){};
         // 删除订单
@@ -348,6 +348,13 @@ message OrderResponse {
 	int32    code      =  1;
 	string   message   =  2;
 	string   data      =  3;
+}
+
+
+message ConfirmOrderRequest {
+    uint64  id    = 1;       // 交易订单
+    int32   uid   = 2;       // uid
+    string  pay_pwd = 3;     // pay pwd
 }
 
 
