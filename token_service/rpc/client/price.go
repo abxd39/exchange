@@ -38,16 +38,12 @@ func NewPriceRPCCli() (u *PriceRPCCli) {
 		micro.Registry(r),
 	)
 	service.Init()
-	
-
 
 	service_name := cf.Cfg.MustValue("base", "service_client_price")
 	greeter := proto.NewPriceRPCService(service_name, service.Client())
 	u = &PriceRPCCli{
 		conn: greeter,
 	}
-
-
 
 	return
 }

@@ -89,7 +89,7 @@ type TradeInfo struct {
 }
 
 //func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny, usd int64, amount, vol, count, usd_vol int64) *EntrustQuene {
-func NewEntrustQueue(token_id, token_trade_id int, price int64, name string,  amount, vol, count, usd_vol int64) *EntrustQuene {
+func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, amount, vol, count, usd_vol int64) *EntrustQuene {
 	quene_id := name
 	log.Infof("load config symbol %s", name)
 	m := &EntrustQuene{
@@ -108,10 +108,10 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string,  am
 		price_c:           price,
 		//cny:               cny,
 		//usd:               usd,
-		usd_vol:           usd_vol,
-		amount:            amount,
-		vol:               vol,
-		count:             count,
+		usd_vol: usd_vol,
+		amount:  amount,
+		vol:     vol,
+		count:   count,
 	}
 	go m.process()
 	go m.Clock()
@@ -321,7 +321,6 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 		return errors.New("wrong type")
 	}
 
-
 	buy_token_account := &UserToken{} //买方主账户余额 USDT
 	err = buy_token_account.GetUserToken(buyer.Uid, s.TokenId)
 	if err != nil {
@@ -359,50 +358,50 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	rand := random.Krand(6, random.KC_RAND_KIND_LOWER)
 	no := fmt.Sprintf("%d_%s", time.Now().Unix(), rand)
 
-	buyCnyRate:=GetCnyPrice(int32(s.TokenTradeId))
-	if buyCnyRate==0 {
-		err=errors.New("not found cny price")
+	buyCnyRate := GetCnyPrice(int32(s.TokenTradeId))
+	if buyCnyRate == 0 {
+		err = errors.New("not found cny price")
 		return
 	}
 	trade_time := time.Now().Unix()
 	t := &Trade{
-		TradeNo:      no,
-		Uid:          buyer.Uid,
-		TokenId:      s.TokenId,
-		TokenTradeId: s.TokenTradeId,
-		TokenAdmissionId:s.TokenTradeId,
-		Price:        price,
-		Num:          buy_num - fee, //记录消耗本来USDT数量
-		Fee:          fee,
-		DealTime:     trade_time,
-		Opt:          int(proto.ENTRUST_OPT_BUY),
-		Symbol:       s.TokenQueueId,
-		EntrustId:    buyer.EntrustId,
-		FeeCny:convert.Int64MulInt64By8Bit(fee,buyCnyRate),
-		TotalCny:convert.Int64MulInt64By8Bit(buy_num,buyCnyRate),
+		TradeNo:          no,
+		Uid:              buyer.Uid,
+		TokenId:          s.TokenId,
+		TokenTradeId:     s.TokenTradeId,
+		TokenAdmissionId: s.TokenTradeId,
+		Price:            price,
+		Num:              buy_num - fee, //记录消耗本来USDT数量
+		Fee:              fee,
+		DealTime:         trade_time,
+		Opt:              int(proto.ENTRUST_OPT_BUY),
+		Symbol:           s.TokenQueueId,
+		EntrustId:        buyer.EntrustId,
+		FeeCny:           convert.Int64MulInt64By8Bit(fee, buyCnyRate),
+		TotalCny:         convert.Int64MulInt64By8Bit(buy_num, buyCnyRate),
 	}
 
-	sellCnyRate:=GetCnyPrice(int32(s.TokenId))
-	if sellCnyRate==0 {
-		err=errors.New("not found cny price")
+	sellCnyRate := GetCnyPrice(int32(s.TokenId))
+	if sellCnyRate == 0 {
+		err = errors.New("not found cny price")
 		return
 	}
 	sell_fee := convert.Int64MulFloat64(deal_num, s.SellPoundage)
 	o := &Trade{
-		TradeNo:      no,
-		Uid:          seller.Uid,
-		TokenId:      s.TokenId,
-		TokenTradeId: s.TokenTradeId,
-		TokenAdmissionId:s.TokenId,
-		Price:        price,
-		Num:          deal_num - sell_fee,
-		Fee:          sell_fee,
-		DealTime:     trade_time,
-		Opt:          int(proto.ENTRUST_OPT_SELL),
-		Symbol:       s.TokenQueueId,
-		EntrustId:    seller.EntrustId,
-		FeeCny:convert.Int64MulInt64By8Bit(sell_fee,sellCnyRate),
-		TotalCny:convert.Int64MulInt64By8Bit(deal_num,sellCnyRate),
+		TradeNo:          no,
+		Uid:              seller.Uid,
+		TokenId:          s.TokenId,
+		TokenTradeId:     s.TokenTradeId,
+		TokenAdmissionId: s.TokenId,
+		Price:            price,
+		Num:              deal_num - sell_fee,
+		Fee:              sell_fee,
+		DealTime:         trade_time,
+		Opt:              int(proto.ENTRUST_OPT_SELL),
+		Symbol:           s.TokenQueueId,
+		EntrustId:        seller.EntrustId,
+		FeeCny:           convert.Int64MulInt64By8Bit(sell_fee, sellCnyRate),
+		TotalCny:         convert.Int64MulInt64By8Bit(deal_num, sellCnyRate),
 	}
 
 	if buyer.SurplusNum < buy_num {
@@ -1295,10 +1294,10 @@ func (s *EntrustQuene) process() {
 
 //定时器
 func (s *EntrustQuene) Clock() {
-	for   {
+	for {
 		c := clock.NewClock()
-		t:=time.Now()
-		diff:=60-t.Second()
+		t := time.Now()
+		diff := 60 - t.Second()
 		job := func() {
 			m := &proto.PriceCache{
 				Id:          time.Now().Unix(),
@@ -1327,46 +1326,46 @@ func (s *EntrustQuene) Clock() {
 
 		}
 
-		d:=time.Duration(diff+30)*time.Second
-		c.AddJobWithInterval(d,  job)
+		d := time.Duration(diff+30) * time.Second
+		c.AddJobWithInterval(d, job)
 		time.Sleep(d)
 		//c.AddJobWithInterval(time.Duration(diff+30)*time.Second,  job)
 		log.Info("circle process send trade")
 	}
 
 	/*
-	c := clock.NewClock()
-	job := func() {
-		m := &proto.PriceCache{
-			Id:          time.Now().Unix(),
-			Symbol:      s.TokenQueueId,
-			Price:       s.price_c,
-			CreatedTime: time.Now().Unix(),
-			Amount:      s.amount,
-			Count:       s.count,
-			Vol:         s.vol,
-			UsdVol:      s.usd_vol,
+		c := clock.NewClock()
+		job := func() {
+			m := &proto.PriceCache{
+				Id:          time.Now().Unix(),
+				Symbol:      s.TokenQueueId,
+				Price:       s.price_c,
+				CreatedTime: time.Now().Unix(),
+				Amount:      s.amount,
+				Count:       s.count,
+				Vol:         s.vol,
+				UsdVol:      s.usd_vol,
+			}
+
+			t := jsonpb.Marshaler{EmitDefaults: true}
+			data, err := t.MarshalToString(m)
+			if err != nil {
+				log.Errorln(err.Error())
+				return
+			}
+
+			err = DB.GetRedisConn().Publish(s.PriceChannel, data).Err()
+
+			if err != nil {
+				log.Errorln(err.Error())
+				return
+			}
+
 		}
 
-		t := jsonpb.Marshaler{EmitDefaults: true}
-		data, err := t.MarshalToString(m)
-		if err != nil {
-			log.Errorln(err.Error())
-			return
-		}
-
-		err = DB.GetRedisConn().Publish(s.PriceChannel, data).Err()
-
-		if err != nil {
-			log.Errorln(err.Error())
-			return
-		}
-
-	}
-
-	t:=time.Now()
-	diff:=60-t.Second()
-	c.AddJobRepeat(time.Duration(diff)*time.Second, 0, job)
+		t:=time.Now()
+		diff:=60-t.Second()
+		c.AddJobRepeat(time.Duration(diff)*time.Second, 0, job)
 	*/
 }
 

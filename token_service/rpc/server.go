@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	proto "digicon/proto/rpc"
 	cf "digicon/token_service/conf"
 	"digicon/token_service/rpc/handler"
 	"fmt"
@@ -9,7 +10,6 @@ import (
 	"github.com/micro/go-plugins/registry/consul"
 	"log"
 	"time"
-	proto "digicon/proto/rpc"
 )
 
 func RPCServerInit() {
@@ -25,14 +25,14 @@ func RPCServerInit() {
 	)
 	service.Init()
 
-	svr:=service.Server()
+	svr := service.Server()
 
-	err:=micro.RegisterSubscriber("topic.go.micro.srv.price",svr,new(handler.Subscriber))
-	if err!=nil {
+	err := micro.RegisterSubscriber("topic.go.micro.srv.price", svr, new(handler.Subscriber))
+	if err != nil {
 		log.Fatalln(err)
 	}
 	proto.RegisterTokenRPCHandler(svr, new(handler.RPCServer))
-	if err!=nil {
+	if err != nil {
 		log.Fatalln(err)
 	}
 	if err := service.Run(); err != nil {

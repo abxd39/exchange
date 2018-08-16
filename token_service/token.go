@@ -30,6 +30,8 @@ func main() {
 	snowflake.Init()
 	dao.InitDao()
 	//model.Test2(1,1000)
+	//model.Test3(1533139200,1533225600)
+
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	model.GetQueneMgr().Init()

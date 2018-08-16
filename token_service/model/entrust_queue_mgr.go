@@ -64,13 +64,13 @@ func (s *EntrustQueneMgr) Init() bool {
 		//cny := GetTokenCnyPrice(v.TokenId)
 		//usd := GetTokenUsdPrice(v.TokenId)
 		/*
-		if cny == 0 {
-			panic("err cny config")
-		}
-		if usd == 0 {
-			panic("err usd config")
-		}
-*/
+			if cny == 0 {
+				panic("err cny config")
+			}
+			if usd == 0 {
+				panic("err usd config")
+			}
+		*/
 		p, ok := GetPrice(v.Name)
 
 		if v.SellPoundage == 0 {
