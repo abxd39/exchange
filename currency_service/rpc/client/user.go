@@ -37,6 +37,13 @@ func (s *UserRPCCli) CallGetAuthInfo(uid uint64) (rsp *proto.GetAuthInfoResponse
 	return s.userconn.GetAuthInfo(context.TODO(), &proto.GetAuthInfoRequest{Uid: uid})
 }
 
+
+func (s *UserRPCCli) CallGetVerifyPayPwd(uid uint64, paypwd string) (rsp *proto.VerifyPayPwdRespose, err error) {
+	return s.userconn.GetVerifyPayPwd(context.TODO(), &proto.VerifyPayPwdRequest{Uid:uid, PayPwd:paypwd})
+}
+
+
+
 func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))

@@ -218,3 +218,4 @@ func (ex *UserEx) GetVerifyCount(req *proto.VerifyCountRequest, rsp *proto.Verif
 	}
 	return ERRCODE_SUCCESS, nil
 }
+

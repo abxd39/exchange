@@ -7,6 +7,7 @@ import (
 	"digicon/user_service/dao"
 	"fmt"
 	"strings"
+	"digicon/common/encryption"
 )
 
 func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, error) {
@@ -140,9 +141,11 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (int32, erro
 	}
 	//验证token
 	//修改数据库字段
+
+
 	ph.SetTardeMark = ph.SetTardeMark ^ AUTH_TRADEMARK
 	_, err = engine.Where("uid=?", req.Uid).Update(&User{
-		PayPwd:       req.NewPwd,
+		PayPwd:       encryption.GenMd5AndReverse(req.NewPwd),  // encryption.GenMd5AndReverse(req.Pwd)
 		SetTardeMark: ph.SetTardeMark,
 	})
 	if err != nil {
@@ -151,3 +154,5 @@ func (s *User) ModifyTradePwd(req *proto.UserModifyTradePwdRequest) (int32, erro
 	s.ForceRefreshCache(req.Uid)
 	return ERRCODE_SUCCESS, nil
 }
+
+

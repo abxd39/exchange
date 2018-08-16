@@ -744,3 +744,21 @@ func (s *User) BindUserPhone(phone, country string, uid uint64) (has bool, err e
 	}
 	return
 }
+
+
+/*
+	verify user pay_pwd
+*/
+func (s *User) VerifyPayPwd(uid uint64, paypwd string) (ret int32, err error) {
+	ret, err = s.GetUser(uid)
+	if err != nil {
+		return ret, err
+	}
+
+	newpaypwd := encryption.GenMd5AndReverse(paypwd)
+	if s.PayPwd == newpaypwd {
+		return ERRCODE_SUCCESS, nil
+	}else{
+		return ERRCODE_PWD, nil
+	}
+}
