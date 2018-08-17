@@ -26,7 +26,7 @@ func (s *AdminGroup) Router(r *gin.Engine) {
 		action.POST("/users_total", s.UserToatl)
 
 		action.POST("/get_users_balances", s.GetUsersBalances)
-		
+
 	}
 }
 
@@ -92,7 +92,7 @@ func (s *AdminGroup) RegisterReward(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 }
 
-<<<<<<< HEAD
+
 func (s *AdminGroup) UserToatl(c *gin.Context) {
 	ret := NewPublciError()
 	defer func() {
@@ -126,7 +126,7 @@ func (s *AdminGroup) UserToatl(c *gin.Context) {
 	ret.SetErrCode(rsp.Err, rsp.Message)
 	ret.SetDataSection("list",rsp.Data)
 }
-=======
+
 
 func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	ret := NewPublciError()
@@ -162,4 +162,4 @@ func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
     ret.SetDataSection("balances", rsp.Data)
 }
->>>>>>> e69469ddb9023aa49fb4c35d938e1bec950136ba
+

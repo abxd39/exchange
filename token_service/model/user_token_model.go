@@ -907,7 +907,8 @@ func GetAllBalanceCny(uids []uint64) map[uint64]*proto.BalanceCnyBaseData {
 	for _,v:=range all{
 			v.FrozenCny=convert.Int64ToStringBy8Bit(v.FrozenCnyInt)
 			v.BalanceCny=convert.Int64ToStringBy8Bit(v.BalanceCnyInt)
-		v.TotalCny=convert.Int64ToStringBy8Bit(v.FrozenCnyInt+v.BalanceCnyInt)
+			v.TotalCnyDouble= convert.Int64AddInt64Float64Percent(v.FrozenCnyInt,v.BalanceCnyInt)
+			v.TotalCny=convert.Int64ToStringBy8Bit(v.FrozenCnyInt+v.BalanceCnyInt)
 
 	}
 
