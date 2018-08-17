@@ -787,8 +787,10 @@ func (s *RPCServer) DisplayCurrencyTokens(ctx context.Context, req *proto.Curren
 /*
 	给后台统计每个人的账户余额的折合
  */
-func (s *RPCServer) GetUserBalanceUids(ctx context.Context, req *proto.GetUserBalanceUids, rsp *proto.OtherResponse) error {
-	
+func (s *RPCServer) GetUsersBalance(ctx context.Context, req *proto.GetUserBalanceUids, rsp *proto.OtherResponse) error {
+
+
+
 	return nil
 }
 
