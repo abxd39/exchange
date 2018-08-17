@@ -43,7 +43,8 @@ func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, ch
 }
 func (this *TokenChainInout) TxhashExist(hash string, chainid int) (bool, error) {
 	utils.Engine_wallet.ShowSQL(false)
-	return utils.Engine_wallet.Where("txhash=? and chainid=?", hash, chainid).Get(this)
+	//return utils.Engine_wallet.Where("txhash=? and chainid=?", hash, chainid).Get(this)
+	return utils.Engine_wallet.Where("txhash=?", hash).Get(this)
 
 }
 

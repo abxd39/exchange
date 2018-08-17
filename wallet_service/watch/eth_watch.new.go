@@ -681,12 +681,13 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 	log.Info("newOrder_params:",uid,",",from,",",to,",",chainid,",",contract,",",value,",",txhash)
 	//交易是否已经收录
 	exist, err := p.TxModel.TxhashExist(txhash, p.Chainid)
+	fmt.Println("交易是否存在----------------------：",exist,err,txhash,p.Chainid)
 	if err != nil {
-		log.Error("txhash not exists",txhash,p.Chainid,exist,err)
+		fmt.Println("txhash not exists",txhash,p.Chainid,exist,err)
 		return false, err
 	}
 	if exist {
-		log.Error("tx already exists",exist)
+		fmt.Println("tx already exists",exist)
 		return false, errors.New("tx already exists")
 	}
 
@@ -700,7 +701,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 	bo,err = walletToken.GetByAddressContract(to,contract)
 	log.Info("walletToken_data",walletToken.Uid,",",walletToken.Tokenid,",",to,",",contract)
 	if err != nil || bo != true || walletToken.Uid <= 0 {
-		log.Error("get uid by address error",err,to,contract)
+		fmt.Println("get uid by address error",err,to,contract)
 		return false,err
 	}
 
@@ -708,13 +709,13 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 
 	boo, err := tokensModel.GetByid(walletToken.Tokenid)
 	if boo != true || err != nil {
-		log.Error("walletToken.Tokenid not find token",walletToken.Tokenid,boo,err)
+		fmt.Println("walletToken.Tokenid not find token",walletToken.Tokenid,boo,err)
 		return false, err
 	}
 
 	deci, err := tokensModel.GetDecimal(walletToken.Tokenid)
 	if err != nil {
-		log.Error("GetDecimal error",err)
+		fmt.Println("GetDecimal error",err)
 		return false,err
 	}
 
