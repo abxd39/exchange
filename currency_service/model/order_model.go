@@ -70,28 +70,51 @@ type SumSellTotal struct {
 /*
  ====================  sum buy total all =================
 */
-func (this *Order) GetCurDaySum(tokenId uint32, startTime, endTime string) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
-	sql := "select sum(num) as  buy_total_all,price  from `order`  where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
-	engine := dao.DB.GetMysqlConn()
-	var btotal BuyTotal
-	_, err = engine.Table("order").SQL(sql, tokenId, SellType, startTime, endTime).Get(&btotal)
+func (this *Order) GetTotalSum(tokenId uint32) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
+		sql := "select sum(num) as  buy_total_all,price  from `order`  where  token_id =? and ad_type=? and states=3 "
+		engine := dao.DB.GetMysqlConn()
+		var btotal BuyTotal
+		_, err = engine.Table("order").SQL(sql, tokenId, SellType).Get(&btotal)
 
-	sumBuy.BuyTotalAll = btotal.BuyTotalAll
-	sumBuy.BuyTotalAllCny = convert.Int64MulInt64By8Bit(btotal.BuyTotalAll, btotal.Price)
+		sumBuy.BuyTotalAll = btotal.BuyTotalAll
+		sumBuy.BuyTotalAllCny = convert.Int64MulInt64By8Bit(btotal.BuyTotalAll, btotal.Price)
 
-	buysql := "select sum(num) as  sell_total_all, price  from `order` where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
-	var stotal SellTotal
-	_, err = engine.Table("order").SQL(buysql, tokenId, BuyType, startTime, endTime).Get(&stotal)
+		buysql := "select sum(num) as  sell_total_all, price  from `order` where  token_id =? and ad_type=? and states=3 "
+		var stotal SellTotal
+		_, err = engine.Table("order").SQL(buysql, tokenId, BuyType).Get(&stotal)
 
-	log.Printf("tokenId: %v, stotal: %v \n", tokenId, stotal)
+		log.Printf("tokenId: %v, stotal: %v \n", tokenId, stotal)
 
-	sumSell.SellTotalAll = stotal.SellTotalAll
-	sumSell.SellTotalAllCny = convert.Int64MulInt64By8Bit(stotal.SellTotalAll, stotal.Price)
+		sumSell.SellTotalAll = stotal.SellTotalAll
+		sumSell.SellTotalAllCny = convert.Int64MulInt64By8Bit(stotal.SellTotalAll, stotal.Price)
 
-	log.Printf("tokenId: %v, sum sell: %v \n", tokenId, sumSell)
-	return
+		log.Printf("tokenId: %v, sum sell: %v \n", tokenId, sumSell)
+		return
 
 }
+
+//func (this *Order) GetCurDaySum(tokenId uint32, startTime, endTime string) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
+//	sql := "select sum(num) as  buy_total_all,price  from `order`  where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
+//	engine := dao.DB.GetMysqlConn()
+//	var btotal BuyTotal
+//	_, err = engine.Table("order").SQL(sql, tokenId, SellType, startTime, endTime).Get(&btotal)
+//
+//	sumBuy.BuyTotalAll = btotal.BuyTotalAll
+//	sumBuy.BuyTotalAllCny = convert.Int64MulInt64By8Bit(btotal.BuyTotalAll, btotal.Price)
+//
+//	buysql := "select sum(num) as  sell_total_all, price  from `order` where  token_id =? and ad_type=? and states=3 and created_time >= ? and created_time <= ?"
+//	var stotal SellTotal
+//	_, err = engine.Table("order").SQL(buysql, tokenId, BuyType, startTime, endTime).Get(&stotal)
+//
+//	log.Printf("tokenId: %v, stotal: %v \n", tokenId, stotal)
+//
+//	sumSell.SellTotalAll = stotal.SellTotalAll
+//	sumSell.SellTotalAllCny = convert.Int64MulInt64By8Bit(stotal.SellTotalAll, stotal.Price)
+//
+//	log.Printf("tokenId: %v, sum sell: %v \n", tokenId, sumSell)
+//	return
+//
+//}
 
 /*
 ====================== sum end =======================
@@ -740,6 +763,22 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 	}
 	return
 }
+
+/*
+
+*/
+func ( this *Order) GetOrderByOrderId(orderid string) (code int32, err error){
+	engine := dao.DB.GetMysqlConn()
+	//order := new(Order)
+	_, err = engine.Where("order_id = ?", orderid).Get(this)
+	if err != nil {
+		log.Errorln(err.Error())
+		code = ERRCODE_ORDER_NOTEXIST
+	}
+	return
+}
+
+
 
 func (this *Order) GetOrdersByStatus() (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()

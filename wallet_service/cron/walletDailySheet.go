@@ -156,12 +156,15 @@ func DailyStart() {
 
 	//AddFunc
 	spec := "0 0 1 * *" // every day ...
+	specTwo := "0 0 4 * *" // every day ...
+
 	c.AddFunc(spec, func() {
 		i++
 		log.Println("cron running:", i)
 	})
 	//AddJob方法
 	c.AddJob(spec, WalletDailyCountSheet{})
+	c.AddJob(specTwo, WalletDailyCountSheet{})
 	//启动计划任务
 	c.Start()
 	//关闭着计划任务, 但是不能关闭已经在执行中的任务.

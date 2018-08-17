@@ -61,10 +61,7 @@ func (s *RedisOp) GetEmailCode(email string, ty int32) (code string, err error) 
 }
 
 func (s *RedisOp) GetSmsCode(phone string, ty int32) (code string, err error) {
-	a,b := utils.Redis.Keys("*").Result()
-	fmt.Println("+++",a,b)
-	code = utils.Redis.Get(GetPhoneTagByLogic(phone, ty)).Val()
-	fmt.Println("yanzhengma:",code)
+	code,err = utils.Redis.Get(GetPhoneTagByLogic(phone, ty)).Result()
 	if err != nil {
 		log.Errorln(err.Error())
 		return
