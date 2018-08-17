@@ -121,9 +121,12 @@ message GetUserBalanceUids {
 
 message UserBalanceOne {
     int64   uid     = 1;
-    string  total   = 2;
-    string  total_num_cny = 3;
-    string  total_fee_cny = 4;
+    string  total_cny   = 2;
+    string  balance_cny = 3;
+    string  frozen_cny = 4;
+    int64   total_cny_int = 5;
+    int64   frozen_cny_int = 6;
+    int64   balance_cny_int = 7;
 }
 
 message UserBalancesResponse {
