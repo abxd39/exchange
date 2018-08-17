@@ -19,6 +19,9 @@ func (s *AdminGroup) Router(r *gin.Engine) {
 		action.POST("/refresh", s.Refresh)
 
 		action.POST("/register_reward", s.RegisterReward)
+
+		action.GET("/get_users_balances", s.GetUsersBalances)
+
 	}
 }
 
@@ -82,4 +85,37 @@ func (s *AdminGroup) RegisterReward(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
+}
+
+
+func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	req := struct {
+		Key       string `form:"key" json:"key" binding:"required"`
+		Uid       int64   `form:"uid"   json:"uid"     `   //  当前用户 uid
+		uids      []int64 `form:"uids"  json:"uids"     binding:"required"`
+	}{}
+	if err := c.ShouldBind(&req); err != nil {
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+
+	if req.Key != KEY {
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+
+	rsp, err := rpc.InnerService.CurrencyService.CallGetUserBalanceUids(&proto.GetUserBalanceUids{
+		Uids:   req.uids,
+	})
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+    ret.SetDataSection("data", rsp.Data)
 }

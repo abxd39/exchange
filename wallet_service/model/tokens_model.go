@@ -4,6 +4,7 @@ import (
 	. "digicon/wallet_service/utils"
 	"errors"
 	"strings"
+	log "github.com/sirupsen/logrus"
 )
 
 type Tokens struct {
@@ -23,8 +24,16 @@ type Tokens struct {
 }
 
 func (this *Tokens) GetByid(id int) (bool, error) {
+	log.Info("GetByid param id:",id)
+	Engine_common.ShowSQL(true)
+	session := Engine_common.NewSession()
+	boo,err := session.Id(id).Get(this)
+	lastSQL, lastSQLArgs := session.LastSQL()
+	log.Info("last sql:",lastSQL, lastSQLArgs)
 
-	return Engine_common.Id(id).Get(this)
+	defer session.Close()
+
+	return boo,err
 }
 
 func (this *Tokens) GetidByContract(contract string, chainid int) (int, error) {

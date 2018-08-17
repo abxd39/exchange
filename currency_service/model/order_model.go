@@ -741,6 +741,22 @@ func (this *Order) GetOrder(Id uint64) (code int32, err error) {
 	return
 }
 
+/*
+
+*/
+func ( this *Order) GetOrderByOrderId(orderid string) (code int32, err error){
+	engine := dao.DB.GetMysqlConn()
+	//order := new(Order)
+	_, err = engine.Where("order_id = ?", orderid).Get(this)
+	if err != nil {
+		log.Errorln(err.Error())
+		code = ERRCODE_ORDER_NOTEXIST
+	}
+	return
+}
+
+
+
 func (this *Order) GetOrdersByStatus() (ods []Order, err error) {
 	engine := dao.DB.GetMysqlConn()
 	err = engine.Where("states = 1 OR states = 2").Find(&ods)

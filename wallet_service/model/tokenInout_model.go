@@ -7,7 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"math/big"
 	"time"
-	"strconv"
+	log "github.com/sirupsen/logrus"
 )
 
 // 平台币账户的交易
@@ -65,17 +65,18 @@ type SumTokenIn struct {
 }
 
 
-func (this *TokenInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int) (int, error) {
+func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
 	this.From = from
 	this.Opt = opt
 	this.To = to
-	this.Value = value
-	this.Amount,_ = strconv.ParseInt(value,10,64)
-	temp, _ := new(big.Int).SetString(value[2:], 16)
-	amount := decimal.NewFromBigInt(temp, int32(8-decim)).IntPart()
-	this.Amount = amount
+	this.Value = total
+	amount,err := decimal.NewFromString(total)
+	if err != nil {
+		log.Info("error",err)
+	}
+	this.Amount = amount.IntPart()
 	this.Contract = contract
 	this.Chainid = chainid
 	this.Tokenid = tokenid
@@ -151,7 +152,7 @@ func (this *TokenInout) GetInOutList(pageIndex, pageSize int, filter map[string]
 }
 
 //提币申请
-func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string) (ret int,err error) {
+func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string,amountCny int64,feeCny int64) (ret int,err error) {
 	//查询form地址
 	var walletToken = new(WalletToken)
 	err = walletToken.GetByUid(uid)
@@ -201,6 +202,8 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 	this.Contract = tokenData.Contract
 	this.Opt = 2 //提币
 	this.States = 1  //正在提币
+	this.AmountCny = amountCny
+	this.FeeCny = feeCny
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	return int(affected), err
 

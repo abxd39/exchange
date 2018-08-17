@@ -110,8 +110,12 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	})
 	if err != nil {
 		log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Message)
 		return
+	}
+
+	if rsp.Code != 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 	}
 
 	ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
@@ -187,7 +191,7 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
-	if rsp.Code == "1" {
+	if rsp.Code != "0" {
 		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Msg)
 		return
 	}
@@ -221,7 +225,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	type Param struct {
 		TokenId int32  `form:"token_id" binding:"required"`
 		Signtx  string `form:"signtx" binding:"required"`
-		Applyid int32  `form:"apply_id"     json:"amount"     binding:"required"` //申请提币id
+		Applyid int32  `form:"apply_id"     json:"apply_id"     binding:"required"` //申请提币id
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -234,6 +238,12 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
 		return
 	}
+
+	if rsp.Code != "0" {
+		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Msg)
+		return
+	}
+	
 	ret.SetDataSection("result", rsp.Data.Result)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
@@ -564,11 +574,16 @@ func (this *WalletGroup) TibiApply(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	_, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount, param.RealAmount, param.SmsCode, param.EmailCode, param.Password)
+	rsp, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount, param.RealAmount, param.SmsCode, param.EmailCode, param.Password)
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
-		log.Errorln(err.Error())
+		log.Error(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	if rsp.Code != 0 {
+		log.Error(rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
 		return
 	}
 	//ctx.JSON(http.StatusOK, rsp)

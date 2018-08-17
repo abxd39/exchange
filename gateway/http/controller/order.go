@@ -342,7 +342,12 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 	defer func() {
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	var param OrderRequest
+	//var param OrderRequest
+	param := struct {
+		Id     uint64 `form:"id"            json:"id"  ` //order 表Id
+		Order  string `form:"order_id"      json:"order_id" `    // 订单id
+	}{}
+
 	err := c.ShouldBind(&param)
 	if err != nil {
 		log.Errorln(err.Error())
@@ -351,6 +356,7 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetTradeDetail(&proto.TradeDetailRequest{
 		Id: param.Id,
+		OrderId: param.Order,
 	})
 
 	type Data struct {
