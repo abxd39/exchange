@@ -21,8 +21,6 @@ func (s *AdminGroup) Router(r *gin.Engine) {
 
 		action.POST("/register_reward", s.RegisterReward)
 
-
-
 		action.POST("/users_total", s.UserToatl)
 
 		action.POST("/get_users_balances", s.GetUsersBalances)
