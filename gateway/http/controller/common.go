@@ -48,7 +48,7 @@ func (s *CommonGroup) GetSiteConfig(c *gin.Context) {
 		return
 	}
 
-	ret.SetErrCode(rsp.Code)
+	ret.SetErrCode(rsp.Code, rsp.Message)
 
 	if rsp.Code == ERRCODE_SUCCESS {
 		ret.SetDataSection("site_config", rsp.Data.Site)
