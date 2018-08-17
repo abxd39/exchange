@@ -160,6 +160,6 @@ func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	}
 
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-    ret.SetDataSection("balances", rsp.Data)
+    ret.SetDataSection("list", rsp.Data)
 }
 

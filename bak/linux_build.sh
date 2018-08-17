@@ -3,7 +3,8 @@
 
 remote_ip=47.106.136.96
 
-services="currency_service gateway"  
+#services="currency_service gateway"  
+services="gateway"  
 #services="currency_service"  
 #services="ws_service" 
 #services="user_service" 
