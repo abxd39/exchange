@@ -31,6 +31,11 @@ service TokenRPC {
         //代币余额列表
         rpc TokenBalanceList(TokenBalanceListRequest) returns (TokenBalanceListResponse) {};
 
+
+        //代币余额折合RMB
+        rpc TokenBalanceCny(TokenBalanceCnyRequest) returns (TokenBalanceCnyResponse) {};
+
+
         //代币交易明细列表
         rpc TokenTradeList(TokenTradeListRequest) returns (TokenTradeListResponse) {};
 
@@ -304,6 +309,28 @@ message TokenBalanceResponse{
     string message                  =2;
     TokenBaseData balance                 =3;
 }
+
+message TokenBalanceCnyRequest{
+    repeated  uint64 uids       =1;
+}
+
+message BalanceCnyBaseData{
+    uint64   uid                    =1;
+    string  balance_cny             =3;
+    string  frozen_cny              =4;
+
+    int64  balance_cny_int             =5;
+    int64  frozen_cny_int              =6;
+
+    string  total_cny              =7;
+    string    total_cny_double      =8;
+}
+message TokenBalanceCnyResponse{
+    int32 err                       =1;
+    string message                  =2;
+    repeated BalanceCnyBaseData data    =3;
+}
+
 
 
 message TokenBalanceListRequest{
