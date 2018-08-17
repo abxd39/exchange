@@ -7,7 +7,7 @@ import (
 	. "digicon/wallet_service/model"
 	"errors"
 	"fmt"
-	//"strconv"
+	log "github.com/sirupsen/logrus"
 )
 
 func (s *WalletHandler) CreateBTCWallet(ctx context.Context, req *proto.CreateWalletRequest, rsp *proto.CreateWalletResponse) error {
@@ -42,8 +42,6 @@ func (s *WalletHandler) CreateBTCWallet(ctx context.Context, req *proto.CreateWa
 }
 
 func (s *WalletHandler) BtcSigntx(ctx context.Context, req *proto.BtcSigntxRequest, rsp *proto.BtcSigntxResponse) error {
-	//fmt.Println("btc signtx request ...")
-	//fmt.Println(req.Uid)
 	txHash, err := BtcSendToAddress(req.Address, req.Amount, req.Tokenid, int(req.Uid), int(req.Applyid))
 	if err != nil {
 		rsp.Data = ""
@@ -61,17 +59,18 @@ func (s *WalletHandler) BtcSigntx(ctx context.Context, req *proto.BtcSigntxReque
 	Ti bi提币
 */
 func (s *WalletHandler) BtcTibi(ctx context.Context, req *proto.BtcTibiRequest, rsp *proto.BtcResponse) error {
-	//fmt.Println(" btc tibi ...")
-	//fmt.Println(req.Amount, req.To, req.Tokenid, req.Uid)
 	toAddress := req.Address
 	mount := req.Amount
 	tokenId := req.Tokenid
 	txHash, err := BtcTiBiToAddress(toAddress, mount, tokenId, req.Uid, int(req.Applyid))
 	if err != nil {
+		log.Error("BtcTibi error:",err)
+		rsp.Message = "提币失败"
 		rsp.Data = ""
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
 	} else {
+		rsp.Message = "提币成功"
 		rsp.Data = string(txHash)
 		rsp.Code = errdefine.ERRCODE_SUCCESS
 	}

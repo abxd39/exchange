@@ -110,7 +110,7 @@ func BtcGetNewAddress(url string, account string) (address string, err error) {
 		return "", err
 	}
 	address = gjson.Get(string(result), "result").String()
-	fmt.Println("创建比特币地址：", address, result)
+	//fmt.Println("创建比特币地址：", address, result)
 	//address = string(result)
 	return address, nil
 }

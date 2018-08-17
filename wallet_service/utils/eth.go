@@ -41,7 +41,7 @@ func RpcGetValue(url string, address string, contract string, deci int) (string,
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(ret)
+	//fmt.Println(ret)
 	result, ok := ret["result"]
 	if !ok {
 		return "", nil
@@ -70,7 +70,7 @@ func RpcSendRawTx(url string, signtx string) (map[string]interface{}, error) {
 }
 func RpcPost(url string, send map[string]interface{}) ([]byte, error) {
 	bytesData, err := json.Marshal(send)
-	fmt.Println(string(bytesData))
+	//fmt.Println(string(bytesData))
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
