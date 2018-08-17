@@ -1,16 +1,16 @@
 package model
 
 import (
-	"fmt"
 	"digicon/common/convert"
-	"time"
+	. "digicon/token_service/dao"
+	"fmt"
 	"github.com/robfig/cron"
-	."digicon/token_service/dao"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type TokenDailySheet struct {
-	Id           int64   `xorm:"not null pk autoincr comment('自增id')BIGINT(20)"`
+	Id           int64 `xorm:"not null pk autoincr comment('自增id')BIGINT(20)"`
 	TokenId      int   `xorm:"not null comment('货币id') INT(11)"`
 	FeeBuyCny    int64 `xorm:"not null comment('买手续费折合cny') BIGINT(20)"`
 	FeeBuyTotal  int64 `xorm:"not null comment('买手续费总额') BIGINT(20)"`
@@ -24,9 +24,7 @@ type TokenDailySheet struct {
 	//Day          time.Time `xorm:"comment('那天') DATETIME"`
 }
 
-
-
-func (t*TokenDailySheet) TimingFunc(begin, end int64) {
+func (t *TokenDailySheet) TimingFunc(begin, end int64) {
 	//g:=make([]*Trade,0)
 	//buy
 	sql := fmt.Sprintf("select sum(num) as a,sum(fee) as b ,sum(fee_cny) as c ,sum(total_cny) as d,token_admission_id  from trade where deal_time>=%d and deal_time<%d  and opt=1 group by token_admission_id", begin, end)
@@ -40,7 +38,7 @@ func (t*TokenDailySheet) TimingFunc(begin, end int64) {
 
 	if len(r) > 0 {
 		for _, v := range r {
-			h:=&TokenDailySheet{}
+			h := &TokenDailySheet{}
 			t, ok := v["token_admission_id"]
 			if !ok {
 				log.Fatal("ok u")
@@ -63,17 +61,16 @@ func (t*TokenDailySheet) TimingFunc(begin, end int64) {
 				log.Fatal("ok d")
 			}
 
-			h.TokenId  = convert.BytesToIntAscii(t)
-			h.BuyTotal= convert.BytesToInt64Ascii(a)
-			h.FeeBuyTotal= convert.BytesToInt64Ascii(b)
+			h.TokenId = convert.BytesToIntAscii(t)
+			h.BuyTotal = convert.BytesToInt64Ascii(a)
+			h.FeeBuyTotal = convert.BytesToInt64Ascii(b)
 			h.FeeBuyCny = convert.BytesToInt64Ascii(c)
-			h.BuyTotalCny= convert.BytesToInt64Ascii(d)
+			h.BuyTotalCny = convert.BytesToInt64Ascii(d)
 
 			l[h.TokenId] = h
 		}
 
 	}
-
 
 	sql = fmt.Sprintf("select sum(num) as a,sum(fee) as b ,sum(fee_cny) as c ,sum(total_cny) as d,token_admission_id  from trade where deal_time>=%d and deal_time<%d  and opt=2 group by token_admission_id", begin, end)
 	r, err = DB.GetMysqlConn().Query(sql)
@@ -84,7 +81,7 @@ func (t*TokenDailySheet) TimingFunc(begin, end int64) {
 
 	if len(r) > 0 {
 		for _, v := range r {
-			h:=&TokenDailySheet{}
+			h := &TokenDailySheet{}
 			t, _ := v["token_admission_id"]
 			a, _ := v["a"]
 			b, _ := v["b"]
@@ -94,14 +91,14 @@ func (t*TokenDailySheet) TimingFunc(begin, end int64) {
 			t_ := convert.BytesToIntAscii(t)
 			m, ok := l[t_]
 			if !ok {
-				h.TokenId  = convert.BytesToIntAscii(t)
-				h.SellTotal= convert.BytesToInt64Ascii(a)
+				h.TokenId = convert.BytesToIntAscii(t)
+				h.SellTotal = convert.BytesToInt64Ascii(a)
 				h.FeeSellTotal = convert.BytesToInt64Ascii(b)
 				h.FeeSellCny = convert.BytesToInt64Ascii(c)
 				h.SellTotalCny = convert.BytesToInt64Ascii(d)
 				l[h.TokenId] = h
 			} else {
-				m.SellTotal  = convert.BytesToInt64Ascii(a)
+				m.SellTotal = convert.BytesToInt64Ascii(a)
 				m.FeeSellTotal = convert.BytesToInt64Ascii(b)
 				m.FeeSellCny = convert.BytesToInt64Ascii(c)
 				m.SellTotalCny = convert.BytesToInt64Ascii(d)
@@ -109,11 +106,11 @@ func (t*TokenDailySheet) TimingFunc(begin, end int64) {
 		}
 	}
 
-	for _,v:=range l  {
-		p:=time.Unix(begin, 0).Format("2006-01-02 ")
-		log.Infof("insert into token_id %d,time %s",v.TokenId,p)
-		v.Date=begin
-		_,err = DB.GetMysqlConn().Cols("token_id","fee_buy_cny","fee_buy_total","fee_sell_cny","fee_sell_total","buy_total","sell_total_cny","sell_total","date").InsertOne(v)
+	for _, v := range l {
+		p := time.Unix(begin, 0).Format("2006-01-02 ")
+		log.Infof("insert into token_id %d,time %s", v.TokenId, p)
+		v.Date = begin
+		_, err = DB.GetMysqlConn().Cols("token_id", "fee_buy_cny", "fee_buy_total", "fee_sell_cny", "fee_sell_total", "buy_total", "sell_total_cny", "sell_total", "date").InsertOne(v)
 		if err != nil {
 			log.Errorln(err.Error())
 			return
@@ -128,24 +125,22 @@ func (t*TokenDailySheet) TimingFunc(begin, end int64) {
 		}
 	*/
 
-	be:=begin+86400
-	if be>time.Now().Unix() {
+	be := begin + 86400
+	if be > time.Now().Unix() {
 		return
 	}
-	t.TimingFunc(begin+86400,end+86400)
+	t.TimingFunc(begin+86400, end+86400)
 }
 
-
-func (t *TokenDailySheet ) Run(){
+func (t *TokenDailySheet) Run() {
 	toBeCharge := time.Now().Format("2006-01-02 ") + "00:00:00"
 	timeLayout := "2006-01-02 15:04:05"
 	loc, _ := time.LoadLocation("Local")
 	theTime, _ := time.ParseInLocation(timeLayout, toBeCharge, loc)
-	unix:= theTime.Unix()
+	unix := theTime.Unix()
 
-	t.TimingFunc(unix-86400,unix)
+	t.TimingFunc(unix-86400, unix)
 }
-
 
 //启动
 func DailyStart() {
@@ -162,7 +157,7 @@ func DailyStart() {
 		log.Println("cron running:", i)
 	})
 	//AddJob方法
-	c.AddJob(spec,&TokenDailySheet{})
+	c.AddJob(spec, &TokenDailySheet{})
 	//启动计划任务
 	c.Start()
 	//关闭着计划任务, 但是不能关闭已经在执行中的任务.

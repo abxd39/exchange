@@ -611,10 +611,10 @@ func (s *RPCServer) RegisterReward(ctx context.Context, req *proto.RegisterRewar
 }
 
 func (s *RPCServer) TokenBalanceCny(ctx context.Context, req *proto.TokenBalanceCnyRequest, rsp *proto.TokenBalanceCnyResponse) error {
-	res:=model.GetAllBalanceCny(req.Uids)
-	rsp.Data=make([]*proto.BalanceCnyBaseData,0)
-	for _,v:=range res {
-		rsp.Data=append(rsp.Data,v)
+	res := model.GetAllBalanceCny(req.Uids)
+	rsp.Data = make([]*proto.BalanceCnyBaseData, 0)
+	for _, v := range res {
+		rsp.Data = append(rsp.Data, v)
 	}
 	return nil
 }

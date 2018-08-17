@@ -11,10 +11,10 @@ import (
 
 	"database/sql"
 	"digicon/common/constant"
+	"digicon/common/convert"
 	"digicon/common/snowflake"
 	"github.com/gin-gonic/gin/json"
 	"time"
-	"digicon/common/convert"
 )
 
 type UserToken struct {
@@ -877,40 +877,39 @@ func (s *UserToken) TransferFromCurrency(msg *proto.TransferToTokenTodoMessage) 
 }
 
 func GetAllBalanceCny(uids []uint64) map[uint64]*proto.BalanceCnyBaseData {
-	g:=make([]UserToken,0)
-	err:=DB.GetMysqlConn().In("uid",uids).Find(&g)
+	g := make([]UserToken, 0)
+	err := DB.GetMysqlConn().In("uid", uids).Find(&g)
 	if err != nil {
 		log.Error(err.Error())
 		return nil
 	}
 
-	all:=make(map[uint64]*proto.BalanceCnyBaseData,0)
-	for _,v:=range g {
+	all := make(map[uint64]*proto.BalanceCnyBaseData, 0)
+	for _, v := range g {
 
-		cny,_:=CnyPriceMap[int32(v.TokenId)]
-		log.Infof("222 ba,cn ,tid %v,%v %d %d",v.Balance,cny.CnyPriceInt,v.TokenId,v.Uid)
-		u,ok:=all[v.Uid]
+		cny, _ := CnyPriceMap[int32(v.TokenId)]
+
+		u, ok := all[v.Uid]
 		if ok {
-			log.Infof("ba,cn ,tid %v,%v %d %d",v.Balance,cny.CnyPriceInt,v.TokenId,v.Uid)
-			u.BalanceCnyInt+=convert.Int64MulInt64By8Bit(v.Balance,cny.CnyPriceInt)
-			u.FrozenCnyInt +=convert.Int64MulInt64By8Bit(v.Frozen,cny.CnyPriceInt)
 
-		}else{
-			log.Infof("333 ba,cn ,tid %v,%v %d %d",v.Balance,cny.CnyPriceInt,v.TokenId,v.Uid)
-			all[v.Uid]=&proto.BalanceCnyBaseData{
-				Uid:v.Uid,
-				BalanceCnyInt:convert.Int64MulInt64By8Bit(v.Balance,cny.CnyPriceInt),
-				FrozenCnyInt:convert.Int64MulInt64By8Bit(v.Frozen,cny.CnyPriceInt),
+			u.BalanceCnyInt += convert.Int64MulInt64By8Bit(v.Balance, cny.CnyPriceInt)
+			u.FrozenCnyInt += convert.Int64MulInt64By8Bit(v.Frozen, cny.CnyPriceInt)
+
+		} else {
+
+			all[v.Uid] = &proto.BalanceCnyBaseData{
+				Uid:           v.Uid,
+				BalanceCnyInt: convert.Int64MulInt64By8Bit(v.Balance, cny.CnyPriceInt),
+				FrozenCnyInt:  convert.Int64MulInt64By8Bit(v.Frozen, cny.CnyPriceInt),
 			}
 		}
 	}
 
-
-	for _,v:=range all{
-			v.FrozenCny=convert.Int64ToStringBy8Bit(v.FrozenCnyInt)
-			v.BalanceCny=convert.Int64ToStringBy8Bit(v.BalanceCnyInt)
-			v.TotalCnyDouble= convert.Int64AddInt64Float64Percent(v.FrozenCnyInt,v.BalanceCnyInt)
-			v.TotalCny=convert.Int64ToStringBy8Bit(v.FrozenCnyInt+v.BalanceCnyInt)
+	for _, v := range all {
+		v.FrozenCny = convert.Int64ToStringBy8Bit(v.FrozenCnyInt)
+		v.BalanceCny = convert.Int64ToStringBy8Bit(v.BalanceCnyInt)
+		v.TotalCnyDouble = convert.Int64AddInt64Float64Percent(v.FrozenCnyInt, v.BalanceCnyInt)
+		v.TotalCny = convert.Int64ToStringBy8Bit(v.FrozenCnyInt + v.BalanceCnyInt)
 
 	}
 
