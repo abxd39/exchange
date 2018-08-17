@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"time"
 	log "github.com/sirupsen/logrus"
+	"digicon/common/encryption"
 )
 
 // 平台币账户的交易
@@ -213,14 +214,15 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 func (this *TokenInout) AuthPayPwd(uid int32,password string) (ret int32,err error) {
 	engine := utils.Engine_common
 	var data = new(User)
-	ok,err := engine.Where("uid=?",uid).Get(&data)
+	engine.ShowSQL(true)
+	ok,err := engine.Where("uid=?",uid).Get(data)
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
 	if !ok {
 		return ERRCODE_ACCOUNT_NOTEXIST, nil
 	}
-	if data.PayPwd != password {
+	if data.PayPwd != encryption.GenMd5AndReverse(password) {
 		return ERRCODE_UNKNOWN,nil
 	}
 	return ERRCODE_SUCCESS,nil
