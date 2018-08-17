@@ -104,7 +104,7 @@ func (s *AdminGroup) UserToatl(c *gin.Context) {
 		Key string `form:"key" json:"key" binding:"required"`
 	}{}
 
-	if err := c.ShouldBind(param); err != nil {
+	if err := c.ShouldBindJSON(param); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return

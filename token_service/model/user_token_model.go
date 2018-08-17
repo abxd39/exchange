@@ -888,13 +888,15 @@ func GetAllBalanceCny(uids []uint64) map[uint64]*proto.BalanceCnyBaseData {
 	for _,v:=range g {
 
 		cny,_:=CnyPriceMap[int32(v.TokenId)]
-
+		log.Infof("222 ba,cn ,tid %v,%v %d %d",v.Balance,cny.CnyPriceInt,v.TokenId,v.Uid)
 		u,ok:=all[v.Uid]
 		if ok {
+			log.Infof("ba,cn ,tid %v,%v %d %d",v.Balance,cny.CnyPriceInt,v.TokenId,v.Uid)
 			u.BalanceCnyInt+=convert.Int64MulInt64By8Bit(v.Balance,cny.CnyPriceInt)
 			u.FrozenCnyInt +=convert.Int64MulInt64By8Bit(v.Frozen,cny.CnyPriceInt)
 
 		}else{
+			log.Infof("333 ba,cn ,tid %v,%v %d %d",v.Balance,cny.CnyPriceInt,v.TokenId,v.Uid)
 			all[v.Uid]=&proto.BalanceCnyBaseData{
 				Uid:v.Uid,
 				BalanceCnyInt:convert.Int64MulInt64By8Bit(v.Balance,cny.CnyPriceInt),
