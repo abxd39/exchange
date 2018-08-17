@@ -4,6 +4,7 @@ import (
 	"context"
 	proto "digicon/proto/rpc"
 	log "github.com/sirupsen/logrus"
+	"fmt"
 )
 
 func (s *CurrencyRPCCli) CallOrdersList(req *proto.OrdersListRequest) (rsp *proto.OrdersListResponse, err error) {
@@ -89,7 +90,8 @@ func (s *CurrencyRPCCli) CallGetRecentTransactionPrice(req *proto.GetRecentTrans
 }
 
 
-func (s *CurrencyRPCCli) CallGetUserBalanceUids(req *proto.GetUserBalanceUids)(rsp *proto.OtherResponse, err error)  {
+func (s *CurrencyRPCCli) CallGetUserBalanceUids(req *proto.GetUserBalanceUids)(rsp *proto.UserBalancesResponse, err error)  {
+	fmt.Println("req:", req)
 	rsp, err = s.conn.GetUsersBalance(context.TODO(), req)
 	if err != nil {
 		log.Errorln(err)

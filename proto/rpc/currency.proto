@@ -108,7 +108,7 @@ service CurrencyRPC {
 
 
         // 统计用户列表的折合
-        rpc GetUsersBalance(GetUserBalanceUids) returns (OtherResponse){};
+        rpc GetUsersBalance(GetUserBalanceUids) returns (UserBalancesResponse){};
 
 }
 
@@ -119,6 +119,19 @@ message GetUserBalanceUids {
     repeated int64 uids=1;
 }
 
+message UserBalanceOne {
+    int64   uid     = 1;
+    string  total   = 2;
+    string  total_num_cny = 3;
+    string  total_fee_cny = 4;
+}
+
+message UserBalancesResponse {
+    int32    code    = 1;
+    string    message = 2;
+    repeated UserBalanceOne  data = 3;
+
+}
 
 
 

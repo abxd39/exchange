@@ -13,8 +13,8 @@ import (
 	"digicon/currency_service/utils"
 	"encoding/json"
 	"golang.org/x/net/context"
-	"log"
 	"time"
+	log "github.com/sirupsen/logrus"
 )
 
 type RPCServer struct{}
@@ -787,10 +787,39 @@ func (s *RPCServer) DisplayCurrencyTokens(ctx context.Context, req *proto.Curren
 /*
 	给后台统计每个人的账户余额的折合
  */
-func (s *RPCServer) GetUsersBalance(ctx context.Context, req *proto.GetUserBalanceUids, rsp *proto.OtherResponse) error {
+func (s *RPCServer) GetUsersBalance(ctx context.Context, req *proto.GetUserBalanceUids, rsp *proto.UserBalancesResponse) error {
+	uCurrency := new(model.UserCurrency)
 
+	var UsersBalance []*proto.UserBalanceOne
+	for _,uid := range  req.Uids{
+		ucurrens, err  := uCurrency.GetByUid(uint64(uid))
+		if err != nil {
+			log.Errorln(err.Error())
+			fmt.Println(err)
+			continue
+		}
+		var udata proto.UserBalanceOne
+		var balance int64
+		var feeze int64
 
+		for _, uc := range ucurrens {
+			udata.Uid = int64(uc.Uid)
+			price := model.GetCnyPrice(int32(uc.TokenId))
 
+			numCny := convert.Int64MulInt64By8Bit(uc.Balance, price)
+			feeCny := convert.Int64MulInt64By8Bit(uc.FreezeCny, price)
+			balance += numCny
+			feeze += feeCny
+			fmt.Println("uid: ",uid, " tokenid:", uc.TokenId, " price:", price, " balance:", uc.Balance, "fee: ", feeCny)
+		}
+		udata.TotalNumCny =  convert.Int64ToStringBy8Bit(balance)
+		udata.TotalFeeCny =  convert.Int64ToStringBy8Bit(feeze)
+		udata.Total =  convert.Int64ToStringBy8Bit(balance + feeze)
+		log.Infoln(udata)
+		UsersBalance = append(UsersBalance, &udata)
+	}
+	rsp.Data = UsersBalance
+	rsp.Code = errdefine.ERRCODE_SUCCESS
 	return nil
 }
 

@@ -93,3 +93,7 @@ const (
 
 // 各项目通信的redis dbs
 const COMMON_REDIS_DB = 15
+
+//
+const COMMON_REDIS_DB_CONFIG_CNY = 12
+

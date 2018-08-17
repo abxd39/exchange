@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"fmt"
 )
 
 type AdminGroup struct{}
@@ -20,7 +21,7 @@ func (s *AdminGroup) Router(r *gin.Engine) {
 
 		action.POST("/register_reward", s.RegisterReward)
 
-		action.GET("/get_users_balances", s.GetUsersBalances)
+		action.POST("/get_users_balances", s.GetUsersBalances)
 
 	}
 }
@@ -93,12 +94,15 @@ func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	defer func(){
 		c.JSON(http.StatusOK, ret.GetResult())
 	}()
-	req := struct {
-		Key       string `form:"key" json:"key" binding:"required"`
-		Uid       int64   `form:"uid"   json:"uid"     `   //  当前用户 uid
-		uids      []int64 `form:"uids"  json:"uids"     binding:"required"`
+
+	req := &struct {
+		Key       string  `  json:"key" binding:"required"`
+		Uid       int64   ` json:"uid"     `   //  当前用户 uid
+		Uids      []int64 ` json:"uids"     binding:"required"`
 	}{}
+
 	if err := c.ShouldBind(&req); err != nil {
+		fmt.Println(err)
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
@@ -109,7 +113,7 @@ func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	}
 
 	rsp, err := rpc.InnerService.CurrencyService.CallGetUserBalanceUids(&proto.GetUserBalanceUids{
-		Uids:   req.uids,
+		Uids:   req.Uids,
 	})
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -117,5 +121,5 @@ func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	}
 
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
-    ret.SetDataSection("data", rsp.Data)
+    ret.SetDataSection("balances", rsp.Data)
 }

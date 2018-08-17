@@ -26,7 +26,15 @@ func RPCServerInit() {
 		micro.Registry(r),
 	)
 	service.Init()
-	proto.RegisterCurrencyRPCHandler(service.Server(), new(handler.RPCServer))
+
+	svr := service.Server()
+
+	err := micro.RegisterSubscriber("topic.go.micro.srv.price", svr, new(handler.Subscriber))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	proto.RegisterCurrencyRPCHandler(svr, new(handler.RPCServer))
 
 	if err := service.Run(); err != nil {
 		fmt.Println(err.Error())
