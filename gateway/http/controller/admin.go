@@ -19,6 +19,9 @@ func (s *AdminGroup) Router(r *gin.Engine) {
 		action.POST("/refresh", s.Refresh)
 
 		action.POST("/register_reward", s.RegisterReward)
+
+
+		action.POST("/users_total", s.UserToatl)
 	}
 }
 
@@ -82,4 +85,38 @@ func (s *AdminGroup) RegisterReward(c *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Err, rsp.Message)
+}
+
+func (s *AdminGroup) UserToatl(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param:= &struct {
+		Uids []uint64 `json:"uid" binding:"required"`
+		Key string `form:"key" json:"key" binding:"required"`
+	}{}
+
+	if err := c.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if param.Key != KEY {
+		ret.SetErrCode(ERRCODE_PARAM)
+		return
+	}
+
+	rsp, err := rpc.InnerService.TokenService.CallTokenBalanceCny(&proto.TokenBalanceCnyRequest{
+		Uids: param.Uids,
+	})
+
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
+	ret.SetDataSection("list",rsp.Data)
 }
