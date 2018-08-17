@@ -137,7 +137,7 @@ func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	req := &struct {
 		Key       string  `  json:"key" binding:"required"`
 		Uid       int64   ` json:"uid"     `   //  当前用户 uid
-		Uids      []int64 ` json:"uids"     binding:"required"`
+		Uids      []uint64 ` json:"uids"     binding:"required"`
 	}{}
 
 	if err := c.ShouldBind(&req); err != nil {
