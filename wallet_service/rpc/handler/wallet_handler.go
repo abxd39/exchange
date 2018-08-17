@@ -15,6 +15,7 @@ import (
 	"digicon/wallet_service/watch"
 	"digicon/wallet_service/rpc/client"
 	log "github.com/sirupsen/logrus"
+	"digicon/common/random"
 )
 
 type WalletHandler struct{}
@@ -386,21 +387,37 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	if ret != ERRCODE_SUCCESS {
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = GetErrorMessage(ret)  //"短信验证码错误"
-		return nil
+		return errors.New(GetErrorMessage(ret))
 	}
+
 	////验证邮箱验证码
 	ret,err = AuthEmail(req.Email,13,req.EmailCode)
 	if ret != ERRCODE_SUCCESS {
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = GetErrorMessage(ret)  //"邮箱验证码错误"
-		return nil
+		return errors.New(GetErrorMessage(ret))
 	}
+
 	//验证资金密码
 	ret,err = tokenInoutMD.AuthPayPwd(req.Uid,req.Password)
 	if ret != ERRCODE_SUCCESS {
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = "支付密码错误"
-		return nil
+		return errors.New("支付密码错误")
+	}
+
+	//检查资金是否足够
+	userToken := new(UserToken)
+	boo,err := userToken.GetByUidTokenid(int(req.Uid),int(req.Tokenid))
+	if boo == false || err != nil {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = "余额不足或查询出错"
+		return errors.New("余额不足或查询出错")
+	}
+	if userToken.Balance < req.Amount {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = "余额不足"
+		return errors.New("余额不足")
 	}
 
 	//先冻结资金
@@ -411,15 +428,14 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		TokenId:req.Tokenid,
 		Num:fee1,
 		Opt:1, //卖
-		Ukey:[]byte{byte(req.Uid)},
+		Ukey:[]byte(random.Random6dec()),
 		Type:12,  //提币
 	})
-	fmt.Println("资金冻结结果：",rErr,req.Uid,fee1,c)
+	log.Info("资金冻结结果：",rErr,req.Uid,fee1,c)
 	if rErr != nil {
-		log.Error(rErr.Error())
 		rsp.Code = 1
 		rsp.Msg = "冻结资金失败"
-		return nil
+		return errors.New("冻结资金失败")
 	}
 
 	var amountCny int64
@@ -433,7 +449,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 			log.Error(err)
 			rsp.Code = ERRCODE_UNKNOWN
 			rsp.Msg = "解析失败"+err.Error()
-			return nil
+			return errors.New("解析失败")
 		}
 		t1 := decimal.NewFromFloat(a)
 		t1_c := decimal.NewFromFloat(float64(cnyPriceInt))
@@ -444,7 +460,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 			log.Error(err)
 			rsp.Code = ERRCODE_UNKNOWN
 			rsp.Msg = "解析失败"+err.Error()
-			return nil
+			return errors.New("解析失败")
 		}
 		t2 := decimal.NewFromFloat(b)
 		t2_c := decimal.NewFromFloat(float64(cnyPriceInt))
@@ -452,8 +468,11 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	} else {
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = "获取人民币价格出错"+err.Error()
-		return nil
+		return errors.New("获取人民币价格出错")
 	}
+
+	//根据to查询地址
+
 
 
 	//保存数据
@@ -462,7 +481,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		log.Error(err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = err.Error()
-		return nil
+		return err
 	}
 
 	log.Info("提币完成")

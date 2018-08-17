@@ -5,10 +5,10 @@ import (
 	. "digicon/proto/common"
 	"digicon/wallet_service/utils"
 	"github.com/shopspring/decimal"
-	"math/big"
 	"time"
 	log "github.com/sirupsen/logrus"
 	"digicon/common/encryption"
+	"digicon/common/errors"
 )
 
 // 平台币账户的交易
@@ -168,28 +168,27 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 		return
 	}
 
-	//根据id获取人民币和美元价格
-	var tokenCny = new(ConfigTokenCny)
-	_,err = tokenCny.GetById(tokenid)
-	if err != nil {
-		return
-	}
-
-
-
 
 	from := walletToken.Address
 
 	this.From = from
 	this.To = to
 
-	tmp1,_ := new(big.Int).SetString(amount,10)
-	fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
-	this.Fee = fee1
-
-	tmp2,_ := new(big.Int).SetString(fee,10)
-	amount1 := decimal.NewFromBigInt(tmp2, int32(8)).IntPart()
+	t1,err := decimal.NewFromString(amount)
+	if err != nil {
+		return 0,errors.New("格式转换失败"+amount)
+	}
+	t1_c := decimal.NewFromFloat(float64(100000000))
+	amount1 := t1.Mul(t1_c).IntPart()
 	this.Amount = amount1
+
+	t2,err := decimal.NewFromString(fee)
+	if err != nil {
+		return 0,errors.New("格式转换失败"+amount)
+	}
+	t2_c := decimal.NewFromFloat(float64(100000000))
+	fee1 := t2.Mul(t2_c).IntPart()
+	this.Fee = fee1
 
 
 	this.Contract = walletToken.Contract
@@ -197,8 +196,8 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 	this.Tokenid = tokenid
 	this.Uid = uid
 	this.TokenName = tokenData.Mark
-	this.AmountCny = int64(int64(tokenCny.Price) * amount1)
-	this.FeeCny = int64(int64(tokenCny.Price) * fee1)
+	this.AmountCny = amountCny
+	this.FeeCny = feeCny
 	this.CreatedTime = time.Now()
 	this.Contract = tokenData.Contract
 	this.Opt = 2 //提币
