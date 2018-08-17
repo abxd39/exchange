@@ -116,7 +116,7 @@ service CurrencyRPC {
 
 /////////////////////////
 message GetUserBalanceUids {
-    repeated int64 uids=1;
+    repeated uint64 uids=1;
 }
 
 message UserBalanceOne {
