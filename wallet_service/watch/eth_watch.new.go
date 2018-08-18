@@ -81,8 +81,8 @@ func (p *EthTiBiWatch) Init() {
 
 
 	//测试
-	exist, err := new(TokenChainInout).TxhashExist("1212", 1)
-	log.Info("testnewOrder_result:",exist, err)
+	//exist, err := new(TokenChainInout).TxhashExist("1212", 1)
+	//log.Info("testnewOrder_result:",exist, err)
 
 	//var bo bool
 	//walletToken := new(WalletToken)
@@ -561,7 +561,7 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 		log.Info("find_a_token")
 
 		ok, err := p.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string), fmt.Sprintf("0x%s", input[vstart:138]), tx["hash"].(string))
-		fmt.Println(ok, err)
+		log.Info("newOrder complete",ok, err)
 		continue
 
 	}
@@ -574,7 +574,7 @@ func (p *EthCBiWatch) GetblockBynumber(num int) ([]byte, error) {
 	send["method"] = "eth_getBlockByNumber"
 	strconv.FormatInt(int64(num), 16)
 	//str:=fmt.Sprintf("0x%s",strconv.FormatInt(int64(num),16))
-	fmt.Println(num, fmt.Sprintf("0x%s", strconv.FormatInt(int64(num), 16)))
+	//fmt.Println(num, fmt.Sprintf("0x%s", strconv.FormatInt(int64(num), 16)))
 	send["params"] = []interface{}{fmt.Sprintf("0x%s", strconv.FormatInt(int64(num), 16)), true}
 	send["id"] = p.Chainid
 	rsp, err := p.post(send)
@@ -701,7 +701,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 	bo,err = walletToken.GetByAddressContract(to,contract)
 	log.Info("walletToken_data",walletToken.Uid,",",walletToken.Tokenid,",",to,",",contract)
 	if err != nil || bo != true || walletToken.Uid <= 0 {
-		fmt.Println("get uid by address error",err,to,contract)
+		log.Error("get uid by address error",err,to,contract)
 		return false,err
 	}
 
@@ -715,7 +715,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 
 	deci, err := tokensModel.GetDecimal(walletToken.Tokenid)
 	if err != nil {
-		fmt.Println("GetDecimal error",err)
+		log.Error("GetDecimal error",err)
 		return false,err
 	}
 

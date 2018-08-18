@@ -421,7 +421,12 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	}
 
 	//先冻结资金
-	tmp1,_ := new(big.Int).SetString(req.Amount,10)
+	tmp1,boo := new(big.Int).SetString(req.Amount,10)
+	if boo != true {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = "格式化数据失败"
+		return errors.New("格式化数据失败")
+	}
 	fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
 	c,rErr := client.InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
 		Uid:uint64(req.Uid),
@@ -470,10 +475,6 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		rsp.Msg = "获取人民币价格出错"+err.Error()
 		return errors.New("获取人民币价格出错")
 	}
-
-	//根据to查询地址
-
-
 
 	//保存数据
 	_,err = tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice,amountCny,feeCny)
