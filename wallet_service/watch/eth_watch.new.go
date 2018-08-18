@@ -741,6 +741,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 			"mark":tokensModel.Mark,
 			"opt":opt,
 		}).Info("insert into tx order error:",err)
+		return false,err
 	}
 
 	_,err = p.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark, deci,opt)
@@ -759,11 +760,15 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 			"deci":deci,
 			"opt":opt,
 		}).Info("insert into inout order error:",err)
+		return false,nil
 	}
 
 	//添加用户token
 	//intValue := decimal.NewFromBigInt(temp, int32(8 - p.TokenModel.Decimal)).IntPart()
-	new(Common).AddETHTokenNum(to,walletToken.Tokenid,value,txhash)
+	boo,errr := new(Common).AddETHTokenNum(to,walletToken.Tokenid,value,txhash)
+	if boo != true {
+		log.Error("AddETHTokenNum err:",errr)
+	}
 
 	log.WithFields(log.Fields{
 		"uid":uid,
@@ -794,7 +799,7 @@ func (p *EthCBiWatch) WriteAllWalletTokenToRedis() {
 		field = strings.ToLower(field)
 		err = utils.Redis.HSet(key,field,strings.ToLower(v.Address)).Err()
 		if err != nil {
-			log.Info("redis chucuo ",err)
+			log.Error("redis error ",err)
 		}
 		//修改时间
 		p.GetWalletTokenLastTime = v.CreatedTime
@@ -820,7 +825,7 @@ func (p *EthCBiWatch) WriteIncrWalletTokenToRedis() {
 		field = strings.ToLower(field)
 		err := utils.Redis.HSet(key,field,strings.ToLower(v.Address)).Err()
 		if err != nil {
-			log.Info("WriteIncrWalletTokenToRedis hset error:",err)
+			log.Error("WriteIncrWalletTokenToRedis hset error:",err)
 		}
 		//修改时间
 		p.GetWalletTokenLastTime = v.CreatedTime
