@@ -96,7 +96,6 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 }
 
 func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest, rsp *proto.SigntxResponse) error {
-	log.Print("Received Say.Signtx request")
 	rsp.Data = new(proto.SigntxPos)
 
 	keystore := &WalletToken{Uid: int(req.Userid), Tokenid: int(req.Tokenid)}
@@ -134,16 +133,15 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 
 	if nonce_err != nil  {
 		rsp.Code = "1"
-		rsp.Msg = "获取随机数失败"
+		rsp.Msg = "get nonce error"
 		return nil
 	}
 
 	//获取gasprice
 	gasPrice,gasErr := utils.RpcGetGasPrice(tokenData.Node)
-	log.Info("获取gasprice:",gasErr,gasPrice)
 	if gasErr != nil  {
 		rsp.Code = "1"
-		rsp.Msg = "获取gasprice失败"
+		rsp.Msg = "get gasprice error"
 		return nil
 	}
 	
@@ -156,28 +154,24 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	}
 
 	signtxStr := hex.EncodeToString(signtxstr)
-
-	log.Info("生成结果：",signtxStr)
 	if signtxStr == "" {
 		rsp.Code = "1"
-		rsp.Msg = "签名字符串为空，请稍后重试"
+		rsp.Msg = "signtxStr is null"
 		return nil
 	}
 
 	rsp.Code = "0"
-	rsp.Msg = "生成成功"
-	//rsp.Data = new(proto.SigntxPos)
+	rsp.Msg = GetErrorMessage(ERRCODE_SUCCESS)
 	rsp.Data.Signtx = hex.EncodeToString(signtxstr)
 	return nil
 }
 
 func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRequest, rsp *proto.SendRawTxResponse) error {
-	log.Print("Received Say.SendRawTx request")
 	TokenModel := new(Tokens)
 	ok, err := TokenModel.GetByid(int(req.TokenId))
 	if err != nil || !ok {
 		rsp.Code = "1"
-		rsp.Msg = "token不存在"
+		rsp.Msg = "token not find"
 		return nil
 	}
 
@@ -410,8 +404,9 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	userToken := new(UserToken)
 	boo,err := userToken.GetByUidTokenid(int(req.Uid),int(req.Tokenid))
 	if boo == false || err != nil {
+		log.Error("查询出错",boo,err)
 		rsp.Code = ERRCODE_UNKNOWN
-		rsp.Msg = "余额不足或查询出错"
+		rsp.Msg = "查询出错"
 		return errors.New("余额不足或查询出错")
 	}
 	if userToken.Balance < req.Amount {
@@ -516,8 +511,8 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 	tokenInout := new(TokenInout)
 	boo,err := tokenInout.GetApplyInOut(int(req.Uid),int(req.Id))
 	if boo != true || err != nil {
-		rsp.Code = ERRCODE_UNKNOWN
-		rsp.Msg = "查询失败"
+		rsp.Code = ERRCODE_SELECT_ERROR
+		rsp.Msg = GetErrorMessage(ERRCODE_SELECT_ERROR)
 		return nil
 	}
 
@@ -549,13 +544,13 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 	_,err = tokenInoutMD.CancelTiBi(int(req.Uid),int(req.Id))
 	if err != nil {
 		log.Error("CancelTiBi error",err)
-		rsp.Code = ERRCODE_UNKNOWN
-		rsp.Msg = err.Error()
+		rsp.Code = ERRCODE_SAVE_ERROR
+		rsp.Msg = GetErrorMessage(ERRCODE_SAVE_ERROR)
 		return nil
 	}
 
 	rsp.Code = ERRCODE_SUCCESS
-	rsp.Msg = "取消成功"
+	rsp.Msg = GetErrorMessage(ERRCODE_SUCCESS)
 
 	defer func() {
 		if res.Err != 0 || errr != nil {

@@ -81,6 +81,9 @@ const (
 	ERRCODE_TRADE_LARGE_PRICE   = 427
 	ERRCODE_TRADE_TO_SELF       = 428
 	ERRCODE_TRADE_HAS_COMPLETED = 429
+	ERRCODE_SAVE_ERROR = 430
+	ERRCODE_SELECT_ERROR = 431
+	ERRCODE_RPC_ERROR = 432
 )
 
 func GetErrorMessage(code int32) string {
@@ -167,6 +170,9 @@ func init() {
 	message[ERRCODE_PHONE_NOT_EXIST] = "电话号码不存在"
 	message[ERRCODE_EMAIL_EXIST] = "邮箱已经存在"
 	message[ERRCODE_UOPLOA_FAILED] = "上传图片到oss 失败"
+
+	message[ERRCODE_SAVE_ERROR] = "保存数据失败"
+	message[ERRCODE_SELECT_ERROR] = "查询失败"
 }
 
 type PublicErrorType struct {
