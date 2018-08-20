@@ -21,27 +21,33 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.POST("/create", this.Create)       // 创建钱包
 	r.POST("/signtx", this.Signtx)       // 签名
 	r.POST("/sendrawtx", this.SendRawTx) // 广播
-	r.POST("/tibi", this.Tibi)           //
-	r.GET("/getvalue", this.GetValue)    // 查询链上余额
-	r.POST("/address/save", this.AddressSave)
-	r.GET("/address/list", this.AddressList)
-	r.POST("/address/delete", this.AddressDelete)
+
+	r.POST("/tibi", TokenVerify,this.Tibi)           //
+	r.GET("/getvalue", TokenVerify,this.GetValue)    // 查询链上余额
+	r.POST("/address/save", TokenVerify,this.AddressSave)
+	r.GET("/address/list", TokenVerify,this.AddressList)
+	r.POST("/address/delete", TokenVerify,this.AddressDelete)
 
 	//btc signtx
 	r.POST("/signtx_btc", this.BtcSigntx) // btc 签名
 	r.POST("/biti_btc", this.BtcTiBi)     // btc
 
-	r.GET("in_list", this.InList)
-	r.GET("out_list", this.OutList)
+	r.GET("in_list", TokenVerify,this.InList)
+	r.GET("out_list", TokenVerify,this.OutList)
 
-	r.POST("/tibi_apply", this.TibiApply) //
+	r.POST("/tibi_apply", TokenVerify,this.TibiApply) //
 
-	r.POST("/tibi_cancel", this.TiBiCancel) //
+	r.POST("/tibi_cancel",this.TiBiCancel) //
 
-	r.POST("/get_address", this.GetAddress) // 获取充值地址
+	r.POST("/get_address", TokenVerify,this.GetAddress) // 获取充值地址
 
-	r.POST("/sync_block", this.SyncEthBlockTx)  //同步区块信息
+	r.POST("/sync_block", TokenVerify,this.SyncEthBlockTx)  //同步区块信息
+
+	r.POST("/get_out_token_fee", TokenVerify,this.GetOutTokenFee)  //获取提币手续费
 }
+
+
+
 
 ///////////////////////// start btc ///////////////////////////
 
@@ -581,8 +587,8 @@ func (this *WalletGroup) TibiApply(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount, param.RealAmount, param.SmsCode, param.EmailCode, param.Password,param.Phone,param.Email)
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
-		log.Error(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		log.Error("RPC失败",err.Error(),rsp)
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 	if rsp.Code != 0 {
@@ -612,10 +618,14 @@ func (this *WalletGroup) TiBiCancel(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	_, err := rpc.InnerService.WalletSevice.CallCancelTiBi(param.Uid, param.Id)
+	rsp, err := rpc.InnerService.WalletSevice.CallCancelTiBi(param.Uid, param.Id)
 	if err != nil {
 		log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
+		return
+	}
+	if rsp.Code != 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
 		return
 	}
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
@@ -667,5 +677,39 @@ func (this *WalletGroup) SyncEthBlockTx(ctx *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Code, rsp.Msg)
+	return
+}
+
+//查询提币手续费
+func (this *WalletGroup) GetOutTokenFee(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	rsp, err := rpc.InnerService.WalletSevice.CallGetOutTokenFee()
+	if err != nil || rsp.Code != 0 {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+
+	//组合数据
+	type List struct {
+		Tokenid int32 `json:"token_id"`
+		Fee string `json:"fee"`
+	}
+
+	var list []List
+	for _,v := range rsp.Data {
+		fee := v.Fee
+		if fee <= "0" {
+			fee = "0.003"
+		}
+		list = append(list,List{Tokenid:v.Tokenid,Fee:fee})
+	}
+
+	ret.SetErrCode(rsp.Code, rsp.Msg)
+	ret.SetDataSection("list", list)
 	return
 }

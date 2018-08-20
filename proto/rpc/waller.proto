@@ -32,6 +32,9 @@ service Gateway2Waller {
 
     //补充更新区块交易
     rpc SyncEthBlockTx(SyncEthBlockTxRequest) returns (SyncEthBlockTxResponse){}
+
+    //提币手续费
+    rpc GetOutTokenFee(GetOutTokenFeeRequest) returns (GetOutTokenFeeResponse){}
 }
 
 
@@ -309,4 +312,18 @@ message SyncEthBlockTxRequest{
 message SyncEthBlockTxResponse{
     int32 code=1;
     string msg=2;
+}
+
+message GetOutTokenFeeRequest{
+
+}
+
+message GetOutTokenFeeResponse{
+    message list{
+        int32 tokenid = 1;
+        string fee = 2;
+    }
+    repeated list data=1;
+    int32 code=2;
+    string msg=3;
 }

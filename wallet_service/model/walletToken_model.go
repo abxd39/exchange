@@ -160,7 +160,7 @@ func (this *WalletToken) GetUidByAddress(address string) error {
 
 //根据收款地址和合约，查询数据
 func (this *WalletToken) GetByAddressContract(address,contract string) (bool,error) {
-	Engine_wallet.ShowSQL(true)
+	//Engine_wallet.ShowSQL(true)
 	sql := "SELECT wallet_token.uid uid,g_common.tokens.id tokenid FROM wallet_token LEFT JOIN g_common.tokens ON wallet_token.tokenid = g_common.tokens.id WHERE wallet_token.address = ? AND g_common.tokens.contract = ?"
 	//log.Info("sql:",sql,address,",",contract)
 	boo,err := Engine_wallet.SQL(sql,address,contract).Get(this)
@@ -169,4 +169,9 @@ func (this *WalletToken) GetByAddressContract(address,contract string) (bool,err
 		return boo,err
 	}
 	return boo,nil
+}
+
+//根据地址和合约，判断是否存在
+func (this *WalletToken) CheckExists(address string,contract string) (bool,error) {
+	return Engine_wallet.Where("address = ? and contract = ?",address,contract).Exist()
 }
