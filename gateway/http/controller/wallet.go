@@ -94,7 +94,7 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 		TokenId int32  `form:"token_id" json:"token_id"  binding:"required"`
 		Address string `form:"address"       json:"address"        binding:"required"`
 		Amount  string `form:"amount"   json:"amount"    binding:"required"`
-		Applyid int32 `form:"apply_id"     json:"apply_id"     binding:"required"` //申请提币id
+		Applyid int32  `form:"apply_id"     json:"apply_id"     binding:"required"` //申请提币id
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -112,7 +112,7 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	})
 	if err != nil {
 		log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Message)
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Message)
 		return
 	}
 
@@ -137,8 +137,8 @@ func (this *WalletGroup) Create(ctx *gin.Context) {
 	}()
 
 	type Param struct {
-		Uid     int  `form:"uid"      json:"uid"       binding:"required"`
-		TokenId int  `form:"token_id" json:"token_id"  binding:"required"`
+		Uid     int `form:"uid"      json:"uid"       binding:"required"`
+		TokenId int `form:"token_id" json:"token_id"  binding:"required"`
 	}
 
 	var param Param
@@ -172,11 +172,11 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 	}()
 
 	type Param struct {
-		Uid     int  `form:"uid"      json:"uid"       binding:"required"`
-		TokenId int  `form:"token_id" json:"token_id"  binding:"required"`
-		To string  `form:"to" json:"to"  binding:"required"`
+		Uid      int    `form:"uid"      json:"uid"       binding:"required"`
+		TokenId  int    `form:"token_id" json:"token_id"  binding:"required"`
+		To       string `form:"to" json:"to"  binding:"required"`
 		Gasprice int64  `form:"gasprice" json:"gasprice"  binding:"required"`
-		Amount string  `form:"amount" json:"amount"  binding:"required"`
+		Amount   string `form:"amount" json:"amount"  binding:"required"`
 	}
 
 	var param Param
@@ -194,7 +194,7 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 		return
 	}
 	if rsp.Code != "0" {
-		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
 		return
 	}
 	fmt.Println(rsp)
@@ -242,10 +242,10 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	}
 
 	if rsp.Code != "0" {
-		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Msg)
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Msg)
 		return
 	}
-	
+
 	ret.SetDataSection("result", rsp.Data.Result)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
@@ -532,7 +532,7 @@ func (this *WalletGroup) OutList(ctx *gin.Context) {
 			Id:          v.Id,
 			TokenId:     v.TokenId,
 			TokenName:   v.TokenName,
-			Amount:      convert.Int64ToStringBy8Bit(v.Amount),
+			Amount:      convert.Int64ToStringBy8Bit(v.Amount + v.Fee),
 			Fee:         convert.Int64ToStringBy8Bit(v.Fee),
 			Address:     v.Address,
 			Remarks:     v.Remarks,

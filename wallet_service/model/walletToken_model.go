@@ -133,7 +133,7 @@ func (this *WalletToken) WalletTokenExist(uid int, tokenid int) (bool, string, s
 //查询所有比特币地址
 func (this *WalletToken) GetAllAddress() (err error,data []WalletToken) {
 	data = make([]WalletToken,0)
-	sql := `select created_time,address,g_common.tokens.contract contract from wallet_token left join g_common.tokens on wallet_token.tokenid = g_common.tokens.id`
+	sql := `select wallet_token.id id,wallet_token.created_time created_time,wallet_token.address address,g_common.tokens.contract contract from wallet_token left join g_common.tokens on wallet_token.tokenid = g_common.tokens.id`
 	err = Engine_wallet.SQL(sql).Find(&data)
 	//err = Engine_wallet.Select("chainid,address,contract,created_time").Find(&data)
 	return
@@ -142,7 +142,10 @@ func (this *WalletToken) GetAllAddress() (err error,data []WalletToken) {
 //查询注册时间大于某个点的地址
 func (this *WalletToken) GetAddressByTime(time string) (err error,data []WalletToken) {
 	data = make([]WalletToken,0)
-	err = Engine_wallet.Select("chainid,address,contract,created_time").Where("created_time > ?",time).Find(&data)
+	sql := `select wallet_token.id id,wallet_token.created_time created_time,wallet_token.address address,g_common.tokens.contract contract from wallet_token left join g_common.tokens on wallet_token.tokenid = g_common.tokens.id where wallet_token.created_time > ?`
+	//fmt.Println(sql,time)
+	err = Engine_wallet.SQL(sql,time).Find(&data)
+	//Select("chainid,address,contract,created_time").Where("created_time > ?",time).Find(&data)
 	return
 }
 

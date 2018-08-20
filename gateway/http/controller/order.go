@@ -266,7 +266,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	//var param OrderRequest
 	param := struct {
 		Id      uint64 `form:"id"         json:"id"        binding:"required"`  // order 表Id
-		Uid     int32  `form:"id"         json:"uid"       binding:"required"`  //
+		Uid     int32  `form:"uid"         json:"uid"       binding:"required"`  //
 		PayPwd  string `form:"pay_pwd"    json:"pay_pwd"   binding:"required"`  // pay_pwd
 	}{}
 	err := c.ShouldBind(&param)
@@ -279,6 +279,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	//	Id:  param.Id,
 	//	Uid: param.Uid,
 	//})
+	//log.Println("uid:", param)
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.ConfirmOrderRequest{
 		Id:   param.Id,
 		Uid:  param.Uid,

@@ -110,6 +110,11 @@ service CurrencyRPC {
         // 统计用户列表的折合
         rpc GetUsersBalance(GetUserBalanceUids) returns (UserBalancesResponse){};
 
+
+
+        rpc AdminConfirm(ConfirmOrderRequest) returns (OrderResponse) {};
+        rpc AdminCancel(CancelOrderRequest) returns(OrderResponse){};
+
 }
 
 

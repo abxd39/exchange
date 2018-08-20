@@ -59,19 +59,21 @@ func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rs
 // 确认放行
 func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.ConfirmOrderRequest, rsp *proto.OrderResponse) error {
 
-	fmt.Println("pay pwd:", req.PayPwd)
+	//fmt.Println("pay pwd:", req.PayPwd, req.Uid)
 	verifyRsp, err :=  client.InnerService.UserSevice.CallGetVerifyPayPwd(uint64(req.Uid), req.PayPwd)
 	if err != nil {
+		log.Println(err)
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		err := errors.New("verify paypwd error !")
 		return err
 	}
 	if verifyRsp.Code != errdefine.ERRCODE_SUCCESS {
+		log.Println(verifyRsp)
 		rsp.Code = verifyRsp.Code
 		rsp.Message = verifyRsp.Msg
 		rsp.Data = verifyRsp.Date
-		err := errors.New("verify paypwd not right!")
-		return err
+		//err := errors.New("verify paypwd not right!")
+		return nil
 	}
 
 	updateTimeStr := time.Now().Format("2006-01-02 15:04:05")
@@ -80,6 +82,12 @@ func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.ConfirmOrderReq
 	rsp.Message = msg
 	return nil
 }
+
+
+
+
+
+
 
 // 待放行
 func (s *RPCServer) ReadyOrder(ctx context.Context, req *proto.OrderRequest, rsp *proto.OrderResponse) error {

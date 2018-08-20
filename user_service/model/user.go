@@ -758,8 +758,9 @@ func (s *User) VerifyPayPwd(uid uint64, paypwd string) (ret int32, err error) {
 	if err != nil {
 		return ret, err
 	}
-
 	newpaypwd := encryption.GenMd5AndReverse(paypwd)
+	//fmt.Println("newpaypwd:", newpaypwd, " spay: ", s.PayPwd)
+	//log.Println("newpaypwd:", newpaypwd, " spay: ", s.PayPwd)
 	if s.PayPwd == newpaypwd {
 		return ERRCODE_SUCCESS, nil
 	}else{

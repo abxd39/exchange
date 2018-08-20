@@ -71,44 +71,51 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string) {
 	walletToken := new(models.WalletToken)
 	err := walletToken.GetByAddress(from)
 	if err != nil || walletToken.Uid <= 0 {
-		log.Info("get user token error",err)
+		log.Error("get user token error",err,from)
 		return
 	}
 	//根据交易hash查询申请提币数据
 	tokenInout := new(models.TokenInout)
 	err = tokenInout.GetByHash(txhash)
 	if err != nil || tokenInout.Uid <= 0 {
-		log.Info("get data by hash error",err)
+		log.Error("get data by hash error",err,txhash)
 		return
 	}
-	_,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
+	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
 		Num:tokenInout.Amount,
 		Ukey:[]byte(txhash),
 		Type:1,  //区块入账
 	})
+	log.WithFields(log.Fields{
+		"uid":uint64(walletToken.Uid),
+		"token_uid":int32(walletToken.Tokenid),
+		"num":tokenInout.Amount,
+		"ukey":txhash,
+		"type":1,
+	}).Info("ETHConfirmSubFrozen result:",rsp,errr)
 	if errr != nil {
-		log.Info("ETHConfirmSubFrozen error",err)
+		log.Error("ETHConfirmSubFrozen error",err)
 	}
 }
 
 //添加比特币token数量
 //**以太坊充币
-func (p *Common) AddETHTokenNum(to string,tokenid int,amount string,txhash string) {
+func (p *Common) AddETHTokenNum(to string,tokenid int,amount string,txhash string) (bool,error) {
 	//查询用户uid
 	walletToken := new(models.WalletToken)
 	err := walletToken.GetByAddress(to)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("get user token error",err)
-		return
+		return false,err
 	}
 
 	bigAmount,err := strconv.ParseInt(amount,10,64)
 
 	if err != nil {
 		log.Error("AddETHTokenNum",err)
-		return
+		return false,err
 	}
 
 	rsp,errr := client.InnerService.TokenSevice.CallAddTokenNum(&proto.AddTokenNumRequest{
@@ -132,7 +139,9 @@ func (p *Common) AddETHTokenNum(to string,tokenid int,amount string,txhash strin
 	log.Info("eth AddETHTokenNum result",errr,rsp)
 	if errr != nil {
 		log.Info("AddBTCTokenNum error",errr)
+		return false,err
 	}
+	return true,nil
 }
 
 //测试
