@@ -33,6 +33,7 @@ func main() {
 
 	//比特币充币提币监控
 	//go watch.StartBtcWatch()
+
 	//以太币、ERC20代币提币检查
 	go watch.StartEthCheckNew()
 	//以太币、ERC20代币充币检查

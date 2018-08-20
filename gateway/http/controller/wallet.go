@@ -39,6 +39,8 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.POST("/tibi_cancel", this.TiBiCancel) //
 
 	r.POST("/get_address", this.GetAddress) // 获取充值地址
+
+	r.POST("/sync_block", this.SyncEthBlockTx)  //同步区块信息
 }
 
 ///////////////////////// start btc ///////////////////////////
@@ -567,6 +569,8 @@ func (this *WalletGroup) TibiApply(ctx *gin.Context) {
 		SmsCode    string `form:"sms_code" binding:"required"`
 		EmailCode  string `form:"email_code" binding:"required"`
 		Password   string `form:"password" binding:"required"`
+		Phone   string `form:"phone" binding:"required"`
+		Email   string `form:"email" binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -574,7 +578,7 @@ func (this *WalletGroup) TibiApply(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
-	rsp, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount, param.RealAmount, param.SmsCode, param.EmailCode, param.Password)
+	rsp, err := rpc.InnerService.WalletSevice.CallTibiApply(param.Uid, param.Token_id, param.To, param.Gasprice, param.Amount, param.RealAmount, param.SmsCode, param.EmailCode, param.Password,param.Phone,param.Email)
 	if err != nil {
 		//fmt.Println(rsp.Code, rsp.Msg)
 		log.Error(err.Error())
@@ -636,5 +640,32 @@ func (this *WalletGroup) GetAddress(ctx *gin.Context) {
 	ret.SetDataSection("type", rsp.Type)
 	ret.SetDataSection("addr", rsp.Addr)
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
+	return
+}
+
+//同步以太坊区块交易
+func (this *WalletGroup) SyncEthBlockTx(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type Param struct {
+		Block int32 `form:"block" binding:"required"`
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+
+
+	rsp, err := rpc.InnerService.WalletSevice.CallSyncBlockTx(param.Block)
+	if err != nil || rsp.Code != 0 {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Msg)
 	return
 }
