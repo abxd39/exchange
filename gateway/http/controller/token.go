@@ -446,7 +446,7 @@ func (s *TokenGroup) TokenTradeList(c *gin.Context) {
 			TradeId:   v.TradeId,
 			TokenName: v.TokenName,
 			Opt:       v.Opt,
-			Num:       convert.Int64ToStringBy8Bit(v.Num),
+			Num:       convert.Int64ToStringBy8Bit(v.Num + v.Fee),
 			Fee:       convert.Int64ToStringBy8Bit(v.Fee),
 			DealTime:  v.DealTime,
 		}
