@@ -20,10 +20,10 @@ func (this DailyCountSheet) Run() {
 
 	nTime := time.Now()
 	yesTime := nTime.AddDate(0, 0, -1)     // 统计昨天的
-	startTime := yesTime.Format("2006-01-02 15:04:05")
-	endTime := nTime.Format("2006-01-02 15:04:05")
+	startTime := yesTime.Format("2006-01-02 00:00:00")
+	endTime := nTime.Format("2006-01-02 23:59:59")
 
-	today := nTime.Format("2006-01-02")
+	today := nTime.Format("2006-01-02 00:00:00")
 
 	log.Println("startTime:", startTime)
 	log.Println("endTime:", endTime)
