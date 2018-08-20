@@ -12,7 +12,10 @@ func InitCron() {
 	//划出
 	go HandlerTransferToTokenDone()
 
-	
+
+	//
+	go new(DailyCountSheet).Run()
+
 
 	//cron
 	if cf.Cfg.MustBool("cron", "run", false) {
