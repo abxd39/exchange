@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+
 type TokenDailySheet struct {
 	Id           int64 `xorm:"not null pk autoincr comment('自增id')BIGINT(20)"`
 	TokenId      int   `xorm:"not null comment('货币id') INT(11)"`
@@ -23,6 +24,7 @@ type TokenDailySheet struct {
 	Date         int64 `xorm:"not null comment('时间戳，精确到天') BIGINT(20)"`
 	//Day          time.Time `xorm:"comment('那天') DATETIME"`
 }
+
 
 func (t *TokenDailySheet) TimingFunc(begin, end int64) {
 	//g:=make([]*Trade,0)
@@ -165,3 +167,4 @@ func DailyStart() {
 
 	select {}
 }
+
