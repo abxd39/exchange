@@ -177,3 +177,12 @@ func (this *WalletRPCCli) CallSyncBlockTx(block int32) (rsp *proto.SyncEthBlockT
 	}
 	return
 }
+
+func (this *WalletRPCCli) CallGetOutTokenFee() (rsp *proto.GetOutTokenFeeResponse, err error) {
+	rsp, err = this.conn.GetOutTokenFee(context.TODO(), &proto.GetOutTokenFeeRequest{})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

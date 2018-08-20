@@ -511,14 +511,7 @@ func (s *WalletHandler) GetAddress(ctx context.Context, req *proto.GetAddressReq
 }
 
 func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBiRequest, rsp *proto.CancelTiBiResponse) error {
-	tokenInoutMD := new(TokenInout)
-	//保存数据
-	_,err := tokenInoutMD.CancelTiBi(int(req.Uid),int(req.Id))
-	if err != nil {
-		rsp.Code = ERRCODE_UNKNOWN
-		rsp.Msg = err.Error()
-		return nil
-	}
+
 	//解除冻结账户金额，查询
 	tokenInout := new(TokenInout)
 	boo,err := tokenInout.GetApplyInOut(int(req.Uid),int(req.Id))
@@ -527,25 +520,56 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 		rsp.Msg = "查询失败"
 		return nil
 	}
+
 	//调用rpc解冻
-	_,errr := client.InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
+	ukey := strconv.Itoa(int(req.Uid)) + random.Random6dec()
+	res,errr := client.InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
 		Uid:uint64(req.Uid),
 		TokenId:int32(tokenInout.Tokenid),
 		Num:tokenInout.Amount + tokenInout.Fee,
+		Ukey:[]byte(ukey),
+		Type:13,//取消提币
 	})
 	if errr != nil {
-		log.WithFields(log.Fields{
-			"uid":req.Uid,
-			"tokenid":tokenInout.Tokenid,
-			"amount":tokenInout.Amount,
-			"fee":tokenInout.Fee,
-		}).Error("解冻失败")
+		log.Error("RPC ERROR")
 		rsp.Code = ERRCODE_UNKNOWN
-		rsp.Msg = "解冻失败"
+		rsp.Msg = "RPC ERROR"
 		return nil
 	}
+	if res.Err != 0 {
+		log.Error(res.Message)
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = res.Message
+		return nil
+	}
+
+	//修改状态
+	tokenInoutMD := new(TokenInout)
+	//保存数据
+	_,err = tokenInoutMD.CancelTiBi(int(req.Uid),int(req.Id))
+	if err != nil {
+		log.Error("CancelTiBi error",err)
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = err.Error()
+		return nil
+	}
+
 	rsp.Code = ERRCODE_SUCCESS
-	rsp.Msg = "解冻成功"
+	rsp.Msg = "取消成功"
+
+	defer func() {
+		if res.Err != 0 || errr != nil {
+			log.WithFields(log.Fields{
+				"uid":req.Uid,
+				"tokenid":tokenInout.Tokenid,
+				"amount":tokenInout.Amount,
+				"fee":tokenInout.Fee,
+				"ukey":ukey,
+				"type":13,
+			}).Error("CancelTiBi error")
+		}
+	}()
+
 	return nil
 }
 
@@ -559,5 +583,27 @@ func (this *WalletHandler) SyncEthBlockTx(ctx context.Context, req *proto.SyncEt
 	}
 	rsp.Code = 0
 	rsp.Msg = msg
+	return nil
+}
+
+//获取提币手续费
+func (this *WalletHandler) GetOutTokenFee(ctx context.Context, req *proto.GetOutTokenFeeRequest, rsp *proto.GetOutTokenFeeResponse) error {
+	token := new(Tokens)
+	data,err := token.GetAllTokenFee()
+	if err != nil {
+		rsp.Code = 1
+		rsp.Msg = err.Error()
+		return err
+	}
+
+	for _,v := range data {
+		rsp.Data = append(rsp.Data,&proto.GetOutTokenFeeResponseList{
+			Tokenid:int32(v.Id),
+			Fee:strconv.FormatFloat(v.Out_token_fee,'f',-1,64),
+		})
+	}
+
+	rsp.Code = 0
+	rsp.Msg = GetErrorMessage(ERRCODE_SUCCESS)
 	return nil
 }

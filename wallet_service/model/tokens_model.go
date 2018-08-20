@@ -4,7 +4,6 @@ import (
 	. "digicon/wallet_service/utils"
 	"errors"
 	"strings"
-	log "github.com/sirupsen/logrus"
 )
 
 type Tokens struct {
@@ -21,15 +20,16 @@ type Tokens struct {
 	Node      string `xorm:"default '' comment('节点地址') VARCHAR(100)"`
 	Status    int    `xorm:"default '' comment('状态') VARCHAR(64)"`
 	Decimal   int    `xorm:"not null default 1 comment('精度 1个eos最小精度的10的18次方') INT(11)"`
+	Out_token_fee   float64    `xorm:"not null default 1 comment('提币手续费') BIGINT(11)"`
 }
 
 func (this *Tokens) GetByid(id int) (bool, error) {
-	log.Info("GetByid param id:",id)
+	//log.Info("GetByid param id:",id)
 	Engine_common.ShowSQL(true)
 	session := Engine_common.NewSession()
 	boo,err := session.Id(id).Get(this)
-	lastSQL, lastSQLArgs := session.LastSQL()
-	log.Info("last sql:",lastSQL, lastSQLArgs)
+	//lastSQL, lastSQLArgs := session.LastSQL()
+	//log.Info("last sql:",lastSQL, lastSQLArgs)
 
 	defer session.Close()
 
@@ -80,4 +80,11 @@ func (this *Tokens) GetByName(name string) (bool, error) {
 func (this *Tokens) ListTokens() (tokens []Tokens, err error){
 	err = Engine_common.Table("tokens").Find(&tokens)
 	return
+}
+
+//查询所有提币手续费
+func (this *Tokens) GetAllTokenFee() ([]Tokens,error) {
+	tokens := make([]Tokens,0)
+	err := Engine_common.Table("tokens").Find(&tokens)
+	return tokens,err
 }

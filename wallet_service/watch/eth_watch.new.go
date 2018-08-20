@@ -414,7 +414,7 @@ type EthCBiWatch struct {
 
 const (
 	ETH_CBI_INTERVAL_TW = 10 //时间轮定时器间隔时间
-	ETH_ADDRESS_INTERVAL_TW = 10 //时间轮定时器间隔时间
+	ETH_ADDRESS_INTERVAL_TW = 5 //时间轮定时器间隔时间
 	ETH_CBI_ADDRESS_REDIS_KEY = "h_wallet_token"
 )
 
@@ -730,7 +730,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 
 	boo, err := tokensModel.GetByid(walletToken.Tokenid)
 	if boo != true || err != nil {
-		fmt.Println("walletToken.Tokenid not find token",walletToken.Tokenid,boo,err)
+		log.Error("walletToken.Tokenid not find token",walletToken.Tokenid,boo,err)
 		return false, err
 	}
 
