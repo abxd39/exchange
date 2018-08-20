@@ -29,8 +29,7 @@ func (this WalletDailyCountSheet) Run(){
 	endTime := fmt.Sprintf("%s 23:59:59", yesDate)
 
 	//endTime := nTime.Format("2006-01-02 15:04:05")
-
-	today := nTime.Format("2006-01-02 15:04:05")
+	//yesday := yesDayTime.Format("2006-01-02 15:04:05")
 
 	fmt.Println("startTime:", startTime, " endTime:",endTime, "nowtime:", nTime.Unix())
 
@@ -42,7 +41,7 @@ func (this WalletDailyCountSheet) Run(){
 
 		/// check exists ....
 		mcuds := new(models.TokenInoutDailySheet)
-		has, err := mcuds.CheckOneDay(uint32(tkId), today)
+		has, err := mcuds.CheckOneDay(uint32(tkId), yesDate)
 		if err != nil {
 			log.Errorln(err)
 		}
@@ -131,7 +130,7 @@ func (this WalletDailyCountSheet) Run(){
 			Total:           total,
 			TotalFee:        total_fee,
 			TotalPut:        total_put,
-			Date:            today,
+			Date:            yesDate,
 		}
 		err = onedayInOutModel.InsertOneDayTotal()
 		fmt.Println(onedayInOutModel.Id)
