@@ -750,18 +750,14 @@ func (s *User) BindUserPhone(phone, country string, uid uint64) (has bool, err e
 	verify user pay_pwd
 */
 func (s *User) VerifyPayPwd(uid uint64, paypwd string) (ret int32, err error) {
-	nuser := new(User)
-	log.Println("uid:", uid)
-	_, err = DB.GetMysqlConn().Where("uid=?", uid).Get(nuser)
+	ret, err = s.GetUser(uid)
 	if err != nil {
-		ret =  ERRCODE_ACCOUNT_NOTEXIST
-		return
+		return ret, err
 	}
-
 	newpaypwd := encryption.GenMd5AndReverse(paypwd)
-	fmt.Println("newpaypwd:", newpaypwd, " spay: ", nuser.PayPwd)
-	log.Println("newpaypwd:", newpaypwd, " spay: ", nuser.PayPwd)
-	if nuser.PayPwd == newpaypwd {
+	//fmt.Println("newpaypwd:", newpaypwd, " spay: ", s.PayPwd)
+	//log.Println("newpaypwd:", newpaypwd, " spay: ", s.PayPwd)
+	if s.PayPwd == newpaypwd {
 		return ERRCODE_SUCCESS, nil
 	}else{
 		return ERRCODE_PWD, nil
