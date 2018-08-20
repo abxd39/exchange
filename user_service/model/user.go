@@ -260,6 +260,7 @@ func (s *User) ForceRefreshCache(uid uint64) (out *proto.UserAllData, ret int32,
 	u := &User{}
 	r := RedisOp{}
 	ret, err = u.GetUser(uid)
+	log.Info(uid)
 	if err != nil {
 		ret = ERRCODE_UNKNOWN
 		return
@@ -270,15 +271,18 @@ func (s *User) ForceRefreshCache(uid uint64) (out *proto.UserAllData, ret int32,
 
 	d, err = u.SerialJsonData()
 	if err != nil {
+
 		ret = ERRCODE_UNKNOWN
 		return
 	}
 
 	err = r.SetUserBaseInfo(uid, d)
 	if err != nil {
+
 		ret = ERRCODE_UNKNOWN
 		return
 	}
+
 	return
 }
 

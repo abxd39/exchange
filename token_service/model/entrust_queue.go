@@ -1330,7 +1330,7 @@ func (s *EntrustQuene) Clock() {
 		c.AddJobWithInterval(d, job)
 		time.Sleep(d)
 		//c.AddJobWithInterval(time.Duration(diff+30)*time.Second,  job)
-		log.Info("circle process send trade")
+		log.Info("circle process send trade symbol %s",s.TokenQueueId)
 	}
 
 	/*

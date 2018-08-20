@@ -83,7 +83,7 @@ func Calculate(token_id int32 ,price, amount, cny_price int64, symbol string, hi
 	min := t.Add(-time.Duration(s) * time.Second)
 	same := min.Unix()
 	log.Info(same)
-	l := min.Add(-86400 * time.Second)
+	l := min.Add(-600 * time.Second)
 	yestday := l.Unix()
 	p := &Price{}
 	ok, err := DB.GetMysqlConn().Where("id=? and symbol=?", yestday, symbol).Get(p)
