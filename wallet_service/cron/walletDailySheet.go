@@ -138,6 +138,7 @@ func (this WalletDailyCountSheet) Run(){
 			fmt.Println(err)
 		}else{
 			log.Println("统计成功!", tkId)
+			log.Println("统计成功!", tkId)
 		}
 
 		fmt.Println(" insert ......")
