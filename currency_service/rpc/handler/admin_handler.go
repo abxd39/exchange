@@ -76,8 +76,19 @@ func (s *RPCServer) AdminConfirm(ctx context.Context, req *proto.ConfirmOrderReq
  /*
 	 后台取消
  */
- func (s *RPCServer) AdminCancel(ctx context.Context) (err error){
+ func (s *RPCServer) AdminCancel(ctx context.Context, req *proto.CancelOrderRequest, rsp *proto.OrderResponse) (err error){
 
- 	return nil
+	 code, err := model.CancelAction(req.Id, 3)    //3为系统取消
+	 if err != nil {
+	 	rsp.Code = code
+	 	return nil
+	 }else{
+		 rsp.Code = errdefine.ERRCODE_SUCCESS
+		 rsp.Message = ""
+		 return nil
+	 }
+
  }
+
+
 

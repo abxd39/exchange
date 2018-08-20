@@ -31,6 +31,8 @@ func (*RPCServer) Alipay(ctx context.Context, req *proto.AlipayRequest, rsp *pro
 	return nil
 }
 
+
+
 func (*RPCServer) GetAliPay(ctx context.Context, req *proto.PayRequest, rsp *proto.PaysResponse) (err error) {
 	amd := new(model.UserCurrencyAlipayPay)
 	err = amd.GetByUid(req.Uid)

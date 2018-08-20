@@ -97,3 +97,21 @@ func (s *CurrencyRPCCli) CallGetUserBalanceUids(req *proto.GetUserBalanceUids)(r
 	}
 	return
 }
+
+func (s *CurrencyRPCCli) CallAdminConfirm(req *proto.ConfirmOrderRequest) ( rsp *proto.OrderResponse, err error) {
+	rsp, err = s.conn.AdminConfirm(context.TODO(), req)
+	if err != nil {
+		log.Errorln(err)
+		return
+	}
+	return
+}
+
+func (s *CurrencyRPCCli) CallAdminCancel(req *proto.CancelOrderRequest)(rsp *proto.OrderResponse, err error) {
+	rsp, err = s.conn.AdminCancel(context.TODO(), req)
+	if err != nil {
+		log.Errorln(err)
+		return
+	}
+	return
+}

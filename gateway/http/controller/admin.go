@@ -25,6 +25,10 @@ func (s *AdminGroup) Router(r *gin.Engine) {
 
 		action.POST("/get_users_balances", s.GetUsersBalances)
 
+		action.POST("/currency_order_confirm", s.AdminConfirm)
+
+		action.POST("/currency_order_cancel", s.AdminCancel)
+
 	}
 }
 
@@ -160,4 +164,75 @@ func (s *AdminGroup) GetUsersBalances (c *gin.Context) {
 	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
     ret.SetDataSection("list", rsp.Data)
 }
+
+
+func (s *AdminGroup) AdminConfirm(c *gin.Context) {
+
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	param := struct {
+		Id      uint64 `form:"id"         json:"id"        binding:"required"`  // order 表Id
+		Uid     int32  `form:"uid"         json:"uid"      `  //
+		Key string `form:"key" json:"key" binding:"required"`
+	}{}
+	err := c.ShouldBind(&param)
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+
+	if param.Key != KEY {
+		ret.SetErrCode(ERRCODE_PARAM)
+		return
+	}
+
+	rsp, err := rpc.InnerService.CurrencyService.CallAdminConfirm(&proto.ConfirmOrderRequest{
+		Id:   param.Id,
+		Uid:  param.Uid,
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+}
+
+func (s *AdminGroup) AdminCancel(c *gin.Context) {
+	ret := NewPublciError()
+	defer func(){
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+	param := struct {
+		Id      uint64 `form:"id"         json:"id"        binding:"required"`  // order 表Id
+		Uid     int32  `form:"uid"         json:"uid"      `  //
+		Key string `form:"key" json:"key" binding:"required"`
+	}{}
+	err := c.ShouldBind(&param)
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	if param.Key != KEY {
+		ret.SetErrCode(ERRCODE_PARAM)
+		return
+	}
+
+	rsp, err := rpc.InnerService.CurrencyService.CallAdminCancel(&proto.CancelOrderRequest{
+		Id:   param.Id,
+		Uid:  param.Uid,
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
+	}
+	ret.SetErrCode(rsp.Code, GetErrorMessage(rsp.Code))
+}
+
 

@@ -208,39 +208,29 @@ func (this *Order) Cancel(Id uint64, CancelType uint32, updateTimeStr string, ui
 	engine := dao.DB.GetMysqlConn()
 	var err error
 
-	tmpOrder := new(Order)
-	code, err = tmpOrder.GetOrder(Id)
-	if err != nil {
-		msg := "order not exists!"
-		return ERRCODE_ORDER_NOTEXIST, msg
-	}
-	if tmpOrder.States == 3 {
-		msg := "订单已完成!"
-		return ERRCODE_TRADE_HAS_COMPLETED, msg
-	}
-
-	uCurrencyCount := new(UserCurrencyCount)
-	has, err := uCurrencyCount.CheckUserCurrencyCountExists(uint64(uid))
-	if err != nil {
-		log.Error(err.Error())
-	}
-	if has {
-		cancelSql := "UPDATE  `user_currency_count` set `cancel` = `cancel` + 1, `orders`=`orders`+1  where uid=? "
-		_, err = engine.Exec(cancelSql, uid)
-	} else {
-		insertSql := "INSERT INTO `user_currency_count` (uid,orders, cancel, good) values(?,?,?, ?)"
-		_, err = dao.DB.GetMysqlConn().Exec(insertSql, uid, 1, 1, 100)
-	}
-
-	err = CancelAction(Id, CancelType)
+	code , err = CancelAction(Id, CancelType)
 
 	if err != nil {
 		code = ERRCODE_UNKNOWN
 		msg = "cancel error!"
 	} else {
+		uCurrencyCount := new(UserCurrencyCount)
+		has, err := uCurrencyCount.CheckUserCurrencyCountExists(uint64(uid))
+		if err != nil {
+			log.Error(err.Error())
+		}
+		if has {
+			cancelSql := "UPDATE  `user_currency_count` set `cancel` = `cancel` + 1, `orders`=`orders`+1  where uid=? "
+			_, err = engine.Exec(cancelSql, uid)
+		} else {
+			insertSql := "INSERT INTO `user_currency_count` (uid,orders, cancel, good) values(?,?,?, ?)"
+			_, err = dao.DB.GetMysqlConn().Exec(insertSql, uid, 1, 1, 100)
+		}
+
 		code = ERRCODE_SUCCESS
+		msg = ""
 	}
-	msg = ""
+
 	return
 }
 
@@ -866,9 +856,9 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 					break
 				}
 			}
-			err = CancelAction(od.Id, 3)
+			_, err = CancelAction(od.Id, 3)
 			if err != nil {
-				err = CancelAction(od.Id, 3)
+				_, err = CancelAction(od.Id, 3)
 			}
 			break
 		}
@@ -878,9 +868,26 @@ func CheckOrderExiryTime(id uint64, exiryTime string) {
 	return
 }
 
-func CancelAction(id uint64, CancelType uint32) (err error) {
+func CancelAction(id uint64, CancelType uint32) (code int32, err error) {
 
 	engine := dao.DB.GetMysqlConn()
+
+	tmpOrder := new(Order)
+	_, err = tmpOrder.GetOrder(id)
+	if err != nil {
+		msg := "order not exists!"
+		code = ERRCODE_ORDER_NOTEXIST
+		log.Errorln(msg)
+		return
+	}
+
+	if tmpOrder.States == 3 {
+		msg := "订单已完成!"
+		code = ERRCODE_TRADE_HAS_COMPLETED
+		log.Errorln(msg)
+		return
+	}
+
 	od := new(Order)
 	_, err = od.GetOrder(id)
 
@@ -888,6 +895,7 @@ func CancelAction(id uint64, CancelType uint32) (err error) {
 	_, err = engine.Where("uid =? and token_id =?", od.SellId, od.TokenId).Get(uCurrency)
 	if err != nil {
 		log.Errorln("查询用户余额失败!", err.Error())
+		code = ERRCODE_USER_BALANCE
 		return
 	}
 
@@ -908,6 +916,8 @@ func CancelAction(id uint64, CancelType uint32) (err error) {
 		session.Rollback()
 		return
 	}
+
+
 
 	/////////////////////////////////////////////////////////
 	// 1. user_currency 还原 freeze
@@ -931,6 +941,7 @@ func CancelAction(id uint64, CancelType uint32) (err error) {
 		log.Println(err.Error())
 		log.Errorln("od.Id:", od.Id, od.ExpiryTime)
 		session.Rollback()
+		code = ERRCODE_UNKNOWN
 		return
 	}
 	if rst, _ := sqlRest.RowsAffected(); rst == 0 {
@@ -938,6 +949,7 @@ func CancelAction(id uint64, CancelType uint32) (err error) {
 		log.Errorln("卖家扣除失败!", err.Error())
 		session.Rollback()
 		err = errors.New("卖家扣除失败!")
+		code = ERRCODE_UNKNOWN
 		return
 	}
 	now := time.Now().Format("2006-01-02 15:04:05")
@@ -945,6 +957,7 @@ func CancelAction(id uint64, CancelType uint32) (err error) {
 	if err != nil {
 		log.Errorln("order id exiry time out update status = 4 error! id:", id, err.Error())
 		session.Rollback()
+		code = ERRCODE_UNKNOWN
 		return
 	}
 
@@ -954,17 +967,23 @@ func CancelAction(id uint64, CancelType uint32) (err error) {
 		log.Println("CancelType:", CancelType)
 		log.Errorln(err.Error())
 		session.Rollback()
+		code = ERRCODE_UNKNOWN
 		return
 	}
 
 	resetCancelNumSql := "UPDATE `ads` set `num`=`num`+? where `id`=?"
 	_, err = session.Exec(resetCancelNumSql, od.Num, od.AdId)
+	if err != nil {
+		log.Errorln("update ads num err!")
+	}
+
 
 	fmt.Println("session commit ....")
 	err = session.Commit()
 	if err != nil {
 		log.Println(err.Error())
 		session.Rollback()
+		code = ERRCODE_UNKNOWN
 		return
 	}
 
