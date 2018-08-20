@@ -71,25 +71,32 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string) {
 	walletToken := new(models.WalletToken)
 	err := walletToken.GetByAddress(from)
 	if err != nil || walletToken.Uid <= 0 {
-		log.Info("get user token error",err)
+		log.Error("get user token error",err,from)
 		return
 	}
 	//根据交易hash查询申请提币数据
 	tokenInout := new(models.TokenInout)
 	err = tokenInout.GetByHash(txhash)
 	if err != nil || tokenInout.Uid <= 0 {
-		log.Info("get data by hash error",err)
+		log.Error("get data by hash error",err,txhash)
 		return
 	}
-	_,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
+	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
 		Num:tokenInout.Amount,
 		Ukey:[]byte(txhash),
 		Type:1,  //区块入账
 	})
+	log.WithFields(log.Fields{
+		"uid":uint64(walletToken.Uid),
+		"token_uid":int32(walletToken.Tokenid),
+		"num":tokenInout.Amount,
+		"ukey":txhash,
+		"type":1,
+	}).Info("ETHConfirmSubFrozen result:",rsp,errr)
 	if errr != nil {
-		log.Info("ETHConfirmSubFrozen error",err)
+		log.Error("ETHConfirmSubFrozen error",err)
 	}
 }
 

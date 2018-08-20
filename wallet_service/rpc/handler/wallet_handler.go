@@ -258,7 +258,7 @@ func (this *WalletHandler) GetValue(ctx context.Context, req *proto.GetValueRequ
 func (this *WalletHandler) AddressSave(ctx context.Context, req *proto.AddressSaveRequest, rsp *proto.AddressSaveResponse) error {
 	fmt.Println(req.Address)
 	rsp.Code = "0"
-	rsp.Msg = "添加1成功"
+	rsp.Msg = "添加成功"
 	rsp.Data = new(proto.NilPos)
 	TibiAddressModel := new(TibiAddress)
 	_, err := TibiAddressModel.Save(int(req.Uid), int(req.Tokenid), req.Address, req.Mark)
