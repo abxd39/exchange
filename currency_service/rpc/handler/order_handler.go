@@ -59,7 +59,7 @@ func (s *RPCServer) DeleteOrder(ctx context.Context, req *proto.OrderRequest, rs
 // 确认放行
 func (s *RPCServer) ConfirmOrder(ctx context.Context, req *proto.ConfirmOrderRequest, rsp *proto.OrderResponse) error {
 
-	fmt.Println("pay pwd:", req.PayPwd)
+	fmt.Println("pay pwd:", req.PayPwd, req.Uid)
 	verifyRsp, err :=  client.InnerService.UserSevice.CallGetVerifyPayPwd(uint64(req.Uid), req.PayPwd)
 	if err != nil {
 		log.Println(err)
