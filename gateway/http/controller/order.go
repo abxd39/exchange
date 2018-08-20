@@ -279,7 +279,7 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 	//	Id:  param.Id,
 	//	Uid: param.Uid,
 	//})
-	log.Println("uid:", param)
+	//log.Println("uid:", param)
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.ConfirmOrderRequest{
 		Id:   param.Id,
 		Uid:  param.Uid,
