@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"digicon/wallet_service/utils"
 	"digicon/wallet_service/cron"
-	"digicon/wallet_service/rpc/watch"
+	"digicon/wallet_service/watch"
 )
 
 func init() {
@@ -32,7 +32,8 @@ func main() {
 	flag.Parse()
 
 	//比特币充币提币监控
-	go watch.StartBtcWatch()
+	//go watch.StartBtcWatch()
+
 	//以太币、ERC20代币提币检查
 	go watch.StartEthCheckNew()
 	//以太币、ERC20代币充币检查

@@ -106,7 +106,38 @@ service CurrencyRPC {
         // 获取要显示的币种
         rpc DisplayCurrencyTokens(CurrencyTokensRequest) returns (CurrencyTokensListResponse){}
 
+
+        // 统计用户列表的折合
+        rpc GetUsersBalance(GetUserBalanceUids) returns (UserBalancesResponse){};
+
 }
+
+
+
+/////////////////////////
+message GetUserBalanceUids {
+    repeated uint64 uids=1;
+}
+
+message UserBalanceOne {
+    int64   uid     = 1;
+    string  total_cny   = 2;
+    string  balance_cny = 3;
+    string  frozen_cny = 4;
+    int64   total_cny_int = 5;
+    int64   frozen_cny_int = 6;
+    int64   balance_cny_int = 7;
+}
+
+message UserBalancesResponse {
+    int32    code    = 1;
+    string    message = 2;
+    repeated UserBalanceOne  data = 3;
+
+}
+
+
+
 
 ////////////////////////
 
@@ -335,6 +366,7 @@ message UserCurrencyRequest {
 //获取订单付款信息
 message TradeDetailRequest {
     uint64  id  = 1;       // 获取订单付款信息
+    string  order_id = 2;  // order_id
 }
 
 message TradeDetailResponse {

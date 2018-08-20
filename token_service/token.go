@@ -9,11 +9,11 @@ import (
 	"digicon/token_service/rpc"
 	"digicon/token_service/rpc/client"
 	"flag"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
-	"fmt"
 )
 
 func init() {
@@ -34,8 +34,9 @@ func main() {
 	//model.Test2(1,1000)
 	//model.Test3(1533139200,1533225600)
 
+	//a:=[5]int{100001, 100002, 100003}
+	//model.GetAllBalanceCny(a)
 	go rpc.RPCServerInit()
-
 
 	client.InitInnerService()
 

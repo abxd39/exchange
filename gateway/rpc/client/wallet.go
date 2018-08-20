@@ -73,8 +73,8 @@ func (this *WalletRPCCli) CallTibi(uid int32, token_id int32, to string, gaspric
 	}
 	return
 }
-func (this *WalletRPCCli) CallTibiApply(uid int32, token_id int32, to string, gasprice string, amount string, real_amount string, sms_code string, email_code string, password string) (rsp *proto.TibiApplyResponse, err error) {
-	rsp, err = this.conn.TibiApply(context.TODO(), &proto.TibiApplyRequest{Uid: (uid), Tokenid: (token_id), To: to, Gasprice: (gasprice), Amount: amount, RealAmount: real_amount})
+func (this *WalletRPCCli) CallTibiApply(uid int32, token_id int32, to string, gasprice string, amount string, real_amount string, sms_code string, email_code string, password string,phone string,email string) (rsp *proto.TibiApplyResponse, err error) {
+	rsp, err = this.conn.TibiApply(context.TODO(), &proto.TibiApplyRequest{Uid: (uid), Tokenid: (token_id), To: to, Gasprice: (gasprice), Amount: amount, RealAmount: real_amount,Phone:phone,Email:email,SmsCode:sms_code,EmailCode:email_code,Password:password})
 	if err != nil {
 		log.Errorln(err.Error())
 		return
@@ -162,6 +162,15 @@ func (this *WalletRPCCli) CallOutList(req *proto.OutListRequest) (rsp *proto.Out
 
 func (this *WalletRPCCli) CallGetAddress(userid int, tokenid int) (rsp *proto.GetAddressResponse, err error) {
 	rsp, err = this.conn.GetAddress(context.TODO(), &proto.GetAddressRequest{Userid: int32(userid), Tokenid: int32(tokenid)})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (this *WalletRPCCli) CallSyncBlockTx(block int32) (rsp *proto.SyncEthBlockTxResponse, err error) {
+	rsp, err = this.conn.SyncEthBlockTx(context.TODO(), &proto.SyncEthBlockTxRequest{Block:block})
 	if err != nil {
 		log.Errorln(err.Error())
 		return

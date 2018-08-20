@@ -30,7 +30,7 @@ func RpcGetValue(url string, address string, contract string, deci int) (string,
 		data["params"] = []interface{}{param, "latest"}
 
 	}
-	fmt.Println(data)
+	//fmt.Println(data)
 	rsp, err := RpcPost(url, data)
 	if err != nil {
 		return "", err
@@ -41,7 +41,7 @@ func RpcGetValue(url string, address string, contract string, deci int) (string,
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(ret)
+	//fmt.Println(ret)
 	result, ok := ret["result"]
 	if !ok {
 		return "", nil
@@ -51,7 +51,7 @@ func RpcGetValue(url string, address string, contract string, deci int) (string,
 	temp, _ := new(big.Int).SetString(balance[2:], 16)
 	amount := decimal.NewFromBigInt(temp, int32(8-deci)).IntPart()
 	re := decimal.New(amount, -8)
-	fmt.Println("value", amount)
+	//fmt.Println("value", amount)
 	return re.String(), nil
 }
 func RpcSendRawTx(url string, signtx string) (map[string]interface{}, error) {
@@ -70,7 +70,7 @@ func RpcSendRawTx(url string, signtx string) (map[string]interface{}, error) {
 }
 func RpcPost(url string, send map[string]interface{}) ([]byte, error) {
 	bytesData, err := json.Marshal(send)
-	fmt.Println(string(bytesData))
+	//fmt.Println(string(bytesData))
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err

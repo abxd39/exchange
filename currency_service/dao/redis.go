@@ -17,10 +17,11 @@ func NewRedisCli() *RedisCli {
 
 	addr := cf.Cfg.MustValue("redis", "addr")
 	pass := cf.Cfg.MustValue("redis", "pass")
+
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: pass, // no password set
-		DB:       0,    // use default DB
+		DB:       constant.COMMON_REDIS_DB_CONFIG_CNY,    // use default DB
 	})
 
 	pong, err := client.Ping().Result()

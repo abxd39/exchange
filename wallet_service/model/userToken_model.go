@@ -11,3 +11,8 @@ type UserToken struct {
 func (this *UserToken) Add(amount string, uid, tokenid int) {
 	utils.Engine_token.Incr("balance", amount).Where("uid=? and token_id", uid, tokenid)
 }
+
+//查询用户余额
+func (this *UserToken) GetByUidTokenid(uid,token_id int) (bool,error) {
+	return utils.Engine_token.Where("uid = ? and token_id = ?",uid,token_id).Get(this)
+}

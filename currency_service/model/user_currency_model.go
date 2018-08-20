@@ -32,6 +32,17 @@ func (UserCurrency) TableName() string {
 	return "user_currency"
 }
 
+
+
+func (this *UserCurrency) GetByUid(uid uint64) (ucurrencys []UserCurrency, err error) {
+	sql := "select * from user_currency where uid=?"
+	engine := dao.DB.GetMysqlConn()
+	err = engine.SQL(sql, uid).Find(&ucurrencys)
+	return
+}
+
+
+
 func (this *UserCurrency) Get(id uint64, uid uint64, token_id uint32) *UserCurrency {
 
 	data := new(UserCurrency)

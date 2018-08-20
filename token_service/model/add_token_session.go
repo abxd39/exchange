@@ -133,6 +133,16 @@ func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err e
 	}
 	var ok bool
 	r := &MoneyRecord{}
+
+	log.WithFields(log.Fields{
+		"uid":      req.Uid,
+		"token_id": req.TokenId,
+		"opt":      req.Opt,
+		"num":      req.Num,
+		"ukey":     req.Ukey,
+		"ukey_str": string(req.Ukey),
+		"type":     req.Type,
+	}).Errorf("inset  money record error %s", err.Error())
 	ok, err = r.CheckExist(string(req.Ukey), req.Type)
 	if err != nil {
 		return

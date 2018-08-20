@@ -29,6 +29,9 @@ service Gateway2Waller {
     rpc GetAddress(GetAddressRequest) returns (GetAddressResponse){}
 
     rpc CancelTiBi(CancelTiBiRequest) returns (CancelTiBiResponse){}
+
+    //补充更新区块交易
+    rpc SyncEthBlockTx(SyncEthBlockTxRequest) returns (SyncEthBlockTxResponse){}
 }
 
 
@@ -295,6 +298,15 @@ message CancelTiBiRequest{
 }
 
 message CancelTiBiResponse{
+    int32 code=1;
+    string msg=2;
+}
+
+message SyncEthBlockTxRequest{
+    int32 block=1;
+}
+
+message SyncEthBlockTxResponse{
     int32 code=1;
     string msg=2;
 }

@@ -16,7 +16,7 @@ func GenerateKline() (uOrderHistoryList []Order){
 	tctcy := new(TokenConfigTokenCNy)
 	tctcy.GetPrice(uint32(tokenId))
 	now := time.Now()
-	for i:=0;  i< 200 ;  i++  {
+	for i:=0;  i< 20 ;  i++  {
 		mm, _ := time.ParseDuration(fmt.Sprintf("-%dm", 5 * i)) // 过期时间15分钟
 		createtime := now.Add(mm).Format("2006-01-02 15:04:05")
 		rand.Seed(time.Now().UnixNano())

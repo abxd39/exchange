@@ -169,6 +169,16 @@ func (s *TokenRPCCli) CallSubTokenWithFronze(p *proto.SubTokenWithFronzeRequest)
 	return
 }
 
+
+func (s *TokenRPCCli) CallTokenBalanceCny(p *proto.TokenBalanceCnyRequest) (rsp *proto.TokenBalanceCnyResponse, err error) {
+	rsp, err = s.conn.TokenBalanceCny(context.TODO(), p)
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
 type KLineData struct {
 	ID     int64   `json:"id"`     // K线ID
 	Open   float64 `json:"open"`   // 开盘价
