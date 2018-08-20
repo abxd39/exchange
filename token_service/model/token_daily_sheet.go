@@ -1,16 +1,5 @@
 package model
 
-//import (
-//	"fmt"
-//	"log"
-//	"digicon/common/convert"
-//	"time"
-//	"github.com/robfig/cron"
-//)
-//
-//<<<<<<< HEAD
-//=======
-
 import (
 	"digicon/common/convert"
 	. "digicon/token_service/dao"
