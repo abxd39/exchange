@@ -175,3 +175,23 @@ func (this *WalletToken) GetByAddressContract(address,contract string) (bool,err
 func (this *WalletToken) CheckExists(address string,contract string) (bool,error) {
 	return Engine_wallet.Where("address = ? and contract = ?",address,contract).Exist()
 }
+
+//根据类型查询以太坊钱包
+func (this *WalletToken) GetByTypeUid(wallet_type string,uid int) (bool,error) {
+	boo, err := Engine_wallet.Where("type = ? and uid = ?",wallet_type,uid).Get(this)
+	return boo,err
+}
+
+//创建以太坊钱包
+func (this *WalletToken) CopyEth(userid int, tokenid int, password string, chainid int) (addr string, err error) {
+	var walletTokenModel = WalletToken{Uid:this.Uid,Password: password, Tokenid: tokenid,Type:this.Type,Chainid: chainid,
+		Address:this.Address,Keystore:this.Keystore,Privatekey:this.Privatekey,
+	}
+
+	//walletTokenModel.Address, walletTokenModel.Keystore, walletTokenModel.Privatekey, err = New_keystore(password)
+	if err != nil {
+		return "", err
+	}
+	err = walletTokenModel.Create()
+	return walletTokenModel.Address, err
+}

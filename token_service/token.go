@@ -1,6 +1,7 @@
 package main
 
 import (
+	"digicon/common/snowflake"
 	"digicon/common/xlog"
 	cf "digicon/token_service/conf"
 	"digicon/token_service/cron"
@@ -26,6 +27,8 @@ func init() {
 
 func main() {
 	flag.Parse()
+	snowflake.Init()
+
 	fmt.Println("main run ...")
 	log.Infof("begin run server")
 	//snowflake.Init()

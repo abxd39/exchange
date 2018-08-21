@@ -198,7 +198,7 @@ func (this *WalletGroup) Signtx(ctx *gin.Context) {
 	rsp, err := rpc.InnerService.WalletSevice.CallSigntx(param.Uid, param.TokenId, param.To, param.Gasprice, param.Amount)
 	if err != nil {
 		log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		ret.SetErrCode(ERRCODE_UNKNOWN, "rpc error"+err.Error())
 		return
 	}
 	if rsp.Code != "0" {
@@ -245,7 +245,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 	}
 	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx, param.Applyid)
 	if err != nil {
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
