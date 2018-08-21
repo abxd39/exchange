@@ -38,9 +38,7 @@ func main() {
 	client.InitInnerService()
 
 	cron.InitCron()
-
-
-	cron.CheckAdsAutoDownline()
+	
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
