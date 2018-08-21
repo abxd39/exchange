@@ -23,7 +23,6 @@ func ByteToInt64(b []byte) (x int64) {
 }
 
 func Int64ToInt64By8Bit(b int64) int64 {
-
 	a := decimal.New(b, 0)
 	r := a.Mul(decimal.New(100000000, 0))
 	return  r.IntPart()
@@ -45,8 +44,6 @@ func Int64ToStringBy8Bit(b int64) string {
 func StringToInt64By8Bit(s string) (int64, error) {
 	d, err := decimal.NewFromString(s)
 	l := d.Round(8).Coefficient().Int64()
-	//g,_:=decimal.NewFromString("100000000")
-	//l:=d.Mul(g)
 	return l, err
 }
 
@@ -144,3 +141,12 @@ func Int64AddInt64Float64Percent(a int64, b int64) string {
 	return s
 }
 
+func Int64MulStringInt64By8Bit(a int64, b string) string {
+	dd := decimal.New(a, 0)
+	dp,err := decimal.NewFromString(b)
+	if err!=nil {
+		return ""
+	}
+	t:=dd.Mul(dp)
+	return t.String()
+}

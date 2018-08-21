@@ -265,7 +265,7 @@ func (s *PriceWorkQuene) Subscribe(mpp chan *MsgPricePublish) {
 		if c.Price == 0 {
 			continue
 		}
-
+		log.Infof("rev price %d symbol %s", c.Price, c.Symbol)
 		t := time.Unix(c.Id, 0)
 		if t.Second() == 0 {
 			err = s.updatePrice2(c)

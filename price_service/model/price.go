@@ -76,14 +76,14 @@ func GetLow(begin, end int64, symbol string) (low int64) {
 }
 
 //计算当前价格数据
-func Calculate(token_id int32 ,price, amount, cny_price int64, symbol string, high, low int64) *proto.PriceBaseData {
+func Calculate(token_id int32, price, amount, cny_price int64, symbol string, high, low int64) *proto.PriceBaseData {
 	t := time.Now()
 
 	s := t.Second()
 	min := t.Add(-time.Duration(s) * time.Second)
 	same := min.Unix()
 	log.Info(same)
-	l := min.Add(-600 * time.Second)
+	l := min.Add(-86400 * time.Second)
 	yestday := l.Unix()
 	p := &Price{}
 	ok, err := DB.GetMysqlConn().Where("id=? and symbol=?", yestday, symbol).Get(p)
@@ -109,22 +109,22 @@ func Calculate(token_id int32 ,price, amount, cny_price int64, symbol string, hi
 		"symbol":   symbol,
 	}).Info("current price print")
 	var cny string
-	c,ok:=GetQueneMgr().PriceMap[token_id]
+	c, ok := GetQueneMgr().PriceMap[token_id]
 	if !ok {
-		cny="0"
-	}else{
-		cny=convert.Int64ToStringBy8Bit(c.CnyPrice)
+		cny = "0"
+	} else {
+		cny = convert.Int64ToStringBy8Bit(c.CnyPrice)
 	}
 
 	return &proto.PriceBaseData{
-		Symbol:   symbol,
-		High:     convert.Int64ToStringBy8Bit(high),
-		Low:      convert.Int64ToStringBy8Bit(low),
-		Scope:    convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
-		Amount:   convert.Int64ToStringBy8Bit(amount - p.Amount),
-		Price:    convert.Int64ToStringBy8Bit(price),
+		Symbol: symbol,
+		High:   convert.Int64ToStringBy8Bit(high),
+		Low:    convert.Int64ToStringBy8Bit(low),
+		Scope:  convert.Int64DivInt64StringPercent(price-p.Price, p.Price),
+		Amount: convert.Int64ToStringBy8Bit(amount - p.Amount),
+		Price:  convert.Int64ToStringBy8Bit(price),
 		//CnyPrice: convert.Int64MulInt64By8BitString(cny_price, price),
-		CnyPrice :cny,
+		CnyPrice: cny,
 	}
 
 }

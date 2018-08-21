@@ -28,7 +28,8 @@ func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, erro
 		return ERRCODE_ACCOUNT_NOTEXIST, nil
 	}
 	//旧密码的判断
-	if b := strings.Compare(req.OldPwd, ph.Pwd); b != 0 {
+	old:=encryption.GenMd5AndReverse(req.OldPwd)
+	if b := strings.Compare(old, ph.Pwd); b != 0 {
 		return ERRCODE_OLDPWD, nil
 	}
 	fmt.Println("lllllllllllllllllllllllllllllllllll")

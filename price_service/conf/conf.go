@@ -3,7 +3,6 @@ package conf
 import (
 	"flag"
 	"github.com/Unknwon/goconfig"
-
 )
 
 var (
@@ -26,16 +25,16 @@ func init() {
 
 func Init() {
 	Cfg = NewConfig(confPath)
-/*
-	viper.SetConfigName("price") // name of config file (without extension)
-	//viper.AddConfigPath("/etc/appname/")   // path to look for the config file in
-	viper.AddConfigPath(".")               // optionally look for config in the working directory
-	//viper.AddConfigPath("./price_service")   // path to look for the config file in
-	err := viper.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-	g:=viper.Get("etcd.addr")
-	fmt.Println(g)
+	/*
+		viper.SetConfigName("price") // name of config file (without extension)
+		//viper.AddConfigPath("/etc/appname/")   // path to look for the config file in
+		viper.AddConfigPath(".")               // optionally look for config in the working directory
+		//viper.AddConfigPath("./price_service")   // path to look for the config file in
+		err := viper.ReadInConfig() // Find and read the config file
+		if err != nil { // Handle errors reading the config file
+			panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		}
+		g:=viper.Get("etcd.addr")
+		fmt.Println(g)
 	*/
 }

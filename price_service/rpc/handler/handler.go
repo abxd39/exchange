@@ -14,7 +14,6 @@ import (
 	"golang.org/x/net/context"
 	"strings"
 	"time"
-
 )
 
 type RPCServer struct {
@@ -56,11 +55,11 @@ func (s *RPCServer) Process() {
 			}
 		}
 
-		d:=time.Duration(diff+10)*time.Second
-		c.AddJobWithInterval(d,  job)
+		d := time.Duration(diff+10) * time.Second
+		c.AddJobWithInterval(d, job)
 
 		time.Sleep(d)
-		log.Info("circle process send price")
+		//log.Info("circle process send price")
 	}
 }
 
@@ -74,7 +73,7 @@ func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 		return err
 	}
 
-	err =DB.GetRedisConn().Set("history.price.go.micro",g,0).Err()
+	err = DB.GetRedisConn().Set("history.price.go.micro", g, 0).Err()
 
 	if err != nil {
 		log.Errorln(err.Error())
@@ -158,14 +157,14 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 			g := model.ConfigQueneInit[v.Name]
 			p.Price = g.Price
 			p.Amount = 0
-			log.Errorf("SymbolsById not found name %s",v.Name)
+			log.Errorf("SymbolsById not found name %s", v.Name)
 		}
 
 		price := q.GetEntry().Price
 
 		c, ok := model.GetQueneMgr().PriceMap[v.TokenTradeId]
 		if !ok {
-			log.Errorf("SymbolsById not found TokenTradeId %s",v.TokenTradeId)
+			log.Errorf("SymbolsById not found TokenTradeId %s", v.TokenTradeId)
 			continue
 		}
 
@@ -316,14 +315,29 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 		h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
 		r := model.Calculate(q.ToekenTradeId, price, q.GetEntry().Amount, q.CnyPrice, q.Symbol, h, l)
 
-		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
-			Symbol: v.Name,
-			Price:  r.Price,
-			Scope:  r.Scope,
-			Low:    r.Low,
-			High:   r.High,
-			Amount: r.Amount,
-		})
+		cny_price, ok := model.GetQueneMgr().PriceMap[q.ToekenTradeId]
+		if ok {
+			rsp.Data = append(rsp.Data, &proto.QutationBaseData{
+				Symbol:   v.Name,
+				Price:    r.Price,
+				Scope:    r.Scope,
+				Low:      r.Low,
+				High:     r.High,
+				Amount:   r.Amount,
+				CnyPrice: convert.Int64MulStringInt64By8Bit(cny_price.CnyPrice, r.Price),
+				CnyLow:   convert.Int64MulStringInt64By8Bit(cny_price.CnyPrice, r.Low),
+				CnyHigh:  convert.Int64MulStringInt64By8Bit(cny_price.CnyPrice, r.High),
+			})
+		}else{
+			rsp.Data = append(rsp.Data, &proto.QutationBaseData{
+				Symbol: v.Name,
+				Price:  r.Price,
+				Scope:  r.Scope,
+				Low:    r.Low,
+				High:   r.High,
+				Amount: r.Amount,
+			})
+		}
 	}
 	return nil
 }

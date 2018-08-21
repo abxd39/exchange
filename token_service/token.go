@@ -32,6 +32,7 @@ func main() {
 
 	dao.InitDao()
 	fmt.Println("init dao ....")
+
 	//model.Test2(1,1000)
 	//model.Test3(1533139200,1533225600)
 	//model.Testg()

@@ -136,6 +136,9 @@ message QutationBaseData{
     string low                          =4;
     string high                         =5;
     string amount                         =6;
+    string cny_price                    =7;
+    string cny_low                          =8;
+    string cny_high                         =9;
 }
 
 message QuotationResponse{
@@ -170,6 +173,7 @@ message VolumeResponse{
 
 message SymbolsByIdRequest{
     int32 token_id  =1;
+    int32 type=2;
 }
 
 message SymbolsByIdResponse{

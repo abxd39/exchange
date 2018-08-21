@@ -1292,8 +1292,42 @@ func (s *EntrustQuene) process() {
 	}
 }
 
-//定时器
+
 func (s *EntrustQuene) Clock() {
+	for {
+		t:=time.Now()
+		if t.Second()%60==0 {
+			m := &proto.PriceCache{
+				Id:          time.Now().Unix(),
+				Symbol:      s.TokenQueueId,
+				Price:       s.price_c,
+				CreatedTime: time.Now().Unix(),
+				Amount:      s.amount,
+				Count:       s.count,
+				Vol:         s.vol,
+				UsdVol:      s.usd_vol,
+			}
+
+			t := jsonpb.Marshaler{EmitDefaults: true}
+			data, err := t.MarshalToString(m)
+			if err != nil {
+				log.Errorln(err.Error())
+				return
+			}
+			log.Infof("begin publish symbol %s",s.TokenQueueId)
+			err = DB.GetRedisConn().Publish(s.PriceChannel, data).Err()
+
+			if err != nil {
+				log.Errorln(err.Error())
+				return
+			}
+		}
+		time.Sleep(1*time.Second)
+	}
+
+}
+//定时器
+func (s *EntrustQuene) Clock2() {
 	for {
 		c := clock.NewClock()
 		t := time.Now()
@@ -1316,7 +1350,7 @@ func (s *EntrustQuene) Clock() {
 				log.Errorln(err.Error())
 				return
 			}
-
+			log.Infof("begin to publish  trade symbol %s",s.TokenQueueId)
 			err = DB.GetRedisConn().Publish(s.PriceChannel, data).Err()
 
 			if err != nil {
@@ -1326,11 +1360,13 @@ func (s *EntrustQuene) Clock() {
 
 		}
 
-		d := time.Duration(diff+30) * time.Second
+		d := time.Duration(diff) * time.Second
+
+		inter := time.Duration(1*time.Second)
 		c.AddJobWithInterval(d, job)
-		time.Sleep(d)
+		time.Sleep(inter)
 		//c.AddJobWithInterval(time.Duration(diff+30)*time.Second,  job)
-		log.Info("circle process send trade symbol %s",s.TokenQueueId)
+		log.Infof("circle process send trade symbol %s",s.TokenQueueId)
 	}
 
 	/*
@@ -1521,13 +1557,23 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw proto.ENTRUST_T
 	for _, v := range z {
 		g = append(g, v.Member.(string))
 	}
-	en = make([]*EntrustDetail, 0)
 
-	err = DB.GetMysqlConn().In("entrust_id", g).Cols().Find(&en)
+	en2 := make(map[string]*EntrustDetail, 0)
+	err = DB.GetMysqlConn().In("entrust_id", g).Cols().Find(&en2)
 	if err != nil {
 		log.Errorln(err)
 		return
 	}
+
+	//调整顺序
+	en = make([]*EntrustDetail, 0)
+	for _,k:=range g {
+		v,ok:=en2[k]
+		if ok {
+			en =append(en,v)
+		}
+	}
+
 	if len(g) > 0 && len(en) == 0 {
 		log.WithFields(log.Fields{
 			"opt":         opt,

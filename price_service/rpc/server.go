@@ -2,6 +2,7 @@ package rpc
 
 import (
 	cf "digicon/price_service/conf"
+	"digicon/price_service/rpc/handler"
 	proto "digicon/proto/rpc"
 	"fmt"
 	"github.com/micro/go-micro"
@@ -9,10 +10,9 @@ import (
 	"github.com/micro/go-plugins/registry/consul"
 	"log"
 	"time"
-	"digicon/price_service/rpc/handler"
 )
 
-func RPCServerInit() (*handler.RPCServer){
+func RPCServerInit() *handler.RPCServer {
 	service_name := cf.Cfg.MustValue("base", "service_name")
 
 	addr := cf.Cfg.MustValue("consul", "addr")
@@ -28,7 +28,7 @@ func RPCServerInit() (*handler.RPCServer){
 	publisher := micro.NewPublisher("topic.go.micro.srv.price", service.Client())
 
 	//proto.RegisterPriceRPCHandler(service.Server(), new(handler.RPCServer))
-	h:=handler.NewRPCServer(publisher)
+	h := handler.NewRPCServer(publisher)
 	proto.RegisterPriceRPCHandler(service.Server(), h)
 
 	if err := service.Run(); err != nil {
