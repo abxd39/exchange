@@ -772,10 +772,18 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 	}
 	var url string
 	var err error
-	if ok, err := regexp.MatchString("^[A-Za-z0-9_\\u4e00-\\u9fa5]{3,10}$", req.NickName);err!=nil || !ok{
-		log.Errorf(err.Error())
-		ret.SetErrCode(ERRCODE_PARAM, err.Error())
-		return
+	if req.NickName!=``{
+		ok, err := regexp.MatchString(`^[A-Za-z0-9_\p{Han}]{1,10}$`, req.NickName)
+		if err!=nil {
+			log.Errorf(err.Error())
+			fmt.Println(err.Error())
+			ret.SetErrCode(ERRCODE_PARAM, err.Error())
+			return
+		}
+		if !ok{
+			ret.SetErrCode(ERRCODE_PARAM, errors.New("昵称包含非法字符不允许").Error())
+			return
+		}
 	}
 
 	if req.Url != ""{

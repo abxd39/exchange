@@ -70,18 +70,18 @@ type SumSellTotal struct {
 /*
  ====================  sum buy total all =================
 */
-func (this *Order) GetTotalSum(tokenId uint32) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
-		sql := "select sum(num) as  buy_total_all,price  from `order`  where  token_id =? and ad_type=? and states=3 "
+func (this *Order) GetTotalSum(tokenId uint32, endTime string) (sumBuy SumBuyTotal, sumSell SumSellTotal, err error) {
+		sql := "select sum(num) as  buy_total_all,price  from `order`  where  token_id =? and ad_type=? and states=3 and created_time < ?"
 		engine := dao.DB.GetMysqlConn()
 		var btotal BuyTotal
-		_, err = engine.Table("order").SQL(sql, tokenId, SellType).Get(&btotal)
+		_, err = engine.Table("order").SQL(sql, tokenId, SellType, endTime).Get(&btotal)
 
 		sumBuy.BuyTotalAll = btotal.BuyTotalAll
 		sumBuy.BuyTotalAllCny = convert.Int64MulInt64By8Bit(btotal.BuyTotalAll, btotal.Price)
 
-		buysql := "select sum(num) as  sell_total_all, price  from `order` where  token_id =? and ad_type=? and states=3 "
+		buysql := "select sum(num) as  sell_total_all, price  from `order` where  token_id =? and ad_type=? and states=3 and created_time < ?"
 		var stotal SellTotal
-		_, err = engine.Table("order").SQL(buysql, tokenId, BuyType).Get(&stotal)
+		_, err = engine.Table("order").SQL(buysql, tokenId, BuyType, endTime).Get(&stotal)
 
 		log.Printf("tokenId: %v, stotal: %v \n", tokenId, stotal)
 
