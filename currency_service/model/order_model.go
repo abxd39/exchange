@@ -980,15 +980,6 @@ func CancelAction(id uint64, CancelType uint32) (code int32, err error) {
 	}
 
 
-	//historySql := "update `user_currency_history` set  `states`=4 where `order_id`=? "
-	//_, err = session.Exec(historySql, od.OrderId)
-	//if err != nil {
-	//	log.Errorln("update  user_currency_history states error!", err)
-	//	code = ERRCODE_UNKNOWN
-	//	session.Rollback()
-	//	return
-	//}
-
 	fmt.Println("session commit ....")
 	err = session.Commit()
 	if err != nil {
