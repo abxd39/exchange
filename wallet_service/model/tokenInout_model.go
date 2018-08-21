@@ -109,7 +109,7 @@ func (this *TokenInout) BtcInsert(txhash, from, to, tokenName string, amount int
 func (this *TokenInout) UpdateApplyTiBi(applyid int, txhash string) (int, error) {
 	//var data = new(TokenInout)
 	//data.Txhash = txhash
-	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{Txhash: txhash, States: 1}) //提币已经提交区块链，修改交易hash和正在提币状态
+	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{Txhash: txhash}) //提币已经提交区块链，修改交易hash和正在提币状态
 	return int(affected), err
 }
 
@@ -153,7 +153,7 @@ func (this *TokenInout) GetInOutList(pageIndex, pageSize int, filter map[string]
 }
 
 //提币申请
-func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string,amountCny int64,feeCny int64) (ret int,err error) {
+func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string,amountCny int64,feeCny int64,from_address string) (ret int,err error) {
 	//查询form地址
 	var walletToken = new(WalletToken)
 	err = walletToken.GetByUid(uid)
@@ -169,7 +169,7 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 	}
 
 
-	from := walletToken.Address
+	from := from_address //walletToken.Address
 
 	this.From = from
 	this.To = to
