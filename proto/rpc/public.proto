@@ -131,6 +131,7 @@ message GetSiteConfigResponse{
             string phone                =1;
             string email                =2;
             string address              =3;
+            string dianbao              =4;
 	    }
 
 	    Site site               =1;

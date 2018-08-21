@@ -51,7 +51,45 @@ func (s *CommonGroup) GetSiteConfig(c *gin.Context) {
 	ret.SetErrCode(rsp.Code, rsp.Message)
 
 	if rsp.Code == ERRCODE_SUCCESS {
-		ret.SetDataSection("site_config", rsp.Data.Site)
-		ret.SetDataSection("kefu_config", rsp.Data.Kefu)
+		site := struct {
+			Name            string `json:"name"`
+			EnglishName     string `json:"english_name"`
+			Title           string `json:"title"`
+			EnglishTitle    string `json:"english_title"`
+			Logo            string `json:"logo"`
+			Keyword         string `json:"keyword"`
+			EnglishKeyword  string `json:"english_keyword"`
+			Desc            string `json:"desc"`
+			EnglishDesc     string `json:"english_desc"`
+			Beian           string `json:"beian"`
+			StatisticScript string `json:"statistic_script"`
+		}{
+			Name:            rsp.Data.Site.Name,
+			EnglishName:     rsp.Data.Site.EnglishName,
+			Title:           rsp.Data.Site.Title,
+			EnglishTitle:    rsp.Data.Site.EnglishTitle,
+			Logo:            rsp.Data.Site.Logo,
+			Keyword:         rsp.Data.Site.Keyword,
+			EnglishKeyword:  rsp.Data.Site.EnglishKeyword,
+			Desc:            rsp.Data.Site.Desc,
+			EnglishDesc:     rsp.Data.Site.EnglishDesc,
+			Beian:           rsp.Data.Site.Beian,
+			StatisticScript: rsp.Data.Site.StatisticScript,
+		}
+
+		kefu := struct {
+			Phone   string `json:"phone"`
+			Email   string `json:"email"`
+			Address string `json:"address"`
+			Dianbao string `json:"dianbao"`
+		}{
+			Phone:   rsp.Data.Kefu.Phone,
+			Email:   rsp.Data.Kefu.Email,
+			Address: rsp.Data.Kefu.Address,
+			Dianbao: rsp.Data.Kefu.Dianbao,
+		}
+
+		ret.SetDataSection("site_config", site)
+		ret.SetDataSection("kefu_config", kefu)
 	}
 }
