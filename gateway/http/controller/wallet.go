@@ -728,7 +728,7 @@ func (this *WalletGroup) CancelSubTokenWithFronze(ctx *gin.Context) {
 		Tokenid   int32 `form:"token_id" json:"token_id" binding:"required"`
 		Num    int64  `form:"num" json:"num" binding:"required"`
 		Ukey string  `form:"ukey" json:"ukey" binding:"required"`
-		Type int32  `form:"type" json:"type" binding:"required"`
+		Key string  `form:"key" json:"key" binding:"required"`
 	}{}
 
 	if err := ctx.ShouldBind(param); err != nil {
@@ -737,9 +737,13 @@ func (this *WalletGroup) CancelSubTokenWithFronze(ctx *gin.Context) {
 		return
 	}
 
-	rsp, err := rpc.InnerService.WalletSevice.CallCancelSubTokenWithFronze(param.Uid,param.Tokenid,param.Num,param.Ukey,param.Type)
-	if err != nil || rsp.Code != 0 {
+	rsp, err := rpc.InnerService.WalletSevice.CallCancelSubTokenWithFronze(param.Uid,param.Tokenid,param.Num,param.Ukey,param.Key)
+	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN,err.Error())
+		return
+	}
+	if rsp.Code != 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Msg)
 		return
 	}
 	ret.SetErrCode(rsp.Code, rsp.Msg)

@@ -336,7 +336,7 @@ message CancelSubTokenWithFronzeRequest{
     int32 tokenid=2;
     int64 num=3;
     string ukey=4;
-    int32 type=5;
+    string key=5;
 }
 
 message CancelSubTokenWithFronzeResponse{
