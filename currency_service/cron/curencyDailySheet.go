@@ -20,10 +20,13 @@ func (this DailyCountSheet) Run() {
 
 	nTime := time.Now()
 	yesTime := nTime.AddDate(0, 0, -1)     // 统计昨天的
-	startTime := yesTime.Format("2006-01-02 15:04:05")
-	endTime := nTime.Format("2006-01-02 15:04:05")
+	yesDate := yesTime.Format("2006-01-02")
+	startTime:= fmt.Sprintf("%s 00:00:00", yesDate)
+	endTime := fmt.Sprintf("%s 23:59:59", yesDate)
 
-	today := nTime.Format("2006-01-02")
+	//endTime := nTime.Format("2006-01-02 15:04:05")
+	//yesday := yesTime.Format("2006-01-02")
+
 
 	log.Println("startTime:", startTime)
 	log.Println("endTime:", endTime)
@@ -34,7 +37,7 @@ func (this DailyCountSheet) Run() {
 
 		/// check exists ....
 		mcuds := new(model.CurrencyDailySheet)
-		checkResult, err := mcuds.GetOneDay(tkId, today)
+		checkResult, err := mcuds.GetOneDay(tkId, yesDate)
 		if err != nil {
 			log.Errorln(err)
 		}
@@ -99,7 +102,7 @@ func (this DailyCountSheet) Run() {
 
 			Total:    sumBuy.BuyTotalAll + sumSell.SellTotalAll,
 			TotalCny: sumBuy.BuyTotalAllCny + sumSell.SellTotalAllCny,
-			Date:     today,
+			Date:     yesDate,
 		}
 
 		err = mcds.InsertOneDay()

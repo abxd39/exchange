@@ -24,10 +24,12 @@ func (this WalletDailyCountSheet) Run(){
 
 	yesDayTime := nTime.AddDate(0, 0, -1)   // 统计昨天的
 
-	startTime := yesDayTime.Format("2006-01-02 15:04:05")
-	endTime := nTime.Format("2006-01-02 15:04:05")
+	yesDate := yesDayTime.Format("2006-01-02")
+	startTime:= fmt.Sprintf("%s 00:00:00", yesDate)
+	endTime := fmt.Sprintf("%s 23:59:59", yesDate)
 
-	today := nTime.Format("2006-01-02")
+	//endTime := nTime.Format("2006-01-02 15:04:05")
+	//yesday := yesDayTime.Format("2006-01-02 15:04:05")
 
 	fmt.Println("startTime:", startTime, " endTime:",endTime, "nowtime:", nTime.Unix())
 
@@ -39,7 +41,7 @@ func (this WalletDailyCountSheet) Run(){
 
 		/// check exists ....
 		mcuds := new(models.TokenInoutDailySheet)
-		has, err := mcuds.CheckOneDay(uint32(tkId), today)
+		has, err := mcuds.CheckOneDay(uint32(tkId), yesDate)
 		if err != nil {
 			log.Errorln(err)
 		}
@@ -128,7 +130,7 @@ func (this WalletDailyCountSheet) Run(){
 			Total:           total,
 			TotalFee:        total_fee,
 			TotalPut:        total_put,
-			Date:            today,
+			Date:            yesDate,
 		}
 		err = onedayInOutModel.InsertOneDayTotal()
 		fmt.Println(onedayInOutModel.Id)
@@ -137,6 +139,7 @@ func (this WalletDailyCountSheet) Run(){
 			log.Errorln("wallet统计失败", err)
 			fmt.Println(err)
 		}else{
+			log.Println("统计成功!", tkId)
 			log.Println("统计成功!", tkId)
 		}
 

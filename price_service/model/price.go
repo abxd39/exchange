@@ -186,22 +186,22 @@ func GetVolumeTotal() *proto.VolumeResponse {
 	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id >= (select max(id) from price) group by symbol order by id desc) as a").Get(&nowVolume)
 	if err != nil || res != true {
 		log.Warningln(err.Error())
-		return nil
+		nowVolume.Sum = 0
 	}
 	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a", dayUnix).Get(&dayVolume)
 	if err != nil || res != true {
 		log.Warningln(err.Error())
-		return nil
+		dayVolume.Sum = 0
 	}
 	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a", weekUnix).Get(&weekVolume)
 	if err != nil || res != true {
 		log.Warningln(err.Error())
-		return nil
+		weekVolume.Sum = 0
 	}
 	res, err = DB.GetMysqlConn().SQL("select sum(usd_vol) Sum,sum(amount) Amount from (select * from price where id > ? group by symbol order by id desc) as a", mondayUnix).Get(&monthVolume)
 	if err != nil || res != true {
 		log.Warningln(err.Error())
-		return nil
+		monthVolume.Sum = 0
 	}
 
 	data := &proto.VolumeResponse{

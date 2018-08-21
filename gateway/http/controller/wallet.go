@@ -44,6 +44,8 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.POST("/sync_block", TokenVerify,this.SyncEthBlockTx)  //同步区块信息
 
 	r.POST("/get_out_token_fee", TokenVerify,this.GetOutTokenFee)  //获取提币手续费
+
+	r.POST("/cancel_fronze",this.CancelSubTokenWithFronze)  //取消冻结
 }
 
 
@@ -231,8 +233,8 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type Param struct {
-		TokenId int32  `form:"token_id" binding:"required"`
-		Signtx  string `form:"signtx" binding:"required"`
+		TokenId int32  `form:"token_id" json:"token_id" binding:"required"`
+		Signtx  string `form:"signtx" json:"signtx" binding:"required"`
 		Applyid int32  `form:"apply_id"     json:"apply_id"     binding:"required"` //申请提币id
 	}
 	var param Param
@@ -711,5 +713,39 @@ func (this *WalletGroup) GetOutTokenFee(ctx *gin.Context) {
 
 	ret.SetErrCode(rsp.Code, rsp.Msg)
 	ret.SetDataSection("list", list)
+	return
+}
+
+//解冻冻结数据，供后台用
+func (this *WalletGroup) CancelSubTokenWithFronze(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	param := &struct {
+		Uid     int32  `form:"uid" json:"uid" binding:"required"`
+		Tokenid   int32 `form:"token_id" json:"token_id" binding:"required"`
+		Num    int64  `form:"num" json:"num" binding:"required"`
+		Ukey string  `form:"ukey" json:"ukey" binding:"required"`
+		Key string  `form:"key" json:"key" binding:"required"`
+	}{}
+
+	if err := ctx.ShouldBind(param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	rsp, err := rpc.InnerService.WalletSevice.CallCancelSubTokenWithFronze(param.Uid,param.Tokenid,param.Num,param.Ukey,param.Key)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN,err.Error())
+		return
+	}
+	if rsp.Code != 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN,rsp.Msg)
+		return
+	}
+	ret.SetErrCode(rsp.Code, rsp.Msg)
 	return
 }

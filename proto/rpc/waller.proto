@@ -35,6 +35,9 @@ service Gateway2Waller {
 
     //提币手续费
     rpc GetOutTokenFee(GetOutTokenFeeRequest) returns (GetOutTokenFeeResponse){}
+
+    //取消冻结
+    rpc CancelSubTokenWithFronze(CancelSubTokenWithFronzeRequest) returns (CancelSubTokenWithFronzeResponse){}
 }
 
 
@@ -324,6 +327,19 @@ message GetOutTokenFeeResponse{
         string fee = 2;
     }
     repeated list data=1;
+    int32 code=2;
+    string msg=3;
+}
+
+message CancelSubTokenWithFronzeRequest{
+    int32 uid=1;
+    int32 tokenid=2;
+    int64 num=3;
+    string ukey=4;
+    string key=5;
+}
+
+message CancelSubTokenWithFronzeResponse{
     int32 code=2;
     string msg=3;
 }

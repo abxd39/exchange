@@ -186,3 +186,18 @@ func (this *WalletRPCCli) CallGetOutTokenFee() (rsp *proto.GetOutTokenFeeRespons
 	}
 	return
 }
+
+func (this *WalletRPCCli) CallCancelSubTokenWithFronze(uid int32,token_id int32,num int64,ukey string,key string) (rsp *proto.CancelSubTokenWithFronzeResponse, err error) {
+	rsp, err = this.conn.CancelSubTokenWithFronze(context.TODO(), &proto.CancelSubTokenWithFronzeRequest{
+		Uid:uid,
+		Tokenid:token_id,
+		Num:num,
+		Ukey:ukey,
+		Key:key,
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

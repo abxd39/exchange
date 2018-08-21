@@ -2,9 +2,6 @@ package model
 
 import (
 	proto "digicon/proto/rpc"
-	"github.com/golang/protobuf/jsonpb"
-	log "github.com/sirupsen/logrus"
-	"digicon/currency_service/dao"
 )
 
 
@@ -13,23 +10,24 @@ var CnyPriceMap map[int32]*proto.CnyBaseData
 func InitCnyPrice() {
 	CnyPriceMap = make(map[int32]*proto.CnyBaseData, 0)
 
-	r, err := dao.DB.GetRedisConn().Get("history.price.go.micro").Result()
-
-	if err != nil {
-		log.Info("please init price first..")
-		log.Fatal("please init price first")
-	}
-
-	out := &proto.CnyPriceResponse{}
-	err = jsonpb.UnmarshalString(r, out)
-	if err != nil {
-		log.Fatal("please init price first err %s", err.Error())
-		return
-	}
-
-	for _, v := range out.Data {
-		CnyPriceMap[v.TokenId] = v
-	}
+	//r, err := dao.DB.GetRedisConn().Get("history.price.go.micro").Result()
+	//
+	//if err != nil {
+	//	log.Errorln("history error:", err.Error())
+	//	log.Info("please init price first..")
+	//	log.Fatal("please init price first")
+	//}
+	//
+	//out := &proto.CnyPriceResponse{}
+	//err = jsonpb.UnmarshalString(r, out)
+	//if err != nil {
+	//	log.Fatal("please init price first err %s", err.Error())
+	//	return
+	//}
+	//
+	//for _, v := range out.Data {
+	//	CnyPriceMap[v.TokenId] = v
+	//}
 
 }
 
