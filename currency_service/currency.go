@@ -38,7 +38,7 @@ func main() {
 	client.InitInnerService()
 
 	cron.InitCron()
-	
+
 
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
