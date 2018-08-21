@@ -15,7 +15,6 @@ import (
 	"digicon/wallet_service/rpc/client"
 	log "github.com/sirupsen/logrus"
 	"digicon/common/random"
-	"math/big"
 	cf "digicon/wallet_service/conf"
 )
 
@@ -509,23 +508,37 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 
 
 	//先冻结资金
-	tmp1,boo := new(big.Int).SetString(req.Amount,10)
-	if boo != true {
-		log.Error(GetErrorMessage(ERRCODE_FORMAT),req.Amount,tmp1,boo)
+
+
+	a,err := strconv.ParseFloat(req.Amount,10)
+	if err != nil {
+		log.Error(GetErrorMessage(ERRCODE_FORMAT),req.Amount,err)
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = GetErrorMessage(ERRCODE_FORMAT)
 		return errors.New(GetErrorMessage(ERRCODE_FORMAT))
 	}
-	fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
+	t1 := decimal.NewFromFloat(a)
+	t1_c := decimal.NewFromFloat(float64(100000000))
+	fee := t1.Mul(t1_c).IntPart()
+
+
+	//tmp1,boo := new(big.Float).SetString(req.Amount)
+	//if boo != true {
+	//	log.Error(GetErrorMessage(ERRCODE_FORMAT),req.Amount,tmp1,boo)
+	//	rsp.Code = ERRCODE_UNKNOWN
+	//	rsp.Msg = GetErrorMessage(ERRCODE_FORMAT)
+	//	return errors.New(GetErrorMessage(ERRCODE_FORMAT))
+	//}
+	//fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
 	c,rErr := client.InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
 		Uid:uint64(req.Uid),
 		TokenId:req.Tokenid,
-		Num:fee1,
+		Num:fee,
 		Opt:1, //卖
 		Ukey:[]byte(random.Random6dec()),
 		Type:12,  //提币
 	})
-	log.Info("资金冻结结果：",rErr,req.Uid,fee1,c)
+	log.Info("资金冻结结果：",rErr,req.Uid,fee,c)
 	if rErr != nil {
 		log.Error(GetErrorMessage(ERRCODE_FREEZE),rErr)
 		rsp.Code = 1
