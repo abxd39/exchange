@@ -773,7 +773,7 @@ func (s *UserGroup) SetNickName(c *gin.Context) {
 	var url string
 	var err error
 	if req.NickName!=``{
-		ok, err := regexp.MatchString("^[A-Za-z0-9_\u4e00-\u9fa5]{1,10}$", req.NickName)
+		ok, err := regexp.MatchString(`^[A-Za-z0-9_\p{Han}]{1,10}$`, req.NickName)
 		if err!=nil {
 			log.Errorf(err.Error())
 			fmt.Println(err.Error())
