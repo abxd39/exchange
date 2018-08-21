@@ -16,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"digicon/common/random"
 	"math/big"
+	cf "digicon/wallet_service/conf"
 )
 
 type WalletHandler struct{}
@@ -199,6 +200,19 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 		rsp.Msg = error["message"].(string)
 		return nil
 	}
+
+	defer func() {
+		if rsp.Code != "0" {
+			log.WithFields(log.Fields{
+				"signtx":req.Signtx,
+				"token_id":req.TokenId,
+				"code":rsp.Code,
+				"msg":rsp.Msg,
+				"node":TokenModel.Node,
+			}).Error("SendRawTx error")
+		}
+	}()
+
 	return nil
 }
 
@@ -444,8 +458,8 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		feeCny = t2.Mul(t2_c).IntPart()
 	} else {
 		rsp.Code = ERRCODE_UNKNOWN
-		rsp.Msg = "获取人民币价格出错"+err.Error()
-		return errors.New("获取人民币价格出错")
+		rsp.Msg = "获取价格出错"+err.Error()
+		return errors.New("获取价格出错")
 	}
 
 
@@ -468,12 +482,20 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	log.Info("资金冻结结果：",rErr,req.Uid,fee1,c)
 	if rErr != nil {
 		rsp.Code = 1
-		rsp.Msg = "冻结资金失败"
+		rsp.Msg = c.Message
 		return errors.New("冻结资金失败")
 	}
 
+	//查询配置的提币地址
+	fromAddress := cf.Cfg.MustValue("accounts","eth_address","")
+	if fromAddress == "" {
+		rsp.Code = 1
+		rsp.Msg = "提币地址未配置"
+		return errors.New("提币地址未配置")
+	}
+
 	//保存数据
-	_,err = tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice,amountCny,feeCny)
+	_,err = tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice,amountCny,feeCny,fromAddress)
 	if err != nil {
 		log.Error(err.Error())
 		rsp.Code = ERRCODE_UNKNOWN
