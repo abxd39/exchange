@@ -208,7 +208,7 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 
 	rets, err := utils.RpcSendRawTx(TokenModel.Node, req.Signtx)
 	if err != nil {
-		//log.Info("广播交易失败,HTTP ERROR：",err,rets)
+		fmt.Println("广播交易失败,HTTP ERROR：",err,rets)
 		rsp.Code = "1"
 		rsp.Msg = err.Error()
 		return nil
@@ -223,11 +223,11 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 		rsp.Msg = "发送成功"
 		rsp.Data = new(proto.SendRawTxPos)
 		rsp.Data.Result = txhash.(string)
-		//log.Info("广播交易成功：",rsp.Code,rsp.Msg,rsp.Data.Result)
+		fmt.Println("广播交易成功：",rsp.Code,rsp.Msg,rsp.Data.Result)
 		return nil
 	}
 	if !ok {
-		log.Info("SendRawTx success：",rets,err)
+		fmt.Println("SendRawTx success：",rets,err)
 		error := rets["error"].(map[string]interface{})
 		rsp.Code = strconv.Itoa(int(error["code"].(float64)))
 		rsp.Msg = error["message"].(string)
