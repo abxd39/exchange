@@ -130,7 +130,7 @@ enum TOKEN_TYPE_OPERATOR
 {
     NONE                                    =0;
     HISTORY_HASH                            =1;//区块入账
-    HISTORY_ENTRUST                         =2;//委托
+    HISTORY_ENTRUST_G                         =2;//委托暂时废弃
     HISTORY_REGISTER                        =3;//注册奖励
     HISTORY_IVITE                           =4;//邀请奖励
     HISTORY_ENTRUST_DEL                     =5;//撤销委托

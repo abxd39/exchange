@@ -10,7 +10,7 @@ remote_ip=47.106.136.96
 #services="gateway"
 #services="token_service"
 #services="user_service"
-services="user_service"
+services="price_service"
 remote_path="/root/go/src/dig/"
 
 

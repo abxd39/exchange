@@ -218,19 +218,22 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	var token_id int
 	var sum int64
 	var fee_precent float64
+
+	var d proto.TOKEN_TYPE_OPERATOR
 	if p.Opt == proto.ENTRUST_OPT_BUY {
 		token_id = s.TokenId
 		fee_precent = s.BuyPoundage
 		if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
 			sum = convert.Int64DivInt64By8Bit(p.Num, p.OnPrice)
 		}
-
+		d= proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST_BUY
 	} else {
 		token_id = s.TokenTradeId
 		fee_precent = s.SellPoundage
 		if p.Type == proto.ENTRUST_TYPE_LIMIT_PRICE {
 			sum = convert.Int64MulInt64By8Bit(p.Num, p.OnPrice)
 		}
+		d= proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST_SELL
 	}
 
 	g := &EntrustDetail{
@@ -266,7 +269,7 @@ func (s *EntrustQuene) EntrustReq(p *proto.EntrustOrderRequest) (ret int32, err 
 	err = session.Begin()
 
 	//冻结资金
-	ret, err = m.SubMoneyWithFronzen(session, p.Num, g.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST)
+	ret, err = m.SubMoneyWithFronzen(session, p.Num, g.EntrustId, d)
 	if err != nil || ret != ERRCODE_SUCCESS {
 		session.Rollback()
 		return
@@ -755,7 +758,7 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 			"g_num":            g_num,
 			"buyer_type":       buyer.Type,
 			"seller_type":      seller.Type,
-		}).Warn("please check logic")
+		}).Warn("please check logic 1")
 		err = s.SurplusBack(seller)
 		if err != nil {
 			return
@@ -776,7 +779,7 @@ func (s *EntrustQuene) match2(p *EntrustDetail) (err error) {
 			"g_num":            g_num,
 			"buyer_type":       buyer.Type,
 			"seller_type":      seller.Type,
-		}).Warn("please check logic")
+		}).Warn("please check logic 2")
 		err = s.SurplusBack(buyer)
 		if err != nil {
 			return

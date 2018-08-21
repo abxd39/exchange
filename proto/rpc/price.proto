@@ -72,6 +72,9 @@ message PriceBaseData{
     string low          =5;
     string symbol       =6;
     string scope        =7;
+
+    string cny_high    =8;
+    string cny_low   =9;
 }
 
 message CurrentPriceRequest{

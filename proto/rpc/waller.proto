@@ -117,7 +117,7 @@ message SigntxResponse{
     SigntxPos data=3;
 }
 message SendRawTxPos{
-    string result=1;
+    bytes result=1;
 }
 message SendRawTxRequest{
     int32 token_id=1;

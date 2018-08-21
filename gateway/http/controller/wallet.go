@@ -243,6 +243,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
+
 	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx, param.Applyid)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())

@@ -18,8 +18,12 @@ type Price struct {
 	Vol         int64  `xorm:"BIGINT(20)"`
 	Count       int64  `xorm:"BIGINT(20)"`
 	UsdVol      int64  `xorm:"BIGINT(20)"`
+	CnyPrice       int64  `xorm:"BIGINT(20)"`
 }
 
+func (s *Price) FillData()  {
+	
+}
 /*
 type Price struct {
 	Id     int64 `xorm:"BIGINT(20)"`
@@ -49,41 +53,41 @@ func InsertPrice(p *Price) error {
 	return nil
 }
 
-func GetHigh(begin, end int64, symbol string) (high int64) {
+func GetHigh(begin, end int64, symbol string)(*Price) {
 	hp := &Price{}
 	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end, symbol).Desc("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		log.Errorln(err.Error())
-		return 0
+		return nil
 	}
 	if ok {
-		return hp.Price
+		return hp
 	}
-	return 0
+	return nil
 }
 
-func GetLow(begin, end int64, symbol string) (low int64) {
+func GetLow(begin, end int64, symbol string) (*Price) {
 	hp := &Price{}
 	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end, symbol).Asc("price").Limit(1, 0).Get(hp)
 	if err != nil {
 		log.Errorln(err.Error())
-		return 0
+		return nil
 	}
 	if ok {
-		return hp.Price
+		return hp
 	}
-	return 0
+	return nil
 }
 
 //计算当前价格数据
-func Calculate(token_id int32, price, amount, cny_price int64, symbol string, high, low int64) *proto.PriceBaseData {
+func Calculate(token_id int32, price, amount int64, symbol string, high, low int64) *proto.PriceBaseData {
 	t := time.Now()
 
 	s := t.Second()
 	min := t.Add(-time.Duration(s) * time.Second)
 	same := min.Unix()
 	log.Info(same)
-	l := min.Add(-86400 * time.Second)
+	l := min.Add(-600 * time.Second)
 	yestday := l.Unix()
 	p := &Price{}
 	ok, err := DB.GetMysqlConn().Where("id=? and symbol=?", yestday, symbol).Get(p)
@@ -97,6 +101,7 @@ func Calculate(token_id int32, price, amount, cny_price int64, symbol string, hi
 		p.Price = g.Price
 		p.Amount = 0
 	}
+
 	log.WithFields(log.Fields{
 		"high":     high,
 		"low":      low,
@@ -140,19 +145,28 @@ func GetPrice(symbol string) (*Price, bool) {
 }
 
 func Get24HourPrice(symbol string) (*Price, bool) {
-	t := time.Now()
-	l := t.Add(-86400 * time.Second)
 
+	t := time.Now()
+	/*
+l := t.Add(-600 * time.Second)
+
+begin := l.Unix()
+*/
+	s := t.Second()
+	min := t.Add(-time.Duration(s) * time.Second)
+
+	l := min.Add(-600 * time.Second)
 	begin := l.Unix()
-	end := t.Unix()
+	//end := t.Unix()
 	p := &Price{}
 
-	ok, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
+	//ok, err := DB.GetMysqlConn().Where("symbol=? and created_time>=? and created_time<? ", symbol, begin, end).Asc("created_time").Limit(1, 0).Get(p)
+
+	ok, err := DB.GetMysqlConn().Where("symbol=? and created_time=? ", symbol, begin).Get(p)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil, ok
 	}
-
 	return p, ok
 }
 

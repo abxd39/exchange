@@ -147,6 +147,8 @@ func Int64MulStringInt64By8Bit(a int64, b string) string {
 	if err!=nil {
 		return ""
 	}
-	t:=dd.Mul(dp)
+
+	d := decimal.New(100000000, 0)
+	t:=dd.Mul(dp).Div(d)
 	return t.String()
 }

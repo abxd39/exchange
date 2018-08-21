@@ -1,13 +1,14 @@
 package model
 
 import (
-	. "digicon/common/constant"
-	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/user_service/dao"
 	"fmt"
 	"strings"
 	"digicon/common/encryption"
+	. "digicon/proto/common"
+	. "digicon/common/constant"
+	"github.com/lunny/log"
 )
 
 func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, error) {
@@ -29,6 +30,7 @@ func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, erro
 	}
 	//旧密码的判断
 	old:=encryption.GenMd5AndReverse(req.OldPwd)
+	log.Infof("modify pwd oldpwd %s",old)
 	if b := strings.Compare(old, ph.Pwd); b != 0 {
 		return ERRCODE_OLDPWD, nil
 	}
@@ -45,7 +47,9 @@ func (s *User) ModifyLoginPwd(req *proto.UserModifyLoginPwdRequest) (int32, erro
 		return result, nil
 	}
 	//token
-	_, err = engine.Where("uid=?", req.Uid).Update(&User{Pwd: req.NewPwd})
+	newpwd:=encryption.GenMd5AndReverse(req.NewPwd)
+	log.Infof("modify pwd newpwd %s",newpwd)
+	_, err = engine.Where("uid=?", req.Uid).Update(&User{Pwd: newpwd})
 	if err != nil {
 		return ERRCODE_UNKNOWN, err
 	}
