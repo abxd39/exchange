@@ -208,6 +208,7 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 			}).Error("SendRawTx error")
 		}
 		if rsp.Code != "0" {
+			log.Error("广播失败，改回状态:",rsp.Msg)
 			//把状态改回去
 			//更新申请单记录
 			_,err := new(TokenInout).UpdateApplyTiBi2(int(req.Applyid),1)  //正在提币中

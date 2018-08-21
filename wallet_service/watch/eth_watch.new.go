@@ -526,7 +526,7 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 
 	//fmt.Println(txs)
 	//log.Info("start for")
-	log.Info("tx_data:",txs)
+	//log.Info("tx_data:",txs)
 	for i := 0; i < len(txs); i++ {
 		tx := txs[i].(map[string]interface{})
 		if tx["to"] == nil { //部署合约交易直接跳过
@@ -536,7 +536,7 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 
 		//检查eth转账
 		ext := p.ExistsAddress(tx["to"].(string), p.Chainid, "")
-		//log.Info("是否存在：",ext,tx["to"].(string),",",p.Chainid)
+		log.Info("是否存在：",ext,tx["to"].(string),",",p.Chainid)
 		//fmt.Println("是否存在：",ext,tx["to"].(string) == "0x870f49783e9d8c9707a72b252a0e56d3b7628f31",p.Chainid)
 		//ext, err := p.WalletTokenModel.AddrExist(tx["to"].(string), p.Chainid, "")
 
