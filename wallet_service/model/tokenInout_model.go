@@ -153,7 +153,7 @@ func (this *TokenInout) GetInOutList(pageIndex, pageSize int, filter map[string]
 }
 
 //提币申请
-func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string,amountCny int64,feeCny int64,from_address string) (ret int,err error) {
+func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fee string,amountCny int64,feeCny int64) (ret int,err error) {
 	//查询form地址
 	var walletToken = new(WalletToken)
 	err = walletToken.GetByUid(uid)
@@ -169,7 +169,7 @@ func (this *TokenInout) TiBiApply(uid int,tokenid int,to string,amount string,fe
 	}
 
 
-	from := from_address //walletToken.Address
+	from := walletToken.Address
 
 	this.From = from
 	this.To = to
@@ -267,18 +267,18 @@ func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime 
 /*
 	提币累计总金额
 */
-func (this *TokenInout) GetOutSumByTokenId(tkid uint32) (outsum SumTokenOut, err error) {
-	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2"
-	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid).Get(&outsum)
+func (this *TokenInout) GetOutSumByTokenId(tkid uint32, endTime string ) (outsum SumTokenOut, err error) {
+	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2 and created_time < ?"
+	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid, endTime).Get(&outsum)
 	return
 }
 
 /*
 	充币累计总额
 */
-func (this *TokenInout) GetInSumByTokenId(tkid uint32)(insum SumTokenIn, err error) {
-	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1"
-	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid).Get(&insum)
+func (this *TokenInout) GetInSumByTokenId(tkid uint32, endTime string)(insum SumTokenIn, err error) {
+	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1 and created_time < ?"
+	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid,  endTime).Get(&insum)
 	return
 }
 

@@ -28,8 +28,6 @@ func (this WalletDailyCountSheet) Run(){
 	startTime:= fmt.Sprintf("%s 00:00:00", yesDate)
 	endTime := fmt.Sprintf("%s 23:59:59", yesDate)
 
-	//endTime := nTime.Format("2006-01-02 15:04:05")
-	//yesday := yesDayTime.Format("2006-01-02 15:04:05")
 
 	fmt.Println("startTime:", startTime, " endTime:",endTime, "nowtime:", nTime.Unix())
 
@@ -102,7 +100,7 @@ func (this WalletDailyCountSheet) Run(){
 			}
 		}
 
-		outtotal, err := tkinoutModel.GetOutSumByTokenId(uint32(tkId))
+		outtotal, err := tkinoutModel.GetOutSumByTokenId(uint32(tkId), endTime)
 		if err != nil {
 			log.Errorln(err)
 			fmt.Println(err)
@@ -110,7 +108,7 @@ func (this WalletDailyCountSheet) Run(){
 		total = outtotal.Total
 		total_fee = outtotal.TotalFee
 
-		intotal, err := tkinoutModel.GetInSumByTokenId(uint32(tkId))
+		intotal, err := tkinoutModel.GetInSumByTokenId(uint32(tkId), endTime)
 		if err != nil {
 			log.Errorln(err)
 			fmt.Println(err)

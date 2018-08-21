@@ -77,7 +77,7 @@ func (this DailyCountSheet) Run() {
 			}
 		}
 
-		sumBuy, sumSell, err := mod.GetTotalSum(tkId)
+		sumBuy, sumSell, err := mod.GetTotalSum(tkId, endTime)
 
 
 		if err != nil {
