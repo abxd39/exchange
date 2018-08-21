@@ -6,6 +6,7 @@ import (
 	"digicon/wallet_service/rpc/client"
 	log "github.com/sirupsen/logrus"
 	"strconv"
+	"fmt"
 )
 
 type Common struct{}
@@ -102,14 +103,15 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string) {
 
 //添加比特币token数量
 //**以太坊充币
-func (p *Common) AddETHTokenNum(to string,tokenid int,amount string,txhash string) (bool,error) {
+func (p *Common) AddETHTokenNum(uid int,to string,tokenid int,amount string,txhash string) (bool,error) {
+	fmt.Println("开始写到链上：",tokenid,",",uid,",",txhash)
 	//查询用户uid
-	walletToken := new(models.WalletToken)
-	err := walletToken.GetByAddress(to)
-	if err != nil || walletToken.Uid <= 0 {
-		log.Info("get user token error",err)
-		return false,err
-	}
+	//walletToken := new(models.WalletToken)
+	//err := walletToken.GetByAddress(to)
+	//if err != nil || walletToken.Uid <= 0 {
+	//	log.Info("get user token error",err)
+	//	return false,err
+	//}
 
 	bigAmount,err := strconv.ParseInt(amount,10,64)
 
@@ -119,8 +121,8 @@ func (p *Common) AddETHTokenNum(to string,tokenid int,amount string,txhash strin
 	}
 
 	rsp,errr := client.InnerService.TokenSevice.CallAddTokenNum(&proto.AddTokenNumRequest{
-		Uid:uint64(walletToken.Uid),
-		TokenId:int32(walletToken.Tokenid),
+		Uid:uint64(uid),
+		TokenId:int32(tokenid),
 		Opt:1,
 		Num:bigAmount,
 		Ukey:[]byte(txhash),
@@ -128,8 +130,8 @@ func (p *Common) AddETHTokenNum(to string,tokenid int,amount string,txhash strin
 		Type:1,
 	})
 	log.WithFields(log.Fields{
-		"Uid":uint64(walletToken.Uid),
-		"TokenId":int32(walletToken.Tokenid),
+		"Uid":uint64(uid),
+		"TokenId":int32(tokenid),
 		"Opt":1,
 		"Num":bigAmount,
 		"Ukey":[]byte(txhash),

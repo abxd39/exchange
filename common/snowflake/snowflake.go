@@ -68,18 +68,19 @@ func (n *snowflakeNode) Generate() ID {
 func Init() {
 	machineId := os.Getenv("MACHINE_ID")
 	if machineId == "" {
-		fmt.Println("缺少配置machine_id")
+		fmt.Printf("请配置环境变量MACHINE_ID，%d-%d之间，不可重复", 0, nodeMax)
 		os.Exit(1)
 	}
 
 	nodeId, err := strconv.ParseInt(machineId, 10, 64)
 	if err != nil {
-		fmt.Println("machine_id格式错误")
+		fmt.Println("MACHINE_ID格式错误")
 		os.Exit(1)
 	}
 
 	if nodeId < 0 || nodeId > nodeMax {
-		panic(fmt.Sprintf("machine_id需要在%d-%d区间内", 0, nodeMax))
+		fmt.Printf("MACHINE_ID需要在%d-%d区间内", 0, nodeMax)
+		os.Exit(1)
 	}
 
 	SnowflakeNode = &snowflakeNode{

@@ -79,6 +79,7 @@ func (s *RPCServer) GetSiteConfig(ctx context.Context, req *proto.NullRequest, r
 		Phone:   kefuConfig.Phone,
 		Email:   kefuConfig.Email,
 		Address: kefuConfig.Address,
+		Dianbao: kefuConfig.Dianbao,
 	}
 
 	return nil
