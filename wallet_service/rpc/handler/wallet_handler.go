@@ -207,6 +207,14 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 				"msg":rsp.Msg,
 			}).Error("SendRawTx error")
 		}
+		if rsp.Code != "0" {
+			//把状态改回去
+			//更新申请单记录
+			_,err := new(TokenInout).UpdateApplyTiBi2(int(req.Applyid),1)  //正在提币中
+			if err != nil {
+				log.Error("UpdateApplyTiBi error:",err)
+			}
+		}
 	}()
 	TokenModel := new(Tokens)
 	ok, err := TokenModel.GetByid(int(req.TokenId))
@@ -227,14 +235,17 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 	txhash, ok := rets["result"]
 	if ok {
 		//更新申请单记录
-		new(TokenInout).UpdateApplyTiBi(int(req.Applyid),txhash.(string))
+		_,err := new(TokenInout).UpdateApplyTiBi(int(req.Applyid),txhash.(string))
+		if err != nil {
+			log.Error("UpdateApplyTiBi error:",err)
+		}
 		//添加txhash到监控队列
 		new(watch.EthTiBiWatch).PushRedisList(txhash.(string))
 		rsp.Code = "0"
 		rsp.Msg = GetErrorMessage(ERRCODE_SUCCESS)
 		rsp.Data = new(proto.SendRawTxPos)
 		rsp.Data.Result = []byte(txhash.(string))
-		fmt.Println("广播交易成功：",rsp.Code,rsp.Msg,rsp.Data.Result)
+		log.Info("广播交易成功：",rsp.Code,rsp.Msg,rsp.Data.Result)
 		return nil
 	}
 	if !ok {
