@@ -84,6 +84,15 @@ const (
 	ERRCODE_SAVE_ERROR = 430
 	ERRCODE_SELECT_ERROR = 431
 	ERRCODE_RPC_ERROR = 432
+	ERRCODE_CREATE_ERROR = 433
+	ERRCODE_TOKEN_INVALID = 434
+	ERRCODE_PAY_PWD = 435
+	ERRCODE_TOKEN_NOT_ENOUGH = 436
+	ERRCODE_PARSE = 437
+	ERRCODE_CNY_PRICE = 438
+	ERRCODE_FORMAT = 439
+	ERRCODE_FREEZE = 440
+	ERRCODE_TIBI_ADDRESS = 441
 )
 
 func GetErrorMessage(code int32) string {
@@ -173,6 +182,14 @@ func init() {
 
 	message[ERRCODE_SAVE_ERROR] = "保存数据失败"
 	message[ERRCODE_SELECT_ERROR] = "查询失败"
+	message[ERRCODE_CREATE_ERROR] = "创建失败"
+	message[ERRCODE_TOKEN_INVALID] = "Token暂不可用"
+	message[ERRCODE_PAY_PWD] = "支付密码错误"
+	message[ERRCODE_TOKEN_NOT_ENOUGH] = "Token不足"
+	message[ERRCODE_CNY_PRICE] = "获取价格出错"
+	message[ERRCODE_FORMAT] = "格式化数据失败"
+	message[ERRCODE_FREEZE] = "冻结失败"
+	message[ERRCODE_TIBI_ADDRESS] = "提币地址未配置"
 }
 
 type PublicErrorType struct {

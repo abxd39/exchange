@@ -255,7 +255,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection("result", rsp.Data.Result)
+	ret.SetDataSection("result", string(rsp.Data.Result))
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }

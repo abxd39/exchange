@@ -40,8 +40,6 @@ func main() {
 	cron.InitCron()
 
 
-
-
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,

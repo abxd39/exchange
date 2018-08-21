@@ -340,7 +340,8 @@ func AdsAutoDownline(id uint64) {
 	ads := new(Ads).Get(id)
 
 	curCnyPrice := convert.Int64MulInt64By8Bit(int64(ads.Num), int64(ads.Price))
-	minLimit := ads.MinLimit * 100000000
+	minLimit := convert.Int64ToInt64By8Bit(int64(ads.MinLimit))
+
 	log.Println("minLimint:", minLimit, " curCnyPrice:", curCnyPrice)
 	if ads.Num <= 0 || curCnyPrice < int64(minLimit) {
 		log.Errorln("当前广告的总价已小于最小价格的值, 广告自动下架")
@@ -353,6 +354,7 @@ func AdsAutoDownline(id uint64) {
 	}
 
 }
+
 
 /*
 	检查用户广告额度不足余额时自动下架广告
@@ -384,7 +386,8 @@ func AutoDownlineUserAds(uid uint64, tokenId uint64) {
 			otherAdsIdList = append(otherAdsIdList, adsi.Id)
 		}
 		curCnyPrice := convert.Int64MulInt64By8Bit(int64(adsi.Num), int64(adsi.Price))
-		minLimit := adsi.MinLimit * 100000000
+		//minLimit := adsi.MinLimit * 100000000
+		minLimit := convert.Int64ToInt64By8Bit(int64(adsi.MinLimit))
 		if curCnyPrice < int64(minLimit) {
 			otherAdsIdList = append(otherAdsIdList, adsi.Id)
 		}
