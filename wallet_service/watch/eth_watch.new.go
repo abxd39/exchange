@@ -786,7 +786,8 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 
 	//添加用户token
 	//intValue := decimal.NewFromBigInt(temp, int32(8 - p.TokenModel.Decimal)).IntPart()
-	boo,errr := new(Common).AddETHTokenNum(to,walletToken.Tokenid,value,txhash)
+	fmt.Println("添加用户token：00000000000000000000:",to,",",walletToken.Tokenid,",",value,",",txhash)
+	boo,errr := new(Common).AddETHTokenNum(walletToken.Uid,to,walletToken.Tokenid,value,txhash)
 	if boo != true {
 		log.Error("AddETHTokenNum err:",errr)
 	}
