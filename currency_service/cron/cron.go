@@ -30,6 +30,11 @@ func InitCron() {
 		c.AddJob(specTwo, DailyCountSheet{})
 
 		c.AddFunc("0 30 * * * *", ResendTransferToTokenMsg)
+
+
+		// ads auto downline. every one hour check
+		c.AddFunc("0 0 */1 * * *", CheckAdsAutoDownline)
+
 		c.Start()
 	}
 
