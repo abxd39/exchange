@@ -515,7 +515,7 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	log.Info("资金冻结结果：",rErr,req.Uid,fee1,c)
 	if rErr != nil {
 		rsp.Code = 1
-		rsp.Msg = c.Message
+		rsp.Msg = rErr.Error()
 		return errors.New("冻结资金失败")
 	}
 
