@@ -521,15 +521,6 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	t1_c := decimal.NewFromFloat(float64(100000000))
 	fee := t1.Mul(t1_c).IntPart()
 
-
-	//tmp1,boo := new(big.Float).SetString(req.Amount)
-	//if boo != true {
-	//	log.Error(GetErrorMessage(ERRCODE_FORMAT),req.Amount,tmp1,boo)
-	//	rsp.Code = ERRCODE_UNKNOWN
-	//	rsp.Msg = GetErrorMessage(ERRCODE_FORMAT)
-	//	return errors.New(GetErrorMessage(ERRCODE_FORMAT))
-	//}
-	//fee1 := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
 	c,rErr := client.InnerService.TokenSevice.CallSubTokenWithFronze(&proto.SubTokenWithFronzeRequest{
 		Uid:uint64(req.Uid),
 		TokenId:req.Tokenid,
