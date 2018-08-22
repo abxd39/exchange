@@ -16,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"digicon/common/random"
 	cf "digicon/wallet_service/conf"
+	"digicon/common/convert"
 )
 
 type WalletHandler struct{}
@@ -461,12 +462,22 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 	userToken := new(UserToken)
 	boo,err := userToken.GetByUidTokenid(int(req.Uid),int(req.Tokenid))
 	if boo == false || err != nil {
-		log.Error(GetErrorMessage(ERRCODE_TOKEN_NOT_ENOUGH),boo,err)
+		log.Error(GetErrorMessage(ERRCODE_TOKEN_NOT_ENOUGH),boo,err,req.Uid,req.Tokenid)
 		rsp.Code = ERRCODE_TOKEN_NOT_ENOUGH
 		rsp.Msg = GetErrorMessage(ERRCODE_TOKEN_NOT_ENOUGH)
 		return errors.New(GetErrorMessage(ERRCODE_TOKEN_NOT_ENOUGH))
 	}
-	if userToken.Balance < req.Amount {
+
+	amount,err1 := convert.StringToInt64By8Bit(req.Amount)
+	balance,err2 := strconv.ParseInt(userToken.Balance,10,64)
+	if err1 != nil || err2 != nil {
+		log.Error("格式化错误：",req.Amount,userToken.Balance,err,err1)
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = "格式化错误"
+		return errors.New("格式化错误")
+	}
+	if balance < amount {
+		log.Error("余额不足：",balance,amount)
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = GetErrorMessage(ERRCODE_TOKEN_NOT_ENOUGH)
 		return errors.New(GetErrorMessage(ERRCODE_TOKEN_NOT_ENOUGH))

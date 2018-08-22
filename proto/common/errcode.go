@@ -185,7 +185,7 @@ func init() {
 	message[ERRCODE_CREATE_ERROR] = "创建失败"
 	message[ERRCODE_TOKEN_INVALID] = "Token暂不可用"
 	message[ERRCODE_PAY_PWD] = "支付密码错误"
-	message[ERRCODE_TOKEN_NOT_ENOUGH] = "Token不足"
+	message[ERRCODE_TOKEN_NOT_ENOUGH] = "余额不足"
 	message[ERRCODE_CNY_PRICE] = "获取价格出错"
 	message[ERRCODE_FORMAT] = "格式化数据失败"
 	message[ERRCODE_FREEZE] = "冻结失败"
