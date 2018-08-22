@@ -653,6 +653,20 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 
 //同步以太坊区块交易
 func (this *WalletHandler) SyncEthBlockTx(ctx context.Context, req *proto.SyncEthBlockTxRequest, rsp *proto.SyncEthBlockTxResponse) error {
+
+	//判断key是否正确
+	key := cf.Cfg.MustValue("keys","sync_block","")
+	if key == "" {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = "KEY未配置"
+		return nil
+	}
+	if req.Key != key {
+		rsp.Code = ERRCODE_UNKNOWN
+		rsp.Msg = "key error"
+		return nil
+	}
+
 	err,msg := new(watch.EthOperate).WorkerHander(int(req.Block))
 	if err != nil {
 		rsp.Code = 1
