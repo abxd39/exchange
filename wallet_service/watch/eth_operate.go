@@ -79,7 +79,7 @@ func (p *EthOperate) WorkerHander(num int) (error,string) {
 			log.Info("find_a_eth")
 			syncEthNum++
 			//TODO:
-			p.cbiP.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), tx["to"].(string), p.Chainid, "", tx["value"].(string), tx["hash"].(string))
+			p.cbiP.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), tx["to"].(string), p.Chainid, "", tx["value"].(string), tx["hash"].(string),tx["gas"].(string),tx["gasPrice"].(string))
 
 			continue
 		}
@@ -106,7 +106,7 @@ func (p *EthOperate) WorkerHander(num int) (error,string) {
 		}
 		fmt.Println("find_a_token")
 
-		p.cbiP.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string), fmt.Sprintf("0x%s", input[vstart:138]), tx["hash"].(string))
+		p.cbiP.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string), fmt.Sprintf("0x%s", input[vstart:138]), tx["hash"].(string),tx["gas"].(string),tx["gasPrice"].(string))
 		syncTokenNum++
 		continue
 
