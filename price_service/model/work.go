@@ -628,7 +628,7 @@ func (s *PriceWorkQuene) SetPrice(data *proto.PriceCache) {
 	}
 }
 
-func (s *PriceWorkQuene) GetPeriodMaxPrice(period int, begin ...int64) (pmin, pmax *Price) {
+func (s *PriceWorkQuene) GetPeriodMaxPrice(period int, begin ...int64) (pmax, pmin *Price) {
 	t := s.data[period]
 	b, err := DB.GetRedisConn().Get(t.MinPriceKey).Bytes()
 	var ok bool

@@ -17,6 +17,11 @@ var (
 
 	GtPrivateKey  string
 	GtCaptchaID  string
+
+	SmsTitle string
+	MailTitle string
+	Subject	string
+	Alias string
 )
 
 func NewConfig(path string) *goconfig.ConfigFile {
@@ -44,4 +49,9 @@ func Init() {
 
 	GtPrivateKey = Cfg.MustValue("gree", "key", "668d6d27cb1186d138eb9b225436e4b9")
 	GtCaptchaID = Cfg.MustValue("gree", "id", "73909f4a67161216debdcb3de16ef6c5")
+
+	SmsTitle = Cfg.MustValue("sms", "title", "【UNT】")
+	MailTitle = Cfg.MustValue("mail", "title", "您好，您正在注册UNT账号。【UNT】安全验证:")
+	Subject = Cfg.MustValue("mail", "subject", "欢迎注册UNT")
+	Alias = Cfg.MustValue("mail", "alias", "shendun")
 }

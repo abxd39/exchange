@@ -1699,7 +1699,6 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 	defer sess.Close()
 	err = sess.Begin()
 
-	var ret int32
 	err = u.ReturnFronzen(sess, e.SurplusNum, e.EntrustId, proto.TOKEN_TYPE_OPERATOR_HISTORY_ENTRUST_DEL)
 	if err != nil {
 		sess.Rollback()
@@ -1712,10 +1711,7 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 		sess.Rollback()
 		return err
 	}
-	if ret != ERRCODE_SUCCESS {
-		sess.Rollback()
-		return nil
-	}
+
 	err = sess.Commit()
 	if err != nil {
 		return err

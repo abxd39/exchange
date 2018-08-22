@@ -887,21 +887,24 @@ func GetAllBalanceCny(uids []uint64) map[uint64]*proto.BalanceCnyBaseData {
 	all := make(map[uint64]*proto.BalanceCnyBaseData, 0)
 	for _, v := range g {
 
-		cny, _ := CnyPriceMap[int32(v.TokenId)]
-
+		cny:=GetCnyPrice(int32(v.TokenId))
 		u, ok := all[v.Uid]
 		if ok {
-
-			u.BalanceCnyInt += convert.Int64MulInt64By8Bit(v.Balance, cny.CnyPriceInt)
-			u.FrozenCnyInt += convert.Int64MulInt64By8Bit(v.Frozen, cny.CnyPriceInt)
-
+			u.BalanceCnyInt += convert.Int64MulInt64By8Bit(v.Balance, cny)
+			u.FrozenCnyInt += convert.Int64MulInt64By8Bit(v.Frozen, cny)
+			//log.Infof("add  balance %d,frozen %d,token_id %d",v.Balance,v.Frozen,v.TokenId)
+			//log.Infof("add cny balance %d,frozen %d,token_id %d",u.BalanceCnyInt,u.FrozenCnyInt,v.TokenId)
 		} else {
 
 			all[v.Uid] = &proto.BalanceCnyBaseData{
 				Uid:           v.Uid,
-				BalanceCnyInt: convert.Int64MulInt64By8Bit(v.Balance, cny.CnyPriceInt),
-				FrozenCnyInt:  convert.Int64MulInt64By8Bit(v.Frozen, cny.CnyPriceInt),
+				BalanceCnyInt: convert.Int64MulInt64By8Bit(v.Balance, cny),
+				FrozenCnyInt:  convert.Int64MulInt64By8Bit(v.Frozen, cny),
 			}
+
+			u,_=all[v.Uid]
+			//log.Infof("init  balance %d,frozen %d,token_id %d",v.Balance,v.Frozen,v.TokenId)
+			//log.Infof("init cny  balance %d,frozen %d ,token_id %d",u.BalanceCnyInt,u.FrozenCnyInt,v.TokenId)
 		}
 	}
 

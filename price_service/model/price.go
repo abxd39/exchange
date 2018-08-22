@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"time"
+	"fmt"
 )
 
 type Price struct {
@@ -147,11 +148,7 @@ func GetPrice(symbol string) (*Price, bool) {
 func Get24HourPrice(symbol string) (*Price, bool) {
 
 	t := time.Now()
-	/*
-l := t.Add(-600 * time.Second)
 
-begin := l.Unix()
-*/
 	s := t.Second()
 	min := t.Add(-time.Duration(s) * time.Second)
 
@@ -224,4 +221,39 @@ func GetVolumeTotal() *proto.VolumeResponse {
 		MonthVolume: nowVolume.Sum - monthVolume.Sum}
 	return data
 
+}
+
+func Test3()  {
+	b:=2223720000
+	a:=61770000
+	c:=2219272560
+	//m:=3627601957
+	//n:=61300000
+	y:=2219272560+4447439
+	//g:=convert.Int64MulFloat64(2219272560, 0.002)
+	fmt.Println(b/a)
+	//fmt.Println(g)
+	fmt.Println(y)
+	fmt.Println(c==y)
+	a1:=10//newbtc
+	b1:=2//unt
+	p:=5
+	fmt.Println(a1)
+	fmt.Println(b1)
+	fmt.Println(p)
+	//trade
+	a1=0
+	a2:=2*0.99//
+	fee1:=2*0.01
+	fmt.Printf("unt=%v\n",a2)
+	fmt.Printf("unt fee=%v\n",fee1)
+
+	b1=0
+	b2:=10*.99
+	fee2:=10*0.01
+	fmt.Printf("nbtc=%v\n",b2)
+	fmt.Printf("nbtc fee=%v\n",fee2)
+
+	h:=a-b
+	fmt.Println(h>78338765128)
 }

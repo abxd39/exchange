@@ -42,9 +42,9 @@ func sendAliEmail(email, code string) (err error) {
 	r.AccountName = "emailsdun@email.sdun.io"
 	r.AddressType = requests.NewInteger(1)
 	r.ToAddress = email
-	r.FromAlias = "shendun"
-	r.Subject = "欢迎注册UNT"
-	r.TextBody = fmt.Sprintf("您好，您正在注册UNT账号。【UNT】安全验证: %s 出于安全原因，该验证码将于10分钟后失效。请勿将验证码透露给他人。", code)
+	r.FromAlias = cf.Alias
+	r.Subject = cf.Subject
+	r.TextBody = fmt.Sprintf("%s %s 出于安全原因，该验证码将于10分钟后失效。请勿将验证码透露给他人。", cf.MailTitle,code)
 	r.ReplyToAddress = requests.NewBoolean(false)
 
 	h, err := d.SingleSendMail(r)

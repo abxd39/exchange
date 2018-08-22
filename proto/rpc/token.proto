@@ -323,7 +323,7 @@ message BalanceCnyBaseData{
     int64  frozen_cny_int              =6;
 
     string  total_cny              =7;
-    string    total_cny_double      =8;
+    string  total_cny_double      =8;
 }
 message TokenBalanceCnyResponse{
     int32 err                       =1;

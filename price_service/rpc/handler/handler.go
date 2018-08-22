@@ -328,7 +328,7 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 				Low:      r.Low,
 				High:     r.High,
 				Amount:   r.Amount,
-				CnyPrice: convert.Int64MulStringInt64By8Bit(cny_price.CnyPrice, r.Price),
+				CnyPrice:convert.Int64ToStringBy8Bit(cny_price.CnyPrice),
 				CnyLow:    convert.Int64ToStringBy8Bit(l.CnyPrice),
 				CnyHigh:  convert.Int64ToStringBy8Bit(h.CnyPrice),
 			})

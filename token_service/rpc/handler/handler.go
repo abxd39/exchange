@@ -340,6 +340,17 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	rsp.Data = &proto.TokenBalanceListResponse_Data{}
 	rsp.Data.List = make([]*proto.TokenBalanceListResponse_Data_List, len(list))
 	for k, v := range list {
+		/*
+		a:=&proto.TokenBalanceListResponse_Data_List{
+			TokenId:   int32(v.TokenId),
+			TokenName: v.TokenName,
+			Balance:   v.Balance,
+			Frozen:    v.Frozen,
+			WorthCny:  convert.Int64MulInt64By8Bit(v.TotalBalance, model.GetCnyPrice(int32(v.TokenId))),
+		}
+		rsp.Data.List[k]=a
+		*/
+
 		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
@@ -347,6 +358,7 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 			Frozen:    v.Frozen,
 			WorthCny:  convert.Int64MulInt64By8Bit(v.TotalBalance, model.GetCnyPrice(int32(v.TokenId))),
 		}
+		//log.Infof(" TotalBalance %d,WorthCny %d,token_id %d,Balance %d",v.TotalBalance,a.WorthCny, v.TokenId, a.Balance)
 	}
 
 	// 折合人民币、Btc
