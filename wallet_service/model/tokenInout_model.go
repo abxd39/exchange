@@ -33,6 +33,9 @@ type TokenInout struct {
 	Remarks     string    `xorm:"remarks"`
 	AmountCny   int64     `xorm:"amount_cny"`
 	FeeCny      int64     `xorm:"fee_cny"`
+	Gas       int64    `xorm:"comment('gas数量') VARCHAR(30)"`
+	Gas_price       int64    `xorm:"comment('gas价格,单位：wei') VARCHAR(30)"`
+	Real_fee       int64    `xorm:"comment('实际消耗手续费') VARCHAR(30)"`
 }
 
 type User struct {
@@ -66,7 +69,7 @@ type SumTokenIn struct {
 }
 
 
-func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int) (int, error) {
+func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int,gas int64,gasprice int64,realfee int64) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
 	this.From = from
@@ -83,6 +86,9 @@ func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid
 	this.Tokenid = tokenid
 	this.TokenName = tokenname
 	this.Uid = uid
+	this.Gas = gas
+	this.Gas_price = gasprice
+	this.Real_fee = realfee
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	return int(affected), err
 }

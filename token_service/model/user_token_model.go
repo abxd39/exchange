@@ -42,21 +42,6 @@ func (*UserToken) TableName() string {
 	return "user_token"
 }
 
-// 计算用户所有币的总额
-func (s *UserToken) CalcTotal(uid uint64) ([]*UserTokenTotal, error) {
-	var userTokenTotal []*UserTokenTotal
-
-	engine := DB.GetMysqlConn()
-	err := engine.SQL(fmt.Sprintf("SELECT token_id, SUM(balance+frozen) AS total_balance"+
-		" FROM %s WHERE uid=%d GROUP BY token_id",
-		s.TableName(), uid)).Find(&userTokenTotal)
-	if err != nil {
-		return nil, errors.NewSys(err)
-	}
-
-	return userTokenTotal, nil
-}
-
 // 用户币币余额列表
 func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithBalance, error) {
 	engine := DB.GetMysqlConn()

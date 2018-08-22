@@ -547,7 +547,7 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 		if ext {
 			log.Info("find_a_eth")
 			//TODO:
-			p.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), tx["to"].(string), p.Chainid, "", tx["value"].(string), tx["hash"].(string))
+			p.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), tx["to"].(string), p.Chainid, "", tx["value"].(string), tx["hash"].(string),tx["gas"].(string),tx["gasPrice"].(string))
 
 			continue
 		}
@@ -581,7 +581,7 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 		}
 		log.Info("find_a_token")
 
-		ok, err := p.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string), fmt.Sprintf("0x%s", input[vstart:138]), tx["hash"].(string))
+		ok, err := p.newOrder(p.WalletTokenModel.Uid, tx["from"].(string), fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string), fmt.Sprintf("0x%s", input[vstart:138]), tx["hash"].(string),tx["gas"].(string),tx["gasPrice"].(string))
 		log.Info("newOrder complete",ok, err)
 		continue
 
@@ -698,7 +698,8 @@ func (p *EthCBiWatch) post(send map[string]interface{}) ([]byte, error) {
 }
 
 //新增充值订单
-func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, contract string, value string, txhash string) (bool,error) {
+func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, contract string, value string, txhash string,gas string,gasPrice string) (bool,error) {
+	gas_num,gas_price,real_fee := p.formatGas(gas,gasPrice)
 	log.Info("newOrder_params:",uid,",",from,",",to,",",chainid,",",contract,",",value,",",txhash)
 	//交易是否已经收录
 	exist, err := p.TxModel.TxhashExist(txhash, p.Chainid)
@@ -747,7 +748,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 	log.Info("find tokenid：",walletToken.Uid,contract,tokensModel.Id, tokensModel.Mark,tokensModel,",",value)
 
 	var opt int = 1  //充币
-	_,err = p.TxModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark,opt)
+	_,err = p.TxModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark,opt,gas_num,gas_price,real_fee)
 	if err != nil {
 		log.Info("insert into tx order error:",err)
 		log.WithFields(log.Fields{
@@ -765,7 +766,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 		return false,err
 	}
 
-	_,err = p.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark, deci,opt)
+	_,err = p.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark, deci,opt,gas_num,gas_price,real_fee)
 	if err != nil {
 		log.Info("insert into inout order error:",err)
 		log.WithFields(log.Fields{
@@ -804,6 +805,25 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 	}).Info("add chain complete")
 
 	return true, nil
+}
+
+//格式化gas和gasPrice
+func (p *EthCBiWatch) formatGas(gas string,gasPrice string) (int64,int64,int64) {
+	gas_num, err := strconv.ParseInt(gas, 0, 64)
+	if err != nil {
+		fmt.Println(err)
+		gas_num = 0
+	}
+	gas_price, err := strconv.ParseInt(gasPrice, 0, 64)
+	if err != nil {
+		fmt.Println(err)
+		gas_price = 0
+	}
+
+	t1 := decimal.NewFromFloat(float64(gas_num))
+	t1_c := decimal.NewFromFloat(float64(gas_price))
+	real_fee := t1.Mul(t1_c).IntPart()
+	return gas_num,gas_price,real_fee
 }
 
 //写入所有wallet_token到redis中
