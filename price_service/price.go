@@ -27,8 +27,8 @@ func main() {
 	flag.Parse()
 
 	log.Infof("begin run server")
-	model.Test3()
-	return
+	//model.Test3()
+	//return
 	dao.InitDao()
 
 
