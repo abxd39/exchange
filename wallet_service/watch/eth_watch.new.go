@@ -152,7 +152,7 @@ func (p *EthTiBiWatch) PushRedisList(txhash string) {
 	log.Info("收到一个交易监控：",txhash)
 	err := redis.RPush(ETH_CHECK_LIST_KEY,txhash).Err()
 	if err != nil {
-		fmt.Println(err)
+		log.Error("PushRedisList error:",txhash,err)
 	}
 }
 
@@ -526,7 +526,7 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 
 	//fmt.Println(txs)
 	//log.Info("start for")
-	log.Info("tx_data:",txs)
+	//log.Info("tx_data:",txs)
 	for i := 0; i < len(txs); i++ {
 		tx := txs[i].(map[string]interface{})
 		if tx["to"] == nil { //部署合约交易直接跳过
@@ -561,7 +561,7 @@ func (p *EthCBiWatch) WorkerHander(num int) error {
 		}
 
 		ext = p.ExistsAddress(fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string))
-		log.Info("是否存在-----：",fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string))
+		//log.Info("是否存在-----：",fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string))
 		//log.Info("existssss：",ext,fmt.Sprintf("0x%s", input[34:74]),p.Chainid,tx["to"].(string))
 		//ext, err = p.WalletTokenModel.AddrExist(fmt.Sprintf("0x%s", input[34:74]), p.Chainid, tx["to"].(string))
 		//fmt.Println(ext,err,this.WalletTokenModel)

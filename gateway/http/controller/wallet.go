@@ -254,7 +254,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection("result", rsp.Data.Result)
+	ret.SetDataSection("result", string(rsp.Data.Result))
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
@@ -662,7 +662,8 @@ func (this *WalletGroup) SyncEthBlockTx(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type Param struct {
-		Block int32 `form:"block" binding:"required"`
+		Block int32 `form:"block" json:"block" binding:"required"`
+		Key string `form:"block" json:"key" binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -672,7 +673,7 @@ func (this *WalletGroup) SyncEthBlockTx(ctx *gin.Context) {
 	}
 
 
-	rsp, err := rpc.InnerService.WalletSevice.CallSyncBlockTx(param.Block)
+	rsp, err := rpc.InnerService.WalletSevice.CallSyncBlockTx(param.Block,param.Key)
 	if err != nil || rsp.Code != 0 {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))

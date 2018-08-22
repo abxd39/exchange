@@ -107,9 +107,13 @@ func (this *TokenInout) BtcInsert(txhash, from, to, tokenName string, amount int
 
 //更新比特币申请提币hash
 func (this *TokenInout) UpdateApplyTiBi(applyid int, txhash string) (int, error) {
-	//var data = new(TokenInout)
-	//data.Txhash = txhash
 	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{Txhash: txhash}) //提币已经提交区块链，修改交易hash和正在提币状态
+	return int(affected), err
+}
+
+//更新比特币申请提币hash
+func (this *TokenInout) UpdateApplyTiBi2(applyid int,states int) (int, error) {
+	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{States:states})
 	return int(affected), err
 }
 

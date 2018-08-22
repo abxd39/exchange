@@ -22,14 +22,19 @@ func InitCron() {
 		c := cron.New()
 
 		//AddFunc
-		spec := "0 0 1 * *" // every day ...
-		specTwo := "0 0 4 * *" // every day ...
+		spec := "0 0 1 * * *" // every day ...
+		specTwo := "0 0 4 * * *" // every day ...
 
 		// 定时任务统计
 		c.AddJob(spec, DailyCountSheet{})
 		c.AddJob(specTwo, DailyCountSheet{})
 
 		c.AddFunc("0 30 * * * *", ResendTransferToTokenMsg)
+
+
+		// ads auto downline. every one hour check
+		c.AddFunc("0 0 */1 * * *", CheckAdsAutoDownline)
+
 		c.Start()
 	}
 
