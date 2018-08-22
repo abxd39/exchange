@@ -337,45 +337,33 @@ func (s *RPCServer) TokenBalanceList(ctx context.Context, req *proto.TokenBalanc
 	}
 
 	// 拼接返回数据
+	var totalCny int64
 	rsp.Data = &proto.TokenBalanceListResponse_Data{}
 	rsp.Data.List = make([]*proto.TokenBalanceListResponse_Data_List, len(list))
 	for k, v := range list {
+		worthCny := convert.Int64MulInt64By8Bit(v.TotalBalance, model.GetCnyPrice(int32(v.TokenId)))
+		totalCny += worthCny
+
 		rsp.Data.List[k] = &proto.TokenBalanceListResponse_Data_List{
 			TokenId:   int32(v.TokenId),
 			TokenName: v.TokenName,
 			Balance:   v.Balance,
 			Frozen:    v.Frozen,
-			WorthCny:  convert.Int64MulInt64By8Bit(v.TotalBalance, model.GetCnyPrice(int32(v.TokenId))),
+			WorthCny:  worthCny,
 		}
 	}
 
-	// 折合人民币、Btc
-	totalList, err := userTokenMD.CalcTotal(req.Uid) // 按token_id分组
-	if err != nil {
-		rsp.Err = int32(errors.GetErrStatus(err))
-		rsp.Message = errors.GetErrMsg(err)
-		return nil
-	}
-
-	// 1.折合人民币
-	var totalCny int64
-	for _, v := range totalList {
-		if v.TotalBalance == 0 { // 分组数量为0，跳过
-			continue
-		}
-
-		// 合计token_id分组
-		totalCny += convert.Int64MulInt64By8Bit(v.TotalBalance, model.GetCnyPrice(int32(v.TokenId)))
-	}
-
-	rsp.Data.TotalWorthCny = totalCny
-
-	// 2.根据人民币折合BTC
+	// 折合BTC
 	btcCnyPrice := model.GetCnyPrice(2)
-	if btcCnyPrice == 0 { //除数不能为0
+	if btcCnyPrice == 0 { //除数不能为0，直接返回0
+		log.Error("获取BTC人民币价格失败")
+
 		rsp.Data.TotalWorthBtc = 0
 		return nil
 	}
+
+	// 返回
+	rsp.Data.TotalWorthCny = totalCny
 	rsp.Data.TotalWorthBtc = convert.Int64DivInt64By8Bit(totalCny, btcCnyPrice)
 
 	return nil
