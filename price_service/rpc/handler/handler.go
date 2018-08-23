@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 	"strings"
 	"time"
+	"github.com/shopspring/decimal"
 )
 
 type RPCServer struct {
@@ -421,11 +422,25 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 }
 
 func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *proto.VolumeResponse) error {
-	data := model.GetVolumeTotal()
-	if data != nil {
-		rsp.DayVolume = data.DayVolume / 100000000
-		rsp.WeekVolume = data.WeekVolume / 100000000
-		rsp.MonthVolume = data.MonthVolume / 100000000
-	}
+	nowSum,daySum,weekSum,monthSum := model.GetVolumeTotal()
+
+	w,_ := decimal.NewFromString("100000000")
+	now_sum,_ := decimal.NewFromString(nowSum)
+
+	day_sum,_ := decimal.NewFromString(daySum)
+	day_sum = now_sum.Sub(day_sum)
+	day_sum = day_sum.Div(w)
+
+	week_sum,_ := decimal.NewFromString(weekSum)
+	week_sum = now_sum.Sub(week_sum)
+	week_sum = week_sum.Div(w)
+
+	month_sum,_ := decimal.NewFromString(monthSum)
+	month_sum = now_sum.Sub(month_sum)
+	month_sum = month_sum.Div(w)
+
+	rsp.DayVolume = day_sum.IntPart()
+	rsp.WeekVolume = week_sum.IntPart()
+	rsp.MonthVolume = month_sum.IntPart()
 	return nil
 }

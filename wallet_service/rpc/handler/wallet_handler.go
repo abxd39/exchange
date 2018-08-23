@@ -211,7 +211,7 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 			log.Error("广播失败，改回状态:",rsp.Msg)
 			//把状态改回去
 			//更新申请单记录
-			_,err := new(TokenInout).UpdateApplyTiBi2(int(req.Applyid),1)  //正在提币中
+			_,err := new(TokenInout).UpdateApplyTiBi2(int(req.Applyid),4,rsp.Msg)  //正在提币中
 			if err != nil {
 				log.Error("UpdateApplyTiBi error:",err)
 			}
