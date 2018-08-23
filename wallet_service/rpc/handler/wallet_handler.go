@@ -196,6 +196,30 @@ func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest,
 	return nil
 }
 
+//提币失败，解冻用户冻结数据
+func (this *WalletHandler) tiBiErrorUnfreeze(apply_id int32) {
+	//根据申请id，查询数据
+	tokenInout := new(TokenInout)
+	err := tokenInout.GetByApplyId(int(apply_id))
+	if err != nil {
+		log.Error("根据申请id查询数据失败")
+		return
+	}
+	//调用rpc解冻
+	res,errr := client.InnerService.TokenSevice.CallCancelSubTokenWithFronze(&proto.CancelFronzeTokenRequest{
+		Uid:uint64(tokenInout.Uid),
+		TokenId:int32(tokenInout.Tokenid),
+		Num:tokenInout.Amount + tokenInout.Fee,
+		Ukey:[]byte(random.Random6dec()),
+		Type:13,//取消提币
+	})
+	if errr != nil {
+		log.Error("根据申请id解冻用户数据失败")
+		return
+	}
+	log.Info("解冻成功：",res.Err,res.Message)
+}
+
 func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRequest, rsp *proto.SendRawTxResponse) error {
 	//log.Info("广播交易：",req.TokenId,req.Signtx)
 	defer func() {
@@ -215,6 +239,8 @@ func (this *WalletHandler) SendRawTx(ctx context.Context, req *proto.SendRawTxRe
 			if err != nil {
 				log.Error("UpdateApplyTiBi error:",err)
 			}
+			//取消冻结
+			this.tiBiErrorUnfreeze(req.Applyid)
 		}
 	}()
 	TokenModel := new(Tokens)

@@ -292,3 +292,12 @@ func (this *TokenInout) GetInSumByTokenId(tkid uint32, endTime string)(insum Sum
 	return
 }
 
+//根据token_inout id查询数据
+func (this *TokenInout) GetByApplyId(apply_id int) error {
+	_, err := utils.Engine_wallet.Where("id =?", apply_id).Get(this)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+

@@ -10,6 +10,7 @@ import(
 	"strconv"
 	log "github.com/sirupsen/logrus"
 	"github.com/shopspring/decimal"
+	"digicon/common/convert"
 )
 
 //新版监听区块变化，更新数据
@@ -130,6 +131,13 @@ func (p *BtcWatch) BlockUpdateDeal() {
 
 //交易处理
 func (p *BtcWatch) TranDeal(data TranItem) bool {
+	//判断地址是否存在
+	walletToken := new(models.WalletToken)
+	boo,err := walletToken.CheckExists2(data.Address)
+	if err != nil || boo != true {
+		log.Info("比特币地址不存在：",boo,err,data.Address)
+		return false
+	}
 	//判断交易是否存在
 	exists, err := p.tkChainInOutModel.TxIDExist(data.Txid)
 	if exists == true || err != nil {
@@ -139,8 +147,15 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 	if data.Category != "send" && data.Category != "receive" {
 		return false
 	}
+	//判断确认次数
+	if data.Confirmations < 6 {
+		log.Info("比特币确认次数不足：",data.Confirmations,data.Txid)
+		return false
+	}
 	//写入交易记录到链记录表
 	p.WriteChainTx(data)
+
+	log.Info("比特币交易处理：",data.Txid)
 
 	if data.Category == "send" {  //提币
 		//更新完成状态
@@ -153,6 +168,7 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 		new(Common).BTCConfirmSubFrozen(data)
 	}
 	if data.Category == "receive" {  //充币
+		log.Info("比特币充币：",data)
 		//更新用户账户数量
 		new(Common).AddBTCTokenNum(data)
 		//添加一条充币记录到表：token_inout
@@ -233,12 +249,13 @@ func (p *BtcWatch) WriteChainTx(data TranItem) {
 		opt = 1 //充币
 	}
 
-	amount := strconv.FormatInt(int64(data.Amount * 100000000),10)
+	amount := convert.Float64ToInt64By8Bit(data.Amount)
+	amount1 := strconv.FormatInt(amount,10)
 
 	txmodel := &models.TokenChainInout{
 		Txhash:    data.Txid,
-		Address:      data.Address,
-		Value:     amount,
+		Address:   data.Address,
+		Value:     amount1,
 		Type:      opt,
 		Tokenid:   2,
 		TokenName: "BTC",

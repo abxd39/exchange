@@ -176,6 +176,11 @@ func (this *WalletToken) CheckExists(address string,contract string) (bool,error
 	return Engine_wallet.Where("address = ? and contract = ?",address,contract).Exist()
 }
 
+//根据地址和合约，判断是否存在
+func (this *WalletToken) CheckExists2(address string) (bool,error) {
+	return Engine_wallet.Where("address = ?",address).Exist()
+}
+
 //根据类型查询以太坊钱包
 func (this *WalletToken) GetByTypeUid(wallet_type string,uid int) (bool,error) {
 	boo, err := Engine_wallet.Where("type = ? and uid = ?",wallet_type,uid).Get(this)

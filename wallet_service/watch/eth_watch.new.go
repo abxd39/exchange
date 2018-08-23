@@ -325,19 +325,21 @@ func (p *EthTiBiWatch) WriteETHChainTx(data TranInfo) {
 
 //eth提币处理
 func (p *EthTiBiWatch) ETHDeal(data TranInfo) {
+	contract := ""
 	//写一条数据到链记录表中
 	p.WriteETHChainTx(data)
 	//确认消耗冻结数量
-	new(Common).ETHConfirmSubFrozen(data.From,data.Hash)
+	new(Common).ETHConfirmSubFrozen(data.From,data.Hash,contract)
 }
 
 //erc代币处理
 func (p *EthTiBiWatch) ERC20Deal(data TranInfo) {
 	//data.Hash = strings.Join([]string{"0x",data.Input[35:74]},"")
+	contract := data.To
 	//写一条数据到链记录表中
 	p.WriteERC20ChainTx(data)
 	//确认消耗冻结数量
-	new(Common).ETHConfirmSubFrozen(data.From,data.Hash)
+	new(Common).ETHConfirmSubFrozen(data.From,data.Hash,contract)
 }
 
 //交易六次确认检查

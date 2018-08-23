@@ -32,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	//比特币充币提币监控
-	//go watch.StartBtcWatch()
+	go watch.StartBtcWatch()
 
 	//以太币、ERC20代币提币检查
 	go watch.StartEthCheckNew()

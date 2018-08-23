@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"fmt"
+	"digicon/common/convert"
 )
 
 type Common struct{}
@@ -22,7 +23,18 @@ func (p *Common) AddBTCTokenNum(data TranItem) {
 		log.Info("get user token error",err)
 		return
 	}
-	amount := int64(data.Amount * 100000000)
+
+	amount := convert.Float64ToInt64By8Bit(data.Amount)
+
+	log.WithFields(log.Fields{
+		"uid":walletToken.Uid,
+		"token_id":walletToken.Tokenid,
+		"num":amount,
+		"ukey":data.Txid,
+		"optAddType":0,
+	}).Info("比特币RPC新增数量")
+
+	//amount := int64(data.Amount * 100000000)
 	rsp,errr := client.InnerService.TokenSevice.CallAddTokenNum(&proto.AddTokenNumRequest{
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
@@ -43,16 +55,28 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 	walletToken := new(models.WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil || walletToken.Uid <= 0 {
-		log.Info("get user token error",err)
+		log.Info("btc get user token error",err)
 		return
 	}
+
 	//根据交易hash查询申请提币数据
 	tokenInout := new(models.TokenInout)
 	err = tokenInout.GetByHash(data.Txid)
 	if err != nil || tokenInout.Uid <= 0 {
-		log.Info("get data by hash error",err)
+		log.Info("btc get data by hash error",err)
 		return
 	}
+
+	defer func() {
+		log.WithFields(log.Fields{
+			"uid":walletToken.Uid,
+			"token_id":walletToken.Tokenid,
+			"num":tokenInout.Amount,
+			"ukey":data.Txid,
+			"type":1,
+		}).Info("比特币冻结数量")
+	}()
+
 	_,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
@@ -67,11 +91,11 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 
 //确认消耗
 //**以太坊提币成功调用
-func (p *Common) ETHConfirmSubFrozen(from string,txhash string) {
+func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) {
 	//查询用户uid
 	walletToken := new(models.WalletToken)
-	err := walletToken.GetByAddress(from)
-	if err != nil || walletToken.Uid <= 0 {
+	boo,err := walletToken.GetByAddressContract(from,contract)
+	if err != nil || boo != true {
 		log.Error("get user token error",err,from)
 		return
 	}
@@ -87,14 +111,14 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string) {
 		TokenId:int32(walletToken.Tokenid),
 		Num:tokenInout.Amount,
 		Ukey:[]byte(txhash),
-		Type:1,  //区块入账
+		Type:17,  //提币成功消耗冻结
 	})
 	log.WithFields(log.Fields{
 		"uid":uint64(walletToken.Uid),
 		"token_uid":int32(walletToken.Tokenid),
 		"num":tokenInout.Amount,
 		"ukey":txhash,
-		"type":1,
+		"type":17,
 	}).Info("ETHConfirmSubFrozen result:",rsp,errr)
 	if errr != nil {
 		log.Error("ETHConfirmSubFrozen error",err)
