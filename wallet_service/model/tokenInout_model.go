@@ -118,8 +118,8 @@ func (this *TokenInout) UpdateApplyTiBi(applyid int, txhash string) (int, error)
 }
 
 //更新比特币申请提币hash
-func (this *TokenInout) UpdateApplyTiBi2(applyid int,states int) (int, error) {
-	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{States:states})
+func (this *TokenInout) UpdateApplyTiBi2(applyid int,states int,remarks string) (int, error) {
+	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{States:states,Remarks:remarks})
 	return int(affected), err
 }
 
