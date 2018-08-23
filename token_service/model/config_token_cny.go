@@ -60,7 +60,7 @@ func InitCnyPrice() {
 	if err != nil {
 		log.Fatal("please init price first")
 	}
-	
+
 	out := &proto.CnyPriceResponse{}
 	err = jsonpb.UnmarshalString(r, out)
 	if err != nil {

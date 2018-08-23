@@ -1,25 +1,22 @@
 package client
 
 import (
-	"context"
 	proto "digicon/proto/rpc"
 	cf "digicon/token_service/conf"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
-	log "github.com/sirupsen/logrus"
+	"context"
 )
 
 type UserRPCCli struct {
-	conn proto.TokenRPCService
+	conn proto.UserRPCService
 }
 
-func (s *UserRPCCli) CallGreet(name string) (rsp *proto.AdminResponse, err error) {
-	rsp, err = s.conn.AdminCmd(context.TODO(), &proto.AdminRequest{})
-	if err != nil {
-		log.Errorln(err.Error())
-		return
-	}
+func (s *UserRPCCli) CallGetUserFeeInfo(uid uint64) (rsp *proto.GetUserFeeInfoResponse, err error) {
+	rsp,err = s.conn.GetUserFeeInfo(context.TODO(),&proto.InnerCommonRequest{
+			Uid:uid,
+	})
 	return
 }
 
@@ -27,13 +24,13 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	consul_addr := cf.Cfg.MustValue("consul", "addr")
 	r := consul.NewRegistry(registry.Addrs(consul_addr))
 	service := micro.NewService(
-		micro.Name("greeter.client"),
+		micro.Name("token.user.client"),
 		micro.Registry(r),
 	)
 	service.Init()
 
-	service_name := cf.Cfg.MustValue("base", "service_name")
-	greeter := proto.NewTokenRPCService(service_name, service.Client())
+	service_name := cf.Cfg.MustValue("base", "service_client_user")
+	greeter := proto.NewUserRPCService(service_name, service.Client())
 	u = &UserRPCCli{
 		conn: greeter,
 	}

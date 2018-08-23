@@ -577,3 +577,19 @@ func (this *RPCServer) AuthMail(ctx context.Context, req *proto.AuthMailRequest,
 	rsp.Err=ret
 	return nil
 }
+
+
+func (this *RPCServer) GetUserFeeInfo(ctx context.Context, req *proto.InnerCommonRequest, rsp *proto.GetUserFeeInfoResponse) error{
+
+	u:=model.User{}
+	_,err :=u.GetUser(req.Uid)
+	if err!=nil {
+		rsp.Err=ERRCODE_UNKNOWN
+		rsp.Message=err.Error()
+		return nil
+	}
+
+	rsp.WhiteList=int32(u.WhiteList)
+
+	return nil
+}

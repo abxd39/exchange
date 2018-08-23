@@ -39,6 +39,7 @@ type User struct {
 	Status           int    `xorm:"default 0 comment('用户状态，1正常，2冻结') INT(11)"`
 	SecurityAuth     int    `xorm:"comment('认证状态1110') TINYINT(8)"`
 	SetTardeMark     int    `xorm:"comment('资金密码设置状态标识') INT(8)"`
+	WhiteList        int    `xorm:"not null default 2 comment('用户白名单 1为白名单 免除交易手续费，2 需要缴纳交易手续费') TINYINT(4)"`
 }
 
 type UidAndInviteID struct {

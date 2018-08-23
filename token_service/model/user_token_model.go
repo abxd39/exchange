@@ -163,12 +163,16 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64, ukey string, ty p
 	}()
 
 	s.Balance += num
-
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
+	var aff int64
+	aff, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
 	if err != nil {
 		return
 	}
 
+	if aff == 0 {
+		err = errors.New("version is err")
+		return
+	}
 	//交易流水
 	err = InsertRecord(session, &MoneyRecord{
 		Uid:     s.Uid,
@@ -197,10 +201,14 @@ func (s *UserToken) AddFrozen(session *xorm.Session, num int64, ukey string, ty 
 			}).Errorf("add frozen money  error %s", err.Error())
 		}
 	}()
-
+	var aff int64
 	s.Frozen += num
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
+	aff, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
 	if err != nil {
+		return
+	}
+	if aff==0 {
+		err = errors.New("version is err")
 		return
 	}
 
@@ -384,13 +392,16 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty p
 	if s.Balance < num {
 		ret = ERR_TOKEN_LESS
 	}
-
+	var aff int64
 	s.Balance -= num
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
+	aff, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
 	if err != nil {
 		return
 	}
-
+	if aff == 0 {
+		err = errors.New("version is err")
+		return
+	}
 	//交易流水
 	err = InsertRecord(session, &MoneyRecord{
 		Uid:     s.Uid,
@@ -872,7 +883,7 @@ func GetAllBalanceCny(uids []uint64) map[uint64]*proto.BalanceCnyBaseData {
 	all := make(map[uint64]*proto.BalanceCnyBaseData, 0)
 	for _, v := range g {
 
-		cny:=GetCnyPrice(int32(v.TokenId))
+		cny := GetCnyPrice(int32(v.TokenId))
 		u, ok := all[v.Uid]
 		if ok {
 			u.BalanceCnyInt += convert.Int64MulInt64By8Bit(v.Balance, cny)
@@ -887,7 +898,7 @@ func GetAllBalanceCny(uids []uint64) map[uint64]*proto.BalanceCnyBaseData {
 				FrozenCnyInt:  convert.Int64MulInt64By8Bit(v.Frozen, cny),
 			}
 
-			u,_=all[v.Uid]
+			u, _ = all[v.Uid]
 			//log.Infof("init  balance %d,frozen %d,token_id %d",v.Balance,v.Frozen,v.TokenId)
 			//log.Infof("init cny  balance %d,frozen %d ,token_id %d",u.BalanceCnyInt,u.FrozenCnyInt,v.TokenId)
 		}

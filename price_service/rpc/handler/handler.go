@@ -94,15 +94,14 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 }
 
 func (s *RPCServer) CurrentPrice(ctx context.Context, req *proto.CurrentPriceRequest, rsp *proto.CurrentPriceResponse) error {
-
 	q, ok := model.GetQueneMgr().GetQueneByUKey(req.Symbol)
 	if !ok {
 		return nil
 	}
 	e := q.GetEntry()
-	h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-	if h==nil ||l==nil {
-		
+	h, l, err := q.GetPeriodLHPrice(model.OneDayPrice)
+	if err != nil {
+		return nil
 	}
 	rsp.Data = model.Calculate(q.ToekenTradeId, e.Price, e.Amount, q.Symbol, h.Price, l.Price)
 	return nil
@@ -303,7 +302,6 @@ func (s *RPCServer) GetCnyPrices(ctx context.Context, req *proto.CnyPriceRequest
 }
 
 func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
-
 	g := model.GetConfigQuenesByType(req.TokenId)
 
 	for _, v := range g {
@@ -313,8 +311,8 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 		}
 
 		price := q.GetEntry().Price
-		h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-		if h==nil || l==nil {
+		h, l, err := q.GetPeriodLHPrice(model.OneDayPrice)
+		if err != nil {
 			return nil
 		}
 		r := model.Calculate(q.ToekenTradeId, price, q.GetEntry().Amount, q.Symbol, h.Price, l.Price)
@@ -328,11 +326,11 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 				Low:      r.Low,
 				High:     r.High,
 				Amount:   r.Amount,
-				CnyPrice:convert.Int64ToStringBy8Bit(cny_price.CnyPrice),
-				CnyLow:    convert.Int64ToStringBy8Bit(l.CnyPrice),
+				CnyPrice: convert.Int64ToStringBy8Bit(cny_price.CnyPrice),
+				CnyLow:   convert.Int64ToStringBy8Bit(l.CnyPrice),
 				CnyHigh:  convert.Int64ToStringBy8Bit(h.CnyPrice),
 			})
-		}else{
+		} else {
 			rsp.Data = append(rsp.Data, &proto.QutationBaseData{
 				Symbol: v.Name,
 				Price:  r.Price,

@@ -123,16 +123,17 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 
 }
 
-func Testg()  {
+func Testg() {
 	SubTokenWithFronzen(&proto.SubTokenWithFronzeRequest{
-		Uid:100001,
-		TokenId:1,
-		Num:10000000,
-		Opt:proto.TOKEN_OPT_TYPE_ADD,
-		Ukey:[]byte("100001"),
-		Type:proto.TOKEN_TYPE_OPERATOR_NONE,
+		Uid:     100001,
+		TokenId: 1,
+		Num:     10000000,
+		Opt:     proto.TOKEN_OPT_TYPE_ADD,
+		Ukey:    []byte("100001"),
+		Type:    proto.TOKEN_TYPE_OPERATOR_NONE,
 	})
 }
+
 //扣减金额并冻结
 func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err error) {
 	u := &UserToken{}

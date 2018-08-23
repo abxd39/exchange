@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
+	"digicon/token_service/rpc/client"
 )
 
 type RPCServer struct {
@@ -45,8 +46,13 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
+	r,err :=client.InnerService.UserSevice.CallGetUserFeeInfo(req.Uid)
+	if err!=nil {
+		return nil
+	}
 
-	ret, err := q.EntrustReq(req)
+
+	ret, err := q.EntrustReq(req,r.IsFree)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
 		rsp.Message = err.Error()

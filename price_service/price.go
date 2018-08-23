@@ -31,7 +31,6 @@ func main() {
 	//return
 	dao.InitDao()
 
-
 	go rpc.RPCServerInit()
 	client.InitInnerService()
 	model.GetQueneMgr().Init()

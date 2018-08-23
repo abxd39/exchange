@@ -41,6 +41,7 @@ type EntrustDetail struct {
 	Type        int     `xorm:"not null comment('类型 市价委托1 还是限价委托2') TINYINT(4)"`
 	OnPrice     int64   `xorm:"not null comment('委托价格(挂单价格全价格 卖出价格是扣除手续费的）') BIGINT(20)"`
 	FeePercent  float64 `xorm:"not null comment('手续费比例') BIGINT(20)"`
+	IsFree      bool    `xorm:"not null comment('免手续费') TINYINT(1)"`
 	States      int     `xorm:"not null comment('0是挂单，1是部分成交,2成交， 3撤销') TINYINT(4)"`
 	CreatedTime int64   `xorm:"not null comment('添加时间') created BIGINT(20)"`
 	TradeNum    int64   `xorm:"not null comment('成交数量')  BIGINT(20)"`
@@ -142,11 +143,14 @@ func (s *EntrustDetail) GetList(uid uint64, limit, page int) []EntrustDetail {
 	return m
 }
 
+/*
 func (s *EntrustDetail) SubSurplusInCache(num int64) {
 	s.SurplusNum -= num
 	s.TradeNum += num
 }
+*/
 
+//减少剩余数量
 func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 
 	if s.SurplusNum > deal_num {
@@ -171,10 +175,18 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 		"deal_num":   deal_num,
 		"os_id":      os.Getpid(),
 	}).Info("just record entrust_detail surplus ")
-	//s.SurplusNum -= deal_num
-	_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "price").Decr("surplus_num", deal_num).Incr("trade_num", deal_num).Update(s)
+	s.SurplusNum -= deal_num
+	s.TradeNum += deal_num
+	//_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "price").Decr("surplus_num", deal_num).Incr("trade_num", deal_num).Update(s)
+
+	aff, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "trade_num").Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
+		return err
+	}
+
+	if aff == 0 {
+		err = errors.New("version is err")
 		return err
 	}
 	return nil

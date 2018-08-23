@@ -4,10 +4,10 @@ import (
 	"digicon/common/convert"
 	. "digicon/price_service/dao"
 	proto "digicon/proto/rpc"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"time"
-	"fmt"
 )
 
 type Price struct {
@@ -19,12 +19,13 @@ type Price struct {
 	Vol         int64  `xorm:"BIGINT(20)"`
 	Count       int64  `xorm:"BIGINT(20)"`
 	UsdVol      int64  `xorm:"BIGINT(20)"`
-	CnyPrice       int64  `xorm:"BIGINT(20)"`
+	CnyPrice    int64  `xorm:"BIGINT(20)"`
 }
 
-func (s *Price) FillData()  {
-	
+func (s *Price) FillData() {
+
 }
+
 /*
 type Price struct {
 	Id     int64 `xorm:"BIGINT(20)"`
@@ -54,7 +55,7 @@ func InsertPrice(p *Price) error {
 	return nil
 }
 
-func GetHigh(begin, end int64, symbol string)(*Price) {
+func GetHigh(begin, end int64, symbol string) *Price {
 	hp := &Price{}
 	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end, symbol).Desc("price").Limit(1, 0).Get(hp)
 	if err != nil {
@@ -67,7 +68,7 @@ func GetHigh(begin, end int64, symbol string)(*Price) {
 	return nil
 }
 
-func GetLow(begin, end int64, symbol string) (*Price) {
+func GetLow(begin, end int64, symbol string) *Price {
 	hp := &Price{}
 	ok, err := DB.GetMysqlConn().Where("created_time>? and created_time<=? and symbol=?", begin, end, symbol).Asc("price").Limit(1, 0).Get(hp)
 	if err != nil {
@@ -88,7 +89,7 @@ func Calculate(token_id int32, price, amount int64, symbol string, high, low int
 	min := t.Add(-time.Duration(s) * time.Second)
 	same := min.Unix()
 	log.Info(same)
-	l := min.Add(-600 * time.Second)
+	l := min.Add(-86400 * time.Second)
 	yestday := l.Unix()
 	p := &Price{}
 	ok, err := DB.GetMysqlConn().Where("id=? and symbol=?", yestday, symbol).Get(p)
@@ -152,7 +153,7 @@ func Get24HourPrice(symbol string) (*Price, bool) {
 	s := t.Second()
 	min := t.Add(-time.Duration(s) * time.Second)
 
-	l := min.Add(-600 * time.Second)
+	l := min.Add(-86400 * time.Second)
 	begin := l.Unix()
 	//end := t.Unix()
 	p := &Price{}
@@ -223,37 +224,37 @@ func GetVolumeTotal() *proto.VolumeResponse {
 
 }
 
-func Test3()  {
-	b:=2223720000
-	a:=61770000
-	c:=2219272560
+func Test3() {
+	b := 2223720000
+	a := 61770000
+	c := 2219272560
 	//m:=3627601957
 	//n:=61300000
-	y:=2219272560+4447439
+	y := 2219272560 + 4447439
 	//g:=convert.Int64MulFloat64(2219272560, 0.002)
-	fmt.Println(b/a)
+	fmt.Println(b / a)
 	//fmt.Println(g)
 	fmt.Println(y)
-	fmt.Println(c==y)
-	a1:=10//newbtc
-	b1:=2//unt
-	p:=5
+	fmt.Println(c == y)
+	a1 := 10 //newbtc
+	b1 := 2  //unt
+	p := 5
 	fmt.Println(a1)
 	fmt.Println(b1)
 	fmt.Println(p)
 	//trade
-	a1=0
-	a2:=2*0.99//
-	fee1:=2*0.01
-	fmt.Printf("unt=%v\n",a2)
-	fmt.Printf("unt fee=%v\n",fee1)
+	a1 = 0
+	a2 := 2 * 0.99 //
+	fee1 := 2 * 0.01
+	fmt.Printf("unt=%v\n", a2)
+	fmt.Printf("unt fee=%v\n", fee1)
 
-	b1=0
-	b2:=10*.99
-	fee2:=10*0.01
-	fmt.Printf("nbtc=%v\n",b2)
-	fmt.Printf("nbtc fee=%v\n",fee2)
+	b1 = 0
+	b2 := 10 * .99
+	fee2 := 10 * 0.01
+	fmt.Printf("nbtc=%v\n", b2)
+	fmt.Printf("nbtc fee=%v\n", fee2)
 
-	h:=a-b
-	fmt.Println(h>78338765128)
+	h := a - b
+	fmt.Println(h > 78338765128)
 }

@@ -3,14 +3,14 @@ package client
 var InnerService *RPCClient
 
 type RPCClient struct {
-	//UserSevice   *UserRPCCli
+	UserSevice   *UserRPCCli
 	//PublicSevice *PublciRPCCli
 	PriceService *PriceRPCCli
 }
 
 func NewRPCClient() (c *RPCClient) {
 	c = &RPCClient{
-		//UserSevice:   NewUserRPCCli(),
+		UserSevice:   NewUserRPCCli(),
 		//PublicSevice: NewPublciRPCCli(),
 		PriceService: NewPriceRPCCli(),
 	}

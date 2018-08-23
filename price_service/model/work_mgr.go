@@ -157,3 +157,11 @@ func (s *WorkQueneMgr) GetQueneByUKey(ukey string) (d *PriceWorkQuene, ok bool) 
 	}
 	return
 }
+
+func (s *WorkQueneMgr) GetCnyPrice(token_id int32) int64 {
+	g, ok := s.PriceMap[token_id]
+	if ok {
+		return g.CnyPrice
+	}
+	return 0
+}

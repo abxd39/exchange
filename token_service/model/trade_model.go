@@ -148,14 +148,14 @@ func Test2(beid, endid int64) {
 	*/
 }
 
-func Testj()  {
+func Testj() {
 	g := make([]string, 0)
 
-	g=append(g, "1533285163_10")
-	g=append(g, "1533283556_4")
-	g=append(g, "1533284027_2")
-	g=append(g, "1533284284_2")
-	g=append(g, "1533284307_3")
+	g = append(g, "1533285163_10")
+	g = append(g, "1533283556_4")
+	g = append(g, "1533284027_2")
+	g = append(g, "1533284284_2")
+	g = append(g, "1533284307_3")
 
 	en2 := make(map[string]*EntrustDetail, 0)
 
@@ -165,21 +165,20 @@ func Testj()  {
 		return
 	}
 
-	for _,v:=range en2  {
-		log.Infof("entrust_id %s",v.EntrustId)
+	for _, v := range en2 {
+		log.Infof("entrust_id %s", v.EntrustId)
 	}
 
-
 	en := make([]*EntrustDetail, 0)
-	for _,k:=range g {
-		v,ok:=en2[k]
+	for _, k := range g {
+		v, ok := en2[k]
 		if ok {
-			en =append(en,v)
+			en = append(en, v)
 		}
 	}
 
-	for _,v:=range en  {
-		log.Infof("entrust_id %s",v.EntrustId)
+	for _, v := range en {
+		log.Infof("entrust_id %s", v.EntrustId)
 	}
 
 }

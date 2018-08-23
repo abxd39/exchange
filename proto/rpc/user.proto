@@ -94,7 +94,7 @@ service UserRPC {
     // 校验pay_pwd
     rpc GetVerifyPayPwd(VerifyPayPwdRequest) returns(VerifyPayPwdRespose){};
 
-
+    rpc GetUserFeeInfo(InnerCommonRequest) returns (GetUserFeeInfoResponse);
 }
 
 message VerifyPayPwdRequest {
@@ -569,4 +569,12 @@ message AuthMailRequest{
 message AuthMailResponse{
     int32 err       =1;
     string message  =2;
+}
+
+message GetUserFeeInfoResponse{
+    int32 err       =1;
+    string message  =2;
+    int32 white_list   =3;
+    bool is_free        =4;
+
 }
