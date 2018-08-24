@@ -130,8 +130,14 @@ func (this WalletDailyCountSheet) Run(){
 			TotalPut:        total_put,
 			Date:            yesDate,
 		}
-		err = onedayInOutModel.InsertOneDayTotal()
-		fmt.Println(onedayInOutModel.Id)
+		if has.Id  != 0  {
+			err = onedayInOutModel.UpdateOneDayTotal(int64(has.Id))
+			fmt.Println(onedayInOutModel.Id)
+		}else{
+			err = onedayInOutModel.InsertOneDayTotal()
+			fmt.Println(onedayInOutModel.Id)
+		}
+
 
 		if err != nil {
 			log.Errorln("wallet统计失败", err)

@@ -269,7 +269,7 @@ func (this *TokenInout) GetByHash(txhash string) error {
 */
 func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime string) (tokensIntout []TokenInout, err error){
 	err = utils.Engine_wallet.Table("token_inout").
-		Where("tokenid=? AND created_time >= ? AND created_time <= ? AND states=2", tkid, startTime, endTime).
+		Where("tokenid=? AND created_time >= ? AND created_time <= ?", tkid, startTime, endTime).
 		Find(&tokensIntout)
 	return
 }

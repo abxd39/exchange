@@ -5,16 +5,16 @@ import (
 	"digicon/common/xlog"
 	cf "digicon/currency_service/conf"
 	"digicon/currency_service/cron"
+	"digicon/currency_service/dao"
+	"digicon/currency_service/model"
 	"digicon/currency_service/rpc"
 	"digicon/currency_service/rpc/client"
 	"digicon/currency_service/rpc/handler"
-	"digicon/currency_service/dao"
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
-	"digicon/currency_service/model"
 )
 
 func init() {
@@ -39,7 +39,6 @@ func main() {
 
 	cron.InitCron()
 
-
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
@@ -50,7 +49,3 @@ func main() {
 	sig := <-quitChan
 	log.Infof("server close by sig %s", sig.String())
 }
-
-
-
-

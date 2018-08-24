@@ -12,17 +12,15 @@ func InitCron() {
 	//划出
 	go HandlerTransferToTokenDone()
 
-
 	//
 	go new(DailyCountSheet).Run()
-
 
 	//cron
 	if cf.Cfg.MustBool("cron", "run", false) {
 		c := cron.New()
 
 		//AddFunc
-		spec := "0 0 1 * * *" // every day ...
+		spec := "0 0 1 * * *"    // every day ...
 		specTwo := "0 0 4 * * *" // every day ...
 
 		// 定时任务统计
@@ -31,12 +29,10 @@ func InitCron() {
 
 		c.AddFunc("0 30 * * * *", ResendTransferToTokenMsg)
 
-
 		// ads auto downline. every one hour check
 		c.AddFunc("0 0 */1 * * *", CheckAdsAutoDownline)
 
 		c.Start()
 	}
-
 
 }

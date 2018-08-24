@@ -38,6 +38,20 @@ func (this *TokenInoutDailySheet) InsertOneDayTotal() (err error){
 	return
 }
 
+func (this *TokenInoutDailySheet) UpdateOneDayTotal(id int64) (err error){
+	sql := "UPDATE  `token_inout_daily_sheet` " +
+		"set `token_name`=?, `total_day_num`=?, `total_day_cny`=?, `total_day_num_fee`=?, `total_day_fee_cny`=? , " +
+		"`total_day_put`=?, `total_day_put_cny`=?, `total`=?, `total_fee`=?, `total_put`=?  WHERE id=?"
+	engine := utils.Engine_wallet
+	engine.ShowSQL(true)
+	_, err = engine.Exec(sql, this.TokenName, this.TotalDayNum, this.TotalDayCny, this.TotalDayNumFee, this.TotalDayFeeCny,
+		this.TotalDayPut, this.TotalDayPutCny, this.Total, this.TotalFee,this.TotalPut,  id)
+	engine.ShowSQL(false)
+	return
+}
+
+
+
 
 
 func (this *TokenInoutDailySheet) CheckOneDay(tkId uint32, today string)(result FindDailySheet, err error) {
