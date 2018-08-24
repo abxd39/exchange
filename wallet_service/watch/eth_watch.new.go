@@ -229,12 +229,12 @@ func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) {
 	to := strings.Join([]string{"0x",data.Input[35:74]},"")
 
 	//查询用户wallet_token
-	walletToken := new(models.WalletToken)
-	err = walletToken.GetByAddress(data.From)
-	if err != nil || walletToken.Uid <= 0 {
-		log.Error("WriteERC20ChainTx GetByAddress error",err,walletToken.Uid,walletToken)
-		return
-	}
+	//walletToken := new(models.WalletToken)
+	//err = walletToken.GetByAddress(data.From)
+	//if err != nil || walletToken.Uid <= 0 {
+	//	log.Error("WriteERC20ChainTx GetByAddress error",err,walletToken.Uid,walletToken)
+	//	return
+	//}
 
 	//数量
 
@@ -292,12 +292,12 @@ func (p *EthTiBiWatch) WriteETHChainTx(data TranInfo) {
 	}
 
 	//查询用户wallet_token
-	walletToken := new(models.WalletToken)
-	err = walletToken.GetByAddress(data.From)
-	if err != nil || walletToken.Uid <= 0 {
-		log.Error("WriteETHChainTx GetByAddress error",err)
-		return
-	}
+	//walletToken := new(models.WalletToken)
+	//err = walletToken.GetByAddress(data.From)
+	//if err != nil || walletToken.Uid <= 0 {
+	//	log.Error("WriteETHChainTx GetByAddress error",err)
+	//	return
+	//}
 
 	//格式化数量
 	temp, boo := new(big.Int).SetString(data.Value[2:],16)

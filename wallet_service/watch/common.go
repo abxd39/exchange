@@ -40,11 +40,13 @@ func (p *Common) AddBTCTokenNum(data TranItem) {
 		TokenId:int32(walletToken.Tokenid),
 		Num:amount,
 		Ukey:[]byte(data.Txid),
-		OptAddType:0,
+		OptAddType:1,
+		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_HASH,
+		Opt:proto.TOKEN_OPT_TYPE_ADD,
 	})
-	log.Info("btc AddBTCTokenNum result",err,rsp)
+	log.Info("btc AddBTCTokenNum result",errr,string(rsp.Message))
 	if errr != nil {
-		log.Info("AddBTCTokenNum error",err)
+		log.Info("AddBTCTokenNum error",errr)
 	}
 }
 
@@ -73,17 +75,18 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 			"token_id":walletToken.Tokenid,
 			"num":tokenInout.Amount,
 			"ukey":data.Txid,
-			"type":1,
+			"type":proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,
 		}).Info("比特币冻结数量")
 	}()
 
-	_,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
+	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
 		Num:tokenInout.Amount,
 		Ukey:[]byte(data.Txid),
-		Type:1,  //区块入账
+		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,  //提币成功消耗冻结
 	})
+	log.Info("比特币确认消耗冻结：",errr,rsp.Err,string(rsp.Message))
 	if errr != nil {
 		log.Info("BTCConfirmSubFrozen error",err)
 	}
@@ -93,32 +96,32 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 //**以太坊提币成功调用
 func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) {
 	//查询用户uid
-	walletToken := new(models.WalletToken)
-	boo,err := walletToken.GetByAddressContract(from,contract)
-	if err != nil || boo != true {
-		log.Error("get user token error",err,from)
-		return
-	}
+	//walletToken := new(models.WalletToken)
+	//boo,err := walletToken.GetByAddressContract(from,contract)
+	//if err != nil || boo != true {
+	//	log.Error("get user token error",err,from)
+	//	return
+	//}
 	//根据交易hash查询申请提币数据
 	tokenInout := new(models.TokenInout)
-	err = tokenInout.GetByHash(txhash)
+	err := tokenInout.GetByHash(txhash)
 	if err != nil || tokenInout.Uid <= 0 {
 		log.Error("get data by hash error",err,txhash)
 		return
 	}
 	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
-		Uid:uint64(walletToken.Uid),
-		TokenId:int32(walletToken.Tokenid),
+		Uid:uint64(tokenInout.Uid),
+		TokenId:int32(tokenInout.Tokenid),
 		Num:tokenInout.Amount,
 		Ukey:[]byte(txhash),
-		Type:17,  //提币成功消耗冻结
+		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,  //提币成功消耗冻结
 	})
 	log.WithFields(log.Fields{
-		"uid":uint64(walletToken.Uid),
-		"token_uid":int32(walletToken.Tokenid),
+		"uid":uint64(tokenInout.Uid),
+		"token_uid":int32(tokenInout.Tokenid),
 		"num":tokenInout.Amount,
 		"ukey":txhash,
-		"type":17,
+		"type":proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,
 	}).Info("ETHConfirmSubFrozen result:",rsp,errr)
 	if errr != nil {
 		log.Error("ETHConfirmSubFrozen error",err)

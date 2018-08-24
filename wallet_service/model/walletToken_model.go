@@ -178,7 +178,7 @@ func (this *WalletToken) CheckExists(address string,contract string) (bool,error
 
 //根据地址和合约，判断是否存在
 func (this *WalletToken) CheckExists2(address string) (bool,error) {
-	return Engine_wallet.Where("address = ?",address).Exist()
+	return Engine_wallet.Where("address = ?",address).Get(this)
 }
 
 //根据类型查询以太坊钱包

@@ -128,9 +128,18 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 func (this *WalletHandler) Signtx(ctx context.Context, req *proto.SigntxRequest, rsp *proto.SigntxResponse) error {
 	rsp.Data = new(proto.SigntxPos)
 
-	keystore := &WalletToken{Uid: int(req.Userid), Tokenid: int(req.Tokenid)}
+	//查询转出账号uid
+	from_uid := cf.Cfg.MustInt("accounts","eth_uid",0)
+	if from_uid == 0 {
+		rsp.Code = "1"
+		rsp.Msg = "转出账号未定义"
+		return errors.New("转出账号未定义")
+	}
 
-	ok, err := utils.Engine_wallet.Where("uid=? and tokenid=?", req.Userid, int(req.Tokenid)).Get(keystore)
+
+	keystore := &WalletToken{Uid: from_uid, Tokenid: int(req.Tokenid)}
+
+	ok, err := utils.Engine_wallet.Where("uid=? and tokenid=?", from_uid, int(req.Tokenid)).Get(keystore)
 
 	if err != nil {
 		rsp.Code = "1"
@@ -574,12 +583,25 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		return errors.New(GetErrorMessage(ERRCODE_FREEZE))
 	}
 
-	//查询配置的提币地址
-	fromAddress := cf.Cfg.MustValue("accounts","eth_address","")
-	if fromAddress == "" {
+	//查询代币类型
+	tokens := new(Tokens)
+	boo,err = tokens.GetByid(int(req.Tokenid))
+	if boo != true || err != nil {
+		log.Error("查询token错误：",boo,err,req.Tokenid)
 		rsp.Code = 1
-		rsp.Msg = GetErrorMessage(ERRCODE_TIBI_ADDRESS)
-		return errors.New(GetErrorMessage(ERRCODE_TIBI_ADDRESS))
+		rsp.Msg = "查询token错误"
+		return errors.New("查询token错误")
+	}
+
+	fromAddress := ""
+	if tokens.Signature == "eip" || tokens.Signature == "eip155" {
+		//查询配置的提币地址
+		fromAddress = cf.Cfg.MustValue("accounts","eth_address","")
+		if fromAddress == "" {
+			rsp.Code = 1
+			rsp.Msg = GetErrorMessage(ERRCODE_TIBI_ADDRESS)
+			return errors.New(GetErrorMessage(ERRCODE_TIBI_ADDRESS))
+		}
 	}
 
 	//保存数据

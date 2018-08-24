@@ -1,7 +1,7 @@
 package watch
 
 import(
-	"digicon/wallet_service/model"
+	."digicon/wallet_service/model"
 	"fmt"
 	"github.com/ouqiang/timewheel"
 	"time"
@@ -28,7 +28,7 @@ type BtcWatch struct {
 	Url string
 	updateBlockTW *timewheel.TimeWheel
 	getAddressTW *timewheel.TimeWheel
-	tkChainInOutModel *models.TokenChainInout
+	tkChainInOutModel *TokenChainInout
 }
 
 type TranItem struct {
@@ -74,7 +74,7 @@ func StartBtcWatch() {
 
 //初始化
 func (p *BtcWatch) Init() {
-	tokenModel := new(models.Tokens)
+	tokenModel := new(Tokens)
 
 	exists, err := tokenModel.GetByName("BTC")
 	if err != nil {
@@ -98,7 +98,7 @@ func (p *BtcWatch) Init() {
 	p.updateBlockTW.AddTimer(BTC_INTERVAL_TW * time.Second, "btc_check_tran", timewheel.TaskData{})
 
 	//初始化模型
-	p.tkChainInOutModel = new(models.TokenChainInout)
+	p.tkChainInOutModel = new(TokenChainInout)
 }
 
 //拉取数据
@@ -132,10 +132,9 @@ func (p *BtcWatch) BlockUpdateDeal() {
 //交易处理
 func (p *BtcWatch) TranDeal(data TranItem) bool {
 	//判断地址是否存在
-	walletToken := new(models.WalletToken)
+	walletToken := new(WalletToken)
 	boo,err := walletToken.CheckExists2(data.Address)
 	if err != nil || boo != true {
-		log.Info("比特币地址不存在：",boo,err,data.Address)
 		return false
 	}
 	//判断交易是否存在
@@ -149,7 +148,6 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 	}
 	//判断确认次数
 	if data.Confirmations < 6 {
-		log.Info("比特币确认次数不足：",data.Confirmations,data.Txid)
 		return false
 	}
 	//写入交易记录到链记录表
@@ -159,7 +157,7 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 
 	if data.Category == "send" {  //提币
 		//更新完成状态
-		_,err := new(models.TokenInout).BteUpdateAppleDone(data.Txid)
+		_,err := new(TokenInout).BteUpdateAppleDone(data.Txid)
 		if err != nil {
 			log.Error("更新比特币申请状态失败：",data.Txid)
 		}
@@ -183,7 +181,7 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 	log.Info("写入比特币充币记录：",data)
 
 	//交易是否已经收录
-	exist, errr := new(models.TokenInout).TxhashExist(data.Txid, 0)
+	exist, errr := new(TokenInout).TxhashExist(data.Txid, 0)
 
 	if errr != nil {
 		return
@@ -201,9 +199,9 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 	amount := t1.Mul(t1_c).IntPart()
 
 
-	var inOutToken = new(models.TokenInout)
+	var inOutToken = new(TokenInout)
 
-	var walletToken = new(models.WalletToken)
+	var walletToken = new(WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil {
 		log.Error("WriteBtcInRecord address not exists",err.Error())
@@ -232,7 +230,7 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 func (p *BtcWatch) WriteChainTx(data TranItem) {
 	log.Info("写入链交易记录：",data)
 	//交易是否已经收录
-	exist, err := new(models.TokenChainInout).TxhashExist(data.Txid,0)
+	exist, err := new(TokenChainInout).TxhashExist(data.Txid,0)
 
 	if err != nil {
 		return
@@ -252,7 +250,7 @@ func (p *BtcWatch) WriteChainTx(data TranItem) {
 	amount := convert.Float64ToInt64By8Bit(data.Amount)
 	amount1 := strconv.FormatInt(amount,10)
 
-	txmodel := &models.TokenChainInout{
+	txmodel := &TokenChainInout{
 		Txhash:    data.Txid,
 		Address:   data.Address,
 		Value:     amount1,
