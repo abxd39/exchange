@@ -201,3 +201,12 @@ func (this *WalletRPCCli) CallCancelSubTokenWithFronze(uid int32,token_id int32,
 	}
 	return
 }
+
+func (this *WalletRPCCli) CallUsdtTiBi(req *proto.UsdtTiBiRequest) (rsp *proto.UsdtTiBiResponse, err error) {
+	rsp, err = this.conn.UsdtTiBi(context.TODO(), req)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	return
+}

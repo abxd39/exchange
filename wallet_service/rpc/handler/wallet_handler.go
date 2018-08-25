@@ -100,6 +100,8 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 		addr, err = Neweth(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
 	case "btc":
 		addr, err = NewBTC(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
+	case "omni":
+		addr, err = NewBTC(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
 	default:
 		err = errors.New("unknow type")
 	}
@@ -604,6 +606,17 @@ func (this *WalletHandler) TibiApply(ctx context.Context, req *proto.TibiApplyRe
 		}
 	}
 
+	//usdt
+	if tokens.Signature == "omni" {
+		//查询配置的提币地址
+		fromAddress = cf.Cfg.MustValue("accounts","usdt_address","")
+		if fromAddress == "" {
+			rsp.Code = 1
+			rsp.Msg = GetErrorMessage(ERRCODE_TIBI_ADDRESS)
+			return errors.New(GetErrorMessage(ERRCODE_TIBI_ADDRESS))
+		}
+	}
+
 	//保存数据
 	_,err = tokenInoutMD.TiBiApply(int(req.Uid),int(req.Tokenid),req.To,req.RealAmount,req.Gasprice,amountCny,feeCny,fromAddress)
 	if err != nil {
@@ -640,6 +653,17 @@ func (s *WalletHandler) GetAddress(ctx context.Context, req *proto.GetAddressReq
 
 func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBiRequest, rsp *proto.CancelTiBiResponse) error {
 
+	defer func() {
+		if rsp.Code != ERRCODE_SUCCESS {
+			log.WithFields(log.Fields{
+				"uid":req.Uid,
+				"id":req.Id,
+				"code":rsp.Code,
+				"msg":rsp.Msg,
+			}).Error("CancelTiBi error")
+		}
+	}()
+
 	//解除冻结账户金额，查询
 	tokenInout := new(TokenInout)
 	boo,err := tokenInout.GetApplyInOut(int(req.Uid),int(req.Id))
@@ -656,16 +680,14 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 		TokenId:int32(tokenInout.Tokenid),
 		Num:tokenInout.Amount + tokenInout.Fee,
 		Ukey:[]byte(ukey),
-		Type:13,//取消提币
+		Type:proto.TOKEN_TYPE_OPERATOR_TRANSFER_FROM_CANCELTIBI,//取消提币
 	})
 	if errr != nil {
-		log.Error("RPC ERROR")
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = "RPC ERROR"
 		return nil
 	}
 	if res.Err != 0 {
-		log.Error(res.Message)
 		rsp.Code = ERRCODE_UNKNOWN
 		rsp.Msg = res.Message
 		return nil
@@ -676,7 +698,6 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 	//保存数据
 	_,err = tokenInoutMD.CancelTiBi(int(req.Uid),int(req.Id))
 	if err != nil {
-		log.Error("CancelTiBi error",err)
 		rsp.Code = ERRCODE_SAVE_ERROR
 		rsp.Msg = GetErrorMessage(ERRCODE_SAVE_ERROR)
 		return nil
@@ -684,19 +705,6 @@ func (this *WalletHandler) CancelTiBi(ctx context.Context, req *proto.CancelTiBi
 
 	rsp.Code = ERRCODE_SUCCESS
 	rsp.Msg = GetErrorMessage(ERRCODE_SUCCESS)
-
-	defer func() {
-		if res.Err != 0 || errr != nil {
-			log.WithFields(log.Fields{
-				"uid":req.Uid,
-				"tokenid":tokenInout.Tokenid,
-				"amount":tokenInout.Amount,
-				"fee":tokenInout.Fee,
-				"ukey":ukey,
-				"type":13,
-			}).Error("CancelTiBi error")
-		}
-	}()
 
 	return nil
 }
@@ -770,7 +778,7 @@ func (this *WalletHandler) CancelSubTokenWithFronze(ctx context.Context, req *pr
 		TokenId:int32(req.Tokenid),
 		Num:req.Num,
 		Ukey:[]byte(req.Ukey),
-		Type:13,//取消提币
+		Type:proto.TOKEN_TYPE_OPERATOR_TRANSFER_FROM_CANCELTIBI,//取消提币
 	})
 	if errr != nil {
 		log.Error("RPC ERROR")

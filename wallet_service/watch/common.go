@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"fmt"
 	"digicon/common/convert"
+	"github.com/shopspring/decimal"
 )
 
 type Common struct{}
@@ -109,17 +110,22 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) 
 		log.Error("get data by hash error",err,txhash)
 		return
 	}
+
+	amount := decimal.New(tokenInout.Amount,0)
+	fee := decimal.New(tokenInout.Fee,0)
+	total := amount.Add(fee).IntPart()
+
 	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
 		Uid:uint64(tokenInout.Uid),
 		TokenId:int32(tokenInout.Tokenid),
-		Num:tokenInout.Amount,
+		Num:total,
 		Ukey:[]byte(txhash),
 		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,  //提币成功消耗冻结
 	})
 	log.WithFields(log.Fields{
 		"uid":uint64(tokenInout.Uid),
 		"token_uid":int32(tokenInout.Tokenid),
-		"num":tokenInout.Amount,
+		"num":total,
 		"ukey":txhash,
 		"type":proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,
 	}).Info("ETHConfirmSubFrozen result:",rsp,errr)
@@ -183,3 +189,83 @@ func (p *Common) AddETHTokenNum(uid int,to string,tokenid int,amount string,txha
 //	}
 //	fmt.Println("测试数据：",err,walletToken.Uid <= 0)
 //}
+
+//添加比特币token数量
+//**比特币充币
+func (p *Common) AddUSDTTokenNum(data TranItem) {
+	log.Info("AddBTCTokenNum data:",data)
+	//查询用户uid
+	walletToken := new(models.WalletToken)
+	err := walletToken.GetByAddress(data.Address)
+	if err != nil || walletToken.Uid <= 0 {
+		log.Info("get user token error",err)
+		return
+	}
+
+	amount := convert.Float64ToInt64By8Bit(data.Amount)
+
+	log.WithFields(log.Fields{
+		"uid":walletToken.Uid,
+		"token_id":walletToken.Tokenid,
+		"num":amount,
+		"ukey":data.Txid,
+		"optAddType":0,
+	}).Info("比特币RPC新增数量")
+
+	//amount := int64(data.Amount * 100000000)
+	rsp,errr := client.InnerService.TokenSevice.CallAddTokenNum(&proto.AddTokenNumRequest{
+		Uid:uint64(walletToken.Uid),
+		TokenId:int32(walletToken.Tokenid),
+		Num:amount,
+		Ukey:[]byte(data.Txid),
+		OptAddType:1,
+		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_HASH,
+		Opt:proto.TOKEN_OPT_TYPE_ADD,
+	})
+	log.Info("btc AddBTCTokenNum result",errr,string(rsp.Message))
+	if errr != nil {
+		log.Info("AddBTCTokenNum error",errr)
+	}
+}
+
+//确认消耗
+//**比特币提币成功调用
+func (p *Common) USDTConfirmSubFrozen(data TranItem) {
+	//查询用户uid
+	walletToken := new(models.WalletToken)
+	err := walletToken.GetByAddress(data.Address)
+	if err != nil || walletToken.Uid <= 0 {
+		log.Info("btc get user token error",err)
+		return
+	}
+
+	//根据交易hash查询申请提币数据
+	tokenInout := new(models.TokenInout)
+	err = tokenInout.GetByHash(data.Txid)
+	if err != nil || tokenInout.Uid <= 0 {
+		log.Info("btc get data by hash error",err)
+		return
+	}
+
+	defer func() {
+		log.WithFields(log.Fields{
+			"uid":walletToken.Uid,
+			"token_id":walletToken.Tokenid,
+			"num":tokenInout.Amount,
+			"ukey":data.Txid,
+			"type":proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,
+		}).Info("比特币冻结数量")
+	}()
+
+	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
+		Uid:uint64(walletToken.Uid),
+		TokenId:int32(walletToken.Tokenid),
+		Num:tokenInout.Amount,
+		Ukey:[]byte(data.Txid),
+		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,  //提币成功消耗冻结
+	})
+	log.Info("比特币确认消耗冻结：",errr,rsp.Err,string(rsp.Message))
+	if errr != nil {
+		log.Info("BTCConfirmSubFrozen error",err)
+	}
+}
