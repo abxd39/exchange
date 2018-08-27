@@ -270,24 +270,30 @@ func (this *TokenInout) GetByHash(txhash string) error {
 func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime string) (tokensIntout []TokenInout, err error){
 	err = utils.Engine_wallet.Table("token_inout").
 		Where("tokenid=? AND created_time >= ? AND created_time <= ?", tkid, startTime, endTime).
+		Where("(opt = 1 ) or (opt = 2 and states=2)").
 		Find(&tokensIntout)
 	return
 }
 
+
+
 /*
 	提币累计总金额
+    操作为2，并且状态为2为提币成功
 */
 func (this *TokenInout) GetOutSumByTokenId(tkid uint32, endTime string ) (outsum SumTokenOut, err error) {
-	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2 and created_time < ?"
+	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2  and states=2 and created_time < ? "
 	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid, endTime).Get(&outsum)
 	return
 }
 
+
 /*
 	充币累计总额
+	操作为1的
 */
 func (this *TokenInout) GetInSumByTokenId(tkid uint32, endTime string)(insum SumTokenIn, err error) {
-	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1 and created_time < ?"
+	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1 and created_time < ? "
 	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid,  endTime).Get(&insum)
 	return
 }
