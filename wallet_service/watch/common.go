@@ -1,7 +1,7 @@
 package watch
 
 import (
-	"digicon/wallet_service/model"
+	."digicon/wallet_service/model"
 	proto "digicon/proto/rpc"
 	"digicon/wallet_service/rpc/client"
 	log "github.com/sirupsen/logrus"
@@ -18,7 +18,7 @@ type Common struct{}
 func (p *Common) AddBTCTokenNum(data TranItem) {
 	log.Info("AddBTCTokenNum data:",data)
 	//查询用户uid
-	walletToken := new(models.WalletToken)
+	walletToken := new(WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("get user token error",err)
@@ -55,7 +55,7 @@ func (p *Common) AddBTCTokenNum(data TranItem) {
 //**比特币提币成功调用
 func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 	//查询用户uid
-	walletToken := new(models.WalletToken)
+	walletToken := new(WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("btc get user token error",err)
@@ -63,7 +63,7 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 	}
 
 	//根据交易hash查询申请提币数据
-	tokenInout := new(models.TokenInout)
+	tokenInout := new(TokenInout)
 	err = tokenInout.GetByHash(data.Txid)
 	if err != nil || tokenInout.Uid <= 0 {
 		log.Info("btc get data by hash error",err)
@@ -104,7 +104,7 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) 
 	//	return
 	//}
 	//根据交易hash查询申请提币数据
-	tokenInout := new(models.TokenInout)
+	tokenInout := new(TokenInout)
 	err := tokenInout.GetByHash(txhash)
 	if err != nil || tokenInout.Uid <= 0 {
 		log.Error("get data by hash error",err,txhash)
@@ -195,7 +195,7 @@ func (p *Common) AddETHTokenNum(uid int,to string,tokenid int,amount string,txha
 func (p *Common) AddUSDTTokenNum(data TranItem) {
 	log.Info("AddBTCTokenNum data:",data)
 	//查询用户uid
-	walletToken := new(models.WalletToken)
+	walletToken := new(WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("get user token error",err)
@@ -232,7 +232,7 @@ func (p *Common) AddUSDTTokenNum(data TranItem) {
 //**比特币提币成功调用
 func (p *Common) USDTConfirmSubFrozen(data TranItem) {
 	//查询用户uid
-	walletToken := new(models.WalletToken)
+	walletToken := new(WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("btc get user token error",err)
@@ -240,7 +240,7 @@ func (p *Common) USDTConfirmSubFrozen(data TranItem) {
 	}
 
 	//根据交易hash查询申请提币数据
-	tokenInout := new(models.TokenInout)
+	tokenInout := new(TokenInout)
 	err = tokenInout.GetByHash(data.Txid)
 	if err != nil || tokenInout.Uid <= 0 {
 		log.Info("btc get data by hash error",err)
@@ -267,5 +267,14 @@ func (p *Common) USDTConfirmSubFrozen(data TranItem) {
 	log.Info("比特币确认消耗冻结：",errr,rsp.Err,string(rsp.Message))
 	if errr != nil {
 		log.Info("BTCConfirmSubFrozen error",err)
+	}
+}
+
+//提币完成短信通知
+func (p *Common) TiBiCompleteSendSms(apply_id int) () {
+	tokenInout := new(TokenInout)
+	err := tokenInout.GetByApplyId(apply_id)
+	if err != nil {
+
 	}
 }

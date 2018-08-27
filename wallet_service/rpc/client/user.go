@@ -50,3 +50,12 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	}
 	return
 }
+
+func (s *UserRPCCli) CallSendMsg (phone string,op_type int32,region string) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.userconn.SendSms(context.TODO(), &proto.SmsRequest{Phone:phone,Type:op_type,Region:region})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}
