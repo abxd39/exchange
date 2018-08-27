@@ -179,7 +179,7 @@ func (s *EntrustDetail) SubSurplus(sess *xorm.Session, deal_num int64) error {
 	s.TradeNum += deal_num
 	//_, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "price").Decr("surplus_num", deal_num).Incr("trade_num", deal_num).Update(s)
 
-	aff, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "trade_num").Update(s)
+	aff, err := sess.Where("entrust_id=?", s.EntrustId).Cols("states", "surplus_num", "trade_num", "price").Update(s)
 	if err != nil {
 		log.Errorln(err.Error())
 		return err

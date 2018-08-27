@@ -203,6 +203,9 @@ func ConfirmSubFrozenToken(req *proto.ConfirmSubFrozenRequest) (err error) {
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
+	if err != nil {
+		return
+	}
 	err = u.NotifyDelFronzen(session, req.Num, string(req.Ukey), req.Type)
 	if err != nil {
 		session.Rollback()

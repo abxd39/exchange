@@ -198,6 +198,13 @@ message CnyBaseData{
     int64 cny_price_int=4;
     int64 usd_price_int=5;
 }
+message SymbolPriceData{
+    string symbol       =1;
+    int32 token_id      =2;
+    int32 token_trade_id    =3;
+    int64 price             =4;
+    int64 cny_price_int=5;
+}
 
 message CnyPriceRequest{
     repeated int32 token_trade_id=1;
@@ -205,4 +212,5 @@ message CnyPriceRequest{
 
 message CnyPriceResponse{
     repeated CnyBaseData data =1;
+    repeated SymbolPriceData symbols =2;
 }

@@ -590,6 +590,8 @@ func (this *RPCServer) GetUserFeeInfo(ctx context.Context, req *proto.InnerCommo
 	}
 
 	rsp.WhiteList=int32(u.WhiteList)
-
+	if u.WhiteList==1 {
+		rsp.IsFree=true
+	}
 	return nil
 }
