@@ -162,6 +162,11 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64, ukey string, ty p
 		}
 	}()
 
+	if num < 0 {
+		err=errors.New(fmt.Sprintf("err num %d", num))
+		log.Fatalf(err.Error())
+		return
+	}
 	s.Balance += num
 	var aff int64
 	aff, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
@@ -207,7 +212,7 @@ func (s *UserToken) AddFrozen(session *xorm.Session, num int64, ukey string, ty 
 	if err != nil {
 		return
 	}
-	if aff==0 {
+	if aff == 0 {
 		err = errors.New("version is err")
 		return
 	}

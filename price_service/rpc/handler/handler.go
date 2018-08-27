@@ -10,11 +10,11 @@ import (
 	"github.com/alex023/clock"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/micro/go-micro"
+	"github.com/shopspring/decimal"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"strings"
 	"time"
-	"github.com/shopspring/decimal"
 )
 
 type RPCServer struct {
@@ -49,9 +49,23 @@ func (s *RPCServer) Process() {
 				})
 			}
 
+			g := make([]*proto.SymbolPriceData, 0)
+			q := model.GetQueneMgr().GetQuene()
+
+			for _, v := range q {
+				g = append(g, &proto.SymbolPriceData{
+					Symbol:       v.Symbol,
+					Price:        v.GetEntry().Price,
+					TokenId:      v.TokenId,
+					TokenTradeId: v.ToekenTradeId,
+					CnyPriceInt:  model.GetQueneMgr().GetCnyPrice(v.ToekenTradeId),
+				})
+			}
+
 			if len(d) > 1 {
 				s.publishEvent(&proto.CnyPriceResponse{
-					Data: d,
+					Data:    d,
+					Symbols: g,
 				})
 			}
 		}
@@ -422,20 +436,20 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 }
 
 func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *proto.VolumeResponse) error {
-	nowSum,daySum,weekSum,monthSum := model.GetVolumeTotal()
+	nowSum, daySum, weekSum, monthSum := model.GetVolumeTotal()
 
-	w,_ := decimal.NewFromString("100000000")
-	now_sum,_ := decimal.NewFromString(nowSum)
+	w, _ := decimal.NewFromString("100000000")
+	now_sum, _ := decimal.NewFromString(nowSum)
 
-	day_sum,_ := decimal.NewFromString(daySum)
+	day_sum, _ := decimal.NewFromString(daySum)
 	day_sum = now_sum.Sub(day_sum)
 	day_sum = day_sum.Div(w)
 
-	week_sum,_ := decimal.NewFromString(weekSum)
+	week_sum, _ := decimal.NewFromString(weekSum)
 	week_sum = now_sum.Sub(week_sum)
 	week_sum = week_sum.Div(w)
 
-	month_sum,_ := decimal.NewFromString(monthSum)
+	month_sum, _ := decimal.NewFromString(monthSum)
 	month_sum = now_sum.Sub(month_sum)
 	month_sum = month_sum.Div(w)
 

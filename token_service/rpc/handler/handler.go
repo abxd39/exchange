@@ -10,10 +10,10 @@ import (
 
 	"digicon/common/errors"
 	"digicon/token_service/conf"
+	"digicon/token_service/rpc/client"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
-	"digicon/token_service/rpc/client"
 )
 
 type RPCServer struct {
@@ -46,13 +46,12 @@ func (s *RPCServer) EntrustOrder(ctx context.Context, req *proto.EntrustOrderReq
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
-	r,err :=client.InnerService.UserSevice.CallGetUserFeeInfo(req.Uid)
-	if err!=nil {
+	r, err := client.InnerService.UserSevice.CallGetUserFeeInfo(req.Uid)
+	if err != nil {
 		return nil
 	}
 
-
-	ret, err := q.EntrustReq(req,r.IsFree)
+	ret, err := q.EntrustReq(req, r.IsFree)
 	if err != nil {
 		rsp.Err = ERRCODE_UNKNOWN
 		rsp.Message = err.Error()
@@ -186,9 +185,9 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		return nil
 	}
 
-	Cny := model.GetCnyPrice(int32(q.TokenTradeId))
+	//Cny := model.GetCnyPrice(int32(q.TokenTradeId))
 
-	others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, req.Num)
+	others, err := q.PopFirstEntrust2(proto.ENTRUST_OPT_BUY, 2, req.Num)
 	if err == redis.Nil {
 
 	} else if err != nil {
@@ -196,19 +195,19 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = err.Error()
 		return nil
 	} else {
-
 		for _, v := range others {
 			g := &proto.EntrustBaseData{
-				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
-				SurplusNum: convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum, v.OnPrice)),
-				CnyPrice:   convert.Int64MulInt64By8BitString(v.OnPrice, Cny),
+				OnPrice: convert.StringToStringBy8Bit(v.OnPrice),
+				//SurplusNum: convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum, v.OnPrice)),
+				SurplusNum: convert.Int64DivString(v.SurplusNum, v.OnPrice),
+				CnyPrice:   model.GetOnPriceCnyPrice2(req.Symbol, v.OnPrice),
 			}
 			g.Price = convert.Int64ToStringBy8Bit(v.SurplusNum)
 			rsp.Buy = append(rsp.Buy, g)
 		}
 	}
 
-	others, err = q.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 2, req.Num)
+	others, err = q.PopFirstEntrust2(proto.ENTRUST_OPT_SELL, 2, req.Num)
 	if err == redis.Nil {
 
 	} else if err != nil {
@@ -218,13 +217,13 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 	} else {
 		for _, v := range others {
 			g := &proto.EntrustBaseData{
-				OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
+				OnPrice:    convert.StringToStringBy8Bit(v.OnPrice),
 				SurplusNum: convert.Int64ToStringBy8Bit(v.SurplusNum),
 				//CnyPrice:   q.GetCnyPrice(v.OnPrice),
-				CnyPrice: convert.Int64MulInt64By8BitString(v.OnPrice, Cny),
+				CnyPrice: model.GetOnPriceCnyPrice2(req.Symbol, v.OnPrice),
 			}
 
-			g.Price = convert.Int64MulInt64By8BitString(v.OnPrice, v.SurplusNum)
+			g.Price = convert.Int64MulStringBy8BitString(v.OnPrice, v.SurplusNum)
 			rsp.Sell = append(rsp.Sell, g)
 		}
 	}

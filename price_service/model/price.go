@@ -99,9 +99,18 @@ func Calculate(token_id int32, price, amount int64, symbol string, high, low int
 		return nil
 	}
 	if !ok {
-		g := ConfigQueneInit[symbol]
-		p.Price = g.Price
-		p.Amount = 0
+		g:=min.Add(-600 * time.Second)
+		ok,err = DB.GetMysqlConn().Where("id=? and symbol=?", g.Unix(), symbol).Get(p)
+		if err != nil {
+			log.Errorln(err.Error())
+			return nil
+		}
+
+		if !ok {
+			g := ConfigQueneInit[symbol]
+			p.Price = g.Price
+			p.Amount = 0
+		}
 	}
 
 	log.WithFields(log.Fields{
@@ -181,7 +190,7 @@ func (s *Price) SetProtoData() *proto.PriceCache {
 }
 
 //查询交易量
-func GetVolumeTotal() (string,string,string,string) {
+func GetVolumeTotal() (string, string, string, string) {
 	t := time.Now().Local()
 	//nowUnix := time.Now().Unix()
 	dayUnix := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).Unix()
@@ -216,7 +225,7 @@ func GetVolumeTotal() (string,string,string,string) {
 		monthVolume.Sum = "0"
 	}
 
-	return nowVolume.Sum,dayVolume.Sum,weekVolume.Sum,monthVolume.Sum
+	return nowVolume.Sum, dayVolume.Sum, weekVolume.Sum, monthVolume.Sum
 
 }
 

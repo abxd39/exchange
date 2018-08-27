@@ -14,5 +14,9 @@ func (sub *Subscriber) Process(ctx context.Context, data *proto.CnyPriceResponse
 	for _, v := range data.Data {
 		model.CnyPriceMap[v.TokenId] = v
 	}
+
+	for _, v := range data.Symbols {
+		model.SymbolPriceMap[v.Symbol] = v
+	}
 	return nil
 }

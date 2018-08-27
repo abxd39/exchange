@@ -165,3 +165,7 @@ func (s *WorkQueneMgr) GetCnyPrice(token_id int32) int64 {
 	}
 	return 0
 }
+
+func (s *WorkQueneMgr) GetQuene() map[string]*PriceWorkQuene {
+	return s.dataMgr
+}

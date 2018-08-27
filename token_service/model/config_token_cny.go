@@ -1,6 +1,7 @@
 package model
 
 import (
+	"digicon/common/convert"
 	proto "digicon/proto/rpc"
 	. "digicon/token_service/dao"
 	"github.com/golang/protobuf/jsonpb"
@@ -52,9 +53,11 @@ func GetTokenUsdPrice(token_id int) int64 {
 }
 */
 var CnyPriceMap map[int32]*proto.CnyBaseData
+var SymbolPriceMap map[string]*proto.SymbolPriceData
 
 func InitCnyPrice() {
 	CnyPriceMap = make(map[int32]*proto.CnyBaseData, 0)
+	SymbolPriceMap = make(map[string]*proto.SymbolPriceData, 0)
 
 	r, err := DB.GetRedisConn().Get("history.price.go.micro").Result()
 	if err != nil {
@@ -72,6 +75,9 @@ func InitCnyPrice() {
 		CnyPriceMap[v.TokenId] = v
 	}
 
+	for _, v := range out.Symbols {
+		SymbolPriceMap[v.Symbol] = v
+	}
 }
 
 func GetCnyPrice(token_id int32) int64 {
@@ -88,4 +94,20 @@ func GetUsdPrice(token_id int32) int64 {
 		return g.UsdPriceInt
 	}
 	return 0
+}
+
+func GetOnPriceCnyPrice(symbol string, on_price int64) string {
+	g, ok := SymbolPriceMap[symbol]
+	if !ok {
+		return ""
+	}
+	return convert.Int64MulInt64DivInt64By8Bit(g.CnyPriceInt, on_price, g.Price)
+}
+
+func GetOnPriceCnyPrice2(symbol string, on_price string) string {
+	g, ok := SymbolPriceMap[symbol]
+	if !ok {
+		return ""
+	}
+	return convert.Int64MulInt64DivInt64By8Bit(g.CnyPriceInt, convert.StringToInt64(on_price), g.Price)
 }

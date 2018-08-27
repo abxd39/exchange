@@ -1,12 +1,12 @@
 package client
 
 import (
+	"context"
 	proto "digicon/proto/rpc"
 	cf "digicon/token_service/conf"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-plugins/registry/consul"
-	"context"
 )
 
 type UserRPCCli struct {
@@ -14,8 +14,8 @@ type UserRPCCli struct {
 }
 
 func (s *UserRPCCli) CallGetUserFeeInfo(uid uint64) (rsp *proto.GetUserFeeInfoResponse, err error) {
-	rsp,err = s.conn.GetUserFeeInfo(context.TODO(),&proto.InnerCommonRequest{
-			Uid:uid,
+	rsp, err = s.conn.GetUserFeeInfo(context.TODO(), &proto.InnerCommonRequest{
+		Uid: uid,
 	})
 	return
 }
