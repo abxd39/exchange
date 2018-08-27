@@ -307,3 +307,13 @@ func (this *TokenInout) GetByApplyId(apply_id int) error {
 	return nil
 }
 
+//查询所有hash
+func (this *TokenInout) GetHashs() ([]TokenInout,error) {
+	data := make([]TokenInout,0)
+	_, err := utils.Engine_wallet.Get(data)
+	if err != nil {
+		return data,err
+	}
+	return data,nil
+}
+

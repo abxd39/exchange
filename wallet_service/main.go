@@ -39,6 +39,10 @@ func main() {
 	//以太币、ERC20代币充币检查
 	go watch.StartEthCBiWatch()
 
+	//go watch.TestSms()
+	//历史手续费汇总
+	go watch.GatherHistoryFee()
+
 	//usdt充币提币监控
 	go watch.StartUsdtWatch()
 

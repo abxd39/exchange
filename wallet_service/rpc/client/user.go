@@ -44,9 +44,9 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_client_user")
-	greeter := proto.NewGateway2WallerService(service_name, service.Client())
+	greeter := proto.NewUserRPCService(service_name, service.Client())
 	u = &UserRPCCli{
-		conn: greeter,
+		userconn: greeter,
 	}
 	return
 }

@@ -166,6 +166,8 @@ func (p *UsdtWatch) TranDeal(data TranItem) bool {
 		log.Info("usdt send update complete：",data.Txid)
 		//确认消耗冻结
 		new(Common).USDTConfirmSubFrozen(data)
+		//汇总手续费
+		new(Common).GatherFee(data.Txid)
 	}
 	if data.Category == "receive" {  //充币
 		log.Info("USDT充币：",data)

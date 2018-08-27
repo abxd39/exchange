@@ -140,6 +140,8 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 			//erc20代币转账
 			p.ERC20Deal(data)
 		}
+		//汇总手续费
+		new(Common).GatherFee(txhash)
 		return
 	}
 	//暂未打包成功，重新放入队列，等待下次执行

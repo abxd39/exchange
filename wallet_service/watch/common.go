@@ -9,6 +9,10 @@ import (
 	"fmt"
 	"digicon/common/convert"
 	"github.com/shopspring/decimal"
+	"errors"
+	"strings"
+	"time"
+	cf "digicon/wallet_service/conf"
 )
 
 type Common struct{}
@@ -271,10 +275,111 @@ func (p *Common) USDTConfirmSubFrozen(data TranItem) {
 }
 
 //提币完成短信通知
-func (p *Common) TiBiCompleteSendSms(apply_id int) () {
-	tokenInout := new(TokenInout)
-	err := tokenInout.GetByApplyId(apply_id)
-	if err != nil {
+func (p *Common) TiBiCompleteSendSms(apply_id int) (err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"apply_id":apply_id,
+				"err":err,
+			}).Error("TiBiCompleteSendSms error")
+		}
+		fmt.Println("结果：",err,apply_id)
+	}()
 
+	var boo bool
+
+	tokenInout := new(TokenInout)
+	err = tokenInout.GetByApplyId(apply_id)
+	if err != nil {
+		return
+	}
+	tokens := new(Tokens)
+	boo,err = tokens.GetByid(tokenInout.Tokenid)
+	if err != nil {
+		return
+	}
+	if boo != true {
+		err = errors.New("token not found!")
+		return
+	}
+
+	user := new(User)
+	boo,err = user.GetUser(uint64(tokenInout.Uid))
+	if err != nil {
+		return
+	}
+	if boo != true {
+		err = errors.New("用户数据为空")
+		return
+	}
+
+	phone := user.Phone
+	mark := tokens.Mark
+	num := convert.Int64ToStringBy8Bit(tokenInout.Amount)
+	content := strings.Join([]string{"你申请的提币已经完成，币种：",mark,"，到账数量：",num},"")
+	_,err = SendInterSms(phone,content)
+
+	fmt.Println(phone,err)
+
+	log.Info("TiBiCompleteSendSms complete")
+	return
+}
+
+//测试发短信
+func TestSms() {
+	common := new(Common)
+	res := common.TiBiCompleteSendSms(228)
+	fmt.Println("发送结果：",res)
+}
+
+//汇总提币手续费
+func (p *Common) GatherFee(txhash string) (err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"err":err,
+			}).Error("汇总数据失败")
+		}
+	}()
+	tokenInout := new(TokenInout)
+	err = tokenInout.GetByHash(txhash)
+	if err != nil {
+		return
+	}
+	fee := decimal.New(tokenInout.Fee,0)
+	realFee := decimal.New(tokenInout.Real_fee,0)
+	amount := fee.Sub(realFee).IntPart()
+
+	tokensFreeHistory := new(Tokens_free_history)
+	tokensFreeHistory.Opt = 1
+	tokensFreeHistory.Token_id = int64(tokenInout.Tokenid)
+	tokensFreeHistory.Type = int64(proto.TOKEN_TYPE_OPERATOR_HISTORY_FEE)
+	tokensFreeHistory.Num = amount
+	tokensFreeHistory.Create_time = time.Now().Unix()
+	tokensFreeHistory.Ukey = tokenInout.Txhash
+	_,err = tokensFreeHistory.InsertThis()
+	if err != nil {
+		return
+	}
+	return
+}
+
+//汇总历史手续费，只能调用一次
+func GatherHistoryFee() {
+	ok := cf.Cfg.MustInt("gather", "history_fee",0)
+	if ok != 1 {
+		return
+	}
+	tokenInout := new(TokenInout)
+	data,err := tokenInout.GetHashs()
+	if err != nil {
+		return
+	}
+	p := new(Common)
+	for _,v := range data {
+		err := p.GatherFee(v.Txhash)
+		if err != nil {
+			log.Error("汇总数据出错：",err)
+		}
 	}
 }

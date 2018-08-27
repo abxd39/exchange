@@ -164,6 +164,8 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 		log.Info("btc send update complete：",data.Txid)
 		//确认消耗冻结
 		new(Common).BTCConfirmSubFrozen(data)
+		//汇总手续费
+		new(Common).GatherFee(data.Txid)
 	}
 	if data.Category == "receive" {  //充币
 		log.Info("比特币充币：",data)

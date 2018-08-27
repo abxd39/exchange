@@ -146,6 +146,7 @@ enum TOKEN_TYPE_OPERATOR
     HISTORY_ENTRUST_BUY                     =15;//委托买入
     HISTORY_ENTRUST_SELL                    =16;//委托卖出
     HISTORY_TOKEN_OUT                       =17;//提币成功消耗冻结
+    HISTORY_FEE                             =18;//手续费，分正负
 }
 
 message  EntrustOrderRequest {
