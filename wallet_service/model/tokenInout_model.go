@@ -69,7 +69,7 @@ type SumTokenIn struct {
 }
 
 
-func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int,gas int64,gasprice int64,realfee int64) (int, error) {
+func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid int, uid int, tokenid int, tokenname string, decim int,opt int) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
 	this.From = from
@@ -86,9 +86,9 @@ func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid
 	this.Tokenid = tokenid
 	this.TokenName = tokenname
 	this.Uid = uid
-	this.Gas = gas
-	this.Gas_price = gasprice
-	this.Real_fee = realfee
+	//this.Gas = gas
+	//this.Gas_price = gasprice
+	//this.Real_fee = realfee
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	return int(affected), err
 }
@@ -126,6 +126,12 @@ func (this *TokenInout) UpdateApplyTiBi2(applyid int,states int,remarks string) 
 //更新提币完成状态
 func (this *TokenInout) BteUpdateAppleDone(txhash string) (int, error) {
 	affected, err := utils.Engine_wallet.Where("txhash = ?", txhash).Update(TokenInout{States: 2, DoneTime: time.Now()}) //提币已经完成，修改状态和完成时间
+	return int(affected), err
+}
+
+//更新提币完成状态
+func (this *TokenInout) BteUpdateAppleDone2(txhash string,real_fee int64) (int, error) {
+	affected, err := utils.Engine_wallet.Where("txhash = ?", txhash).Update(TokenInout{States: 2, DoneTime: time.Now(),Real_fee:real_fee}) //提币已经完成，修改状态和完成时间
 	return int(affected), err
 }
 
@@ -308,9 +314,9 @@ func (this *TokenInout) GetByApplyId(apply_id int) error {
 }
 
 //查询所有hash
-func (this *TokenInout) GetHashs() ([]TokenInout,error) {
+func (this *TokenInout) GetHashs(opt int) ([]TokenInout,error) {
 	data := make([]TokenInout,0)
-	_, err := utils.Engine_wallet.Get(data)
+	err := utils.Engine_wallet.Where("opt = ?",opt).Find(&data)
 	if err != nil {
 		return data,err
 	}

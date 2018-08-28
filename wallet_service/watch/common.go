@@ -341,21 +341,28 @@ func (p *Common) GatherFee(txhash string) (err error) {
 			}).Error("汇总数据失败")
 		}
 	}()
+	if txhash == "" {
+		return
+	}
 	tokenInout := new(TokenInout)
 	err = tokenInout.GetByHash(txhash)
 	if err != nil {
+		return
+	}
+	if tokenInout.Opt == 1 {
+		//充币
 		return
 	}
 	fee := decimal.New(tokenInout.Fee,0)
 	realFee := decimal.New(tokenInout.Real_fee,0)
 	amount := fee.Sub(realFee).IntPart()
 
-	tokensFreeHistory := new(Tokens_free_history)
+	tokensFreeHistory := new(Token_free_history)
 	tokensFreeHistory.Opt = 1
 	tokensFreeHistory.Token_id = int64(tokenInout.Tokenid)
 	tokensFreeHistory.Type = int64(proto.TOKEN_TYPE_OPERATOR_HISTORY_FEE)
 	tokensFreeHistory.Num = amount
-	tokensFreeHistory.Create_time = time.Now().Unix()
+	tokensFreeHistory.Created_time = time.Now().Unix()
 	tokensFreeHistory.Ukey = tokenInout.Txhash
 	_,err = tokensFreeHistory.InsertThis()
 	if err != nil {
@@ -368,15 +375,23 @@ func (p *Common) GatherFee(txhash string) (err error) {
 func GatherHistoryFee() {
 	ok := cf.Cfg.MustInt("gather", "history_fee",0)
 	if ok != 1 {
+		log.Error("报错了")
 		return
 	}
 	tokenInout := new(TokenInout)
-	data,err := tokenInout.GetHashs()
+	data,err := tokenInout.GetHashs(2)  //表示提币
 	if err != nil {
+		log.Error("获取hash报错",err)
 		return
 	}
 	p := new(Common)
 	for _,v := range data {
+		if v.Txhash == "" {
+			continue
+		}
+		if v.Opt != 2 {
+			continue
+		}
 		err := p.GatherFee(v.Txhash)
 		if err != nil {
 			log.Error("汇总数据出错：",err)

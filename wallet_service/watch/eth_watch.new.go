@@ -45,6 +45,8 @@ type TranInfo struct {
 	To string `json:"to"`
 	Value string `json:"value"`
 	Input string `josn:"input"`
+	Gas string `json:"gas"`
+	GasPrice string `json:"gasPrice"`
 }
 
 func StartEthCheckNew() {
@@ -105,6 +107,12 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 		p.PushRedisList(txhash)
 		return
 	}
+
+	//计算实际消耗的手续费
+	gasUsed := gjson.Get(data,"gasUsed").String()
+	gasUsedTemp, _ := new(big.Int).SetString(gasUsed[2:], 16)
+	realFee := decimal.NewFromBigInt(gasUsedTemp, 0).IntPart()
+
 	temp, _ := new(big.Int).SetString(status[2:], 16)
 	statuss := decimal.NewFromBigInt(temp, 0).IntPart()
 	log.Info("package status：",statuss)
@@ -130,7 +138,11 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 		}
 
 		//修改提币申请订单
-		new(models.TokenInout).BteUpdateAppleDone(txhash)
+		_,err = new(models.TokenInout).BteUpdateAppleDone2(txhash,realFee)
+		if err != nil {
+			log.Error("修改提币申请单报错：",err)
+			return
+		}
 
 		//判断是否代币转账
 		if strings.Count(data.Input, "") < 138 || strings.Compare(data.Input[0:10], "0xa9059cbb") != 0 {
@@ -146,6 +158,24 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 	}
 	//暂未打包成功，重新放入队列，等待下次执行
 	p.PushRedisList(txhash)
+}
+
+func (p *EthTiBiWatch) formatGas(gas string,gasPrice string) (int64,int64,int64) {
+	gas_num, err := strconv.ParseInt(gas, 0, 64)
+	if err != nil {
+		fmt.Println(err)
+		gas_num = 0
+	}
+	gas_price, err := strconv.ParseInt(gasPrice, 0, 64)
+	if err != nil {
+		fmt.Println(err)
+		gas_price = 0
+	}
+
+	t1 := decimal.NewFromFloat(float64(gas_num))
+	t1_c := decimal.NewFromFloat(float64(gas_price))
+	real_fee := t1.Mul(t1_c).IntPart()
+	return gas_num,gas_price,real_fee
 }
 
 //保存数据到redis队列
@@ -363,7 +393,7 @@ func (p *EthTiBiWatch) TranSeixCheck(url string,receipt string,txhash string) bo
 		return false
 	}
 	log.Info("区块比较：",height,number)
-	if height - number < 6 {
+	if height - number < 30 {
 		return false
 	}
 	//如果需要，还可以判断number中有没有指定的交易，暂时不需要判断，通过以上就可以确认交易成功
@@ -506,8 +536,8 @@ func (p *EthCBiWatch) WorkerDone() {
 
 	log.Info("height：",p.BlockNumber,hight)
 
-	if p.BlockNumber < hight-6 {
-		for i := p.BlockNumber + 1; i <= hight-6; i++ {
+	if p.BlockNumber < hight-30 {
+		for i := p.BlockNumber + 1; i <= hight-30; i++ {
 			p.WorkerHander(i)
 			//记录当前进度
 			p.ContextModel.Save(p.Url, p.Chainid, i)
@@ -703,7 +733,6 @@ func (p *EthCBiWatch) post(send map[string]interface{}) ([]byte, error) {
 
 //新增充值订单
 func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, contract string, value string, txhash string,gas string,gasPrice string) (bool,error) {
-	gas_num,gas_price,real_fee := p.formatGas(gas,gasPrice)
 	log.Info("newOrder_params:",uid,",",from,",",to,",",chainid,",",contract,",",value,",",txhash)
 	//交易是否已经收录
 	exist, err := p.TxModel.TxhashExist(txhash, p.Chainid)
@@ -752,7 +781,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 	log.Info("find tokenid：",walletToken.Uid,contract,tokensModel.Id, tokensModel.Mark,tokensModel,",",value)
 
 	var opt int = 1  //充币
-	_,err = p.TxModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark,opt,gas_num,gas_price,real_fee)
+	_,err = p.TxModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark,opt)
 	if err != nil {
 		log.Info("insert into tx order error:",err)
 		log.WithFields(log.Fields{
@@ -770,7 +799,7 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 		return false,err
 	}
 
-	_,err = p.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark, deci,opt,gas_num,gas_price,real_fee)
+	_,err = p.TokenInoutModel.Insert(txhash, from, to, value, contract, chainid, walletToken.Uid, tokensModel.Id, tokensModel.Mark, deci,opt)
 	if err != nil {
 		log.Info("insert into inout order error:",err)
 		log.WithFields(log.Fields{

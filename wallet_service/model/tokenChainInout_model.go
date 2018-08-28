@@ -26,7 +26,7 @@ type TokenChainInout struct {
 	Real_fee       int64    `xorm:"comment('实际消耗手续费') VARCHAR(30)"`
 }
 
-func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string,opt int,gas int64,gasprice int64,realfee int64) (int, error) {
+func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string,opt int) (int, error) {
 	this.Id = 0
 	this.Txhash = txhash
 	this.From = from
@@ -39,9 +39,9 @@ func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, ch
 	this.Tokenid = tokenid
 	this.TokenName = tokenname
 	this.Uid = uid
-	this.Gas = gas
-	this.Gas_price = gasprice
-	this.Real_fee = realfee
+	//this.Gas = gas
+	//this.Gas_price = gasprice
+	//this.Real_fee = realfee
 	//utils.Engine_wallet.ShowSQL(true)
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	//fmt.Println("aaaa",uid,err)

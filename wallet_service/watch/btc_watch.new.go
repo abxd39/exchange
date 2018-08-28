@@ -37,7 +37,7 @@ type TranItem struct {
 	Category string `json:"category"`
 	Amount float64 `json:"amount"`  //单位是1bitcoin，小数点之后保留八位小数
 	Vout int `json:"vout"`
-	Fee float64 `json:"fee"`
+	Fee string `json:"fee"`
 	Confirmations int64 `json:"confirmations"`
 	Blockhash string `json:"blockhash"`
 	Blockindex int `json:"blockindex"`
@@ -157,7 +157,7 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 
 	if data.Category == "send" {  //提币
 		//更新完成状态
-		_,err := new(TokenInout).BteUpdateAppleDone(data.Txid)
+		_,err := new(TokenInout).BteUpdateAppleDone2(data.Txid,p.GetFee(data.Fee))
 		if err != nil {
 			log.Error("更新比特币申请状态失败：",data.Txid)
 		}
@@ -176,6 +176,17 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 	}
 
 	return true
+}
+
+//计算比特币提币手续费
+func (p *BtcWatch) GetFee(fee string) int64 {
+	aa,err := decimal.NewFromString(fee)
+	if err != nil {
+		log.Error("GetFee error",err)
+		return int64(0)
+	}
+	bb := decimal.NewFromFloat(float64(100000000))
+	return aa.Mul(bb).IntPart()
 }
 
 //写入充币记录
