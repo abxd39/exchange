@@ -191,3 +191,108 @@ func UsdtCheckBalance(uid int32, amount string) (bool, error) {
 
 	return true, nil
 }
+
+//列出最近的交易记录
+func UsdtOmniGettransaction(url string,txhash string) (error,string) {
+	data := make(map[string]interface{})
+	data["jsonrpc"] = "1.0"
+	data["id"] = 1
+	data["method"] = "omni_gettransaction"
+
+	params := make([]interface{}, 0, 1)
+	params = append(params, txhash)
+
+	data["params"] = params
+
+	result, err := USDTRpcPost(url, data)
+
+	if err != nil {
+		return err,""
+	}
+	if errinfo := gjson.Get(string(result), "error").String(); errinfo != "" {
+		return errors.New(errinfo),""
+	}
+	return nil,gjson.Get(string(result), "result").String()
+}
+
+//获取钱包区块高度
+func USDTGetBlockCount(url string) (error,int) {
+	data := make(map[string]interface{})
+	data["jsonrpc"] = "1.0"
+	data["id"] = 1
+	data["method"] = "getblockcount"
+
+	result, err := USDTRpcPost(url, data)
+	if err != nil {
+		return err,0
+	}
+	if errinfo := gjson.Get(string(result), "error").String(); errinfo != "" {
+		return errors.New(errinfo),0
+	}
+	num := gjson.Get(string(result), "result").Int()
+	return nil,int(num)
+}
+
+//根据区块号查询区块
+func USDTOmniListblocktransactions(url string,block int) (error,[]string) {
+	data := make(map[string]interface{})
+	data["jsonrpc"] = "1.0"
+	data["id"] = 1
+	data["method"] = "omni_listblocktransactions"
+
+	params := make([]interface{}, 0, 1)
+	params = append(params, block)
+
+	data["params"] = params
+
+	result, err := USDTRpcPost(url, data)
+	if err != nil {
+		return err,[]string{}
+	}
+
+	if errinfo := gjson.Get(string(result), "error").String(); errinfo != "" {
+		return errors.New(errinfo),[]string{}
+	}
+
+	res := gjson.Get(string(result), "result").String()
+
+	var tran []string
+	err = json.Unmarshal([]byte(res),&tran)
+	if err != nil {
+		return err,[]string{}
+	}
+
+	return nil,tran
+}
+
+
+func USDTRpcPost(url string, send map[string]interface{}) ([]byte, error) {
+	bytesData, err := json.Marshal(send)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	reader := bytes.NewReader(bytesData)
+	request, err := http.NewRequest("POST", url, reader)
+	if err != nil {
+		fmt.Println("rpc post:", err.Error())
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
+	client := http.Client{}
+	resp, err := client.Do(request)
+	//fmt.Println("resp:", resp)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	//byte数组直接转成string，优化内存
+	return respBytes, nil
+	//str := (*string)(unsafe.Pointer(&respBytes))
+	//fmt.Println(*str)
+}

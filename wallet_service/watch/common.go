@@ -74,11 +74,16 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 		return
 	}
 
+	amount := decimal.New(tokenInout.Amount,0)
+	fee := decimal.New(tokenInout.Fee,0)
+	total := amount.Add(fee).IntPart()
+
+
 	defer func() {
 		log.WithFields(log.Fields{
 			"uid":walletToken.Uid,
 			"token_id":walletToken.Tokenid,
-			"num":tokenInout.Amount,
+			"num":total,
 			"ukey":data.Txid,
 			"type":proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,
 		}).Info("比特币冻结数量")
@@ -87,7 +92,7 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
-		Num:tokenInout.Amount,
+		Num:total,
 		Ukey:[]byte(data.Txid),
 		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,  //提币成功消耗冻结
 	})
@@ -196,17 +201,20 @@ func (p *Common) AddETHTokenNum(uid int,to string,tokenid int,amount string,txha
 
 //添加比特币token数量
 //**比特币充币
-func (p *Common) AddUSDTTokenNum(data TranItem) {
-	log.Info("AddBTCTokenNum data:",data)
+func (p *Common) AddUSDTTokenNum(data USDTTranInfo) {
+	log.Info("AddUSDTTokenNum data:",data)
 	//查询用户uid
 	walletToken := new(WalletToken)
-	err := walletToken.GetByAddress(data.Address)
+	err := walletToken.GetByAddress(data.Sendingaddress)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("get user token error",err)
 		return
 	}
 
-	amount := convert.Float64ToInt64By8Bit(data.Amount)
+	amount,err := convert.StringToInt64By8Bit(data.Amount)
+	if err != nil {
+		log.Error("StringToInt64By8Bit error",err)
+	}
 
 	log.WithFields(log.Fields{
 		"uid":walletToken.Uid,
@@ -214,7 +222,7 @@ func (p *Common) AddUSDTTokenNum(data TranItem) {
 		"num":amount,
 		"ukey":data.Txid,
 		"optAddType":0,
-	}).Info("比特币RPC新增数量")
+	}).Info("USDT RPC新增数量")
 
 	//amount := int64(data.Amount * 100000000)
 	rsp,errr := client.InnerService.TokenSevice.CallAddTokenNum(&proto.AddTokenNumRequest{
@@ -226,18 +234,18 @@ func (p *Common) AddUSDTTokenNum(data TranItem) {
 		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_HASH,
 		Opt:proto.TOKEN_OPT_TYPE_ADD,
 	})
-	log.Info("btc AddBTCTokenNum result",errr,string(rsp.Message))
+	log.Info("btc AddUSDTTokenNum result",errr,string(rsp.Message))
 	if errr != nil {
-		log.Info("AddBTCTokenNum error",errr)
+		log.Info("AddUSDTTokenNum error",errr)
 	}
 }
 
 //确认消耗
 //**比特币提币成功调用
-func (p *Common) USDTConfirmSubFrozen(data TranItem) {
+func (p *Common) USDTConfirmSubFrozen(data USDTTranInfo) {
 	//查询用户uid
 	walletToken := new(WalletToken)
-	err := walletToken.GetByAddress(data.Address)
+	err := walletToken.GetByAddress(data.Sendingaddress)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("btc get user token error",err)
 		return
@@ -251,26 +259,30 @@ func (p *Common) USDTConfirmSubFrozen(data TranItem) {
 		return
 	}
 
+	amount := decimal.New(tokenInout.Amount,0)
+	fee := decimal.New(tokenInout.Fee,0)
+	total := amount.Add(fee).IntPart()
+
 	defer func() {
 		log.WithFields(log.Fields{
 			"uid":walletToken.Uid,
 			"token_id":walletToken.Tokenid,
-			"num":tokenInout.Amount,
+			"num":total,
 			"ukey":data.Txid,
 			"type":proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,
-		}).Info("比特币冻结数量")
+		}).Info("USDT冻结数量")
 	}()
 
 	rsp,errr := client.InnerService.TokenSevice.CallConfirmSubFrozen(&proto.ConfirmSubFrozenRequest{
 		Uid:uint64(walletToken.Uid),
 		TokenId:int32(walletToken.Tokenid),
-		Num:tokenInout.Amount,
+		Num:total,
 		Ukey:[]byte(data.Txid),
 		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_TOKEN_OUT,  //提币成功消耗冻结
 	})
-	log.Info("比特币确认消耗冻结：",errr,rsp.Err,string(rsp.Message))
+	log.Info("USDT确认消耗冻结：",errr,rsp.Err,string(rsp.Message))
 	if errr != nil {
-		log.Info("BTCConfirmSubFrozen error",err)
+		log.Info("USDTConfirmSubFrozen error",err)
 	}
 }
 
@@ -353,21 +365,56 @@ func (p *Common) GatherFee(txhash string) (err error) {
 		//充币
 		return
 	}
-	fee := decimal.New(tokenInout.Fee,0)
-	realFee := decimal.New(tokenInout.Real_fee,0)
-	amount := fee.Sub(realFee).IntPart()
+	//fee := decimal.New(tokenInout.Fee,0)
+	//realFee := decimal.New(tokenInout.Real_fee,0)
+	//amount := fee.Sub(realFee).IntPart()
 
+	strTokenid := strconv.Itoa(tokenInout.Tokenid)
+
+	//写一条代币手续费
 	tokensFreeHistory := new(Token_free_history)
 	tokensFreeHistory.Opt = 1
 	tokensFreeHistory.Token_id = int64(tokenInout.Tokenid)
 	tokensFreeHistory.Type = int64(proto.TOKEN_TYPE_OPERATOR_HISTORY_FEE)
-	tokensFreeHistory.Num = amount
+	tokensFreeHistory.Num = tokenInout.Fee
 	tokensFreeHistory.Created_time = time.Now().Unix()
-	tokensFreeHistory.Ukey = tokenInout.Txhash
+	tokensFreeHistory.Ukey = strTokenid + "_" + tokenInout.Txhash
+	tokensFreeHistory.Uid = int64(tokenInout.Uid)
 	_,err = tokensFreeHistory.InsertThis()
 	if err != nil {
 		return
 	}
+
+
+	tokenModel := new(Tokens)
+	exists, err := tokenModel.GetByName("ETH")
+	if err != nil {
+		log.Info("tokenModel error",err)
+	}
+	if !exists {
+		log.Info("token not exists eth ...")
+	}
+
+	boo,from_uid := p.GetEthAccountUid()
+	if boo != true {
+		log.Error("获取官方转出uid错误")
+		return
+	}
+
+	//在写一条以太币出账记录
+	tokensEthFreeHistory := new(Token_free_history)
+	tokensEthFreeHistory.Opt = 2
+	tokensEthFreeHistory.Token_id = int64(tokenModel.Id)
+	tokensEthFreeHistory.Type = int64(proto.TOKEN_TYPE_OPERATOR_HISTORY_FEE)
+	tokensEthFreeHistory.Num = tokenInout.Real_fee
+	tokensEthFreeHistory.Created_time = time.Now().Unix()
+	tokensEthFreeHistory.Ukey = strconv.Itoa(tokenModel.Id) + "_" + tokenInout.Txhash
+	tokensEthFreeHistory.Uid = from_uid
+	_,err = tokensEthFreeHistory.InsertThis()
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -397,4 +444,13 @@ func GatherHistoryFee() {
 			log.Error("汇总数据出错：",err)
 		}
 	}
+}
+
+//查询以太坊官方账户地址
+func (p *Common) GetEthAccountUid() (bool,int64) {
+	from_uid := cf.Cfg.MustInt64("accounts","eth_uid",0)
+	if from_uid == 0 {
+		return false,0
+	}
+	return true,from_uid
 }
