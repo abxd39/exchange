@@ -123,6 +123,17 @@ func AddTokenSess(req *proto.AddTokenNumRequest) (ret int32, err error) {
 
 }
 
+func Testg() {
+	SubTokenWithFronzen(&proto.SubTokenWithFronzeRequest{
+		Uid:     100001,
+		TokenId: 1,
+		Num:     10000000,
+		Opt:     proto.TOKEN_OPT_TYPE_ADD,
+		Ukey:    []byte("100001"),
+		Type:    proto.TOKEN_TYPE_OPERATOR_NONE,
+	})
+}
+
 //扣减金额并冻结
 func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err error) {
 	u := &UserToken{}
@@ -142,7 +153,7 @@ func SubTokenWithFronzen(req *proto.SubTokenWithFronzeRequest) (ret int32, err e
 		"ukey":     req.Ukey,
 		"ukey_str": string(req.Ukey),
 		"type":     req.Type,
-	}).Errorf("inset  money record error %s", err.Error())
+	}).Info("inset  money record info ")
 	ok, err = r.CheckExist(string(req.Ukey), req.Type)
 	if err != nil {
 		return
@@ -192,6 +203,9 @@ func ConfirmSubFrozenToken(req *proto.ConfirmSubFrozenRequest) (err error) {
 	session := DB.GetMysqlConn().NewSession()
 	defer session.Close()
 	err = session.Begin()
+	if err != nil {
+		return
+	}
 	err = u.NotifyDelFronzen(session, req.Num, string(req.Ukey), req.Type)
 	if err != nil {
 		session.Rollback()

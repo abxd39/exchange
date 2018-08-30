@@ -169,8 +169,8 @@ func (this *WalletRPCCli) CallGetAddress(userid int, tokenid int) (rsp *proto.Ge
 	return
 }
 
-func (this *WalletRPCCli) CallSyncBlockTx(block int32) (rsp *proto.SyncEthBlockTxResponse, err error) {
-	rsp, err = this.conn.SyncEthBlockTx(context.TODO(), &proto.SyncEthBlockTxRequest{Block:block})
+func (this *WalletRPCCli) CallSyncBlockTx(block int32,key string) (rsp *proto.SyncEthBlockTxResponse, err error) {
+	rsp, err = this.conn.SyncEthBlockTx(context.TODO(), &proto.SyncEthBlockTxRequest{Block:block,Key:key})
 	if err != nil {
 		log.Errorln(err.Error())
 		return
@@ -197,6 +197,15 @@ func (this *WalletRPCCli) CallCancelSubTokenWithFronze(uid int32,token_id int32,
 	})
 	if err != nil {
 		log.Errorln(err.Error())
+		return
+	}
+	return
+}
+
+func (this *WalletRPCCli) CallUsdtTiBi(req *proto.UsdtTiBiRequest) (rsp *proto.UsdtTiBiResponse, err error) {
+	rsp, err = this.conn.UsdtTiBi(context.TODO(), req)
+	if err != nil {
+		log.Error(err.Error())
 		return
 	}
 	return

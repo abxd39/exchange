@@ -38,6 +38,9 @@ service Gateway2Waller {
 
     //取消冻结
     rpc CancelSubTokenWithFronze(CancelSubTokenWithFronzeRequest) returns (CancelSubTokenWithFronzeResponse){}
+
+    //usdt提币
+    rpc UsdtTiBi(UsdtTiBiRequest) returns (UsdtTiBiResponse){}
 }
 
 
@@ -117,7 +120,7 @@ message SigntxResponse{
     SigntxPos data=3;
 }
 message SendRawTxPos{
-    string result=1;
+    bytes result=1;
 }
 message SendRawTxRequest{
     int32 token_id=1;
@@ -310,6 +313,7 @@ message CancelTiBiResponse{
 
 message SyncEthBlockTxRequest{
     int32 block=1;
+    string key=2;
 }
 
 message SyncEthBlockTxResponse{
@@ -342,4 +346,20 @@ message CancelSubTokenWithFronzeRequest{
 message CancelSubTokenWithFronzeResponse{
     int32 code=2;
     string msg=3;
+}
+
+message UsdtTiBiRequest{
+    int32    uid     = 1;
+    int32    tokenid = 2;
+    string   from_address=3;
+    string   to_address      = 4;
+    int32    protertyid = 5;
+    string   amount  = 6;
+    int32    applyid = 7;     // 申请提币id
+}
+
+message UsdtTiBiResponse{
+    int32    code     = 1;
+    string   message  = 2;
+    string     data   = 3;
 }

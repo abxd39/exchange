@@ -176,6 +176,11 @@ func (this *WalletToken) CheckExists(address string,contract string) (bool,error
 	return Engine_wallet.Where("address = ? and contract = ?",address,contract).Exist()
 }
 
+//根据地址和合约，判断是否存在
+func (this *WalletToken) CheckExists2(address string) (bool,error) {
+	return Engine_wallet.Where("address = ?",address).Get(this)
+}
+
 //根据类型查询以太坊钱包
 func (this *WalletToken) GetByTypeUid(wallet_type string,uid int) (bool,error) {
 	boo, err := Engine_wallet.Where("type = ? and uid = ?",wallet_type,uid).Get(this)
@@ -194,4 +199,15 @@ func (this *WalletToken) CopyEth(userid int, tokenid int, password string, chain
 	}
 	err = walletTokenModel.Create()
 	return walletTokenModel.Address, err
+}
+
+//查询wallet_token总数
+func (this *WalletToken) GetCount() (int64,error) {
+	return Engine_wallet.Count()
+}
+
+//查询钱包数据
+func (this *WalletToken) GetWalletToken(start int,limit int) (data []WalletToken,err error) {
+	err = Engine_wallet.Limit(limit,start).Find(&data)
+	return
 }

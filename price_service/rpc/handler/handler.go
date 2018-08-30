@@ -10,11 +10,11 @@ import (
 	"github.com/alex023/clock"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/micro/go-micro"
+	"github.com/shopspring/decimal"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	"strings"
 	"time"
-
 )
 
 type RPCServer struct {
@@ -49,18 +49,32 @@ func (s *RPCServer) Process() {
 				})
 			}
 
+			g := make([]*proto.SymbolPriceData, 0)
+			q := model.GetQueneMgr().GetQuene()
+
+			for _, v := range q {
+				g = append(g, &proto.SymbolPriceData{
+					Symbol:       v.Symbol,
+					Price:        v.GetEntry().Price,
+					TokenId:      v.TokenId,
+					TokenTradeId: v.ToekenTradeId,
+					CnyPriceInt:  model.GetQueneMgr().GetCnyPrice(v.ToekenTradeId),
+				})
+			}
+
 			if len(d) > 1 {
 				s.publishEvent(&proto.CnyPriceResponse{
-					Data: d,
+					Data:    d,
+					Symbols: g,
 				})
 			}
 		}
 
-		d:=time.Duration(diff+10)*time.Second
-		c.AddJobWithInterval(d,  job)
+		d := time.Duration(diff+10) * time.Second
+		c.AddJobWithInterval(d, job)
 
 		time.Sleep(d)
-		log.Info("circle process send price")
+		//log.Info("circle process send price")
 	}
 }
 
@@ -74,7 +88,7 @@ func (s *RPCServer) publishEvent(data *proto.CnyPriceResponse) error {
 		return err
 	}
 
-	err =DB.GetRedisConn().Set("history.price.go.micro",g,0).Err()
+	err = DB.GetRedisConn().Set("history.price.go.micro", g, 0).Err()
 
 	if err != nil {
 		log.Errorln(err.Error())
@@ -95,15 +109,16 @@ func (s *RPCServer) AdminCmd(ctx context.Context, req *proto.AdminRequest, rsp *
 }
 
 func (s *RPCServer) CurrentPrice(ctx context.Context, req *proto.CurrentPriceRequest, rsp *proto.CurrentPriceResponse) error {
-
 	q, ok := model.GetQueneMgr().GetQueneByUKey(req.Symbol)
 	if !ok {
 		return nil
 	}
 	e := q.GetEntry()
-	h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-
-	rsp.Data = model.Calculate(q.ToekenTradeId, e.Price, e.Amount, q.CnyPrice, q.Symbol, h, l)
+	h, l, err := q.GetPeriodLHPrice(model.OneDayPrice)
+	if err != nil {
+		return nil
+	}
+	rsp.Data = model.Calculate(q.ToekenTradeId, e.Price, e.Amount, q.Symbol, h.Price, l.Price)
 	return nil
 }
 
@@ -158,14 +173,14 @@ func (s *RPCServer) SymbolsById(ctx context.Context, req *proto.SymbolsByIdReque
 			g := model.ConfigQueneInit[v.Name]
 			p.Price = g.Price
 			p.Amount = 0
-			log.Errorf("SymbolsById not found name %s",v.Name)
+			log.Errorf("SymbolsById not found name %s", v.Name)
 		}
 
 		price := q.GetEntry().Price
 
 		c, ok := model.GetQueneMgr().PriceMap[v.TokenTradeId]
 		if !ok {
-			log.Errorf("SymbolsById not found TokenTradeId %s",v.TokenTradeId)
+			log.Errorf("SymbolsById not found TokenTradeId %s", v.TokenTradeId)
 			continue
 		}
 
@@ -302,28 +317,44 @@ func (s *RPCServer) GetCnyPrices(ctx context.Context, req *proto.CnyPriceRequest
 }
 
 func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, rsp *proto.QuotationResponse) error {
-
 	g := model.GetConfigQuenesByType(req.TokenId)
 
 	for _, v := range g {
-
 		q, ok := model.GetQueneMgr().GetQueneByUKey(v.Name)
 		if !ok {
 			return nil
 		}
 
 		price := q.GetEntry().Price
-		h, l := q.GetPeriodMaxPrice(model.OneDayPrice)
-		r := model.Calculate(q.ToekenTradeId, price, q.GetEntry().Amount, q.CnyPrice, q.Symbol, h, l)
+		h, l, err := q.GetPeriodLHPrice(model.OneDayPrice)
+		if err != nil {
+			return nil
+		}
+		r := model.Calculate(q.ToekenTradeId, price, q.GetEntry().Amount, q.Symbol, h.Price, l.Price)
 
-		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
-			Symbol: v.Name,
-			Price:  r.Price,
-			Scope:  r.Scope,
-			Low:    r.Low,
-			High:   r.High,
-			Amount: r.Amount,
-		})
+		cny_price, ok := model.GetQueneMgr().PriceMap[q.ToekenTradeId]
+		if ok {
+			rsp.Data = append(rsp.Data, &proto.QutationBaseData{
+				Symbol:   v.Name,
+				Price:    r.Price,
+				Scope:    r.Scope,
+				Low:      r.Low,
+				High:     r.High,
+				Amount:   r.Amount,
+				CnyPrice: convert.Int64ToStringBy8Bit(cny_price.CnyPrice),
+				CnyLow:   convert.Int64ToStringBy8Bit(l.CnyPrice),
+				CnyHigh:  convert.Int64ToStringBy8Bit(h.CnyPrice),
+			})
+		} else {
+			rsp.Data = append(rsp.Data, &proto.QutationBaseData{
+				Symbol: v.Name,
+				Price:  r.Price,
+				Scope:  r.Scope,
+				Low:    r.Low,
+				High:   r.High,
+				Amount: r.Amount,
+			})
+		}
 	}
 	return nil
 }
@@ -405,11 +436,25 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 }
 
 func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *proto.VolumeResponse) error {
-	data := model.GetVolumeTotal()
-	if data != nil {
-		rsp.DayVolume = data.DayVolume / 100000000
-		rsp.WeekVolume = data.WeekVolume / 100000000
-		rsp.MonthVolume = data.MonthVolume / 100000000
-	}
+	nowSum, daySum, weekSum, monthSum := model.GetVolumeTotal()
+
+	w, _ := decimal.NewFromString("100000000")
+	now_sum, _ := decimal.NewFromString(nowSum)
+
+	day_sum, _ := decimal.NewFromString(daySum)
+	day_sum = now_sum.Sub(day_sum)
+	day_sum = day_sum.Div(w)
+
+	week_sum, _ := decimal.NewFromString(weekSum)
+	week_sum = now_sum.Sub(week_sum)
+	week_sum = week_sum.Div(w)
+
+	month_sum, _ := decimal.NewFromString(monthSum)
+	month_sum = now_sum.Sub(month_sum)
+	month_sum = month_sum.Div(w)
+
+	rsp.DayVolume = day_sum.IntPart()
+	rsp.WeekVolume = week_sum.IntPart()
+	rsp.MonthVolume = month_sum.IntPart()
 	return nil
 }

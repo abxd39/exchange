@@ -44,9 +44,18 @@ func NewUserRPCCli() (u *UserRPCCli) {
 	service.Init()
 
 	service_name := cf.Cfg.MustValue("base", "service_client_user")
-	greeter := proto.NewGateway2WallerService(service_name, service.Client())
+	greeter := proto.NewUserRPCService(service_name, service.Client())
 	u = &UserRPCCli{
-		conn: greeter,
+		userconn: greeter,
+	}
+	return
+}
+
+func (s *UserRPCCli) CallSendMsg (phone string,op_type int32,region string) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.userconn.SendSms(context.TODO(), &proto.SmsRequest{Phone:phone,Type:op_type,Region:region})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
 	}
 	return
 }

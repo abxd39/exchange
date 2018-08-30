@@ -18,6 +18,11 @@ message CommonRequest{
     string token       =2;
 }
 
+
+message InnerCommonRequest{
+    uint64  uid       =1;
+}
+
 message CommonPageRequest{
     uint64  uid       =1;
     string token       =2;

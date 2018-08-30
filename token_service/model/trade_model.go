@@ -7,6 +7,7 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/liudng/godump"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 /*
@@ -146,4 +147,94 @@ func Test2(beid, endid int64) {
 		log.Infof("end %d",time.Now().Unix())
 
 	*/
+}
+
+func Testj() {
+	g := make([]string, 0)
+
+	g = append(g, "1533285163_10")
+	g = append(g, "1533283556_4")
+	g = append(g, "1533284027_2")
+	g = append(g, "1533284284_2")
+	g = append(g, "1533284307_3")
+
+	en2 := make(map[string]*EntrustDetail, 0)
+
+	err := DB.GetMysqlConn().In("entrust_id", g).Cols().Find(&en2)
+	if err != nil {
+		log.Errorln(err)
+		return
+	}
+
+	for _, v := range en2 {
+		log.Infof("entrust_id %s", v.EntrustId)
+	}
+
+	en := make([]*EntrustDetail, 0)
+	for _, k := range g {
+		v, ok := en2[k]
+		if ok {
+			en = append(en, v)
+		}
+	}
+
+	for _, v := range en {
+		log.Infof("entrust_id %s", v.EntrustId)
+	}
+
+}
+
+func ReverseTrade(index int) {
+	//var ok bool
+	var err error
+	g := make([]*Trade, 0)
+	err = DB.GetMysqlConn().Where("trade_id>? and trade_id<=?", (index-1)*1000, index*1000).Find(&g)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	if len(g) > 0 {
+
+		log.Infof("begin process trade_id index  %d ,time %d", index, time.Now().Unix())
+		for k, v := range g {
+			if v.TradeId%2 == 1 {
+				t := g[k+1]
+				if v.TradeNo != t.TradeNo {
+					log.Fatalln("err ")
+				}
+
+				trade_num := t.Num
+				trade_fee := t.Fee
+				trade_fee_cny := t.FeeCny
+
+				main_num := v.Num
+				main_fee := v.Fee
+				main_fee_cny := v.FeeCny
+
+				t.Num = main_num
+				t.Fee = main_fee
+				t.FeeCny = main_fee_cny
+
+				v.Num = trade_num
+				v.Fee = trade_fee
+				v.FeeCny = trade_fee_cny
+
+				_, err = DB.GetMysqlConn().Where("trade_id=?", t.TradeId).Cols("num", "fee", "fee_cny").Update(t)
+				if err != nil {
+					log.Fatalln(err.Error())
+				}
+				_, err = DB.GetMysqlConn().Where("trade_id=?", v.TradeId).Cols("num", "fee", "fee_cny").Update(v)
+				if err != nil {
+					log.Fatalln(err.Error())
+				}
+			}
+
+		}
+
+		log.Infof("end process trade_id index  %d ,time %d ", index, time.Now().Unix())
+	} else {
+		log.Infof("final process time %d ", time.Now().Unix())
+		return
+	}
+
+	ReverseTrade(index + 1)
 }

@@ -623,8 +623,8 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 
 	nowCreate := time.Now().Format("2006-01-02 15:04:05")
 	_, err = session.Table(`user_currency_history`).Exec(insertSql,
-		this.SellId, this.BuyId, this.OrderId, this.TokenId, sellNum, rateFee, uCurrency.Balance, 2, "", this.States, nowCreate, updateTimeStr, // 卖家记录 , 2订单转出
-		this.BuyId, this.SellId, this.OrderId, this.TokenId, this.Num, 0, buyCurrency.Balance, 1, "", this.States, nowCreate, updateTimeStr, // 买家记录 , 1订单转入
+		this.SellId, this.BuyId, this.OrderId, this.TokenId, sellNum, rateFee, uCurrency.Balance, 2, "", 3, nowCreate, updateTimeStr, // 卖家记录 , 2订单转出
+		this.BuyId, this.SellId, this.OrderId, this.TokenId, this.Num, 0, buyCurrency.Balance, 1, "", 3, nowCreate, updateTimeStr, // 买家记录 , 1订单转入
 	)
 	if err != nil {
 		fmt.Println("insert into history error: ", err.Error())
@@ -716,6 +716,8 @@ func (this *Order) ConfirmSession(Id uint64, updateTimeStr string, uid int32) (c
 		code = ERRCODE_TRADE_ERROR
 		return code, err
 	}
+
+
 	err = engine.ClearCache(new(UserCurrency))
 	if err != nil {
 		log.Errorln(err.Error())

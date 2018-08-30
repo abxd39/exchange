@@ -143,8 +143,13 @@ func BtcListtransactions(url string) (error,string) {
 	data["jsonrpc"] = "1.0"
 	data["id"] = 1
 	data["method"] = "listtransactions"
-	params := []string{""}
+
+	params := make([]interface{}, 0, 2)
+	params = append(params, "")
+	params = append(params, 100)
+
 	data["params"] = params
+
 	result, err := BtcRpcPost(url, data)
 	if err != nil {
 		return err,""

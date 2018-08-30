@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"digicon/common/errors"
+	cf "digicon/wallet_service/conf"
 )
 
 //币种和汇率
@@ -28,7 +29,8 @@ func GetTokenCnyPriceList(tid []int)([]Price,error)  {
 		return nil,err
 	}
 	reader := bytes.NewReader(bytesData)
-	request, err := http.NewRequest("POST", "http://47.75.89.78:8069/market/cny_prices?",reader)
+	host := cf.Cfg.MustValue("hosts","gateway_ip","")
+	request, err := http.NewRequest("POST", host+"/market/cny_prices?",reader)
 	if err != nil {
 		return nil,err
 	}

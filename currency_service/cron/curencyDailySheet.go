@@ -43,7 +43,7 @@ func (this DailyCountSheet) Run() {
 		}
 		fmt.Println("checkResult.Id:", checkResult.Id)
 		if checkResult.Id != 0 {
-			log.Errorf("tokenid: %v 今天已经统计了", tkId)
+			log.Printf("tokenid: %v 今天已经统计了", tkId)
 			continue
 		}
 		//////

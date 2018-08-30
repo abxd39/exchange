@@ -130,7 +130,7 @@ enum TOKEN_TYPE_OPERATOR
 {
     NONE                                    =0;
     HISTORY_HASH                            =1;//区块入账
-    HISTORY_ENTRUST                         =2;//委托
+    HISTORY_ENTRUST_G                         =2;//委托暂时废弃
     HISTORY_REGISTER                        =3;//注册奖励
     HISTORY_IVITE                           =4;//邀请奖励
     HISTORY_ENTRUST_DEL                     =5;//撤销委托
@@ -145,6 +145,8 @@ enum TOKEN_TYPE_OPERATOR
     BACKSTAGE_PUT                           =14;//后台充币
     HISTORY_ENTRUST_BUY                     =15;//委托买入
     HISTORY_ENTRUST_SELL                    =16;//委托卖出
+    HISTORY_TOKEN_OUT                       =17;//提币成功消耗冻结
+    HISTORY_FEE                             =18;//手续费，分正负
 }
 
 message  EntrustOrderRequest {
@@ -323,7 +325,7 @@ message BalanceCnyBaseData{
     int64  frozen_cny_int              =6;
 
     string  total_cny              =7;
-    string    total_cny_double      =8;
+    string  total_cny_double      =8;
 }
 message TokenBalanceCnyResponse{
     int32 err                       =1;

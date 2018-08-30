@@ -8,7 +8,6 @@ import (
 	"digicon/token_service/dao"
 	"digicon/token_service/model"
 	"digicon/token_service/rpc"
-	"digicon/token_service/rpc/client"
 	"flag"
 	"fmt"
 	log "github.com/sirupsen/logrus"
@@ -31,17 +30,16 @@ func main() {
 
 	fmt.Println("main run ...")
 	log.Infof("begin run server")
-	//snowflake.Init()
+
 	dao.InitDao()
 	fmt.Println("init dao ....")
+
 	//model.Test2(1,1000)
 	//model.Test3(1533139200,1533225600)
-
+	//model.Testg()
 	//a:=[5]int{100001, 100002, 100003}
 	//model.GetAllBalanceCny(a)
 	go rpc.RPCServerInit()
-
-	client.InitInnerService()
 
 	fmt.Println("cliet init ...")
 

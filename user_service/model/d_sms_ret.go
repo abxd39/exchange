@@ -123,7 +123,7 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 	params["password"] = cf.SmsPwd
 	// 手机号码，格式(区号+手机号码)，例如：8615800000000，其中86为中国的区号
 	params["mobile"] = phone
-	content := fmt.Sprintf("【UNT】您的验证码是：%s", code)
+	content := fmt.Sprintf("%s您的验证码是：%s",cf.SmsTitle, code)
 	params["msg"] = content
 	bytesData, err := json.Marshal(params)
 	if err != nil {

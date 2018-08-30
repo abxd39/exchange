@@ -77,6 +77,7 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 // btc send to address
 //
 func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int, applyid int) (string, error) {
+	log.Info("比特币交易request:",toAddress,mount,tokenId,uid,applyid)
 	wToken := new(WalletToken)
 	wToken.GetByUid(uid)
 	password := wToken.Password
@@ -90,8 +91,7 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int, ap
 
 	if err != nil {
 		msg := "钱包解锁失败!"
-		log.Errorln(msg)
-		fmt.Println(msg)
+		log.Errorln("比特币钱包解锁失败",msg)
 		return "", nil
 	}
 
@@ -99,14 +99,14 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int, ap
 	if !enough {
 		msg := "balance not enough!"
 		err = errors.New(msg)
-		log.Errorln(msg)
+		log.Errorln("比特币余额不足",msg)
 		return "", err
 	}
 	//fmt.Println("btc send before ...")
 	txHash, err := BtcSendToAddressFunc(url, toAddress, mount)
 	if err != nil {
 		fmt.Println(err.Error())
-		log.Errorf(err.Error())
+		log.Errorf("比特币发送交易失败",err.Error())
 		return "", err
 	}
 	//amount, err := convert.StringToInt64By8Bit(mount)

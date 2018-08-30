@@ -552,3 +552,46 @@ func (this *RPCServer) GetAuthInfo(ctx context.Context, req *proto.GetAuthInfoRe
 	rsp.Code = ERRCODE_SUCCESS
 	return nil
 }
+
+
+func (this *RPCServer) AuthSms(ctx context.Context, req *proto.AuthSmsRequest, rsp *proto.AuthSmsResponse) error{
+	ret, err := model.AuthSms(req.Phone, req.Type, req.Code)
+	if err!=nil{
+		rsp.Err=ERRCODE_UNKNOWN
+		rsp.Message=err.Error()
+		return nil
+	}
+
+	rsp.Err=ret
+	return nil
+}
+
+func (this *RPCServer) AuthMail(ctx context.Context, req *proto.AuthMailRequest, rsp *proto.AuthMailResponse) error{
+	ret, err := model.AuthEmail(req.Email, req.Type, req.Code)
+	if err!=nil{
+		rsp.Err=ERRCODE_UNKNOWN
+		rsp.Message=err.Error()
+		return nil
+	}
+
+	rsp.Err=ret
+	return nil
+}
+
+
+func (this *RPCServer) GetUserFeeInfo(ctx context.Context, req *proto.InnerCommonRequest, rsp *proto.GetUserFeeInfoResponse) error{
+
+	u:=model.User{}
+	_,err :=u.GetUser(req.Uid)
+	if err!=nil {
+		rsp.Err=ERRCODE_UNKNOWN
+		rsp.Message=err.Error()
+		return nil
+	}
+
+	rsp.WhiteList=int32(u.WhiteList)
+	if u.WhiteList==1 {
+		rsp.IsFree=true
+	}
+	return nil
+}

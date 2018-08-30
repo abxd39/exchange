@@ -43,12 +43,14 @@ func (s *AdminGroup) Refresh(c *gin.Context) {
 		Key string `form:"key" json:"key" binding:"required"`
 	}{}
 
+
+
 	if err := c.ShouldBind(&param); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
-
+	log.Infof ("uid=%d,key=%s",param.Uid,param.Key)
 	if param.Key != KEY {
 		ret.SetErrCode(ERRCODE_PARAM)
 		return

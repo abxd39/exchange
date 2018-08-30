@@ -45,6 +45,8 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.POST("/get_out_token_fee", TokenVerify,this.GetOutTokenFee)  //获取提币手续费
 
 	r.POST("/cancel_fronze",this.CancelSubTokenWithFronze)  //取消冻结
+
+	r.POST("/send_usdt_tx",this.UsdtSendTx)  //发送usdt交易
 }
 
 
@@ -125,6 +127,7 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 
 	if rsp.Code != 0 {
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		return
 	}
 
 	ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
@@ -242,6 +245,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
+
 	rsp, err := rpc.InnerService.WalletSevice.CallSendRawTx(param.TokenId, param.Signtx, param.Applyid)
 	if err != nil {
 		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
@@ -253,7 +257,7 @@ func (this *WalletGroup) SendRawTx(ctx *gin.Context) {
 		return
 	}
 
-	ret.SetDataSection("result", rsp.Data.Result)
+	ret.SetDataSection("result", string(rsp.Data.Result))
 	ret.SetErrCode(ERRCODE_SUCCESS, GetErrorMessage(ERRCODE_SUCCESS))
 	return
 }
@@ -661,7 +665,8 @@ func (this *WalletGroup) SyncEthBlockTx(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, ret.GetResult())
 	}()
 	type Param struct {
-		Block int32 `form:"block" binding:"required"`
+		Block int32 `form:"block" json:"block" binding:"required"`
+		Key string `form:"block" json:"key" binding:"required"`
 	}
 	var param Param
 	if err := ctx.ShouldBind(&param); err != nil {
@@ -671,7 +676,7 @@ func (this *WalletGroup) SyncEthBlockTx(ctx *gin.Context) {
 	}
 
 
-	rsp, err := rpc.InnerService.WalletSevice.CallSyncBlockTx(param.Block)
+	rsp, err := rpc.InnerService.WalletSevice.CallSyncBlockTx(param.Block,param.Key)
 	if err != nil || rsp.Code != 0 {
 		log.Errorln(err.Error())
 		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
@@ -746,5 +751,52 @@ func (this *WalletGroup) CancelSubTokenWithFronze(ctx *gin.Context) {
 		return
 	}
 	ret.SetErrCode(rsp.Code, rsp.Msg)
+	return
+}
+
+//发送usdt交易
+func (this *WalletGroup) UsdtSendTx(ctx *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		ctx.JSON(http.StatusOK, ret.GetResult())
+	}()
+	type Param struct {
+		Uid     int32  `form:"uid"      json:"uid"       binding:"required"`
+		TokenId int32  `form:"token_id" json:"token_id"  binding:"required"`
+		FromAddress string `form:"from_address"       json:"from_address"        binding:"required"`
+		ToAddress string `form:"to_address"       json:"to_address"        binding:"required"`
+		Protertyid int32 `form:"protertyid"       json:"protertyid"        binding:"required"`
+		Amount  string `form:"amount"   json:"amount"    binding:"required"`
+		Applyid int32  `form:"apply_id"     json:"apply_id"     binding:"required"` //申请提币id
+	}
+	var param Param
+	if err := ctx.ShouldBind(&param); err != nil {
+		fmt.Println(err.Error())
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
+		return
+	}
+	rsp, err := rpc.InnerService.WalletSevice.CallUsdtTiBi(&proto.UsdtTiBiRequest{
+		Uid:     param.Uid,
+		Tokenid: param.TokenId,
+		FromAddress: param.FromAddress,
+		ToAddress: param.ToAddress,
+		Protertyid: param.Protertyid,
+		Amount:  param.Amount,
+		Applyid: param.Applyid,
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+
+	if rsp.Code != 0 {
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Message)
+		return
+	}
+
+	ret.SetErrCode(int32(rsp.Code), GetErrorMessage(int32(rsp.Code)))
+	ret.SetDataSection("txhash", rsp.Data)
 	return
 }

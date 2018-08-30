@@ -39,7 +39,9 @@ service UserRPC {
     //获取账户安全验证方式
     rpc CheckSecurity(CheckSecurityRequest) returns (CheckSecurityResponse) {}
 
+    rpc AuthSms(AuthSmsRequest) returns (AuthSmsResponse) {}
 
+    rpc AuthMail(AuthMailRequest) returns (AuthMailResponse) {}
 
     //获取实名信息
     rpc GetUserRealName(UserInfoRequest) returns (UserRealNameResponse) {}
@@ -92,7 +94,7 @@ service UserRPC {
     // 校验pay_pwd
     rpc GetVerifyPayPwd(VerifyPayPwdRequest) returns(VerifyPayPwdRespose){};
 
-
+    rpc GetUserFeeInfo(InnerCommonRequest) returns (GetUserFeeInfoResponse);
 }
 
 message VerifyPayPwdRequest {
@@ -544,4 +546,35 @@ message Api2Response{
 
 message RefreshRequest{
     uint64 uid       =1;
+}
+
+
+message AuthSmsRequest{
+    string phone        =1;
+    int32  type         =3;
+    string code         =4;
+}
+
+message AuthSmsResponse{
+    int32 err       =1;
+    string message  =2;
+}
+
+message AuthMailRequest{
+    string email        =1;
+    int32  type         =3;
+    string code         =4;
+}
+
+message AuthMailResponse{
+    int32 err       =1;
+    string message  =2;
+}
+
+message GetUserFeeInfoResponse{
+    int32 err       =1;
+    string message  =2;
+    int32 white_list   =3;
+    bool is_free        =4;
+
 }

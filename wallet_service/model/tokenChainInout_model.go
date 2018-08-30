@@ -21,6 +21,9 @@ type TokenChainInout struct {
 	Uid         int       `xorm:"not null comment('用户id') INT(11)"`
 	CreatedTime time.Time `xorm:"default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 	Address        string    `xorm:"comment('交易账号(2018-8-13新增)') VARCHAR(42)"`
+	Gas       int64    `xorm:"comment('gas数量') VARCHAR(30)"`
+	Gas_price       int64    `xorm:"comment('gas价格,单位：wei') VARCHAR(30)"`
+	Real_fee       int64    `xorm:"comment('实际消耗手续费') VARCHAR(30)"`
 }
 
 func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, chainid int, uid int, tokenid int, tokenname string,opt int) (int, error) {
@@ -36,6 +39,9 @@ func (this *TokenChainInout) Insert(txhash, from, to, value, contract string, ch
 	this.Tokenid = tokenid
 	this.TokenName = tokenname
 	this.Uid = uid
+	//this.Gas = gas
+	//this.Gas_price = gasprice
+	//this.Real_fee = realfee
 	//utils.Engine_wallet.ShowSQL(true)
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	//fmt.Println("aaaa",uid,err)

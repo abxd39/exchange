@@ -23,7 +23,6 @@ func ByteToInt64(b []byte) (x int64) {
 }
 
 func Int64ToInt64By8Bit(b int64) int64 {
-
 	a := decimal.New(b, 0)
 	r := a.Mul(decimal.New(100000000, 0))
 	return  r.IntPart()
@@ -41,12 +40,19 @@ func Int64ToStringBy8Bit(b int64) string {
 	return r.String()
 }
 
+func StringToStringBy8Bit(b string) string {
+	a ,err:= decimal.NewFromString(b)
+	if err!=nil {
+		return ""
+	}
+	r := a.Div(decimal.New(100000000, 0))
+	return r.String()
+}
+
 //0.00001001
 func StringToInt64By8Bit(s string) (int64, error) {
 	d, err := decimal.NewFromString(s)
 	l := d.Round(8).Coefficient().Int64()
-	//g,_:=decimal.NewFromString("100000000")
-	//l:=d.Mul(g)
 	return l, err
 }
 
@@ -87,6 +93,29 @@ func Int64MulInt64By8BitString(a int64, b int64) string {
 	return r.String()
 }
 
+func Int64MulStringBy8BitString(a string, b int64) string {
+	dd := decimal.New(b, 0)
+	dp ,_:= decimal.NewFromString(a)
+	m := dd.Mul(dp)
+	d := decimal.New(100000000, 0)
+	n := m.Div(d)
+
+	r := n.Div(decimal.New(100000000, 0))
+	return r.String()
+}
+
+
+func Int64MulInt64By8BitString2Bit(a int64, b int64) string {
+	dd := decimal.New(a, 0)
+	dp := decimal.New(b, 0)
+	d := decimal.New(100000000, 0)
+	t := dd.Mul(dp).Div(d).Div(d)
+	return t.Round(2).Coefficient().String()
+	//k, _ := t.Float64()
+	//s := fmt.Sprintf("%.2f", k)
+	//return s
+}
+
 func Int64MulFloat64(a int64, b float64) int64 {
 	dd := decimal.New(a, 0)
 	dp := decimal.NewFromFloat(b)
@@ -94,13 +123,26 @@ func Int64MulFloat64(a int64, b float64) int64 {
 	return m.IntPart()
 }
 
+func StringToInt64(a string) int64 {
+	dd ,_ := decimal.NewFromString(a)
+	return dd.IntPart()
+}
+
+func Int64DivString(a int64, b string) string {
+	dd := decimal.New(a, 0)
+	dp,err := decimal.NewFromString(b)
+	if err!=nil {
+		return ""
+	}
+	return dd.Div(dp).String()
+}
+
+
 //两数相除保持8位
 func Int64DivInt64By8Bit(a int64, b int64) int64 {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
 	d := decimal.New(100000000, 0)
-
-	//num := dd.Div(dp).Round(8).Coefficient().Int64()
 
 	num := dd.Div(dp).Mul(d).IntPart()
 	return num
@@ -144,3 +186,23 @@ func Int64AddInt64Float64Percent(a int64, b int64) string {
 	return s
 }
 
+func Int64MulStringInt64By8Bit(a int64, b string) string {
+	dd := decimal.New(a, 0)
+	dp,err := decimal.NewFromString(b)
+	if err!=nil {
+		return ""
+	}
+
+	d := decimal.New(100000000, 0)
+	t:=dd.Mul(dp).Div(d)
+	return t.String()
+}
+
+func Int64MulInt64DivInt64By8Bit(a,b,c int64)  string{
+	da := decimal.New(a, 0)
+	db := decimal.New(b, 0)
+	dc := decimal.New(c, 0)
+	dd := decimal.New(100000000, 0)
+
+	return da.Mul(db).Div(dc).Div(dd).Round(2).String()
+}

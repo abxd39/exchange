@@ -22,7 +22,7 @@ import(
 //2、记录数据到token_chain_inout，用于下次判断
 //3、如果是提币，需要更新提币申请表
 //4、如果是充币，需要增加用户账户余额
-type BtcWatch struct {
+type UsdtWatch struct {
 	item []BtcWatchItem
 	tranData []TranItem
 	Url string
@@ -31,13 +31,13 @@ type BtcWatch struct {
 	tkChainInOutModel *TokenChainInout
 }
 
-type TranItem struct {
+type UsdtTranItem struct {
 	Account string `json:"account"`
 	Address string `json:"address"`
 	Category string `json:"category"`
 	Amount float64 `json:"amount"`  //单位是1bitcoin，小数点之后保留八位小数
 	Vout int `json:"vout"`
-	Fee string `json:"fee"`
+	Fee float64 `json:"fee"`
 	Confirmations int64 `json:"confirmations"`
 	Blockhash string `json:"blockhash"`
 	Blockindex int `json:"blockindex"`
@@ -49,61 +49,61 @@ type TranItem struct {
 	Abandoned bool `json:"abandoned"`
 }
 
-type BtcWatchItem struct {
+type UsdtWatchItem struct {
 	Uid int
 	Address string
 }
 
 const (
-	BTC_INTERVAL_TW = 10 //时间轮定时器间隔时间
+	USDT_INTERVAL_TW = 10 //时间轮定时器间隔时间
 )
 
 //时间轮
-var btcNewTW *timewheel.TimeWheel
+var usdtNewTW *timewheel.TimeWheel
 
-func NewBtcWatch() *BtcWatch {
-	return new(BtcWatch)
+func NewUsdtWatch() *UsdtWatch {
+	return new(UsdtWatch)
 }
 
-func StartBtcWatch() {
-	btcWatchP := new(BtcWatch)
+func StartUsdtWatch() {
+	usdtWatchP := new(UsdtWatch)
 	//初始化
-	btcWatchP.Init()
-	log.Println("btc watch start ...")
+	usdtWatchP.Init()
+	log.Println("usdt watch start ...")
 }
 
 //初始化
-func (p *BtcWatch) Init() {
+func (p *UsdtWatch) Init() {
 	tokenModel := new(Tokens)
 
-	exists, err := tokenModel.GetByName("BTC")
+	exists, err := tokenModel.GetByName("USDT")
 	if err != nil {
 		log.Error("init error",err)
 	}
 	if !exists {
-		log.Error("token not exists btc ...")
+		log.Error("token not exists usdt ...")
 	}
 	p.Url = tokenModel.Node
 
 	//初始化同步区块时间轮
 	p.updateBlockTW = timewheel.New(1 * time.Second, 3600, func(data timewheel.TaskData) {
-		fmt.Println("start btc.watch.new...")
+		fmt.Println("start usdt.watch.new...")
 		//区块操作处理
 		p.BlockUpdateDeal()
 		//继续添加定时器
-		p.updateBlockTW.AddTimer(BTC_INTERVAL_TW * time.Second, "btc_check_tran", timewheel.TaskData{})
+		p.updateBlockTW.AddTimer(USDT_INTERVAL_TW * time.Second, "usdt_check_tran", timewheel.TaskData{})
 	})
 	p.updateBlockTW.Start()
 	//开始一个事件处理
-	p.updateBlockTW.AddTimer(BTC_INTERVAL_TW * time.Second, "btc_check_tran", timewheel.TaskData{})
+	p.updateBlockTW.AddTimer(USDT_INTERVAL_TW * time.Second, "usdt_check_tran", timewheel.TaskData{})
 
 	//初始化模型
 	p.tkChainInOutModel = new(TokenChainInout)
 }
 
 //拉取数据
-func (p *BtcWatch) GetTranData() {
-	err,jsonData := utils.BtcListtransactions(p.Url)
+func (p *UsdtWatch) GetTranData() {
+	err,jsonData := utils.UsdtListtransactions(p.Url)
 	if err != nil {
 		log.Error("GetTranData error",err.Error())
 		return
@@ -118,7 +118,7 @@ func (p *BtcWatch) GetTranData() {
 }
 
 //区块操作处理
-func (p *BtcWatch) BlockUpdateDeal() {
+func (p *UsdtWatch) BlockUpdateDeal() {
 	//拉取交易
 	p.GetTranData()
 	data := p.tranData
@@ -130,17 +130,19 @@ func (p *BtcWatch) BlockUpdateDeal() {
 }
 
 //交易处理
-func (p *BtcWatch) TranDeal(data TranItem) bool {
+func (p *UsdtWatch) TranDeal(data TranItem) bool {
 	//判断地址是否存在
 	walletToken := new(WalletToken)
 	boo,err := walletToken.CheckExists2(data.Address)
 	if err != nil || boo != true {
 		return false
 	}
+	//判断是否是usdt交易
+
 	//判断交易是否存在
 	exists, err := p.tkChainInOutModel.TxIDExist(data.Txid)
 	if exists == true || err != nil {
-		log.Error("交易id不存在：",data.Txid)
+		log.Error("USDT交易id不存在：",data.Txid)
 		return false
 	}
 	if data.Category != "send" && data.Category != "receive" {
@@ -153,45 +155,34 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 	//写入交易记录到链记录表
 	p.WriteChainTx(data)
 
-	log.Info("比特币交易处理：",data.Txid)
+	log.Info("USDT交易处理：",data.Txid)
 
 	if data.Category == "send" {  //提币
 		//更新完成状态
-		_,err := new(TokenInout).BteUpdateAppleDone2(data.Txid,p.GetFee(data.Fee))
+		_,err := new(TokenInout).BteUpdateAppleDone(data.Txid)
 		if err != nil {
-			log.Error("更新比特币申请状态失败：",data.Txid)
+			log.Error("更新USDT申请状态失败：",data.Txid)
 		}
-		log.Info("btc send update complete：",data.Txid)
+		log.Info("usdt send update complete：",data.Txid)
 		//确认消耗冻结
-		new(Common).BTCConfirmSubFrozen(data)
+		new(Common).USDTConfirmSubFrozen(data)
 		//汇总手续费
 		new(Common).GatherFee(data.Txid)
 	}
 	if data.Category == "receive" {  //充币
-		log.Info("比特币充币：",data)
+		log.Info("USDT充币：",data)
 		//更新用户账户数量
-		new(Common).AddBTCTokenNum(data)
+		new(Common).AddUSDTTokenNum(data)
 		//添加一条充币记录到表：token_inout
-		p.WriteBtcInRecord(data)
+		p.WriteUsdtInRecord(data)
 	}
 
 	return true
 }
 
-//计算比特币提币手续费
-func (p *BtcWatch) GetFee(fee string) int64 {
-	aa,err := decimal.NewFromString(fee)
-	if err != nil {
-		log.Error("GetFee error",err)
-		return int64(0)
-	}
-	bb := decimal.NewFromFloat(float64(100000000))
-	return aa.Mul(bb).IntPart()
-}
-
 //写入充币记录
-func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
-	log.Info("写入比特币充币记录：",data)
+func (p *UsdtWatch) WriteUsdtInRecord(data TranItem) {
+	log.Info("写入USDT充币记录：",data)
 
 	//交易是否已经收录
 	exist, errr := new(TokenInout).TxhashExist(data.Txid, 0)
@@ -217,7 +208,7 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 	var walletToken = new(WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil {
-		log.Error("WriteBtcInRecord address not exists",err.Error())
+		log.Error("WriteUsdtInRecord address not exists",err.Error())
 		return
 	}
 
@@ -228,20 +219,20 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 	//inOutToken.Value = data.Amount
 	inOutToken.Amount = amount
 	inOutToken.Tokenid = 2
-	inOutToken.TokenName = "BTC"
+	inOutToken.TokenName = "USDT"
 	inOutToken.Uid = walletToken.Uid
 	inOutToken.Tokenid = walletToken.Tokenid
 	inOutToken.Opt = 1 ////充币
 	affected, err := utils.Engine_wallet.InsertOne(inOutToken)
 	if err != nil {
-		log.Error("WriteBtcInRecord error",err.Error())
+		log.Error("WriteUsdtInRecord error",err.Error())
 	}
-	log.Info("交易已添加",affected)
+	log.Info("USDT交易已添加",affected)
 }
 
 //写入链交易记录
-func (p *BtcWatch) WriteChainTx(data TranItem) {
-	log.Info("写入链交易记录：",data)
+func (p *UsdtWatch) WriteChainTx(data TranItem) {
+	log.Info("USDT写入链交易记录：",data)
 	//交易是否已经收录
 	exist, err := new(TokenChainInout).TxhashExist(data.Txid,0)
 
@@ -269,7 +260,7 @@ func (p *BtcWatch) WriteChainTx(data TranItem) {
 		Value:     amount1,
 		Type:      opt,
 		Tokenid:   2,
-		TokenName: "BTC",
+		TokenName: "USDT",
 	}
 	row, err := txmodel.InsertThis()
 	if row <= 0 || err != nil {

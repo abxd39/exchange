@@ -33,6 +33,9 @@ type TokenInout struct {
 	Remarks     string    `xorm:"remarks"`
 	AmountCny   int64     `xorm:"amount_cny"`
 	FeeCny      int64     `xorm:"fee_cny"`
+	Gas       int64    `xorm:"comment('gas数量') VARCHAR(30)"`
+	Gas_price       int64    `xorm:"comment('gas价格,单位：wei') VARCHAR(30)"`
+	Real_fee       int64    `xorm:"comment('实际消耗手续费') VARCHAR(30)"`
 }
 
 type User struct {
@@ -83,6 +86,9 @@ func (this *TokenInout) Insert(txhash, from, to, total, contract string, chainid
 	this.Tokenid = tokenid
 	this.TokenName = tokenname
 	this.Uid = uid
+	//this.Gas = gas
+	//this.Gas_price = gasprice
+	//this.Real_fee = realfee
 	affected, err := utils.Engine_wallet.InsertOne(this)
 	return int(affected), err
 }
@@ -107,15 +113,25 @@ func (this *TokenInout) BtcInsert(txhash, from, to, tokenName string, amount int
 
 //更新比特币申请提币hash
 func (this *TokenInout) UpdateApplyTiBi(applyid int, txhash string) (int, error) {
-	//var data = new(TokenInout)
-	//data.Txhash = txhash
 	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{Txhash: txhash}) //提币已经提交区块链，修改交易hash和正在提币状态
+	return int(affected), err
+}
+
+//更新比特币申请提币hash
+func (this *TokenInout) UpdateApplyTiBi2(applyid int,states int,remarks string) (int, error) {
+	affected, err := utils.Engine_wallet.Id(applyid).Update(TokenInout{States:states,Remarks:remarks})
 	return int(affected), err
 }
 
 //更新提币完成状态
 func (this *TokenInout) BteUpdateAppleDone(txhash string) (int, error) {
 	affected, err := utils.Engine_wallet.Where("txhash = ?", txhash).Update(TokenInout{States: 2, DoneTime: time.Now()}) //提币已经完成，修改状态和完成时间
+	return int(affected), err
+}
+
+//更新提币完成状态
+func (this *TokenInout) BteUpdateAppleDone2(txhash string,real_fee int64) (int, error) {
+	affected, err := utils.Engine_wallet.Where("txhash = ?", txhash).Update(TokenInout{States: 2, DoneTime: time.Now(),Real_fee:real_fee}) //提币已经完成，修改状态和完成时间
 	return int(affected), err
 }
 
@@ -259,26 +275,51 @@ func (this *TokenInout) GetByHash(txhash string) error {
 */
 func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime string) (tokensIntout []TokenInout, err error){
 	err = utils.Engine_wallet.Table("token_inout").
-		Where("tokenid=? AND created_time >= ? AND created_time <= ? AND states=2", tkid, startTime, endTime).
+		Where("tokenid=? AND created_time >= ? AND created_time <= ?", tkid, startTime, endTime).
+		Where("(opt = 1 ) or (opt = 2 and states=2)").
 		Find(&tokensIntout)
 	return
 }
 
+
+
 /*
 	提币累计总金额
+    操作为2，并且状态为2为提币成功
 */
 func (this *TokenInout) GetOutSumByTokenId(tkid uint32, endTime string ) (outsum SumTokenOut, err error) {
-	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2 and created_time < ?"
+	sql := "select sum(amount) as total, sum(fee) as total_fee from token_inout where tokenid=? and opt=2  and states=2 and created_time < ? "
 	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid, endTime).Get(&outsum)
 	return
 }
 
+
 /*
 	充币累计总额
+	操作为1的
 */
 func (this *TokenInout) GetInSumByTokenId(tkid uint32, endTime string)(insum SumTokenIn, err error) {
-	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1 and created_time < ?"
+	sql := "select sum(amount) as total_put from token_inout where tokenid=? and opt=1 and created_time < ? "
 	_, err = utils.Engine_wallet.Table("token_inout").SQL(sql, tkid,  endTime).Get(&insum)
 	return
+}
+
+//根据token_inout id查询数据
+func (this *TokenInout) GetByApplyId(apply_id int) error {
+	_, err := utils.Engine_wallet.Where("id =?", apply_id).Get(this)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//查询所有hash
+func (this *TokenInout) GetHashs(opt int) ([]TokenInout,error) {
+	data := make([]TokenInout,0)
+	err := utils.Engine_wallet.Where("opt = ?",opt).Find(&data)
+	if err != nil {
+		return data,err
+	}
+	return data,nil
 }
 

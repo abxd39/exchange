@@ -42,21 +42,6 @@ func (*UserToken) TableName() string {
 	return "user_token"
 }
 
-// 计算用户所有币的总额
-func (s *UserToken) CalcTotal(uid uint64) ([]*UserTokenTotal, error) {
-	var userTokenTotal []*UserTokenTotal
-
-	engine := DB.GetMysqlConn()
-	err := engine.SQL(fmt.Sprintf("SELECT token_id, SUM(balance+frozen) AS total_balance"+
-		" FROM %s WHERE uid=%d GROUP BY token_id",
-		s.TableName(), uid)).Find(&userTokenTotal)
-	if err != nil {
-		return nil, errors.NewSys(err)
-	}
-
-	return userTokenTotal, nil
-}
-
 // 用户币币余额列表
 func (s *UserToken) GetUserTokenList(filter map[string]interface{}) ([]UserTokenWithBalance, error) {
 	engine := DB.GetMysqlConn()
@@ -177,13 +162,22 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64, ukey string, ty p
 		}
 	}()
 
+	if num < 0 {
+		err=errors.New(fmt.Sprintf("err num %d", num))
+		log.Fatalf(err.Error())
+		return
+	}
 	s.Balance += num
-
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
+	var aff int64
+	aff, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
 	if err != nil {
 		return
 	}
 
+	if aff == 0 {
+		err = errors.New("version is err")
+		return
+	}
 	//交易流水
 	err = InsertRecord(session, &MoneyRecord{
 		Uid:     s.Uid,
@@ -212,10 +206,14 @@ func (s *UserToken) AddFrozen(session *xorm.Session, num int64, ukey string, ty 
 			}).Errorf("add frozen money  error %s", err.Error())
 		}
 	}()
-
+	var aff int64
 	s.Frozen += num
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
+	aff, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("frozen").Update(s)
 	if err != nil {
+		return
+	}
+	if aff == 0 {
+		err = errors.New("version is err")
 		return
 	}
 
@@ -399,13 +397,16 @@ func (s *UserToken) SubMoney(session *xorm.Session, num int64, ukey string, ty p
 	if s.Balance < num {
 		ret = ERR_TOKEN_LESS
 	}
-
+	var aff int64
 	s.Balance -= num
-	_, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
+	aff, err = session.Where("uid=? and token_id=?", s.Uid, s.TokenId).Cols("balance").Update(s)
 	if err != nil {
 		return
 	}
-
+	if aff == 0 {
+		err = errors.New("version is err")
+		return
+	}
 	//交易流水
 	err = InsertRecord(session, &MoneyRecord{
 		Uid:     s.Uid,
@@ -887,21 +888,24 @@ func GetAllBalanceCny(uids []uint64) map[uint64]*proto.BalanceCnyBaseData {
 	all := make(map[uint64]*proto.BalanceCnyBaseData, 0)
 	for _, v := range g {
 
-		cny, _ := CnyPriceMap[int32(v.TokenId)]
-
+		cny := GetCnyPrice(int32(v.TokenId))
 		u, ok := all[v.Uid]
 		if ok {
-
-			u.BalanceCnyInt += convert.Int64MulInt64By8Bit(v.Balance, cny.CnyPriceInt)
-			u.FrozenCnyInt += convert.Int64MulInt64By8Bit(v.Frozen, cny.CnyPriceInt)
-
+			u.BalanceCnyInt += convert.Int64MulInt64By8Bit(v.Balance, cny)
+			u.FrozenCnyInt += convert.Int64MulInt64By8Bit(v.Frozen, cny)
+			//log.Infof("add  balance %d,frozen %d,token_id %d",v.Balance,v.Frozen,v.TokenId)
+			//log.Infof("add cny balance %d,frozen %d,token_id %d",u.BalanceCnyInt,u.FrozenCnyInt,v.TokenId)
 		} else {
 
 			all[v.Uid] = &proto.BalanceCnyBaseData{
 				Uid:           v.Uid,
-				BalanceCnyInt: convert.Int64MulInt64By8Bit(v.Balance, cny.CnyPriceInt),
-				FrozenCnyInt:  convert.Int64MulInt64By8Bit(v.Frozen, cny.CnyPriceInt),
+				BalanceCnyInt: convert.Int64MulInt64By8Bit(v.Balance, cny),
+				FrozenCnyInt:  convert.Int64MulInt64By8Bit(v.Frozen, cny),
 			}
+
+			u, _ = all[v.Uid]
+			//log.Infof("init  balance %d,frozen %d,token_id %d",v.Balance,v.Frozen,v.TokenId)
+			//log.Infof("init cny  balance %d,frozen %d ,token_id %d",u.BalanceCnyInt,u.FrozenCnyInt,v.TokenId)
 		}
 	}
 

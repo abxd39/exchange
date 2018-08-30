@@ -5,6 +5,7 @@ import (
 	"digicon/common/genkey"
 	. "digicon/price_service/dao"
 	proto "digicon/proto/rpc"
+	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/jsonpb"
@@ -31,7 +32,10 @@ type PriceInfo struct {
 	UsdPrice int64
 
 	MinPriceKey string
+	//MinPriceIdKey string
+
 	MaxPriceKey string
+	//MaxPriceIdKey string
 
 	Period    time.Duration
 	PeriodSec int64
@@ -95,7 +99,9 @@ func NewPriceWorkQuene(name string, token_id, token_trade_id int32, init_price i
 				UsdVol:      0,
 			}
 			v.MinPriceKey = fmt.Sprintf("price:%s:min", v.Key, period_key[i])
+			//	v.MinPriceIdKey = fmt.Sprintf("price:%s:min_id", v.Key, period_key[i])
 			v.MaxPriceKey = fmt.Sprintf("price:%s:max", v.Key, period_key[i])
+			//	v.MaxPriceIdKey = fmt.Sprintf("price:%s:max_id", v.Key, period_key[i])
 			v.Period = period_sec[i]
 			v.PeriodSec = int64(v.Period / time.Second)
 			m.data = append(m.data, v)
@@ -167,7 +173,9 @@ func NewPriceWorkQuene(name string, token_id, token_trade_id int32, init_price i
 			}
 		}
 		v.MinPriceKey = fmt.Sprintf("price:%s:%s:min", name, period_key[i])
+		//	v.MinPriceIdKey = fmt.Sprintf("price:%s:min_id", v.Key, period_key[i])
 		v.MaxPriceKey = fmt.Sprintf("price:%s:%s:max", name, period_key[i])
+		//	v.MaxPriceIdKey = fmt.Sprintf("price:%s:max_id", v.Key, period_key[i])
 		v.Period = period_sec[i]
 		m.data = append(m.data, v)
 	}
@@ -196,7 +204,11 @@ func (s *PriceWorkQuene) updatePrice2(k *proto.PriceCache) (err error) {
 		Count:       k.Count,
 		Symbol:      k.Symbol,
 		UsdVol:      k.UsdVol,
+		CnyPrice:    GetQueneMgr().GetCnyPrice(s.ToekenTradeId),
 	})
+	if err != nil {
+		log.Error(err.Error())
+	}
 	return
 }
 
@@ -265,7 +277,7 @@ func (s *PriceWorkQuene) Subscribe(mpp chan *MsgPricePublish) {
 		if c.Price == 0 {
 			continue
 		}
-
+		log.Infof("rev price %d symbol %s", c.Price, c.Symbol)
 		t := time.Unix(c.Id, 0)
 		if t.Second() == 0 {
 			err = s.updatePrice2(c)
@@ -309,7 +321,7 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 
 	p := s.data[period]
 	var h *proto.PeriodPrice
-	var close, amount, vol, low, high, open, count int64
+	var close, amount, vol, open, count int64
 	var err error
 	/*
 		if p.PreData.Count == 0 {
@@ -333,48 +345,12 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		} else {
 	*/
 
-	high, low = s.GetPeriodMaxPrice(period)
-	/*
-		high, err = DB.GetRedisConn().Get(p.MaxPriceKey).Int64()
-		if err == redis.Nil {
-			log.WithFields(log.Fields{
-				"symbol":           s.Symbol,
-				"data.price ":      data.Price,
-				"os_id":            os.Getpid(),
-				"data.id":          data.Id,
-				"max_key":          p.MaxPriceKey,
-				"p.PreData.Dara":   p.PreData.CreatedTime,
-				"data.CreatedTime": data.CreatedTime,
-			}).Info("record price can not found")
-			high = GetHigh(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
-			if high == 0 {
-				high = data.Price
-			}
-		} else if err != nil {
-			log.Error(err)
-			return
-		}
+	high, low, err := s.GetPeriodLHPrice(period)
+	if err != nil {
+		log.Error("err when save high or low")
+		return
+	}
 
-		low, err = DB.GetRedisConn().Get(p.MinPriceKey).Int64()
-		if err == redis.Nil {
-			log.WithFields(log.Fields{
-				"symbol":           s.Symbol,
-				"data.price ":      data.Price,
-				"os_id":            os.Getpid(),
-				"data.id":          data.Id,
-				"min_key":          p.MinPriceKey,
-				"p.PreData.Dara":   p.PreData.CreatedTime,
-				"data.CreatedTime": data.CreatedTime,
-			}).Info("record price can not found")
-			low = GetLow(p.PreData.CreatedTime, data.CreatedTime, data.Symbol)
-			if low == 0 {
-				low = data.Price
-			}
-		} else if err != nil {
-			log.Error(err)
-			return
-		}
-	*/
 	h = &proto.PeriodPrice{
 		Id:     data.Id,
 		Open:   convert.Int64ToFloat64By8Bit(p.PreData.Price),
@@ -382,8 +358,8 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		Amount: convert.Int64ToFloat64By8Bit(data.Amount - p.PreData.Amount),
 		Vol:    convert.Int64ToFloat64By8Bit(data.Vol - p.PreData.Vol),
 		Count:  data.Count - p.PreData.Count,
-		Low:    convert.Int64ToFloat64By8Bit(low),
-		High:   convert.Int64ToFloat64By8Bit(high),
+		Low:    convert.Int64ToFloat64By8Bit(low.Price),
+		High:   convert.Int64ToFloat64By8Bit(high.Price),
 	}
 	open = p.PreData.Price
 	close = data.Price
@@ -419,8 +395,8 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		Close:  close,
 		Amount: amount,
 		Vol:    vol,
-		Low:    low,
-		High:   high,
+		Low:    low.Price,
+		High:   high.Price,
 		Count:  count,
 	})
 
@@ -437,88 +413,159 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 }
 
 func (s *PriceWorkQuene) SetPrice(data *proto.PriceCache) {
-	var max, min int64
 	var err error
 	s.entry = data
-
-	for _, v := range s.data {
-		min, err = DB.GetRedisConn().Get(v.MinPriceKey).Int64()
+	b := make([]byte, 0)
+	dmin := new(Price)
+	dmax := new(Price)
+	for k, v := range s.data {
+		b, err = DB.GetRedisConn().Get(v.MinPriceKey).Bytes()
 		if err == redis.Nil {
-			min = GetLow(v.PreData.CreatedTime, data.CreatedTime, s.Symbol)
-			log.WithFields(log.Fields{
-				"min":          min,
-				"symbol":       s.Symbol,
-				"data.price ":  data.Price,
-				"os_id":        os.Getpid(),
-				"data.id":      data.Id,
-				"PreData.Dara": v.PreData.CreatedTime,
-				"CreatedTime":  data.CreatedTime,
-				"MinPriceKey":  v.MinPriceKey,
-			}).Info("record price case redis nil")
-			err = DB.GetRedisConn().Set(v.MinPriceKey, data.Price, v.Period).Err()
+			b, err = s.ReloadMinPrice(k)
 			if err != nil {
-				log.Error(err)
+				log.Error(err.Error())
 				return
 			}
+			/*
+				dmin = GetLow(v.PreData.CreatedTime, data.CreatedTime, s.Symbol)
+				if dmin==nil {
+					break
+				}
+				log.WithFields(log.Fields{
+					"min":         dmin.Price ,
+					"symbol":       s.Symbol,
+					"data.price ":  data.Price,
+					"os_id":        os.Getpid(),
+					"data.id":      data.Id,
+					"PreData.Dara": v.PreData.CreatedTime,
+					"CreatedTime":  data.CreatedTime,
+					"MinPriceKey":  v.MinPriceKey,
+				}).Info("record price case redis nil")
+
+				b,err =json.Marshal(dmin)
+				if err!=nil {
+					return
+				}
+				err = DB.GetRedisConn().Set(v.MinPriceKey, b, v.Period).Err()
+				if err != nil {
+					log.Error(err)
+					return
+				}
+
+			*/
 		} else if err != nil {
 			log.Error(err)
 			return
 		}
+
+		err = json.Unmarshal(b, dmin)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
 		log.WithFields(log.Fields{
-			"min":         min,
+			"min":         dmin.Price,
 			"symbol":      s.Symbol,
 			"data.price ": data.Price,
 			"os_id":       os.Getpid(),
 			"data.id":     data.Id,
 		}).Info("record price")
 
-		if min <= data.Price {
-			log.WithFields(log.Fields{
-				"min":         min,
-				"symbol":      s.Symbol,
-				"data.price ": data.Price,
-				"os_id":       os.Getpid(),
-				"data.id":     data.Id,
-			}).Info("price is low change price")
-			err = DB.GetRedisConn().Set(v.MinPriceKey, data.Price, v.Period).Err()
+		if dmin.Price >= data.Price {
+			p := &Price{
+				Id:          data.Id,
+				Symbol:      data.Symbol,
+				Price:       data.Price,
+				CreatedTime: data.CreatedTime,
+				Amount:      data.Amount,
+				Vol:         data.Vol,
+			}
+
+			p.CnyPrice = GetQueneMgr().GetCnyPrice(s.ToekenTradeId)
+
+			b, err = json.Marshal(p)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			err = DB.GetRedisConn().Set(v.MinPriceKey, b, v.Period).Err()
 			if err != nil {
 				log.Error(err)
 				return
 			}
 		}
 
-		max, err = DB.GetRedisConn().Get(v.MaxPriceKey).Int64()
+		b, err = DB.GetRedisConn().Get(v.MaxPriceKey).Bytes()
 		if err == redis.Nil {
-			max = GetHigh(v.PreData.CreatedTime, data.CreatedTime, s.Symbol)
-			log.WithFields(log.Fields{
-				"max":              max,
-				"symbol":           s.Symbol,
-				"data.price ":      data.Price,
-				"os_id":            os.Getpid(),
-				"data.id":          data.Id,
-				"p.PreData.Dara":   v.PreData.CreatedTime,
-				"data.CreatedTime": data.CreatedTime,
-				"MaxPriceKey":      v.MaxPriceKey,
-			}).Info("record price case redis nil")
-			err = DB.GetRedisConn().Set(v.MaxPriceKey, data.Price, v.Period).Err()
+			b, err = s.ReloadMaxPrice(k)
 			if err != nil {
-				log.Error(err)
+				log.Error(err.Error())
 				return
 			}
+			/*
+				h := GetHigh(v.PreData.CreatedTime, data.CreatedTime, s.Symbol)
+				log.WithFields(log.Fields{
+					"max":              h.Price,
+					"symbol":           s.Symbol,
+					"data.price ":      data.Price,
+					"os_id":            os.Getpid(),
+					"data.id":          data.Id,
+					"p.PreData.Dara":   v.PreData.CreatedTime,
+					"data.CreatedTime": data.CreatedTime,
+					"MaxPriceKey":      v.MaxPriceKey,
+				}).Info("record price case redis nil")
+
+
+				b,err =json.Marshal(dmax)
+				if err!=nil {
+					return
+				}
+				err = DB.GetRedisConn().Set(v.MaxPriceKey, b, v.Period).Err()
+				if err != nil {
+					log.Error(err)
+					return
+				}
+
+			*/
 		} else if err != nil {
 			log.Error(err)
 			return
 		}
 
-		if max >= data.Price {
+		err = json.Unmarshal(b, dmax)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		if dmax.Price <= data.Price {
 			log.WithFields(log.Fields{
-				"max":         max,
+				"max":         dmax.Price,
 				"symbol":      s.Symbol,
 				"data.price ": data.Price,
 				"os_id":       os.Getpid(),
 				"data.id":     data.Id,
 			}).Info("price is high change price")
-			err = DB.GetRedisConn().Set(v.MaxPriceKey, data.Price, v.Period).Err()
+
+			p := &Price{
+				Id:          data.Id,
+				Symbol:      data.Symbol,
+				Price:       data.Price,
+				CreatedTime: data.CreatedTime,
+				Amount:      data.Amount,
+				Vol:         data.Vol,
+			}
+			p.CnyPrice = GetQueneMgr().GetCnyPrice(s.ToekenTradeId)
+
+			b, err = json.Marshal(p)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			err = DB.GetRedisConn().Set(v.MaxPriceKey, b, v.Period).Err()
 			if err != nil {
 				log.Error(err)
 				return
@@ -527,31 +574,199 @@ func (s *PriceWorkQuene) SetPrice(data *proto.PriceCache) {
 	}
 }
 
-func (s *PriceWorkQuene) GetPeriodMaxPrice(period int, begin ...int64) (min, max int64) {
+func (s *PriceWorkQuene) ReloadMinPrice(period int) ([]byte, error) {
 	t := s.data[period]
-	var err error
-	min, err = DB.GetRedisConn().Get(t.MinPriceKey).Int64()
+	nows := time.Now().Unix()
+	p := GetLow(nows-t.PeriodSec, nows, s.Symbol)
+	if p == nil {
+		p = &Price{
+			Id:       s.entry.Id,
+			Price:    s.entry.Price,
+			CnyPrice: GetQueneMgr().GetCnyPrice(s.ToekenTradeId),
+		}
+	}
+	b, err := json.Marshal(p)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	err = DB.GetRedisConn().Set(t.MinPriceKey, b, t.Period).Err()
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *PriceWorkQuene) ReloadMaxPrice(period int) ([]byte, error) {
+	t := s.data[period]
+	nows := time.Now().Unix()
+	p := GetHigh(nows-t.PeriodSec, nows, s.Symbol)
+	if p == nil {
+		p = &Price{
+			Id:       s.entry.Id,
+			Price:    s.entry.Price,
+			CnyPrice: GetQueneMgr().GetCnyPrice(s.ToekenTradeId),
+		}
+	}
+	b, err := json.Marshal(p)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	err = DB.GetRedisConn().Set(t.MinPriceKey, b, t.Period).Err()
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *PriceWorkQuene) GetPeriodLHPrice(period int) (pmax, pmin *Price, err error) {
+	t := s.data[period]
+	b := make([]byte, 0)
+	pmin = new(Price)
+	b, err = DB.GetRedisConn().Get(t.MinPriceKey).Bytes()
 	if err == redis.Nil {
-		if len(begin) > 0 {
-			min = GetLow(begin[0]-t.PeriodSec, begin[0], s.Symbol)
-		} else {
-			min = t.PreData.Price
+		b, err = s.ReloadMinPrice(period)
+		if err != nil {
+			log.Error(err)
+			return
 		}
 	} else if err != nil {
 		log.Error(err)
 		return
 	}
 
-	max, err = DB.GetRedisConn().Get(t.MaxPriceKey).Int64()
+	err = json.Unmarshal(b, pmin)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	//
+	b, err = DB.GetRedisConn().Get(t.MaxPriceKey).Bytes()
 	if err == redis.Nil {
-		if len(begin) > 0 {
-			max = GetHigh(begin[0]-t.PeriodSec, begin[0], s.Symbol)
-		} else {
-			max = t.PreData.Price
+		b, err = s.ReloadMaxPrice(period)
+		if err != nil {
+			log.Error(err)
+			return
 		}
 	} else if err != nil {
 		log.Error(err)
 		return
+	}
+
+	pmax = new(Price)
+	err = json.Unmarshal(b, pmax)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	return
+}
+
+func (s *PriceWorkQuene) GetPeriodMaxPrice2(period int, begin ...int64) (pmax, pmin *Price) {
+	t := s.data[period]
+	b, err := DB.GetRedisConn().Get(t.MinPriceKey).Bytes()
+	var ok bool
+	if err == redis.Nil {
+		if len(begin) > 0 {
+			pmin = GetLow(begin[0]-t.PeriodSec, begin[0], s.Symbol)
+			if pmin == nil {
+				return
+			}
+			b, err := json.Marshal(pmin)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			err = DB.GetRedisConn().Set(t.MinPriceKey, b, t.Period).Err()
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+		} else {
+			pmin = &Price{}
+			ok, err = DB.GetMysqlConn().Where("id=? and symbol=?", t.PreData.Id, s.Symbol).Get(pmin)
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
+			if !ok {
+				pmin.Id = s.entry.Id
+				pmin.Price = s.entry.Price
+				c, ok := GetQueneMgr().PriceMap[s.ToekenTradeId]
+				if ok {
+					pmin.CnyPrice = c.CnyPrice
+				}
+
+			}
+		}
+	} else if err != nil {
+		log.Error(err)
+		return
+	} else {
+		pmin = new(Price)
+		err = json.Unmarshal(b, pmin)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+	}
+
+	b, err = DB.GetRedisConn().Get(t.MaxPriceKey).Bytes()
+	if err == redis.Nil {
+		if len(begin) > 0 {
+			pmax = GetHigh(begin[0]-t.PeriodSec, begin[0], s.Symbol)
+			if pmax == nil {
+				return
+			}
+			b, err := json.Marshal(pmax)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			err = DB.GetRedisConn().Set(t.MaxPriceKey, b, t.Period).Err()
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+		} else {
+			pmax = &Price{}
+			ok, err = DB.GetMysqlConn().Where("id=? and symbol=?", t.PreData.Id, s.Symbol).Get(pmax)
+			if err != nil {
+				log.Error(err.Error())
+				return
+			}
+
+			if !ok {
+				pmax.Id = s.entry.Id
+				pmax.Price = s.entry.Price
+				c, ok := GetQueneMgr().PriceMap[s.ToekenTradeId]
+				if ok {
+					pmax.CnyPrice = c.CnyPrice
+				}
+			}
+			return
+		}
+	} else if err != nil {
+		log.Error(err)
+		return
+	} else {
+		pmax = new(Price)
+		err = json.Unmarshal(b, pmax)
+		if err != nil {
+			log.Error(err)
+			return
+		}
 	}
 	return
 }

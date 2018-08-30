@@ -130,8 +130,14 @@ func (this WalletDailyCountSheet) Run(){
 			TotalPut:        total_put,
 			Date:            yesDate,
 		}
-		err = onedayInOutModel.InsertOneDayTotal()
-		fmt.Println(onedayInOutModel.Id)
+		if has.Id  != 0  {
+			err = onedayInOutModel.UpdateOneDayTotal(int64(has.Id))
+			fmt.Println(onedayInOutModel.Id)
+		}else{
+			err = onedayInOutModel.InsertOneDayTotal()
+			fmt.Println(onedayInOutModel.Id)
+		}
+
 
 		if err != nil {
 			log.Errorln("wallet统计失败", err)
@@ -156,8 +162,8 @@ func DailyStart() {
 	c := cron.New()
 
 	//AddFunc
-	spec := "0 0 1 * *" // every day ...
-	specTwo := "0 0 4 * *" // every day ...
+	spec := "0 0 1 * * *" // every day ...
+	specTwo := "0 0 4 * * *" // every day ...
 
 	c.AddFunc(spec, func() {
 		i++
