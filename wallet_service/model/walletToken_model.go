@@ -200,3 +200,14 @@ func (this *WalletToken) CopyEth(userid int, tokenid int, password string, chain
 	err = walletTokenModel.Create()
 	return walletTokenModel.Address, err
 }
+
+//查询wallet_token总数
+func (this *WalletToken) GetCount() (int64,error) {
+	return Engine_wallet.Count()
+}
+
+//查询钱包数据
+func (this *WalletToken) GetWalletToken(start int,limit int) (data []WalletToken,err error) {
+	err = Engine_wallet.Limit(limit,start).Find(&data)
+	return
+}

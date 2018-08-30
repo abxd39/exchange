@@ -45,3 +45,33 @@ func (this *Context) Save(node string, chainid int, blocknumber int) (int, error
 	affected, err = utils.Engine_wallet.InsertOne(this)
 	return int(affected), nil
 }
+
+//查询最大区块高度
+func (this *Context) GetMaxNumber(token_type string) (int,error) {
+	ok, err := utils.Engine_wallet.Where("type = ?",token_type).Get(this)
+	if err != nil {
+		return 0, nil
+	}
+	if ok {
+		return this.Number, nil
+	}
+	return 0,nil
+}
+
+//保存最大高度
+func (this *Context) SaveMaxNumber(node string,chainid int,token_type string,blocknumber int) (int,error) {
+	this.Number = blocknumber
+	this.Node = node
+	this.Chainid = chainid
+	this.Type = token_type
+	affected, err := utils.Engine_wallet.Where("type = ?",token_type).Update(this)
+	if err != nil {
+		return 0, err
+	}
+	if affected > 0 {
+		return int(affected), nil
+	}
+	affected, err = utils.Engine_wallet.InsertOne(this)
+	return int(affected), nil
+}
+
