@@ -106,8 +106,10 @@ func ReleaseRegisterReward() {
 				continue
 			}
 
-			// 2.根据用户余额确定释放数量
-			releaseNum := convert.Int64MulFloat64(v.RegisterRewardTotal, 0.001) // 默认释放总奖励数的千分之1
+			// 2.根据用户余额确定是否加速释放
+			releaseNum := convert.Int64MulFloat64(v.RegisterRewardTotal, 0.001) // 默认释放注册总奖励数的千分之1
+
+			// 判断是否加速
 			userToken := model.UserToken{}
 			_, err = dao.DB.GetMysqlConn().Select("balance, frozen").Where("uid=?", v.Uid).And("token_id=?", rewardTokenId).Get(&userToken)
 			if err != nil {
@@ -122,8 +124,8 @@ func ReleaseRegisterReward() {
 				releaseNum += convert.Int64MulFloat64(userToken.Balance, 0.001)
 			}
 
-			// 3.继续确定释放数量
-			if v.SurplusReward < releaseNum { // 用户剩余可释放数量不足，释放数量使用剩余数量
+			// 3.确定最终释放数量
+			if releaseNum > v.SurplusReward { // 释放数量以可释放数量为准
 				releaseNum = v.SurplusReward
 			}
 
