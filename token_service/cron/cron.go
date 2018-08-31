@@ -25,7 +25,7 @@ func InitCron() {
 	if cf.Cfg.MustBool("cron", "run", false) {
 		c := cron.New()
 		c.AddFunc("0 30 * * * *", ResendTransferToCurrencyMsg) // 每半小时
-		c.AddFunc("0 0 1 * * *", ReleaseRegisterReward)        // 每天凌晨1点
+		//c.AddFunc("0 0 1 * * *", ReleaseRegisterReward)        // 每天凌晨1点
 		c.Start()
 	}
 }
