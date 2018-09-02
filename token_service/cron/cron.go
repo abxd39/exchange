@@ -25,7 +25,7 @@ func InitCron() {
 	if cf.Cfg.MustBool("cron", "run", false) {
 		c := cron.New()
 		c.AddFunc("0 30 * * * *", ResendTransferToCurrencyMsg) // 每半小时
-		//c.AddFunc("0 0 1 * * *", ReleaseRegisterReward)        // 每天凌晨1点
+		c.AddFunc("0 0 1 * * *", ReleaseRegisterReward)        // 每天凌晨1点
 		c.Start()
 	}
 }
@@ -34,8 +34,9 @@ func InitCron() {
 func ReleaseRegisterReward() {
 	// 可释放的用户
 	type canReleaseUser struct {
-		Uid           int32 `xorm:"uid"`
-		SurplusReward int64 `xorm:"surplus_reward"` // 剩余可释放数
+		Uid                 int32 `xorm:"uid"`
+		RegisterRewardTotal int64 `xorm:"register_reward_total"` // 总奖励数
+		SurplusReward       int64 `xorm:"surplus_reward"`        // 剩余可释放数
 	}
 
 	// 整理数据
@@ -49,8 +50,9 @@ func ReleaseRegisterReward() {
 	moneyRecordTable := new(model.MoneyRecord).TableName()
 
 	// 汇总数据
-	var totalUser, noAuthUser, releaseSuccess, releaseFail int64
+	var totalUser, noAuthUser, notNormaUser, releaseSuccess, releaseFail int64
 	noAuthUidList := make([]int32, 0)
+	notNormalUidList := make([]int32, 0)
 	releaseFailUidList := make([]int32, 0)
 
 	// 开始释放
@@ -62,7 +64,7 @@ func ReleaseRegisterReward() {
 
 		// 获取可释放的用户
 		var canReleaseUserList []*canReleaseUser
-		err := dao.DB.GetMysqlConn().SQL(fmt.Sprintf("SELECT a.uid, a.register_reward_total-IFNULL(b.released_total, 0) surplus_reward"+
+		err := dao.DB.GetMysqlConn().SQL(fmt.Sprintf("SELECT a.uid, a.register_reward_total, a.register_reward_total-IFNULL(b.released_total, 0) surplus_reward"+
 			" FROM (SELECT SUM(num) register_reward_total, uid FROM %s WHERE token_id=%d AND type IN (%d, %d) GROUP BY uid) a"+ // 注册奖励总数
 			" LEFT JOIN (SELECT SUM(num) released_total, uid FROM %s WHERE token_id=%d AND type=%d GROUP BY uid) b ON a.uid=b.uid"+ // 已释放总数
 			" WHERE IFNULL(b.released_total, 0)<a.register_reward_total"+ // 已释放总数 小于 注册奖励总数
@@ -80,8 +82,9 @@ func ReleaseRegisterReward() {
 		for _, v := range canReleaseUserList {
 			totalUser++
 
-			// 1.判断用户是否通过二级认证
-			has, err := dao.DB.GetCommonMysqlConn().Select("*").Where("uid=?", v.Uid).And("security_auth&4=4").Exist(new(model.OutUser))
+			// 1.判断用户状态、是否通过二级认证
+			user := model.OutUser{}
+			has, err := dao.DB.GetCommonMysqlConn().Select("*").Where("uid=?", v.Uid).And("security_auth&4=4").Get(&user)
 			if err != nil {
 				log.Errorf("【释放注册奖励】判断用户二级认证出错, uid: %d, err: %s", v.Uid, err.Error())
 
@@ -96,9 +99,15 @@ func ReleaseRegisterReward() {
 
 				continue
 			}
+			if user.Status != 1 { // 状态不正常
+				notNormaUser++
+				notNormalUidList = append(notNormalUidList, v.Uid)
+
+				continue
+			}
 
 			// 2.根据用户余额确定释放数量
-			releaseNum := 0.001 // 默认释放千分之1
+			releaseNum := convert.Int64MulFloat64(v.RegisterRewardTotal, 0.001) // 默认释放总奖励数的千分之1
 			userToken := model.UserToken{}
 			_, err = dao.DB.GetMysqlConn().Select("balance, frozen").Where("uid=?", v.Uid).And("token_id=?", rewardTokenId).Get(&userToken)
 			if err != nil {
@@ -109,14 +118,13 @@ func ReleaseRegisterReward() {
 
 				continue
 			}
-			if userToken.Balance >= 1000*100000000 { // 余额大于等于1000，释放千分之2
-				releaseNum = 0.002
+			if userToken.Balance >= 1000*100000000 { // 余额大于等于1000，加速释放，多释放余额的千分之1
+				releaseNum += convert.Int64MulFloat64(userToken.Balance, 0.001)
 			}
 
 			// 3.继续确定释放数量
-			releaseNumBy8Bit := convert.Float64ToInt64By8Bit(releaseNum)
-			if v.SurplusReward < releaseNumBy8Bit { // 用户剩余可释放数量不足，释放数量改为剩余数量
-				releaseNumBy8Bit = v.SurplusReward
+			if v.SurplusReward < releaseNum { // 用户剩余可释放数量不足，释放数量使用剩余数量
+				releaseNum = v.SurplusReward
 			}
 
 			// 4.开始释放
@@ -133,7 +141,7 @@ func ReleaseRegisterReward() {
 
 			// 4.1.user_token表
 			result, err := tokenSession.Exec(fmt.Sprintf("UPDATE %s SET balance=balance+%d, frozen=frozen-%d WHERE uid=%d AND frozen>=%d LIMIT 1",
-				userTokenTable, releaseNumBy8Bit, releaseNumBy8Bit, v.Uid, releaseNumBy8Bit))
+				userTokenTable, releaseNum, releaseNum, v.Uid, releaseNum))
 			if err != nil {
 				log.Errorf("【释放注册奖励】更新user_token表出错，uid: %d, err: %s", v.Uid, err.Error())
 
@@ -171,8 +179,8 @@ func ReleaseRegisterReward() {
 				" (uid, ukey, opt, token_id, num, type, create_time, frozen)"+
 				" VALUES"+
 				" (%d, '%s', %d, %d, %d, %d, %d, %d)",
-				frozenHistoryTable, v.Uid, uKey, proto.TOKEN_OPT_TYPE_DEL, rewardTokenId, releaseNumBy8Bit,
-				rType, now, userToken.Frozen-releaseNumBy8Bit))
+				frozenHistoryTable, v.Uid, uKey, proto.TOKEN_OPT_TYPE_DEL, rewardTokenId, releaseNum,
+				rType, now, userToken.Frozen-releaseNum))
 			if err != nil {
 				log.Errorf("【释放注册奖励】插入frozen_history表出错，uid: %d, err: %s", v.Uid, err.Error())
 
@@ -188,7 +196,7 @@ func ReleaseRegisterReward() {
 				" (uid, token_id, ukey, type, opt, balance, num, created_time)"+
 				" VALUES"+
 				" (%d, %d, '%s', %d, %d, %d, %d, %d)",
-				moneyRecordTable, v.Uid, rewardTokenId, uKey, rType, proto.TOKEN_OPT_TYPE_ADD, userToken.Balance+releaseNumBy8Bit, releaseNumBy8Bit, now))
+				moneyRecordTable, v.Uid, rewardTokenId, uKey, rType, proto.TOKEN_OPT_TYPE_ADD, userToken.Balance+releaseNum, releaseNum, now))
 			if err != nil {
 				log.Errorf("【释放注册奖励】插入money_record表出错，uid: %d, err: %s", v.Uid, err.Error())
 
@@ -220,6 +228,6 @@ func ReleaseRegisterReward() {
 	}
 
 	// 汇总数据s
-	log.Errorf("【释放注册奖励汇总】用户总数: %d, 未通过认证人数: %d, 释放成功人数: %d, 释放失败人数: %d, 未通过认证UID: %v, 释放失败UID: %v",
-		totalUser, noAuthUser, releaseSuccess, releaseFail, noAuthUidList, releaseFailUidList)
+	log.Errorf("【释放注册奖励汇总】用户总数: %d, 未通过认证人数: %d, 非正常人数: %d, 释放成功人数: %d, 释放失败人数: %d, 未通过认证UID: %v, 非正常UID: %v, 释放失败UID: %v",
+		totalUser, noAuthUser, notNormaUser, releaseSuccess, releaseFail, noAuthUidList, notNormalUidList, releaseFailUidList)
 }
