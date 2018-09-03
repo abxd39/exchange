@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	. "digicon/wallet_service/utils"
 )
 
 func (s *WalletHandler) CreateBTCWallet(ctx context.Context, req *proto.CreateWalletRequest, rsp *proto.CreateWalletResponse) error {
@@ -62,7 +63,7 @@ func (s *WalletHandler) BtcTibi(ctx context.Context, req *proto.BtcTibiRequest, 
 	toAddress := req.Address
 	mount := req.Amount
 	tokenId := req.Tokenid
-	txHash, err := BtcTiBiToAddress(toAddress, mount, tokenId, req.Uid, int(req.Applyid))
+	txHash, err := BtcSendToAddress(toAddress, mount, tokenId,int(req.Uid), int(req.Applyid))
 	if err != nil {
 		log.Error("BtcTibi error:",err)
 		rsp.Message = "提币失败"
@@ -81,3 +82,58 @@ func (s *WalletHandler) BtcTibi(ctx context.Context, req *proto.BtcTibiRequest, 
 /////////////////////////////////////////
 //比特币相关
 //比特币交易
+//
+// btc send to address
+//
+func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int, applyid int) (string, error) {
+	log.Info("比特币交易request:",toAddress,mount,tokenId,uid,applyid)
+	wToken := new(WalletToken)
+	wToken.GetByUid(uid)
+	password := wToken.Password
+
+	token := Tokens{}
+	token.GetByid(int(tokenId))
+	url := token.Node
+
+	//fmt.Println("----------------------------")
+	err := BtcWalletPhrase(url, password, 1*60*60)
+
+	if err != nil {
+		msg := "钱包解锁失败!"
+		log.Errorln("比特币钱包解锁失败",msg)
+		return "", nil
+	}
+
+	enough, err := BtcCheckBalance(url, mount)
+	if !enough {
+		msg := "balance not enough!"
+		err = errors.New(msg)
+		log.Errorln("比特币余额不足",msg)
+		return "", err
+	}
+	//fmt.Println("btc send before ...")
+	txHash, err := BtcSendToAddressFunc(url, toAddress, mount)
+	if err != nil {
+		fmt.Println(err.Error())
+		log.Errorf("比特币发送交易失败",err.Error())
+		return "", err
+	}
+	//amount, err := convert.StringToInt64By8Bit(mount)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	tio := new(TokenInout) //
+	//更新
+	row, err := tio.UpdateApplyTiBi(applyid, txHash)
+	//row, err := tio.BtcInsert(txHash, wToken.Address, toAddress, "BTC", amount,
+	//	wToken.Chainid, int(tokenId), 0, int(uid),
+	//)
+
+	if err != nil || row <= 0 {
+		log.Errorln(err.Error())
+		fmt.Println(err.Error())
+	}
+
+	return txHash, err
+}
+

@@ -78,7 +78,7 @@ func (s *WalletHandler) UsdtSendToAddress(fromAddress string,toAddress string,pr
 		return "", err
 	}
 
-	enough, err := UsdtCheckBalance(int32(uid), mount)
+	enough, err := UsdtCheckBalance(url,fromAddress,propertyid, mount)
 	if err != nil {
 		log.Error("余额检查失败：",err)
 		return "",err
@@ -101,10 +101,14 @@ func (s *WalletHandler) UsdtSendToAddress(fromAddress string,toAddress string,pr
 	//更新
 	row, err := tio.UpdateApplyTiBi(applyid, txHash)
 
-	if err != nil || row <= 0 {
+	if err != nil {
 		log.Errorln(err.Error())
 		fmt.Println(err.Error())
 		return "",err
+	}
+	if row <= 0 {
+		log.Println("更新失败：",applyid)
+		fmt.Println("更新失败：",applyid)
 	}
 
 	return txHash, err

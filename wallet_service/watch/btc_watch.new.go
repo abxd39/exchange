@@ -37,7 +37,7 @@ type TranItem struct {
 	Category string `json:"category"`
 	Amount float64 `json:"amount"`  //单位是1bitcoin，小数点之后保留八位小数
 	Vout int `json:"vout"`
-	Fee string `json:"fee"`
+	Fee float64 `json:"fee"`
 	Confirmations int64 `json:"confirmations"`
 	Blockhash string `json:"blockhash"`
 	Blockindex int `json:"blockindex"`
@@ -140,14 +140,14 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 	//判断交易是否存在
 	exists, err := p.tkChainInOutModel.TxIDExist(data.Txid)
 	if exists == true || err != nil {
-		log.Error("交易id不存在：",data.Txid)
+		log.Error("交易id存在：",data.Txid)
 		return false
 	}
 	if data.Category != "send" && data.Category != "receive" {
 		return false
 	}
 	//判断确认次数
-	if data.Confirmations < 6 {
+	if data.Confirmations < 3 {
 		return false
 	}
 	//写入交易记录到链记录表
@@ -160,6 +160,7 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 		_,err := new(TokenInout).BteUpdateAppleDone2(data.Txid,p.GetFee(data.Fee))
 		if err != nil {
 			log.Error("更新比特币申请状态失败：",data.Txid)
+			return false
 		}
 		log.Info("btc send update complete：",data.Txid)
 		//确认消耗冻结
@@ -179,12 +180,8 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 }
 
 //计算比特币提币手续费
-func (p *BtcWatch) GetFee(fee string) int64 {
-	aa,err := decimal.NewFromString(fee)
-	if err != nil {
-		log.Error("GetFee error",err)
-		return int64(0)
-	}
+func (p *BtcWatch) GetFee(fee float64) int64 {
+	aa := decimal.NewFromFloat(fee)
 	bb := decimal.NewFromFloat(float64(100000000))
 	return aa.Mul(bb).IntPart()
 }
@@ -221,6 +218,14 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 		return
 	}
 
+	//根据tokenid获取MARK
+	tokens := new(Tokens)
+	boo,err := tokens.GetByid(walletToken.Tokenid)
+	tokenName := "BTC"
+	if boo == true && err == nil {
+		tokenName = tokens.Mark
+	}
+
 	inOutToken.Id = 0
 	inOutToken.Txhash = data.Txid
 	inOutToken.From = ""
@@ -228,7 +233,7 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 	//inOutToken.Value = data.Amount
 	inOutToken.Amount = amount
 	inOutToken.Tokenid = 2
-	inOutToken.TokenName = "BTC"
+	inOutToken.TokenName = tokenName
 	inOutToken.Uid = walletToken.Uid
 	inOutToken.Tokenid = walletToken.Tokenid
 	inOutToken.Opt = 1 ////充币
@@ -269,7 +274,7 @@ func (p *BtcWatch) WriteChainTx(data TranItem) {
 		Value:     amount1,
 		Type:      opt,
 		Tokenid:   2,
-		TokenName: "BTC",
+		TokenName: "BTC",  //这里仅仅是为了记录txhash用，所以TokenName并无实际用途
 	}
 	row, err := txmodel.InsertThis()
 	if row <= 0 || err != nil {

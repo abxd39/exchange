@@ -58,9 +58,16 @@ func (p *Common) AddBTCTokenNum(data TranItem) {
 //确认消耗
 //**比特币提币成功调用
 func (p *Common) BTCConfirmSubFrozen(data TranItem) {
+	//根据address获取提币地址所属的用户uid,对于提币来说，address是对方的地址
+	tibiAddress := new(TibiAddress)
+	boo,err := tibiAddress.GetByAddress(data.Address)
+	if boo != true || err != nil {
+		log.Error("根据地址获取提币地址失败：",boo,err,data.Address,data)
+		return
+	}
 	//查询用户uid
 	walletToken := new(WalletToken)
-	err := walletToken.GetByAddress(data.Address)
+	err = walletToken.GetByUid(tibiAddress.Uid)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("btc get user token error",err)
 		return

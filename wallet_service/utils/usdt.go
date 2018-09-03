@@ -186,10 +186,15 @@ func UsdtRpcPost(url string, send map[string]interface{}) ([]byte, error) {
 }
 
 //检查usdt是否足够
-func UsdtCheckBalance(uid int32, amount string) (bool, error) {
-	fmt.Println(uid, amount)
-
-	return true, nil
+func UsdtCheckBalance(url string,address string,propertyid int,amount string) (bool, error) {
+	err,balance := USDTOmniGetBalance(url,address,propertyid)
+	if err != nil {
+		return false,err
+	}
+	if balance > amount {
+		return true,nil
+	}
+	return false,errors.New("balance not enough")
 }
 
 //列出最近的交易记录
@@ -263,6 +268,35 @@ func USDTOmniListblocktransactions(url string,block int) (error,[]string) {
 	}
 
 	return nil,tran
+}
+
+//查询omni代币余额
+func USDTOmniGetBalance(url string,address string,propertyid int) (error,string) {
+	data := make(map[string]interface{})
+	data["jsonrpc"] = "1.0"
+	data["id"] = 1
+	data["method"] = "omni_getbalance"
+
+	params := make([]interface{}, 0, 2)
+	params = append(params,address)
+	params = append(params,propertyid)
+
+	data["params"] = params
+
+	result, err := USDTRpcPost(url, data)
+	if err != nil {
+		return err,""
+	}
+
+	if errinfo := gjson.Get(string(result), "error").String(); errinfo != "" {
+		return errors.New(errinfo),""
+	}
+
+	if balance := gjson.Get(string(result), "result.balance").String(); balance != "" {
+		return nil,balance
+	}
+
+	return errors.New("error"),""
 }
 
 

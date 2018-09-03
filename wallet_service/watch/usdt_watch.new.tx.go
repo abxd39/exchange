@@ -321,10 +321,11 @@ func (p *USDTCBiWatch) WorkerDone() {
 	}
 	//p.BlockNumber = hight - 10
 
-	log.Info("height：",p.BlockNumber,height)
+	log.Info("usdt height：",p.BlockNumber,height)
 
-	if p.BlockNumber < height-6 {
-		for i := p.BlockNumber + 1; i <= height-6; i++ {
+	if p.BlockNumber <= height-6 {
+		for i := p.BlockNumber + 1; i <= height-2; i++ {
+			log.Info("USDT循环次数：",i)
 			//p.WorkerHander(i)
 			p.parseBlock(i)
 			//记录当前进度
@@ -336,8 +337,11 @@ func (p *USDTCBiWatch) WorkerDone() {
 
 //解析区块
 func (p *USDTCBiWatch) parseBlock(num int) error {
+	log.Info("parse USDT TX:",num)
 	err,blockTx := utils.USDTOmniListblocktransactions(p.Url,num)
+	log.Info("解析usdt区块：",err,blockTx)
 	if err != nil {
+		log.Error("usdt error",err)
 		return err
 	}
 	if len(blockTx) == 0 {
@@ -381,7 +385,8 @@ func (p *USDTCBiWatch) parseTx(txhash string) {
 		return
 	}
 	//新增订单并处理添加token
-	p.newOrder(data)
+	boo,err := p.newOrder(data)
+	fmt.Println("usdt add order result",boo,err)
 }
 
 //新增订单记录
@@ -435,7 +440,7 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (bool,error) {
 			"id":tokens.Id,
 			"mark":tokens.Mark,
 			"opt":opt,
-		}).Info("insert into tx order error:",err)
+		}).Info("insert usdt into tx order error:",err)
 	}
 	_,err = p.TokenInoutModel.Insert(data.Txid, data.Sendingaddress, data.Referenceaddress, value, "", 0, walletToken.Uid, tokens.Id, tokens.Mark, tokens.Decimal,opt)
 	if err != nil {
@@ -451,13 +456,13 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (bool,error) {
 			"mark":tokens.Mark,
 			"deci":tokens.Decimal,
 			"opt":opt,
-		}).Info("insert into inout order error:",err)
+		}).Info("insert usdt into inout order error:",err)
 	}
 
 	//给用户添加token
 	boo,errr := new(Common).AddETHTokenNum(walletToken.Uid,data.Referenceaddress,walletToken.Tokenid,value,data.Txid)
 	if boo != true {
-		log.Error("AddETHTokenNum err:",errr)
+		log.Error("AddUSDTTokenNum err:",errr)
 	}
 	if errr != nil {
 		log.Error("add usdt error:",errr)

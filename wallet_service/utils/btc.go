@@ -160,6 +160,48 @@ func BtcListtransactions(url string) (error,string) {
 	return nil,gjson.Get(string(result), "result").String()
 }
 
+//查询btc余额
+func GetGetBalance(url string) (error,string) {
+	data := make(map[string]interface{})
+	data["jsonrpc"] = "1.0"
+	data["id"] = 1
+	data["method"] = "getbalance"
+
+	params := []string{}
+
+	data["params"] = params
+
+	result, err := USDTRpcPost(url, data)
+	if err != nil {
+		return err,""
+	}
+
+	if errinfo := gjson.Get(string(result), "error").String(); errinfo != "" {
+		return errors.New(errinfo),""
+	}
+
+	if balance := gjson.Get(string(result), "result").String(); balance != "" {
+		return nil,balance
+	}
+
+	return errors.New("error"),""
+}
+
+/*
+	检查余额
+*/
+func BtcCheckBalance(url string, amount string) (bool, error) {
+
+	err,balance := GetGetBalance(url)
+	if err != nil {
+		return false,err
+	}
+	if balance > amount {
+		return true,nil
+	}
+	return false,errors.New("balance not enough")
+}
+
 /*
 	btc rpc
 */

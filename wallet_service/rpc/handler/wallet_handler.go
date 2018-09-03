@@ -101,7 +101,7 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 	case "btc":
 		addr, err = NewBTC(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
 	case "omni":
-		addr, err = NewBTC(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
+		addr, err = NewUSDT(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
 	default:
 		err = errors.New("unknow type")
 	}

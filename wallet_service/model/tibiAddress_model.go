@@ -71,3 +71,7 @@ func (this *TibiAddress) DeleteByid(id int, uid int) (int, error) {
 	affected, err := utils.Engine_wallet.Where("id=? and uid=?", id, uid).Delete(this)
 	return int(affected), err
 }
+
+func (this *TibiAddress) GetByAddress(address string) (bool,error) {
+	return utils.Engine_wallet.Where("address = ?",address).Get(this)
+}
