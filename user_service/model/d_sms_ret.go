@@ -182,3 +182,77 @@ func SendInterSms(phone, code string) (ret int32, err error) {
 
 	return
 }
+
+func SendNoticeSms(phone, msg string) (ret int32, err error) {
+	defer func() {
+		if err != nil {
+			log.WithFields(log.Fields{
+				"phone": phone,
+				"msg":  msg,
+			}).Errorf("SendNoticeSms error %s", err.Error())
+		}
+	}()
+
+	params := make(map[string]interface{})
+	params["account"] = cf.SmsAccount
+	params["password"] = cf.SmsPwd
+	// 手机号码，格式(区号+手机号码)，例如：8615800000000，其中86为中国的区号
+	params["mobile"] = phone
+	params["msg"] = msg
+	bytesData, err := json.Marshal(params)
+	if err != nil {
+		return
+	}
+
+	reader := bytes.NewReader(bytesData)
+	url := "http://intapi.253.com/send/json"
+	request, err := http.NewRequest("POST", url, reader)
+	if err != nil {
+		return
+	}
+	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
+	client := http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		return
+	}
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	type SmsRet struct {
+		Code      string `json:"code"`
+		MessageId string `json:"msg_id"`
+		Time      string `json:"time"`
+		ErrorMsg  string `json:"error_msg"`
+	}
+
+	p := &SmsRet{}
+	err = json.Unmarshal([]byte(respBytes), p)
+	if err != nil {
+		ret = ERRCODE_UNKNOWN
+		return
+	}
+
+	g, err := strconv.Atoi(p.Code)
+	if err != nil {
+		ret = int32(g)
+		return
+	}
+
+	switch g {
+	case 0:
+		ret = ERRCODE_SUCCESS
+		return
+	case 108:
+		ret = ERRCODE_SMS_PHONE_FORMAT
+		return
+	default:
+		ret = ERRCODE_UNKNOWN
+		err = errors.New(fmt.Sprintf("code:%s,msg=%s", p.Code, p.ErrorMsg))
+		return
+	}
+
+	return
+}

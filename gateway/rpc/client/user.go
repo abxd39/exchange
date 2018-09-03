@@ -471,3 +471,16 @@ func (s *UserRPCCli) CallBindEmail(req *proto.BindEmailRequest) (*proto.BindPhon
 func (s *UserRPCCli) CallBindPhone(req *proto.BindPhoneRequest) (*proto.BindPhoneEmailResponse, error) {
 	return s.conn.BindPhone(context.TODO(), req)
 }
+
+func (s *UserRPCCli) CallSendNotice(phone, email, msg string) (rsp *proto.CommonErrResponse, err error) {
+	rsp, err = s.conn.SendNotice(context.TODO(), &proto.SendNoticeRequest{
+		Phone:         phone,
+		Email: email,
+		Msg: msg,
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	return
+}

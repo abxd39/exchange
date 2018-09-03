@@ -63,6 +63,9 @@ func (s *UserGroup) Router(r *gin.Engine) {
 		user.GET("/verify_count", s.GetVerifyCount)
 		//上传图片to oss
 		user.POST("/upload_picture", s.UploadPicture)
+
+		//发送用户通知
+		user.POST("/send_notice", s.SendNotice)
 	}
 }
 
@@ -1024,4 +1027,38 @@ func (a *UserGroup) upload_picture(file string) (string, error) {
 	}
 	fmt.Println(remoteurl + okey)
 	return remoteurl + okey, nil
+}
+
+//用户通知
+func (s *UserGroup) SendNotice(c *gin.Context) {
+	ret := NewPublciError()
+	defer func() {
+		c.JSON(http.StatusOK, ret.GetResult())
+	}()
+
+	type NoticeParams struct {
+		Phone     string `form:"phone" binding:"required"`
+		Email string `form:"email"`
+		Msg string `form:"msg" binding:"required"`
+		Auth string `form:"auth" binding:"required"`
+	}
+
+	var param NoticeParams
+	if err := c.ShouldBind(&param); err != nil {
+		log.Errorf(err.Error())
+		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+
+	if param.Auth != "3b588ad9403a9f8356e1d8639153eb89" {
+		ret.SetErrCode(ERRCODE_PARAM, "auth error")
+		return
+	}
+
+	rsp, err := rpc.InnerService.UserSevice.CallSendNotice(param.Phone, param.Email, param.Msg)
+	if err != nil {
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
+		return
+	}
+	ret.SetErrCode(rsp.Err, rsp.Message)
 }

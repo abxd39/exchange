@@ -95,6 +95,9 @@ service UserRPC {
     rpc GetVerifyPayPwd(VerifyPayPwdRequest) returns(VerifyPayPwdRespose){};
 
     rpc GetUserFeeInfo(InnerCommonRequest) returns (GetUserFeeInfoResponse);
+
+    //发送用户通知
+    rpc SendNotice(SendNoticeRequest) returns (CommonErrResponse);
 }
 
 message VerifyPayPwdRequest {
@@ -577,4 +580,10 @@ message GetUserFeeInfoResponse{
     int32 white_list   =3;
     bool is_free        =4;
 
+}
+
+message SendNoticeRequest{
+    string  phone   =1;
+    string  email   =2;
+    string  msg     =3;
 }
