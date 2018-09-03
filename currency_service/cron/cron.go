@@ -4,7 +4,6 @@ import (
 	cf "digicon/currency_service/conf"
 	"github.com/robfig/cron"
 )
-
 func InitCron() {
 	//划入
 	go HandlerTransferFromToken()
@@ -12,9 +11,9 @@ func InitCron() {
 	//划出
 	go HandlerTransferToTokenDone()
 
-	//
-	go new(DailyCountSheet).Run()
 
+	go new(DailyCountSheet).Run()
+	go new(DailyCountSheet).RunByDays(1535644800)
 	//cron
 	if cf.Cfg.MustBool("cron", "run", false) {
 		c := cron.New()

@@ -40,6 +40,7 @@ func Int64ToStringBy8Bit(b int64) string {
 	return r.String()
 }
 
+
 func StringToStringBy8Bit(b string) string {
 	a ,err:= decimal.NewFromString(b)
 	if err!=nil {
@@ -104,16 +105,18 @@ func Int64MulStringBy8BitString(a string, b int64) string {
 	return r.String()
 }
 
-
+func Int64MulStringBy8BitString2Bit(a string, b int64) string {
+	dd := decimal.New(b, 0)
+	dp ,_:= decimal.NewFromString(a)
+	d := decimal.New(100000000, 0)
+	return dd.Mul(dp).Div(d).Div(d).Round(8).String()
+}
 func Int64MulInt64By8BitString2Bit(a int64, b int64) string {
 	dd := decimal.New(a, 0)
 	dp := decimal.New(b, 0)
 	d := decimal.New(100000000, 0)
 	t := dd.Mul(dp).Div(d).Div(d)
 	return t.Round(2).Coefficient().String()
-	//k, _ := t.Float64()
-	//s := fmt.Sprintf("%.2f", k)
-	//return s
 }
 
 func Int64MulFloat64(a int64, b float64) int64 {
@@ -134,7 +137,7 @@ func Int64DivString(a int64, b string) string {
 	if err!=nil {
 		return ""
 	}
-	return dd.Div(dp).String()
+	return dd.Div(dp).Round(2).String()
 }
 
 

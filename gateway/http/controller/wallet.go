@@ -21,7 +21,6 @@ func (this *WalletGroup) Router(router *gin.Engine) {
 	r.POST("/create", this.Create)       // 创建钱包
 	r.POST("/signtx", this.Signtx)       // 签名
 	r.POST("/sendrawtx", this.SendRawTx) // 广播
-
 	r.POST("/tibi", TokenVerify,this.Tibi)           //
 	r.GET("/getvalue", TokenVerify,this.GetValue)    // 查询链上余额
 	r.POST("/address/save", TokenVerify,this.AddressSave)

@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"time"
+	"github.com/liudng/godump"
 )
 
 type Price struct {
@@ -262,4 +263,19 @@ func Test3() {
 
 	h := a - b
 	fmt.Println(h > 78338765128)
+}
+
+func Test4()  {
+	var a ,b ,c int64
+	a=195501822795937
+	b=40910000
+
+	c =275479573001754
+	d:=convert.Int64MulInt64By8Bit(a,b)
+	g:=convert.Int64MulInt64By8BitString(a,b)
+
+	s:=c/b
+	godump.Dump(d)
+	godump.Dump(g)
+	godump.Dump(s)
 }

@@ -83,35 +83,35 @@ func (us *UserSecondaryCertification) SetSecondVerify(req *proto.SecondRequest, 
 
 		sess.Commit()
 		u.ForceRefreshCache(u.Uid)
-		return 0, nil
-	}
 
-	if _, err = sess.Where("uid=?", req.Uid).Update(&UserSecondaryCertification{
-		Uid: int(req.Uid),
-		VideoRecordingDigital: req.Number,
-		PositivePath:          req.FrontPath,
-		ReverseSidePath:       req.ReversePath,
-		VideoPath:             req.VideoPath,
-		InHandPicturePath:     req.HeadPath,
-		VerifyTime:            int(time.Now().Unix()),
-		VerifyCount:           us.VerifyCount + 1,
-	}); err != nil {
-		sess.Rollback()
-		return ERRCODE_UNKNOWN, err
+	}else {
+		if _, err = sess.Where("uid=?", req.Uid).Update(&UserSecondaryCertification{
+			Uid: int(req.Uid),
+			VideoRecordingDigital: req.Number,
+			PositivePath:          req.FrontPath,
+			ReverseSidePath:       req.ReversePath,
+			VideoPath:             req.VideoPath,
+			InHandPicturePath:     req.HeadPath,
+			VerifyTime:            int(time.Now().Unix()),
+			VerifyCount:           us.VerifyCount + 1,
+		}); err != nil {
+			sess.Rollback()
+			return ERRCODE_UNKNOWN, err
+		}
+		if u.SetTardeMark&APPLY_FOR_SECOND != APPLY_FOR_SECOND {
+			u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_SECOND
+		}
+		if _, err = engine.Table("user").Where("uid=?", req.Uid).Update(&User{
+			SetTardeMark: u.SetTardeMark,
+		}); err != nil {
+			sess.Rollback()
+			return ERRCODE_UNKNOWN, err
+		}
+		if err != nil {
+			return ERRCODE_UNKNOWN, err
+		}
+		sess.Commit()
+		u.ForceRefreshCache(u.Uid)
 	}
-	if u.SetTardeMark&APPLY_FOR_SECOND != APPLY_FOR_SECOND {
-		u.SetTardeMark = u.SetTardeMark ^ APPLY_FOR_SECOND
-	}
-	if _, err = engine.Table("user").Where("uid=?", req.Uid).Update(&User{
-		SetTardeMark: u.SetTardeMark,
-	}); err != nil {
-		sess.Rollback()
-		return ERRCODE_UNKNOWN, err
-	}
-	if err != nil {
-		return ERRCODE_UNKNOWN, err
-	}
-	sess.Commit()
-	u.ForceRefreshCache(u.Uid)
 	return 0, nil
 }
