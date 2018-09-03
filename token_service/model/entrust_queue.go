@@ -59,6 +59,7 @@ type EntrustQuene struct {
 	HeapBuyHash  string
 	HeapSellHash string
 
+
 	//当前队列自增ID
 	UUID int64
 
@@ -113,6 +114,8 @@ func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, amo
 		HeapSellHash:      fmt.Sprintf("%s:6", quene_id),
 		HeapBuySort:       fmt.Sprintf("%s:7", quene_id),
 		HeapSellSort:      fmt.Sprintf("%s:8", quene_id),
+		//InnerBuyQuene:     fmt.Sprintf("%s:9", quene_id),
+		//InnerSellQuene:    fmt.Sprintf("%s:10", quene_id),
 		TokenId:           token_id,
 		TradeQuene:        fmt.Sprintf("%s:trade", quene_id),
 		TokenTradeId:      token_trade_id,
@@ -212,7 +215,8 @@ func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 	s.vol += convert.Int64MulInt64By8Bit(price, deal_num)
 	s.amount += deal_num
 
-	s.usd_vol += convert.Int64MulInt64By8Bit(s.vol, GetUsdPrice(int32(s.TokenTradeId)))
+	s.usd_vol =convert.Int64MulInt64By8Bit(s.vol, GetUsdPrice(int32(s.TokenTradeId)))
+	//s.usd_vol += convert.Int64MulInt64By8Bit(s.vol, GetUsdPrice(int32(s.TokenTradeId)))
 }
 
 //委托请求检查
@@ -378,7 +382,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	rand := random.Krand(6, random.KC_RAND_KIND_LOWER)
 	no := fmt.Sprintf("%d_%s", time.Now().Unix(), rand)
 
-	log.Infof("trade_fee %d,main_fee %d,deal_num %d,buy_num %d",trade_fee,main_fee,deal_num,buy_num)
+	log.Infof("trade_fee %d,main_fee %d,deal_num %d,buy_num %d", trade_fee, main_fee, deal_num, buy_num)
 	trade_time := time.Now().Unix()
 	t := &Trade{
 		TradeNo:          no,
@@ -572,7 +576,8 @@ func (s *EntrustQuene) match2(entrust_id string) (err error) {
 				s.joinSellQuene(seller.EntrustId)
 			}
 		} else if err != nil {
-
+			buyer = GetEntrust(buyer.EntrustId)
+			seller = GetEntrust(seller.EntrustId)
 			if buyer != nil && buyer.SurplusNum > 0 {
 				log.WithFields(logrus.Fields{
 					"buy_uid":        buyer.Uid,
@@ -596,7 +601,9 @@ func (s *EntrustQuene) match2(entrust_id string) (err error) {
 		} else {
 			if buyer != nil && buyer.SurplusNum > 0 {
 				err = s.match2(buyer.EntrustId)
-				if err != nil {
+				if err == redis.Nil {
+
+				} else if err != nil {
 					log.WithFields(logrus.Fields{
 						"buy_uid":        buyer.Uid,
 						"buy_entrust_id": buyer.EntrustId,
@@ -608,7 +615,9 @@ func (s *EntrustQuene) match2(entrust_id string) (err error) {
 
 			if seller != nil && seller.SurplusNum > 0 {
 				err = s.match2(seller.EntrustId)
-				if err != nil {
+				if err == redis.Nil {
+
+				} else if err != nil {
 					log.WithFields(logrus.Fields{
 						"sell_uid":        seller.Uid,
 						"sell_entrust_id": seller.EntrustId,
@@ -1343,7 +1352,7 @@ func (s *EntrustQuene) Clock() {
 				log.Errorln(err.Error())
 				return
 			}
-			log.Infof("begin publish symbol %s", s.TokenQueueId)
+			//log.Infof("begin publish symbol %s", s.TokenQueueId)
 			err = DB.GetRedisConn().Publish(s.PriceChannel, data).Err()
 
 			if err != nil {
@@ -1471,6 +1480,7 @@ func (s *EntrustQuene) joinSellQuene(entrust_id string) (ret int, err error) {
 	if p.Opt == int(proto.ENTRUST_OPT_BUY) {
 		hash_id = s.HeapBuyHash
 		sort_id = s.HeapBuySort
+
 		if p.Type == int(proto.ENTRUST_TYPE_LIMIT_PRICE) {
 			quene_id = s.BuyQueueId
 			x = convert.Int64ToFloat64By8Bit(p.OnPrice)
@@ -1482,6 +1492,7 @@ func (s *EntrustQuene) joinSellQuene(entrust_id string) (ret int, err error) {
 	} else if p.Opt == int(proto.ENTRUST_OPT_SELL) {
 		hash_id = s.HeapSellHash
 		sort_id = s.HeapSellSort
+
 		if p.Type == int(proto.ENTRUST_TYPE_LIMIT_PRICE) {
 			quene_id = s.SellQueueId
 			x = convert.Int64ToFloat64By8Bit(p.OnPrice)
@@ -1500,13 +1511,58 @@ func (s *EntrustQuene) joinSellQuene(entrust_id string) (ret int, err error) {
 		return
 	}
 	//同步记录堆积数量
+	if p.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
+		return
+	}
+
 	log.Infof("begin record num %d", p.OnPrice)
 	key := fmt.Sprintf("%d", p.OnPrice)
 
+	var exist bool
+	exist, err = DB.GetRedisConn().HExists(hash_id, key).Result()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+
+	if !exist {
+		err = DB.GetRedisConn().ZAdd(sort_id, redis.Z{
+			Member: p.OnPrice,
+			Score:  x,
+		}).Err()
+		if err != nil {
+			log.Errorln(err.Error())
+			return
+		}
+	}
+	err = DB.GetRedisConn().HIncrBy(hash_id, key, p.SurplusNum).Err()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+
+	return
+}
+
+func (s *EntrustQuene) Test(opt proto.ENTRUST_OPT, OnPrice int64, num int64) {
+	var err error
+	var x float64
+	var hash_id, sort_id string
+	if opt == proto.ENTRUST_OPT_BUY {
+		hash_id = s.HeapBuyHash
+		sort_id = s.HeapBuySort
+		x = convert.Int64ToFloat64By8Bit(OnPrice)
+	} else {
+		hash_id = s.HeapSellHash
+		sort_id = s.HeapSellSort
+		x = convert.Int64ToFloat64By8Bit(OnPrice)
+	}
+
+	key := fmt.Sprintf("%d", OnPrice)
 	_, err = DB.GetRedisConn().HGet(hash_id, key).Int64()
 	if err == redis.Nil {
 		err = DB.GetRedisConn().ZAdd(sort_id, redis.Z{
-			Member: p.OnPrice,
+			Member: OnPrice,
 			Score:  x,
 		}).Err()
 		if err != nil {
@@ -1518,12 +1574,12 @@ func (s *EntrustQuene) joinSellQuene(entrust_id string) (ret int, err error) {
 		return
 	}
 
-	err = DB.GetRedisConn().HIncrBy(hash_id, key, p.SurplusNum).Err()
+	err = DB.GetRedisConn().HIncrBy(hash_id, key, num).Err()
 	if err != nil {
 		log.Errorln(err.Error())
 		return
 	}
-	return
+
 }
 
 //弹出数据
@@ -1531,18 +1587,18 @@ func (s *EntrustQuene) delSource(opt proto.ENTRUST_OPT, ty proto.ENTRUST_TYPE, e
 	var quene_id, hash_id, sort_id string
 
 	if opt == proto.ENTRUST_OPT_BUY { //买入类型
-		hash_id = s.HeapBuyHash
-		sort_id = s.HeapBuySort
 		if ty == proto.ENTRUST_TYPE_LIMIT_PRICE {
+			hash_id = s.HeapBuyHash
+			sort_id = s.HeapBuySort
 			quene_id = s.BuyQueueId
 		} else {
 			quene_id = s.MarketBuyQueueId
 		}
 
 	} else if opt == proto.ENTRUST_OPT_SELL {
-		hash_id = s.HeapSellHash
-		sort_id = s.HeapBuySort
 		if ty == proto.ENTRUST_TYPE_LIMIT_PRICE {
+			hash_id = s.HeapSellHash
+			sort_id = s.HeapSellSort
 			quene_id = s.SellQueueId
 		} else {
 			quene_id = s.MarketSellQueueId
@@ -1551,28 +1607,32 @@ func (s *EntrustQuene) delSource(opt proto.ENTRUST_OPT, ty proto.ENTRUST_TYPE, e
 		return errors.New("opt param err")
 	}
 
+	log.Infof("zrem quene %s,entrust_id %s", quene_id, entrust_id)
 	err = DB.GetRedisConn().ZRem(quene_id, entrust_id).Err()
 	if err != nil {
 		log.Errorln(err)
 		return
 	}
 
-	key := fmt.Sprintf("%d", p.OnPrice)
-	//incr:=
-	err = DB.GetRedisConn().HIncrBy(hash_id, key, -p.SurplusNum).Err()
-	if err != nil {
-		log.Errorln(err.Error())
+	if hash_id == "" {
 		return
 	}
 	var val int64
-	val, err = DB.GetRedisConn().HGet(hash_id, key).Int64()
+	key := fmt.Sprintf("%d", p.OnPrice)
+
+	val, err = DB.GetRedisConn().HIncrBy(hash_id, key, -p.SurplusNum).Result()
 	if err != nil {
 		log.Errorln(err.Error())
 		return
 	}
+	log.Infof("quene %s,entrust_id %s,val %d,hash_id %s,num %d", quene_id, entrust_id, val, hash_id, p.SurplusNum)
+	if val == 0 {
+		err = DB.GetRedisConn().HDel(hash_id, key).Err()
+		if err != nil {
+			log.Errorln(err.Error())
+			return
+		}
 
-	if val <= 0 {
-		key := fmt.Sprintf("%d", p.SurplusNum)
 		err = DB.GetRedisConn().ZRem(sort_id, key).Err()
 		if err != nil {
 			log.Errorln(err.Error())
@@ -1583,39 +1643,100 @@ func (s *EntrustQuene) delSource(opt proto.ENTRUST_OPT, ty proto.ENTRUST_TYPE, e
 	return
 }
 
+func Testu() {
+	val, err := DB.GetRedisConn().HIncrBy("ONT/USDT:6", "238000000", -415966388).Result()
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+//WRONGTYPE Operation against a key holding the wrong kind of value
+	if val <= 0 {
+		err = DB.GetRedisConn().HDel("ONT/USDT:6", "238000000").Err()
+		if err != nil {
+			log.Errorln(err.Error())
+			return
+		}
+		err = DB.GetRedisConn().ZRem("ONT/USDT:8", "238000000").Err()
+		if err != nil {
+			log.Errorln(err.Error())
+			return
+		}
+	}
+
+}
+
 type TempPrice struct {
 	OnPrice    string
 	SurplusNum int64
 }
 
 func (s *EntrustQuene) PopFirstEntrust2(opt proto.ENTRUST_OPT, sw proto.ENTRUST_TYPE, count int64) (en []*TempPrice, err error) {
-	var z []redis.Z
-	var hash_id string
+	var hash_id, sort_id string
+
+	g := make([]string, 0)
 	en = make([]*TempPrice, 0)
 	if opt == proto.ENTRUST_OPT_BUY { //买入类型
 		hash_id = s.HeapBuyHash
-		z, err = DB.GetRedisConn().ZRevRangeWithScores(s.HeapBuySort, 0, count).Result()
+		sort_id = s.HeapBuySort
+		g, err = DB.GetRedisConn().ZRevRange(s.HeapBuySort, 0, count).Result()
 
 	} else if opt == proto.ENTRUST_OPT_SELL { //卖出类型
 		hash_id = s.HeapSellHash
-		z, err = DB.GetRedisConn().ZRangeWithScores(s.HeapSellSort, 0, count).Result()
-	}
-	if err != nil {
-		log.Errorln(err)
+		sort_id = s.HeapSellSort
+		g, err = DB.GetRedisConn().ZRange(s.HeapSellSort, 0, count).Result()
+	} else {
 		return
 	}
 
-	g := make([]string, 0)
-	for _, v := range z {
-		g = append(g, v.Member.(string))
-	}
+
+		if err!=nil {
+			log.WithFields(logrus.Fields{
+				"hash_id": hash_id,
+				"sort_id": sort_id,
+				"symbol":  s.TokenQueueId,
+			}).Errorln(err)
+			return
+		}
+
+
 
 	for _, v := range g {
 		var i int64
 		i, err = DB.GetRedisConn().HGet(hash_id, v).Int64()
 		if err != nil {
-			log.Errorln(err)
+			if err!=nil {
+				log.WithFields(logrus.Fields{
+					"hash_id": hash_id,
+					"sort_id": sort_id,
+					"symbol":  s.TokenQueueId,
+				}).Errorln(err)
+			}
 			return
+		}
+		if i == 0 {
+			err = DB.GetRedisConn().ZRem(sort_id, v).Err()
+			if err != nil {
+				if err!=nil {
+					log.WithFields(logrus.Fields{
+						"hash_id": hash_id,
+						"sort_id": sort_id,
+						"symbol":  s.TokenQueueId,
+					}).Errorln(err)
+				}
+				return
+			}
+			err = DB.GetRedisConn().HDel(hash_id, v).Err()
+			if err != nil {
+				if err!=nil {
+					log.WithFields(logrus.Fields{
+						"hash_id": hash_id,
+						"sort_id": sort_id,
+						"symbol":  s.TokenQueueId,
+					}).Errorln(err)
+				}
+				return
+			}
+			continue
 		}
 		en = append(en, &TempPrice{
 			OnPrice:    v,
@@ -1628,8 +1749,8 @@ func (s *EntrustQuene) PopFirstEntrust2(opt proto.ENTRUST_OPT, sw proto.ENTRUST_
 
 //获取队列首位交易单 sw1表示先取市价单再取限价单，2表示直接获取限价单，count获取数量
 func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw proto.ENTRUST_TYPE, count int64) (en []*EntrustDetail, err error) {
-
-	var z []redis.Z
+	g := make([]string, 0)
+	//var z []redis.Z
 	var quene_id string
 	//var ok bool
 	if opt == proto.ENTRUST_OPT_BUY { //买入类型
@@ -1639,7 +1760,9 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw proto.ENTRUST_T
 			quene_id = s.BuyQueueId
 		}
 
-		z, err = DB.GetRedisConn().ZRevRangeWithScores(quene_id, 0, count).Result()
+		//z, err = DB.GetRedisConn().ZRevRangeWithScores(quene_id, 0, count).Result()
+		g, err = DB.GetRedisConn().ZRevRange(quene_id, 0, count).Result()
+
 	} else if opt == proto.ENTRUST_OPT_SELL { //卖出类型
 		if sw == proto.ENTRUST_TYPE_MARKET_PRICE {
 			quene_id = s.MarketSellQueueId
@@ -1647,7 +1770,8 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw proto.ENTRUST_T
 			quene_id = s.SellQueueId
 		}
 
-		z, err = DB.GetRedisConn().ZRangeWithScores(quene_id, 0, count).Result()
+		//z, err = DB.GetRedisConn().ZRangeWithScores(quene_id, 0, count).Result()
+		g, err = DB.GetRedisConn().ZRange(quene_id, 0, count).Result()
 	}
 
 	if err != nil {
@@ -1655,16 +1779,11 @@ func (s *EntrustQuene) PopFirstEntrust(opt proto.ENTRUST_OPT, sw proto.ENTRUST_T
 		return
 	}
 
-	if len(z) == 0 && sw == proto.ENTRUST_TYPE_MARKET_PRICE {
+	if len(g) == 0 && sw == proto.ENTRUST_TYPE_MARKET_PRICE {
 		return s.PopFirstEntrust(opt, proto.ENTRUST_TYPE_LIMIT_PRICE, count)
-	} else if len(z) == 0 && sw == proto.ENTRUST_TYPE_LIMIT_PRICE {
+	} else if len(g) == 0 && sw == proto.ENTRUST_TYPE_LIMIT_PRICE {
 		err = redis.Nil
 		return
-	}
-
-	g := make([]string, 0)
-	for _, v := range z {
-		g = append(g, v.Member.(string))
 	}
 
 	en2 := make(map[string]*EntrustDetail, 0)
@@ -1829,4 +1948,127 @@ func (s *EntrustQuene) DelEntrust(e *EntrustDetail) (err error) {
 	e.SurplusNum = 0
 
 	return nil
+}
+
+func Test9(begin, end int64) {
+	//DB.GetMysqlConn().Where("states =1 or states =4").GroupBy("symbol").GroupBy("opt").GroupBy("on_price").Select("sum(surplus_num),symbol").Find()
+	log.Infof("load time $d", begin)
+	g := 1
+	for index := 0; g != 0; index++ {
+		log.Infof("load index $d", index)
+		res, err := DB.GetMysqlConn().Query("SELECT SUM(`surplus_num`) as num ,`symbol`,`opt` ,`on_price`   FROM `entrust_detail` WHERE  `type`=2  AND `states`  IN(1,4) and created_time>=? and created_time<?  GROUP BY `symbol` ,`opt` ,`on_price` limit ?,?", begin, end, index*1000, 1000*(index+1))
+		if err != nil {
+			log.Error(err.Error())
+			return
+		}
+
+		g = len(res)
+		if g > 0 {
+			for _, v := range res {
+				g := convert.BytesToInt64Ascii(v["num"])
+
+				h := convert.BytesToStringAscii(v["symbol"])
+
+				j := convert.BytesToInt64Ascii(v["opt"])
+
+				k := convert.BytesToInt64Ascii(v["on_price"])
+
+				q, _ := GetQueneMgr().GetQueneByUKey(h)
+				q.Test(proto.ENTRUST_OPT(j), k, g)
+			}
+		}
+	}
+
+	if end > time.Now().Unix() {
+		return
+	}
+
+	Test9(begin+86400, end+86400)
+}
+
+func Test10() {
+	c := new(ConfigQuenes)
+	g := c.GetAllQuenes()
+	index := 0
+	var err error
+	res := make([]string, 0)
+	flag := true
+	for _, v := range g {
+		q, _ := GetQueneMgr().GetQueneByUKey(v.Name)
+
+		log.Infof("GetQueneByUKey  proc name %s", v.Name)
+		DB.GetRedisConn().Del(q.HeapSellHash)
+		DB.GetRedisConn().Del(q.HeapBuyHash)
+		DB.GetRedisConn().Del(q.HeapSellSort)
+		DB.GetRedisConn().Del(q.HeapBuySort)
+		for {
+			if !flag {
+				index = 0
+				flag = true
+				break
+			}
+
+			res, err = DB.GetRedisConn().ZRange(q.BuyQueueId, int64(index*1000), int64((index+1)*1000)).Result()
+			if err == redis.Nil {
+				flag = false
+			} else if err != nil {
+				log.Errorf("mysql err %s", err.Error())
+				return
+			} else {
+				if len(res) == 0 {
+					flag = false
+				} else {
+					ret := make([]EntrustDetail, 0)
+					err = DB.GetMysqlConn().In("entrust_id", res).Find(&ret)
+					if err != nil {
+						log.Errorf("redis err %s", err.Error())
+						return
+					}
+					log.Infof("BuyQueueId begin proc index %d", index)
+					for _, n := range ret {
+						q.Test(proto.ENTRUST_OPT_BUY, n.OnPrice, n.SurplusNum)
+					}
+					log.Infof("BuyQueueId end proc index %d", index)
+					index++
+				}
+			}
+
+		}
+
+		for {
+			if !flag {
+				index = 0
+				flag = true
+				break
+			}
+
+			res, err = DB.GetRedisConn().ZRange(q.SellQueueId, int64(index*1000), int64((index+1)*1000)).Result()
+			if err == redis.Nil {
+				flag = false
+
+			} else if err != nil {
+				log.Errorf("mysql err %s", err.Error())
+				return
+			} else {
+				if len(res) == 0 {
+					flag = false
+				} else {
+					ret := make([]EntrustDetail, 0)
+					err = DB.GetMysqlConn().In("entrust_id", res).Find(&ret)
+					if err != nil {
+						log.Errorf("redis err %s", err.Error())
+						return
+					}
+					log.Infof("SellQueueId begin proc index %d", index)
+					for _, n := range ret {
+						q.Test(proto.ENTRUST_OPT_SELL, n.OnPrice, n.SurplusNum)
+					}
+					log.Infof(" SellQueueId end proc index %d", index)
+					index++
+				}
+			}
+
+		}
+
+	}
 }

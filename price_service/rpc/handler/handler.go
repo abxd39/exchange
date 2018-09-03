@@ -332,6 +332,19 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 		}
 		r := model.Calculate(q.ToekenTradeId, price, q.GetEntry().Amount, q.Symbol, h.Price, l.Price)
 
+		cny_price :=model.GetQueneMgr().GetCnyPrice(q.ToekenTradeId)
+		rsp.Data = append(rsp.Data, &proto.QutationBaseData{
+			Symbol:   v.Name,
+			Price:    r.Price,
+			Scope:    r.Scope,
+			Low:      r.Low,
+			High:     r.High,
+			Amount:   r.Amount,
+			CnyPrice: convert.Int64ToStringBy8Bit(cny_price),
+			CnyLow:   convert.Int64ToStringBy8Bit(l.CnyPrice),
+			CnyHigh:  convert.Int64ToStringBy8Bit(h.CnyPrice),
+		})
+		/*
 		cny_price, ok := model.GetQueneMgr().PriceMap[q.ToekenTradeId]
 		if ok {
 			rsp.Data = append(rsp.Data, &proto.QutationBaseData{
@@ -355,6 +368,7 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 				Amount: r.Amount,
 			})
 		}
+		*/
 	}
 	return nil
 }

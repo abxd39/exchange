@@ -40,6 +40,7 @@ type PublicPrice struct {
 type WorkQueneMgr struct {
 	dataMgr map[string]*PriceWorkQuene
 
+	price_mutex sync.RWMutex
 	PriceMap map[int32]*PublicPrice
 
 	msgChan chan *MsgPricePublish
@@ -92,49 +93,54 @@ func (s *WorkQueneMgr) Init() {
 	go s.Process()
 }
 
-func (s *WorkQueneMgr) Process() {
-	for v := range s.msgChan {
-		if v.TokenId == 1 { //USDT
-			d, ok := s.PriceMap[v.TokenTradeId]
-			if !ok {
-				s.PriceMap[v.TokenTradeId] = &PublicPrice{
-					CnyPrice:   convert.Int64MulInt64By8Bit(v.Price, s.CnyRate),
-					UsdPrice:   convert.Int64MulInt64By8Bit(v.Price, s.UsdRate),
-					UpdateTime: time.Now().Unix(),
-					Data:       v,
-				}
-			} else {
-				d.Data = v
-				d.CnyPrice = convert.Int64MulInt64By8Bit(v.Price, s.CnyRate)
-				d.UsdPrice = convert.Int64MulInt64By8Bit(v.Price, s.UsdRate)
-				d.UpdateTime = time.Now().Unix()
+func (s *WorkQueneMgr) HandlerCny(v *MsgPricePublish)  {
+	s.price_mutex.Lock()
+	defer s.price_mutex.Unlock()
+	if v.TokenId == 1 { //USDT
+		d, ok := s.PriceMap[v.TokenTradeId]
+		if !ok {
+			s.PriceMap[v.TokenTradeId] = &PublicPrice{
+				CnyPrice:   convert.Int64MulInt64By8Bit(v.Price, s.CnyRate),
+				UsdPrice:   convert.Int64MulInt64By8Bit(v.Price, s.UsdRate),
+				UpdateTime: time.Now().Unix(),
+				Data:       v,
 			}
 		} else {
-			g, ok := s.PriceMap[v.TokenId]
-			if !ok {
-				log.Errorf("get err price token_id %d", v.TokenId)
-				s.msgChan <- v
-				continue
-			}
-
-			d, ok := s.PriceMap[v.TokenTradeId]
-			if !ok {
-				s.PriceMap[v.TokenTradeId] = &PublicPrice{
-					CnyPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.CnyRate),
-					UsdPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.UsdRate),
-					UpdateTime: time.Now().Unix(),
-					Data:       v,
-				}
-			} else {
-				if d.Data.Symbol != v.Symbol { //遇到同一个币的不同队列只保留一个
-					continue
-				}
-				d.CnyPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.CnyRate)
-				d.UsdPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.UsdRate)
-				d.UpdateTime = time.Now().Unix()
-				d.Data = v
-			}
+			d.Data = v
+			d.CnyPrice = convert.Int64MulInt64By8Bit(v.Price, s.CnyRate)
+			d.UsdPrice = convert.Int64MulInt64By8Bit(v.Price, s.UsdRate)
+			d.UpdateTime = time.Now().Unix()
 		}
+	} else {
+		g, ok := s.PriceMap[v.TokenId]
+		if !ok {
+			log.Errorf("get err price token_id %d", v.TokenId)
+			s.msgChan <- v
+			return
+		}
+
+		d, ok := s.PriceMap[v.TokenTradeId]
+		if !ok {
+			s.PriceMap[v.TokenTradeId] = &PublicPrice{
+				CnyPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.CnyRate),
+				UsdPrice:   convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.UsdRate),
+				UpdateTime: time.Now().Unix(),
+				Data:       v,
+			}
+		} else {
+			if d.Data.Symbol != v.Symbol { //遇到同一个币的不同队列只保留一个
+				return
+			}
+			d.CnyPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.CnyRate)
+			d.UsdPrice = convert.Int64MulInt64MulInt64By16Bit(v.Price, g.Data.Price, s.UsdRate)
+			d.UpdateTime = time.Now().Unix()
+			d.Data = v
+		}
+	}
+}
+func (s *WorkQueneMgr) Process() {
+	for v := range s.msgChan {
+		s.HandlerCny(v)
 	}
 
 }
@@ -159,6 +165,8 @@ func (s *WorkQueneMgr) GetQueneByUKey(ukey string) (d *PriceWorkQuene, ok bool) 
 }
 
 func (s *WorkQueneMgr) GetCnyPrice(token_id int32) int64 {
+	s.price_mutex.RLock()
+	defer s.price_mutex.RUnlock()
 	g, ok := s.PriceMap[token_id]
 	if ok {
 		return g.CnyPrice

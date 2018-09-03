@@ -44,7 +44,9 @@ func main() {
 	fmt.Println("cliet init ...")
 
 	model.GetQueneMgr().Init()
-
+	//model.Test9(1535299200,1535385600)
+	model.Test10()
+	//model.Testu()
 	fmt.Println("model get ...")
 	//model.GetKLine("BTC/USDT","1min",10)
 	//model.Test()
@@ -56,7 +58,7 @@ func main() {
 	signal.Notify(quitChan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
-		syscall.SIGHUP,
+		//syscall.SIGHUP,
 	)
 
 	sig := <-quitChan

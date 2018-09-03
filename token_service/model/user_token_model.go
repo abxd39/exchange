@@ -163,7 +163,7 @@ func (s *UserToken) AddMoney(session *xorm.Session, num int64, ukey string, ty p
 	}()
 
 	if num < 0 {
-		err=errors.New(fmt.Sprintf("err num %d", num))
+		err = errors.New(fmt.Sprintf("err num %d", num))
 		log.Fatalf(err.Error())
 		return
 	}

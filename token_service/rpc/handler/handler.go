@@ -5,12 +5,12 @@ import (
 	. "digicon/proto/common"
 	proto "digicon/proto/rpc"
 	"digicon/token_service/model"
-	"github.com/go-redis/redis"
 	"golang.org/x/net/context"
 
 	"digicon/common/errors"
 	"digicon/token_service/conf"
 	"digicon/token_service/rpc/client"
+	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
@@ -184,8 +184,47 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 		rsp.Message = GetErrorMessage(rsp.Err)
 		return nil
 	}
+/*
+		others, err := q.PopFirstEntrust(proto.ENTRUST_OPT_BUY, 2, req.Num)
+		if err == redis.Nil {
 
-	//Cny := model.GetCnyPrice(int32(q.TokenTradeId))
+		} else if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
+			return nil
+		} else {
+			for _, v := range others {
+				g := &proto.EntrustBaseData{
+					OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
+					SurplusNum: convert.Int64ToStringBy8Bit(convert.Int64DivInt64By8Bit(v.SurplusNum, v.OnPrice)),
+					CnyPrice:   model.GetOnPriceCnyPrice(req.Symbol, v.OnPrice),
+				}
+				g.Price = convert.Int64ToStringBy8Bit(v.SurplusNum)
+				rsp.Buy = append(rsp.Buy, g)
+			}
+		}
+
+		others, err = q.PopFirstEntrust(proto.ENTRUST_OPT_SELL, 2, req.Num)
+		if err == redis.Nil {
+
+		} else if err != nil {
+			rsp.Err = ERRCODE_UNKNOWN
+			rsp.Message = err.Error()
+			return nil
+		} else {
+			for _, v := range others {
+				g := &proto.EntrustBaseData{
+					OnPrice:    convert.Int64ToStringBy8Bit(v.OnPrice),
+					SurplusNum: convert.Int64ToStringBy8Bit(v.SurplusNum),
+					CnyPrice:   model.GetOnPriceCnyPrice(req.Symbol, v.OnPrice),
+				}
+
+				g.Price = convert.Int64MulInt64By8BitString(v.OnPrice, v.SurplusNum)
+				rsp.Sell = append(rsp.Sell, g)
+			}
+		}
+*/
+
 
 	others, err := q.PopFirstEntrust2(proto.ENTRUST_OPT_BUY, 2, req.Num)
 	if err == redis.Nil {
@@ -223,7 +262,7 @@ func (s *RPCServer) EntrustQuene(ctx context.Context, req *proto.EntrustQueneReq
 				CnyPrice: model.GetOnPriceCnyPrice2(req.Symbol, v.OnPrice),
 			}
 
-			g.Price = convert.Int64MulStringBy8BitString(v.OnPrice, v.SurplusNum)
+			g.Price = convert.Int64MulStringBy8BitString2Bit(v.OnPrice, v.SurplusNum)
 			rsp.Sell = append(rsp.Sell, g)
 		}
 	}
@@ -450,6 +489,7 @@ func (s *RPCServer) DelEntrust(ctx context.Context, req *proto.DelEntrustRequest
 
 	err := q.DelEntrust(e)
 	if err != nil {
+		rsp.Err = ERRCODE_UNKNOWN
 		return nil
 	}
 	return nil

@@ -27,8 +27,7 @@ func main() {
 	flag.Parse()
 
 	log.Infof("begin run server")
-	//model.Test3()
-	//return
+
 	dao.InitDao()
 
 	go rpc.RPCServerInit()
@@ -38,7 +37,7 @@ func main() {
 	signal.Notify(quitChan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
-		syscall.SIGHUP,
+		//syscall.SIGHUP,
 	)
 
 	sig := <-quitChan
