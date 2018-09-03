@@ -12,6 +12,7 @@ import (
 	"digicon/common/convert"
 	"github.com/pkg/errors"
 	"fmt"
+	"math"
 )
 
 type USDTTiBiWatch struct {
@@ -130,7 +131,7 @@ func (p *USDTTiBiWatch) checkTransactionDeal() (err error) {
 	//交易成功，处理数据
 	//手续费
 	fee := gjson.Get(tranInfo,"fee").Float()
-	fee = fee + USDT_TIBI_SEND_BTC  //总支出btc
+	fee = math.Abs(fee) + USDT_TIBI_SEND_BTC  //总支出btc
 	realFee := convert.Float64ToInt64By8Bit(fee)
 	//修改提币申请订单
 	_,err = new(TokenInout).BteUpdateAppleDone2(txhash,realFee)

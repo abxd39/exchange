@@ -183,7 +183,7 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 func (p *BtcWatch) GetFee(fee float64) int64 {
 	aa := decimal.NewFromFloat(fee)
 	bb := decimal.NewFromFloat(float64(100000000))
-	return aa.Mul(bb).IntPart()
+	return aa.Mul(bb).Abs().IntPart()
 }
 
 //写入充币记录

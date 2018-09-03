@@ -22,8 +22,42 @@ func NewNotice() *Notice {
 	return &Notice{}
 }
 
-func init() {
-	NewNotice().TiBiCompleteSendSms(293)
+//充币到账短信通知
+func (p *Notice) CBiNotice(uid int,amount string,tokenName string) (err error) {
+	user := new(User)
+	boo,err := user.GetUser(uint64(uid))
+	if err != nil {
+		return
+	}
+	if boo != true {
+		err = errors.New("用户数据为空")
+		return
+	}
+
+	gateway_ip := cf.Cfg.MustValue("hosts","gateway_ip","")
+	if gateway_ip == "" {
+		return
+	}
+	url := gateway_ip + "/user/send_notice"
+
+	postData := make(map[string]interface{})
+	postData["phone"] = user.Phone
+	mark := tokenName
+	num := amount
+	postData["content"] = strings.Join([]string{"你申请的提币已经完成，币种：",mark,"，到账数量：",num},"")
+	postData["auth"] = p.GetAuth()
+
+	result,err := p.RpcPost(url,postData)
+	if err != nil {
+		return err
+	}
+	if res := gjson.Get(string(result),"code").Int();res != 0 {
+		return errors.New(gjson.Get(string(result),"msg").String())
+	}
+
+	log.Info("TiBiCompleteSendSms complete")
+	return
+
 }
 
 //提币完成短信通知
