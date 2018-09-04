@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"digicon/common/encryption"
 	"digicon/common/errors"
+	"fmt"
 )
 
 // 平台币账户的交易
@@ -274,6 +275,7 @@ func (this *TokenInout) GetByHash(txhash string) error {
 	获取所有今天的转账
 */
 func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime string) ([]TokenInout, error){
+
 	tokensList :=make([]TokenInout,0)
 	err := utils.Engine_wallet.Table("token_inout").
 		Where("tokenid=? AND created_time >= ? AND created_time <= ?", tkid, startTime, endTime).
@@ -282,6 +284,7 @@ func (this *TokenInout) GetInOutByTokenIdByTime(tkid uint32, startTime, endTime 
 	if err!=nil{
 		return nil,err
 	}
+	fmt.Println("GetInOutByTokenIdByTime--------->",tokensList)
 	return tokensList,nil
 }
 
