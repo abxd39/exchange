@@ -23,6 +23,8 @@ func InitCron() {
 
 	//cron
 	if cf.Cfg.MustBool("cron", "run", false) {
+		ReleaseRegisterReward() // debug todo delete
+
 		c := cron.New()
 		c.AddFunc("0 30 * * * *", ResendTransferToCurrencyMsg) // 每半小时
 		c.AddFunc("0 0 0 * * *", ReleaseRegisterReward)        // 每天凌晨0点
