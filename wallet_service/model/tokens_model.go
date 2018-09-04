@@ -78,9 +78,13 @@ func (this *Tokens) GetByName(name string) (bool, error) {
 /*
 	列出所有币种
 */
-func (this *Tokens) ListTokens() (tokens []Tokens, err error){
-	err = Engine_common.Table("tokens").Find(&tokens)
-	return
+func (this *Tokens) ListTokens() ([]Tokens, error){
+	tokens:=make([]Tokens,0)
+	err:= Engine_common.Table("tokens").Find(&tokens)
+	if err!=nil{
+		return nil,err
+	}
+	return tokens,nil
 }
 
 //查询所有提币手续费
