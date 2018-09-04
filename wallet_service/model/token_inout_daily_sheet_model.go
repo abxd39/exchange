@@ -27,11 +27,6 @@ type FindDailySheet struct {
 	//DateStr string  `xorm:"not null comment('时间戳，精确到天') VARCHAT(20)"                json:"date_str"`
 }
 
-func (FindDailySheet) TableName()string{
-	return "token_inout_daily_sheet"
-}
-
-
 
 func (this *TokenInoutDailySheet) InsertOneDayTotal() (err error){
 	sql := "insert into `token_inout_daily_sheet` " +
