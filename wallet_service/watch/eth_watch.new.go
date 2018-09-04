@@ -147,13 +147,24 @@ func (p *EthTiBiWatch) checkTransactionDeal() {
 		//判断是否代币转账
 		if strings.Count(data.Input, "") < 138 || strings.Compare(data.Input[0:10], "0xa9059cbb") != 0 {
 			//eth转账
-			p.ETHDeal(data)
+			err = p.ETHDeal(data)
+			if err != nil {
+				return
+			}
 		} else {
 			//erc20代币转账
-			p.ERC20Deal(data)
+			err = p.ERC20Deal(data)
+			if err != nil {
+				return
+			}
 		}
 		//汇总手续费
-		new(Common).GatherFee(txhash)
+		err = new(Common).GatherFee(txhash)
+		if err != nil {
+			return
+		}
+		//提币成功提醒
+		NewNotice().TiBiNoticeByTxHash(txhash)
 		return
 	}
 	//暂未打包成功，重新放入队列，等待下次执行
@@ -233,19 +244,20 @@ func (p *EthTiBiWatch) WriteEthInRecord(data TranInfo) {
 }
 
 //写一条数据到链记录表中
-func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) {
+func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) error {
 	//交易是否已经收录
 	exist, err := new(models.TokenChainInout).TxhashExist(data.Hash,0)
 	if err != nil {
-		return
+		return err
 	}
 	if exist {
-		return
+		return errors.New("exist")
 	}
 	tokenInout := new(TokenInout)
 	err = tokenInout.GetByHash(data.Hash)
 	if err != nil || tokenInout.Tokenid <= 0 {
 		log.Error("WriteERC20ChainTx GetByHash error",data.Hash,err)
+		return errors.New("WriteERC20ChainTx GetByHash error")
 	}
 	var opt int = 1  //提币
 
@@ -255,6 +267,7 @@ func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) {
 	boo,err = tokens.GetByid(tokenInout.Tokenid)
 	if boo != true || err != nil || tokens.Id <= 0 {
 		log.Error("WriteERC20ChainTx get token by id error",tokenInout.Tokenid,err)
+		return errors.New("WriteERC20ChainTx get token by id error")
 	}
 
 	//提币地址
@@ -274,6 +287,7 @@ func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) {
 	temp, boo := new(big.Int).SetString(amount,16)
 	if boo != true {
 		log.Error("format error",amount)
+		return errors.New("format error")
 	}
 	value := decimal.NewFromBigInt(temp, int32(8 - tokens.Decimal)).String()
 
@@ -292,21 +306,23 @@ func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) {
 	row, err := txmodel.InsertThis()
 	if row <= 0 || err != nil {
 		log.Error("WriteERC20ChainTx insert error",err)
+		return errors.New("WriteERC20ChainTx insert error")
 	}
+	return nil
 }
 
 //写一条数据到链记录表中
-func (p *EthTiBiWatch) WriteETHChainTx(data TranInfo) {
+func (p *EthTiBiWatch) WriteETHChainTx(data TranInfo) error {
 	//交易是否已经收录
 	exist, err := new(models.TokenChainInout).TxhashExist(data.Hash,0)
 
 	if err != nil {
 		log.Info("WriteETHChainTx error",exist, err)
-		return
+		return err
 	}
 	if exist {
 		log.Info("WriteETHChainTx exists",exist, err)
-		return
+		return err
 	}
 	tokenInout := new(TokenInout)
 	err = tokenInout.GetByHash(data.Hash)
@@ -321,6 +337,7 @@ func (p *EthTiBiWatch) WriteETHChainTx(data TranInfo) {
 	boo,err = tokens.GetByid(tokenInout.Tokenid)
 	if boo != true || err != nil || tokens.Id <= 0 {
 		log.Error("get token by id error,tokenid:%d,error:%s",tokenInout.Tokenid,err)
+		return errors.New("get token by id error")
 	}
 
 	//查询用户wallet_token
@@ -352,26 +369,52 @@ func (p *EthTiBiWatch) WriteETHChainTx(data TranInfo) {
 	row, err := txmodel.InsertThis()
 	if row <= 0 || err != nil {
 		log.Error("WriteETHChainTx insert error",err)
+		return errors.New("WriteETHChainTx insert error")
 	}
+	return nil
 }
 
 //eth提币处理
-func (p *EthTiBiWatch) ETHDeal(data TranInfo) {
+func (p *EthTiBiWatch) ETHDeal(data TranInfo) (err error) {
+	defer func() {
+		if err != nil {
+			log.Error("ETH提币处理失败：",err)
+		}
+	}()
 	contract := ""
 	//写一条数据到链记录表中
-	p.WriteETHChainTx(data)
+	err = p.WriteETHChainTx(data)
+	if err != nil {
+		return err
+	}
 	//确认消耗冻结数量
-	new(Common).ETHConfirmSubFrozen(data.From,data.Hash,contract)
+	err = new(Common).ETHConfirmSubFrozen(data.From,data.Hash,contract)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //erc代币处理
-func (p *EthTiBiWatch) ERC20Deal(data TranInfo) {
+func (p *EthTiBiWatch) ERC20Deal(data TranInfo) (err error) {
+	defer func() {
+		if err != nil {
+			log.Error("ERC20Deal处理失败",err)
+		}
+	}()
 	//data.Hash = strings.Join([]string{"0x",data.Input[35:74]},"")
 	contract := data.To
 	//写一条数据到链记录表中
-	p.WriteERC20ChainTx(data)
+	err = p.WriteERC20ChainTx(data)
+	if err != nil {
+		return err
+	}
 	//确认消耗冻结数量
-	new(Common).ETHConfirmSubFrozen(data.From,data.Hash,contract)
+	err = new(Common).ETHConfirmSubFrozen(data.From,data.Hash,contract)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //交易六次确认检查
@@ -836,6 +879,11 @@ func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, con
 		"value":value,
 		"txhash":txhash,
 	}).Info("add chain complete")
+
+	//充币成功通知
+	temp1, _ := new(big.Int).SetString(value[2:],16)
+	value1 := decimal.NewFromBigInt(temp1, 0).String()
+	NewNotice().ETHERC20CBiNotice(walletToken.Uid,tokensModel.Id,tokensModel.Mark,value1)
 
 	return true, nil
 }

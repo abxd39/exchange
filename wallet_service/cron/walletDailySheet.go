@@ -271,7 +271,7 @@ func (this WalletDailyCountSheet) Tool(beginStr string){
 			Total:           total,
 			TotalFee:        total_fee,
 			TotalPut:        total_put,
-			Date:            yesDate,
+			Date:            startTime,
 		}
 		if has.Id  != 0  {
 			err = onedayInOutModel.UpdateOneDayTotal(int64(has.Id))

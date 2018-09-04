@@ -93,6 +93,11 @@ func (p *USDTTiBiWatch) Init() {
 
 //处理交易验证
 func (p *USDTTiBiWatch) checkTransactionDeal() (err error) {
+	defer func() {
+		if err != nil {
+			log.Error("checkTransactionDeal处理失败：",err)
+		}
+	}()
 
 	var txhash string
 
@@ -147,10 +152,19 @@ func (p *USDTTiBiWatch) checkTransactionDeal() (err error) {
 		return
 	}
 	//写记录处理
-	p.USDTDeal(data)
+	err = p.USDTDeal(data)
+	if err != nil {
+		return
+	}
 
 	//汇总手续费
-	new(Common).GatherFee(txhash)
+	err = new(Common).GatherFee(txhash)
+	if err != nil {
+		return
+	}
+
+	//提币成功提醒
+	NewNotice().TiBiNoticeByTxHash(txhash)
 
 	err = nil
 	return
@@ -179,26 +193,28 @@ func (p *USDTTiBiWatch) GetDataFromRedis() (error,string) {
 }
 
 //写一条数据到链记录表中
-func (p *USDTTiBiWatch) WriteUSDTChainTx(data USDTTranInfo) {
+func (p *USDTTiBiWatch) WriteUSDTChainTx(data USDTTranInfo) error {
 	//交易是否已经收录
 	exist, err := new(TokenChainInout).TxhashExist(data.Txid,0)
 
 	if err != nil {
 		log.Info("WriteUSDTChainTx error",exist, err)
-		return
+		return err
 	}
 	if exist {
 		log.Info("WriteUSDTChainTx exists",exist, err)
-		return
+		return errors.New("WriteUSDTChainTx exists")
 	}
 	tokenInout := new(TokenInout)
 	err = tokenInout.GetByHash(data.Txid)
 	if err != nil {
 		log.Error("WriteUSDTChainTx GetByHash error",data.Txid,err)
+		return err
 	}
 
 	if tokenInout.Tokenid <= 0 {
 		log.Error("WriteUSDTChainTx GetByHash Tokenid error",data.Txid,err)
+		return errors.New("WriteUSDTChainTx GetByHash Tokenid error")
 	}
 
 	var opt int = 1  //提币
@@ -207,7 +223,7 @@ func (p *USDTTiBiWatch) WriteUSDTChainTx(data USDTTranInfo) {
 	value,err := convert.StringToInt64By8Bit(data.Amount)
 	if err != nil {
 		log.Error("StringToInt64By8Bit error",err)
-		return
+		return err
 	}
 
 	txmodel := &TokenChainInout{
@@ -224,15 +240,24 @@ func (p *USDTTiBiWatch) WriteUSDTChainTx(data USDTTranInfo) {
 	row, err := txmodel.InsertThis()
 	if row <= 0 || err != nil {
 		log.Error("WriteETHChainTx insert error",err)
+		return errors.New("WriteETHChainTx insert error")
 	}
+	return nil
 }
 
 //eth提币处理
-func (p *USDTTiBiWatch) USDTDeal(data USDTTranInfo) {
+func (p *USDTTiBiWatch) USDTDeal(data USDTTranInfo) error {
 	//写一条数据到链记录表中
-	p.WriteUSDTChainTx(data)
+	err := p.WriteUSDTChainTx(data)
+	if err != nil {
+		return err
+	}
 	//确认消耗冻结数量
-	new(Common).USDTConfirmSubFrozen(data)
+	err = new(Common).USDTConfirmSubFrozen(data)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 ////////////////////////////////////////////////////////USDT充币监控/////////////////////////////////////////////////////////////////
@@ -478,5 +503,9 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (bool,error) {
 		"value":value,
 		"txhash":data.Txid,
 	}).Info("add usdt chain complete")
+
+	//充币成功提醒
+	NewNotice().USDTCBiNotice(walletToken.Uid,tokens.Id,tokens.Mark,data.Amount)
+
 	return true,nil
 }
