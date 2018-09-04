@@ -57,7 +57,7 @@ func main() {
 	//  统计每天的币数
 	go cron.DailyStart()
 	//go new(cron.WalletDailyCountSheet).Run()
-	go new(cron.WalletDailyCountSheet).Tool("2018-08-27")
+	go new(cron.WalletDailyCountSheet).CountData(1533657600)
 	/////////////////////
 
 
