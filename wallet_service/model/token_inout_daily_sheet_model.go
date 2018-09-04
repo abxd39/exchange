@@ -34,8 +34,10 @@ func (this *TokenInoutDailySheet) InsertOneDayTotal() (err error){
 		"`total_day_put`, `total_day_put_cny`, `total`, `total_fee`, `total_put`, `date`) "+
 		" values(?, ?, ?, ?, ?, ?,   ?, ?, ?, ?, ?, ?)"
 	engine := utils.Engine_wallet
+	engine.ShowSQL(true)
 	_, err = engine.Exec(sql, this.TokenId, this.TokenName, this.TotalDayNum, this.TotalDayCny, this.TotalDayNumFee, this.TotalDayFeeCny,
 		this.TotalDayPut, this.TotalDayPutCny, this.Total, this.TotalFee,this.TotalPut, this.Date)
+	engine.ShowSQL(false)
 	if err!=nil{
 		log.Log.Infof("InsertOneDayTotal",err.Error())
 	}
