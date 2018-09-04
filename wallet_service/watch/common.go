@@ -19,14 +19,14 @@ type Common struct{}
 
 //添加比特币token数量
 //**比特币充币
-func (p *Common) AddBTCTokenNum(data TranItem) {
+func (p *Common) AddBTCTokenNum(data TranItem) error {
 	log.Info("AddBTCTokenNum data:",data)
 	//查询用户uid
 	walletToken := new(WalletToken)
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("get user token error",err)
-		return
+		return err
 	}
 
 	amount := convert.Float64ToInt64By8Bit(data.Amount)
@@ -52,25 +52,27 @@ func (p *Common) AddBTCTokenNum(data TranItem) {
 	log.Info("btc AddBTCTokenNum result",errr,string(rsp.Message))
 	if errr != nil {
 		log.Info("AddBTCTokenNum error",errr)
+		return errr
 	}
+	return nil
 }
 
 //确认消耗
 //**比特币提币成功调用
-func (p *Common) BTCConfirmSubFrozen(data TranItem) {
+func (p *Common) BTCConfirmSubFrozen(data TranItem) error {
 	//根据address获取提币地址所属的用户uid,对于提币来说，address是对方的地址
 	tibiAddress := new(TibiAddress)
 	boo,err := tibiAddress.GetByAddress(data.Address)
 	if boo != true || err != nil {
 		log.Error("根据地址获取提币地址失败：",boo,err,data.Address,data)
-		return
+		return errors.New("根据地址获取提币地址失败")
 	}
 	//查询用户uid
 	walletToken := new(WalletToken)
 	err = walletToken.GetByUid(tibiAddress.Uid)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("btc get user token error",err)
-		return
+		return err
 	}
 
 	//根据交易hash查询申请提币数据
@@ -78,7 +80,7 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 	err = tokenInout.GetByHash(data.Txid)
 	if err != nil || tokenInout.Uid <= 0 {
 		log.Info("btc get data by hash error",err)
-		return
+		return err
 	}
 
 	amount := decimal.New(tokenInout.Amount,0)
@@ -106,12 +108,14 @@ func (p *Common) BTCConfirmSubFrozen(data TranItem) {
 	log.Info("比特币确认消耗冻结：",errr,rsp.Err,string(rsp.Message))
 	if errr != nil {
 		log.Info("BTCConfirmSubFrozen error",err)
+		return errr
 	}
+	return nil
 }
 
 //确认消耗
 //**以太坊提币成功调用
-func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) {
+func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) error {
 	//查询用户uid
 	//walletToken := new(models.WalletToken)
 	//boo,err := walletToken.GetByAddressContract(from,contract)
@@ -124,7 +128,7 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) 
 	err := tokenInout.GetByHash(txhash)
 	if err != nil || tokenInout.Uid <= 0 {
 		log.Error("get data by hash error",err,txhash)
-		return
+		return err
 	}
 
 	amount := decimal.New(tokenInout.Amount,0)
@@ -147,7 +151,9 @@ func (p *Common) ETHConfirmSubFrozen(from string,txhash string,contract string) 
 	}).Info("ETHConfirmSubFrozen result:",rsp,errr)
 	if errr != nil {
 		log.Error("ETHConfirmSubFrozen error",err)
+		return errr
 	}
+	return nil
 }
 
 //添加比特币token数量
@@ -249,21 +255,21 @@ func (p *Common) AddUSDTTokenNum(data USDTTranInfo) {
 
 //确认消耗
 //**比特币提币成功调用
-func (p *Common) USDTConfirmSubFrozen(data USDTTranInfo) {
+func (p *Common) USDTConfirmSubFrozen(data USDTTranInfo) error {
 	//查询用户uid
 	walletToken := new(WalletToken)
 	err := walletToken.GetByAddress(data.Sendingaddress)
 	if err != nil || walletToken.Uid <= 0 {
 		log.Info("btc get user token error",err)
-		return
+		return err
 	}
 
 	//根据交易hash查询申请提币数据
 	tokenInout := new(TokenInout)
 	err = tokenInout.GetByHash(data.Txid)
 	if err != nil || tokenInout.Uid <= 0 {
-		log.Info("btc get data by hash error",err)
-		return
+		log.Info("usdt get data by hash error",err)
+		return errors.New("usdt get data by hash error")
 	}
 
 	amount := decimal.New(tokenInout.Amount,0)
@@ -290,7 +296,9 @@ func (p *Common) USDTConfirmSubFrozen(data USDTTranInfo) {
 	log.Info("USDT确认消耗冻结：",errr,rsp.Err,string(rsp.Message))
 	if errr != nil {
 		log.Info("USDTConfirmSubFrozen error",err)
+		return errr
 	}
+	return nil
 }
 
 //提币完成短信通知

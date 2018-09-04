@@ -11,6 +11,7 @@ import(
 	log "github.com/sirupsen/logrus"
 	"github.com/shopspring/decimal"
 	"digicon/common/convert"
+	"github.com/pkg/errors"
 )
 
 //新版监听区块变化，更新数据
@@ -130,25 +131,37 @@ func (p *BtcWatch) BlockUpdateDeal() {
 }
 
 //交易处理
-func (p *BtcWatch) TranDeal(data TranItem) bool {
+func (p *BtcWatch) TranDeal(data TranItem) (boo bool,err error) {
+	defer func() {
+		if boo != true || err != nil {
+			log.Error("比特币提币处理失败：",boo,err)
+		}
+	}()
 	//判断地址是否存在
 	walletToken := new(WalletToken)
-	boo,err := walletToken.CheckExists2(data.Address)
-	if err != nil || boo != true {
-		return false
+	boo,err = walletToken.CheckExists2(data.Address)
+	if err != nil {
+		return false,err
+	}
+	if boo != true {
+		return false,nil
 	}
 	//判断交易是否存在
 	exists, err := p.tkChainInOutModel.TxIDExist(data.Txid)
-	if exists == true || err != nil {
+	if err != nil {
 		log.Error("交易id存在：",data.Txid)
-		return false
+		return false,err
+	}
+	if exists == true {
+		log.Error("交易id存在：",data.Txid)
+		return false,nil
 	}
 	if data.Category != "send" && data.Category != "receive" {
-		return false
+		return false,nil
 	}
 	//判断确认次数
 	if data.Confirmations < 3 {
-		return false
+		return false,nil
 	}
 	//写入交易记录到链记录表
 	p.WriteChainTx(data)
@@ -160,23 +173,39 @@ func (p *BtcWatch) TranDeal(data TranItem) bool {
 		_,err := new(TokenInout).BteUpdateAppleDone2(data.Txid,p.GetFee(data.Fee))
 		if err != nil {
 			log.Error("更新比特币申请状态失败：",data.Txid)
-			return false
+			return false,err
 		}
 		log.Info("btc send update complete：",data.Txid)
 		//确认消耗冻结
-		new(Common).BTCConfirmSubFrozen(data)
+		err = new(Common).BTCConfirmSubFrozen(data)
+		if err != nil {
+			return false,err
+		}
 		//汇总手续费
-		new(Common).GatherFee(data.Txid)
+		err = new(Common).GatherFee(data.Txid)
+		if err != nil {
+			return false,err
+		}
+		//提币成功提醒
+		NewNotice().TiBiNoticeByTxHash(data.Txid)
 	}
 	if data.Category == "receive" {  //充币
 		log.Info("比特币充币：",data)
 		//更新用户账户数量
-		new(Common).AddBTCTokenNum(data)
+		err := new(Common).AddBTCTokenNum(data)
+		if err != nil {
+			return false,err
+		}
 		//添加一条充币记录到表：token_inout
-		p.WriteBtcInRecord(data)
+		err = p.WriteBtcInRecord(data)
+		if err != nil {
+			return false,err
+		}
+		//添加充币提醒
+		NewNotice().BTCCBiNotice(data)
 	}
 
-	return true
+	return true,nil
 }
 
 //计算比特币提币手续费
@@ -187,17 +216,17 @@ func (p *BtcWatch) GetFee(fee float64) int64 {
 }
 
 //写入充币记录
-func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
+func (p *BtcWatch) WriteBtcInRecord(data TranItem) error {
 	log.Info("写入比特币充币记录：",data)
 
 	//交易是否已经收录
 	exist, errr := new(TokenInout).TxhashExist(data.Txid, 0)
 
 	if errr != nil {
-		return
+		return errr
 	}
 	if exist {
-		return
+		return errors.New("已经存在")
 	}
 
 	//tmp1,_ := new(big.Int).SetString(data.Amount,10)
@@ -215,7 +244,7 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 	err := walletToken.GetByAddress(data.Address)
 	if err != nil {
 		log.Error("WriteBtcInRecord address not exists",err.Error())
-		return
+		return err
 	}
 
 	//根据tokenid获取MARK
@@ -240,8 +269,10 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) {
 	affected, err := utils.Engine_wallet.InsertOne(inOutToken)
 	if err != nil {
 		log.Error("WriteBtcInRecord error",err.Error())
+		return err
 	}
 	log.Info("交易已添加",affected)
+	return nil
 }
 
 //写入链交易记录

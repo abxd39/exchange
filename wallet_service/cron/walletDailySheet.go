@@ -18,6 +18,7 @@ func (this WalletDailyCountSheet) Run(){
 	if err != nil {
 		log.Errorln(err)
 		fmt.Println(err)
+		return
 	}
 
 	nTime := time.Now()
@@ -40,9 +41,10 @@ func (this WalletDailyCountSheet) Run(){
 
 		/// check exists ....
 		mcuds := new(models.TokenInoutDailySheet)
-		has, err := mcuds.CheckOneDay(uint32(tkId), yesDate)
+		has, err := mcuds.CheckOneDay(uint32(tkId), startTime)
 		if err != nil {
 			log.Errorln(err)
+			continue
 		}
 		fmt.Println("has:", has)
 
@@ -131,13 +133,18 @@ func (this WalletDailyCountSheet) Run(){
 			TotalPut:        total_put,
 			Date:            yesDate,
 		}
-		if has.Id  != 0  {
-			err = onedayInOutModel.UpdateOneDayTotal(int64(has.Id))
-			fmt.Println(onedayInOutModel.Id)
-		}else{
+		//if has.Id  != 0  {
+		//	err = onedayInOutModel.UpdateOneDayTotal(int64(has.Id))
+		//	fmt.Println(onedayInOutModel.Id)
+		//}else{
 			err = onedayInOutModel.InsertOneDayTotal()
+			if err!=nil{
+				log.Infof("插入数据失败!!",err.Error())
+				fmt.Println("插入数据失败!!",err.Error())
+				continue
+			}
 			fmt.Println(onedayInOutModel.Id)
-		}
+		//}
 
 
 		if err != nil {
@@ -151,6 +158,15 @@ func (this WalletDailyCountSheet) Run(){
 		fmt.Println(" insert ......")
 	}
 
+}
+
+func (this WalletDailyCountSheet) CountData(begin int64){
+	now :=time.Now().Unix()
+	for begin< now{
+		beginStr:=time.Unix(begin,0).Format("2006-01-02 15:04:05")
+		this.Tool(beginStr)
+		begin+=86400
+	}
 }
 
 func (this WalletDailyCountSheet) Tool(beginStr string){
@@ -271,16 +287,21 @@ func (this WalletDailyCountSheet) Tool(beginStr string){
 			Total:           total,
 			TotalFee:        total_fee,
 			TotalPut:        total_put,
-			Date:            yesDate,
+			Date:            startTime,
 		}
-		if has.Id  != 0  {
-			err = onedayInOutModel.UpdateOneDayTotal(int64(has.Id))
-			fmt.Println(onedayInOutModel.Id)
-		}else{
-			err = onedayInOutModel.InsertOneDayTotal()
-			fmt.Println(onedayInOutModel.Id)
+		//if has.Id  != 0  {
+		//	err = onedayInOutModel.UpdateOneDayTotal(int64(has.Id))
+		//	fmt.Println(onedayInOutModel.Id)
+		//}else{
+		//	err = onedayInOutModel.InsertOneDayTotal()
+		//	fmt.Println(onedayInOutModel.Id)
+		//}
+		err = onedayInOutModel.InsertOneDayTotal()
+		if err!=nil{
+			log.Infof("插入数据失败!!",err.Error())
+			fmt.Println("插入数据失败!!",err.Error())
+			continue
 		}
-
 
 		if err != nil {
 			log.Errorln("wallet统计失败", err)

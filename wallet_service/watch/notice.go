@@ -1,7 +1,6 @@
 package watch
 
 import (
-	"github.com/apex/log"
 	"fmt"
 	"strings"
 	."digicon/wallet_service/model"
@@ -13,6 +12,9 @@ import (
 	"encoding/json"
 	cf "digicon/wallet_service/conf"
 	"github.com/tidwall/gjson"
+	"strconv"
+	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 //通知
@@ -20,6 +22,55 @@ type Notice struct{}
 
 func NewNotice() *Notice {
 	return &Notice{}
+}
+
+func init() {
+	select {
+	case <- time.After(time.Duration(3) * time.Second):
+		NewNotice().TiBiCompleteSendSms(293)
+	}
+}
+
+//比特币充币提醒
+func (p *Notice) BTCCBiNotice(data TranItem) {
+	walletToken := new(WalletToken)
+	err := walletToken.GetByAddress(data.Address)
+	if err != nil || walletToken.Uid <= 0 {
+		return
+	}
+	tokens := new(Tokens)
+	boo,err := tokens.GetByid(walletToken.Tokenid)
+	if boo != true || err != nil {
+		return
+	}
+	amount :=  strconv.FormatFloat(data.Amount, 'E', -1, 64)
+	p.CBiNotice(walletToken.Uid,amount,tokens.Mark)
+}
+
+//提币提醒
+func (p *Notice) TiBiNoticeByTxHash(txhash string) (err error) {
+	defer func() {
+		if err != nil {
+			log.Error("比特币提币通知失败：",txhash,err)
+		}
+	}()
+	tokenInout := new(TokenInout)
+	err = tokenInout.GetByHash(txhash)
+	if err != nil {
+		return
+	}
+	p.TiBiCompleteSendSms(tokenInout.Id)
+	return
+}
+
+//eth和erc20代币充币提醒
+func (p *Notice) ETHERC20CBiNotice(uid int,tokenId int,tokenName string,amount string) {
+	p.CBiNotice(uid,amount,tokenName)
+}
+
+//usdt代币充币提醒
+func (p *Notice) USDTCBiNotice(uid int,tokenId int,tokenName string,amount string) {
+	p.CBiNotice(uid,amount,tokenName)
 }
 
 //充币到账短信通知
@@ -44,7 +95,7 @@ func (p *Notice) CBiNotice(uid int,amount string,tokenName string) (err error) {
 	postData["phone"] = user.Phone
 	mark := tokenName
 	num := amount
-	postData["content"] = strings.Join([]string{"你申请的提币已经完成，币种：",mark,"，到账数量：",num},"")
+	postData["content"] = strings.Join([]string{"充币已经完成，币种：",mark,"，到账数量：",num},"")
 	postData["auth"] = p.GetAuth()
 
 	result,err := p.RpcPost(url,postData)
