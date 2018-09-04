@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func init() {
@@ -25,14 +26,15 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
-	snowflake.Init()
-
-	fmt.Println("main run ...")
 	log.Infof("begin run server")
 
+	flag.Parse()
+
+	// 初始化snowflake
+	snowflake.Init()
+
+	// 初始化dao
 	dao.InitDao()
-	fmt.Println("init dao ....")
 
 	//model.Test2(1,1000)
 	//model.Test3(1533139200,1533225600)
@@ -40,8 +42,6 @@ func main() {
 	//a:=[5]int{100001, 100002, 100003}
 	//model.GetAllBalanceCny(a)
 	go rpc.RPCServerInit()
-
-	fmt.Println("cliet init ...")
 
 	model.GetQueneMgr().Init()
 	//model.Test9(1535299200,1535385600)
@@ -52,8 +52,10 @@ func main() {
 	//model.Test()
 	//go exchange.InitExchange()
 
+	// 定时任务
 	cron.InitCron()
 
+	// 监听退出
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
@@ -63,4 +65,12 @@ func main() {
 
 	sig := <-quitChan
 	log.Infof("server close by sig %s", sig.String())
+
+	// 关闭定时任务调度，正在运行的不影响
+	if cron.CronInstance != nil {
+		cron.CronInstance.Stop()
+	}
+
+	// 不立刻杀死进程
+	time.Sleep(3 * 60 * time.Second)
 }
