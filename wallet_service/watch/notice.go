@@ -14,7 +14,6 @@ import (
 	"github.com/tidwall/gjson"
 	"strconv"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 //通知
@@ -22,13 +21,6 @@ type Notice struct{}
 
 func NewNotice() *Notice {
 	return &Notice{}
-}
-
-func init() {
-	select {
-	case <- time.After(time.Duration(3) * time.Second):
-		NewNotice().TiBiCompleteSendSms(293)
-	}
 }
 
 //比特币充币提醒

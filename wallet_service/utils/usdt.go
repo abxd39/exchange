@@ -48,6 +48,9 @@ func UsdtSendToAddressFunc(url string, from_address string,to_address string,pro
 	params = append(params, mount)
 	data["params"] = params
 
+	body,_ := json.Marshal(data)
+	fmt.Println("USDT交易数据：",string(body))
+
 	rsp, err := UsdtRpcPost(url, data)
 	if err != nil {
 		fmt.Println(err.Error())
