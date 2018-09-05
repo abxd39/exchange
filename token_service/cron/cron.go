@@ -9,6 +9,7 @@ import (
 	"github.com/robfig/cron"
 	"time"
 
+	"digicon/common/app"
 	"digicon/common/xtime"
 	proto "digicon/proto/rpc"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/log"
@@ -18,10 +19,10 @@ var CronInstance *cron.Cron
 
 func InitCron() {
 	//划入
-	go HandlerTransferFromCurrency()
+	app.AsyncTask(HandlerTransferFromCurrency, true)
 
 	//划出
-	go HandlerTransferToCurrencyDone()
+	app.AsyncTask(HandlerTransferToCurrencyDone, true)
 
 	//cron
 	if cf.Cfg.MustBool("cron", "run", false) {
