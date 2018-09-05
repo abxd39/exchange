@@ -145,7 +145,7 @@ func ReleaseRegisterReward() {
 
 			// 2. 写表
 			// 2.1.user_token表
-			result, err := tokenSession.Exec(fmt.Sprintf("UPDATE %s SET balance=balance+%d, frozen=frozen-%d WHERE uid=%d AND token_id=%d AND frozen>=%d LIMIT 1",
+			result, err := tokenSession.Exec(fmt.Sprintf("UPDATE %s SET balance=balance+%d, frozen=frozen-%d WHERE uid=%d AND token_id=%d AND frozen>=%d",
 				userTokenTable, releaseNum, releaseNum, v.Uid, rewardTokenId, releaseNum))
 			if err != nil {
 				log.Errorf("【释放注册奖励】更新user_token表出错，uid: %d, err: %s", v.Uid, err.Error())
@@ -156,6 +156,8 @@ func ReleaseRegisterReward() {
 				tokenSession.Rollback()
 				continue
 			}
+
+			// 判断影响行数
 			if affected, err := result.RowsAffected(); err != nil { // 获取影响行数错误
 				log.Errorf("【释放注册奖励】更新user_token表影响行数出错，uid: %d, err: %s", v.Uid, err.Error())
 
@@ -164,7 +166,7 @@ func ReleaseRegisterReward() {
 
 				tokenSession.Rollback()
 				continue
-			} else if affected != 1 { // 影响行数必须为1
+			} else if affected != 1 { // 影响行数必须为1，为0或大于1均出错
 				log.Errorf("【释放注册奖励】更新user_token表影响行数出错，uid: %d，affected: %d", v.Uid, affected)
 
 				releaseFail++
