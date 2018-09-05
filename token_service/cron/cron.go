@@ -94,7 +94,7 @@ func ReleaseRegisterReward() {
 			}
 			if !has { // 未通过二级认证
 				noAuthUser++
-				noAuthUidList = append(noAuthUidList, v.Uid)
+				//noAuthUidList = append(noAuthUidList, v.Uid)
 
 				continue
 			}
