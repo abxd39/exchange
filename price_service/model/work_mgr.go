@@ -174,6 +174,17 @@ func (s *WorkQueneMgr) GetCnyPrice(token_id int32) int64 {
 	return 0
 }
 
+
+func (s *WorkQueneMgr) GetCnyPriceString(token_id int32) string {
+	s.price_mutex.RLock()
+	defer s.price_mutex.RUnlock()
+	g, ok := s.PriceMap[token_id]
+	if ok {
+		return  convert.Int64ToString( g.CnyPrice)
+	}
+	return 0
+}
+
 func (s *WorkQueneMgr) GetQuene() map[string]*PriceWorkQuene {
 	return s.dataMgr
 }

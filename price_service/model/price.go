@@ -21,6 +21,7 @@ type Price struct {
 	Count       int64  `xorm:"BIGINT(20)"`
 	UsdVol      int64  `xorm:"BIGINT(20)"`
 	CnyPrice    int64  `xorm:"BIGINT(20)"`
+	//CnyPrice    string  `xorm:"VARCHAR(32)"`
 }
 
 func (s *Price) FillData() {
