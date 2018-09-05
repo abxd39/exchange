@@ -49,7 +49,7 @@ func (p *Common) AddBTCTokenNum(data TranItem) error {
 		Type:proto.TOKEN_TYPE_OPERATOR_HISTORY_HASH,
 		Opt:proto.TOKEN_OPT_TYPE_ADD,
 	})
-	log.Info("btc AddBTCTokenNum result",errr,string(rsp.Message))
+	log.Info("btc AddBTCTokenNum result",errr,rsp.Message)
 	if errr != nil {
 		log.Info("AddBTCTokenNum error",errr)
 		return errr
