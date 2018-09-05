@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"digicon/wallet_service/model"
 	"time"
+	"admin/utils/convert"
 )
 
 type WalletDailyCountSheet struct {
@@ -163,7 +164,7 @@ func (this WalletDailyCountSheet) Run(){
 func (this WalletDailyCountSheet) CountData(begin int64){
 	fmt.Println("工具走起")
 	now :=time.Now().Unix()
-	for begin< now{
+	for begin< 1535385600{
 		beginStr:=time.Unix(begin,0).Format("2006-01-02 15:04:05")
 		this.Tool(beginStr)
 		fmt.Println(beginStr)
@@ -248,16 +249,25 @@ func (this WalletDailyCountSheet) Tool(beginStr string){
 
 			if tkinout.Opt == 1 {
 				// 充币 (充币没有手续费)
-				total_day_put += tkinout.Amount
-				total_day_put_cny += tkinout.AmountCny
+				//total_day_put += tkinout.Amount
+				total_day_put,err=convert.Int64AddInt64(total_day_put,tkinout.Amount)
+				fmt.Println("total_day_put",total_day_put)
+				if err!=nil{
+					fmt.Println("error=",err.Error())
+				}
+
+				total_day_put_cny ,err= convert.Int64AddInt64(total_day_put_cny,tkinout.AmountCny)
+				if err!=nil{
+					fmt.Println(err.Error())
+				}
 
 			}else if tkinout.Opt == 2{
 				//  提币
-				total_day_num += tkinout.Amount
-				total_day_cny += tkinout.AmountCny
+				total_day_num ,_= convert.Int64AddInt64(total_day_num, tkinout.Amount)
+				total_day_cny ,_ = convert.Int64AddInt64 (total_day_cny,tkinout.AmountCny)
 
-				total_day_num_fee += tkinout.Fee
-				total_day_fee_cny += tkinout.FeeCny
+				total_day_num_fee ,_= convert.Int64AddInt64(total_day_num_fee,tkinout.Fee)
+				total_day_fee_cny ,_= convert.Int64AddInt64(total_day_fee_cny,tkinout.FeeCny)
 			}
 		}
 
@@ -298,6 +308,7 @@ func (this WalletDailyCountSheet) Tool(beginStr string){
 		//	err = onedayInOutModel.InsertOneDayTotal()
 		//	fmt.Println(onedayInOutModel.Id)
 		//}
+		fmt.Println("赋值后的结果为==",onedayInOutModel)
 		err = onedayInOutModel.InsertOneDayTotal()
 		if err!=nil{
 			log.Infof("插入数据失败!!",err.Error())
