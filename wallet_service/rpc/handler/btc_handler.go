@@ -66,7 +66,7 @@ func (s *WalletHandler) BtcTibi(ctx context.Context, req *proto.BtcTibiRequest, 
 	txHash, err := BtcSendToAddress(toAddress, mount, tokenId,int(req.Uid), int(req.Applyid))
 	if err != nil {
 		log.Error("BtcTibi error:",err)
-		rsp.Message = "提币失败"
+		rsp.Message = err.Error()
 		rsp.Data = ""
 		rsp.Code = errdefine.ERRCODE_UNKNOWN
 		return nil
@@ -95,7 +95,7 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int, ap
 	token.GetByid(int(tokenId))
 	url := token.Node
 
-	//fmt.Println("----------------------------")
+	fmt.Println("----------------------------",url)
 	err := BtcWalletPhrase(url, password, 1*60*60)
 
 	if err != nil {
@@ -129,9 +129,13 @@ func BtcSendToAddress(toAddress string, mount string, tokenId int32, uid int, ap
 	//	wToken.Chainid, int(tokenId), 0, int(uid),
 	//)
 
-	if err != nil || row <= 0 {
+	if err != nil {
 		log.Errorln(err.Error())
 		fmt.Println(err.Error())
+	}
+
+	if  row <= 0 {
+		log.Error("BTC更新提币状态失败：",applyid,txHash)
 	}
 
 	return txHash, err

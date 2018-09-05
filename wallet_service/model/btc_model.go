@@ -110,6 +110,7 @@ func NewBTC(userId int, tokenId int, password string, chainId int) (addr string,
 //	}
 //	//amount, err := convert.StringToInt64By8Bit(mount)
 //	//if err != nil {
+//	//if err != nil {
 //	//	fmt.Println(err)
 //	//}
 //	tio := new(TokenInout) //

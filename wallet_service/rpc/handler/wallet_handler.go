@@ -95,6 +95,8 @@ func (s *WalletHandler) CreateWallet(ctx context.Context, req *proto.CreateWalle
 		}
 	}
 
+	fmt.Println("token数据：",tokenModel.Signature)
+
 	switch tokenModel.Signature {
 	case "eip155", "eth":
 		addr, err = Neweth(int(req.Userid), int(req.Tokenid), "123456", tokenModel.Chainid)
@@ -749,7 +751,7 @@ func (this *WalletHandler) GetOutTokenFee(ctx context.Context, req *proto.GetOut
 	for _,v := range data {
 		rsp.Data = append(rsp.Data,&proto.GetOutTokenFeeResponseList{
 			Tokenid:int32(v.Id),
-			Fee:strconv.FormatFloat(v.Out_token_fee,'f',-1,64),
+			Fee:strconv.FormatFloat(v.OutTokenFee,'f',-1,64),
 		})
 	}
 

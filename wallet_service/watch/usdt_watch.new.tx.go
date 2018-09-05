@@ -416,7 +416,12 @@ func (p *USDTCBiWatch) parseTx(txhash string) {
 }
 
 //新增订单记录
-func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (bool,error) {
+func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (boo bool,err error) {
+	defer func() {
+		if err != nil {
+			log.Error("USDT newOrder error",boo,err)
+		}
+	}()
 	//交易是否已经收录
 	exist, err := p.TxModel.TxhashExist(data.Txid,0)
 	if err != nil {
@@ -439,7 +444,7 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (bool,error) {
 
 	//查询tokenid
 	tokens := new(Tokens)
-	boo,err := tokens.GetByName(USDT_NAME)
+	boo,err = tokens.GetByName(USDT_NAME)
 	if err != nil {
 		return false,err
 	}
