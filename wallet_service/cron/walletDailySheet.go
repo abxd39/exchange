@@ -119,7 +119,7 @@ func (this WalletDailyCountSheet) Run(){
 		total_put = intotal.TotalPut
 
 
-		onedayInOutModel := models.TokenInoutDailySheet{
+		onedayInOutModel := &models.TokenInoutDailySheet{
 			TokenId:     tkId,
 			TokenName:   tokenName,
 			TotalDayNum: total_day_num,
