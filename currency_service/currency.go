@@ -1,6 +1,7 @@
 package main
 
 import (
+	"digicon/common/app"
 	"digicon/common/snowflake"
 	"digicon/common/xlog"
 	cf "digicon/currency_service/conf"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func init() {
@@ -37,15 +39,28 @@ func main() {
 
 	client.InitInnerService()
 
+	// 定时任务
 	cron.InitCron()
 
+	// 监听退出
 	quitChan := make(chan os.Signal)
 	signal.Notify(quitChan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
-		syscall.SIGHUP,
+		//syscall.SIGHUP,
 	)
 
 	sig := <-quitChan
 	log.Infof("server close by sig %s", sig.String())
+
+	// 标记程序退出
+	app.IsAppExit = true
+
+	// 关闭定时任务调度，正在运行的不影响
+	if cron.CronInstance != nil {
+		cron.CronInstance.Stop()
+	}
+
+	// 不立刻杀死进程
+	time.Sleep(3 * 60 * time.Second)
 }
