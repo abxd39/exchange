@@ -164,6 +164,7 @@ func (this WalletDailyCountSheet) Run(){
 func (this WalletDailyCountSheet) CountData(begin int64){
 	fmt.Println("工具走起")
 	now :=time.Now().Unix()
+	_=now
 	for begin< 1535385600{
 		beginStr:=time.Unix(begin,0).Format("2006-01-02 15:04:05")
 		this.Tool(beginStr)
