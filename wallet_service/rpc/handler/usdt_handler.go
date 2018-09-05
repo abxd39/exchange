@@ -40,6 +40,14 @@ func (s *WalletHandler) UsdtTiBi(ctx context.Context, req *proto.UsdtTiBiRequest
 	protertyid := req.Protertyid
 	mount := req.Amount
 	tokenId := req.Tokenid
+
+	if req.Tokenid != 1 {
+		rsp.Message = "Tokenid错误"
+		rsp.Data = ""
+		rsp.Code = ERRCODE_UNKNOWN
+		return errors.New(rsp.Message)
+	}
+
 	txHash, err := s.UsdtSendToAddress(fromAddress,toAddress, int(protertyid),mount, tokenId, int(req.Uid), int(req.Applyid))
 	if err != nil {
 		rsp.Message = err.Error()
@@ -70,6 +78,8 @@ func (s *WalletHandler) UsdtSendToAddress(fromAddress string,toAddress string,pr
 	token.GetByid(int(tokenId))
 	url := token.Node
 
+	fmt.Println("-----------------------USDT:",url)
+
 	err := UsdtWalletPhrase(url, password, 1*60*60)
 
 	if err != nil {
@@ -91,6 +101,7 @@ func (s *WalletHandler) UsdtSendToAddress(fromAddress string,toAddress string,pr
 	}
 	//fmt.Println("btc send before ...")
 	txHash, err := UsdtSendToAddressFunc(url, fromAddress,toAddress,propertyid,mount)
+	fmt.Println("USDT交易结果：",txHash,err)
 	if err != nil {
 		fmt.Println("USDT发送交易失败",err.Error())
 		log.Errorf("USDT发送交易失败",err.Error())

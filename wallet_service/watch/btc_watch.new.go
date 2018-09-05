@@ -133,7 +133,7 @@ func (p *BtcWatch) BlockUpdateDeal() {
 //交易处理
 func (p *BtcWatch) TranDeal(data TranItem) (boo bool,err error) {
 	defer func() {
-		if boo != true || err != nil {
+		if err != nil {
 			log.Error("比特币提币处理失败：",boo,err)
 		}
 	}()

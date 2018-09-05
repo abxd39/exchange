@@ -22,7 +22,7 @@ func NewUSDT(userId int, tokenId int, password string, chainId int) (addr string
 	}
 
 	tkModel := new(Tokens)
-	tkModel.GetByName("omni")
+	tkModel.GetByName("USDT")
 	url := tkModel.Node
 
 	err = UsdtWalletPhrase(url, password, 1*60*60)

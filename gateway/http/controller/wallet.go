@@ -121,12 +121,12 @@ func (this *WalletGroup) BtcTiBi(ctx *gin.Context) {
 	})
 	if err != nil {
 		log.Errorln(err.Error())
-		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Message)
+		ret.SetErrCode(ERRCODE_UNKNOWN, err.Error())
 		return
 	}
 
 	if rsp.Code != 0 {
-		ret.SetErrCode(ERRCODE_UNKNOWN, GetErrorMessage(ERRCODE_UNKNOWN))
+		ret.SetErrCode(ERRCODE_UNKNOWN, rsp.Message)
 		return
 	}
 

@@ -20,8 +20,8 @@ type Tokens struct {
 	Node      string `xorm:"default '' comment('节点地址') VARCHAR(100)"`
 	Status    int    `xorm:"default '' comment('状态') VARCHAR(64)"`
 	Decimal   int    `xorm:"not null default 1 comment('精度 1个eos最小精度的10的18次方') INT(11)"`
-	Out_token_fee   float64    `xorm:"not null default 1 comment('提币手续费') BIGINT(11)"`
-	Gather_limit   int64    `xorm:"not null default 1 comment('归总数据最低限制') BIGINT(11)"`
+	OutTokenFee   float64    `xorm:"not null default 1 comment('提币手续费') BIGINT(11)"`
+	GatherLimit   int64    `xorm:"not null default 1 comment('归总数据最低限制') BIGINT(11)"`
 }
 
 func (this *Tokens) GetByid(id int) (bool, error) {
