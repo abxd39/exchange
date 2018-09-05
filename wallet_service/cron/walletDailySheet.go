@@ -140,7 +140,7 @@ func (this WalletDailyCountSheet) Run(){
 			TotalPut:       total_put,
 			Date:           yesDate,
 		}
-	
+
 		fmt.Println("赋值后的结果为==", onedayInOutModel)
 		err = onedayInOutModel.InsertOneDayTotal()
 		if err != nil {
