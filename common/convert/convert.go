@@ -21,6 +21,12 @@ func ByteToInt64(b []byte) (x int64) {
 	binary.Write(b_buf, binary.BigEndian, x)
 	return
 }
+//两个int64 相加
+func Int64AddInt64(a , b int64) (int64, error) {
+	aa:= decimal.New(a,0)
+	bb:=decimal.New(b,0)
+	return aa.Add(bb).IntPart(), nil
+}
 
 func Int64ToInt64By8Bit(b int64) int64 {
 	a := decimal.New(b, 0)
