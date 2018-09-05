@@ -1,6 +1,7 @@
 package main
 
 import (
+	"digicon/common/app"
 	"digicon/common/snowflake"
 	"digicon/common/xlog"
 	cf "digicon/token_service/conf"
@@ -65,6 +66,9 @@ func main() {
 
 	sig := <-quitChan
 	log.Infof("server close by sig %s", sig.String())
+
+	// 标记程序已退出
+	app.IsAppExit = true
 
 	// 关闭定时任务调度，正在运行的不影响
 	if cron.CronInstance != nil {

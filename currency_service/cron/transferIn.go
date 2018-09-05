@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"digicon/common/app"
 	"digicon/common/constant"
 	"digicon/currency_service/dao"
 	"digicon/currency_service/model"
@@ -14,6 +15,12 @@ func HandlerTransferFromToken() {
 	userCurrencyMD := new(model.UserCurrency)
 
 	for {
+		//监听app是否退出
+		if app.IsAppExit {
+			return
+		}
+
+		//处理消息
 		msgBody, err := rdsClient.LPop(constant.RDS_TOKEN_TO_CURRENCY_TODO).Bytes()
 		if err != nil {
 			continue
