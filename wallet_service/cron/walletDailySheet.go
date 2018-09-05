@@ -241,9 +241,9 @@ func (this WalletDailyCountSheet) Tool(beginStr string){
 		tokenName = tk.Mark
 
 		for _, tkinout := range tkinouts{
-			fmt.Println(tkinout)
-			fmt.Println(tkinout.Amount)
-			fmt.Println(tkinout.Fee)
+			fmt.Println("tkinout=",tkinout)
+			fmt.Println("tkinout.Amount=",tkinout.Amount)
+			fmt.Println("tkinout.Fee=",tkinout.Fee)
 			//token_name := tkinout.TokenName
 
 			if tkinout.Opt == 1 {
@@ -307,10 +307,10 @@ func (this WalletDailyCountSheet) Tool(beginStr string){
 
 		if err != nil {
 			log.Errorln("wallet统计失败", err)
-			fmt.Println(err)
+			fmt.Println("wallet统计失败",err)
 		}else{
 			log.Println("统计成功!", tkId)
-			log.Println("统计成功!", tkId)
+			fmt.Println("统计成功!", tkId)
 		}
 
 		fmt.Println(" insert ......")
