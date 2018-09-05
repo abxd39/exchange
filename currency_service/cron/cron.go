@@ -19,8 +19,8 @@ func InitCron() {
 	//app.AsyncTask(func() { new(DailyCountSheet).RunByDays(1535644800) }, false)
 
 
-	//go new(DailyCountSheet).Run()
-	go new(DailyCountSheet).RunByDays(1535644800)
+	go new(DailyCountSheet).Run()
+	//go new(DailyCountSheet).RunByDays(1535644800)
 	//cron
 
 	// 定时任务
