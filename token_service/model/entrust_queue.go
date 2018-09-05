@@ -657,6 +657,10 @@ func (s *EntrustQuene) match2(entrust_id string) (err error) {
 		}
 	}
 
+	err = s.delSource(proto.ENTRUST_OPT(others[0].Opt), proto.ENTRUST_TYPE(others[0].Type), others[0].EntrustId, others[0])
+	if err != nil {
+		return
+	}
 	var buy_num, sell_num, g_num, price int64 //BTC数量，成交价格
 
 	if buyer.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
@@ -819,10 +823,7 @@ func (s *EntrustQuene) match2(entrust_id string) (err error) {
 		return
 	}
 
-	err = s.delSource(proto.ENTRUST_OPT(others[0].Opt), proto.ENTRUST_TYPE(others[0].Type), others[0].EntrustId, others[0])
-	if err != nil {
-		return
-	}
+
 
 	err = s.MakeDeal(buyer, seller, price, buy_num, sell_num)
 
@@ -881,12 +882,13 @@ func (s *EntrustQuene) SurplusBack(e *EntrustDetail) (err error) {
 	if err != nil {
 		return
 	}
+/*
 	err = s.delSource(proto.ENTRUST_OPT(e.Opt), proto.ENTRUST_TYPE(e.Type), e.EntrustId, e)
 	if err != nil {
 		log.Error(err.Error())
 		return
 	}
-
+*/
 	e.SurplusNum -= e.SurplusNum
 	return
 }
