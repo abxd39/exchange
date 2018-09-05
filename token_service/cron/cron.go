@@ -58,9 +58,6 @@ func ReleaseRegisterReward() {
 	releaseFailUidList := make([]int32, 0)
 
 	// 开始释放
-	tokenSession := dao.DB.GetMysqlConn().NewSession()
-	defer tokenSession.Close()
-
 	for {
 		offset := (pageIndex - 1) * pageSize
 
@@ -97,7 +94,7 @@ func ReleaseRegisterReward() {
 			}
 			if !has { // 未通过二级认证
 				noAuthUser++
-				noAuthUidList = append(noAuthUidList, v.Uid)
+				//noAuthUidList = append(noAuthUidList, v.Uid)
 
 				continue
 			}
@@ -110,6 +107,7 @@ func ReleaseRegisterReward() {
 
 			// 开始释放
 			//事务
+			tokenSession := dao.DB.GetMysqlConn().NewSession()
 			err = tokenSession.Begin()
 			if err != nil {
 				log.Errorf("【释放注册奖励】开启事务出错，uid: %d, err: ", v.Uid, err.Error())
@@ -117,6 +115,7 @@ func ReleaseRegisterReward() {
 				releaseFail++
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
+				tokenSession.Close()
 				continue
 			}
 
@@ -132,6 +131,8 @@ func ReleaseRegisterReward() {
 				releaseFail++
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
+				tokenSession.Rollback()
+				tokenSession.Close()
 				continue
 			}
 			if userToken.Balance >= 1000*100000000 { // 余额大于等于1000，加速释放，多释放余额的千分之1
@@ -154,6 +155,7 @@ func ReleaseRegisterReward() {
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
 				tokenSession.Rollback()
+				tokenSession.Close()
 				continue
 			}
 
@@ -165,6 +167,7 @@ func ReleaseRegisterReward() {
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
 				tokenSession.Rollback()
+				tokenSession.Close()
 				continue
 			} else if affected != 1 { // 影响行数必须为1，为0或大于1均出错
 				log.Errorf("【释放注册奖励】更新user_token表影响行数出错，uid: %d，affected: %d", v.Uid, affected)
@@ -173,6 +176,7 @@ func ReleaseRegisterReward() {
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
 				tokenSession.Rollback()
+				tokenSession.Close()
 				continue
 			}
 
@@ -195,6 +199,7 @@ func ReleaseRegisterReward() {
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
 				tokenSession.Rollback()
+				tokenSession.Close()
 				continue
 			}
 
@@ -211,6 +216,7 @@ func ReleaseRegisterReward() {
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
 				tokenSession.Rollback()
+				tokenSession.Close()
 				continue
 			}
 
@@ -223,9 +229,11 @@ func ReleaseRegisterReward() {
 				releaseFailUidList = append(releaseFailUidList, v.Uid)
 
 				tokenSession.Rollback()
+				tokenSession.Close()
 				continue
 			}
 
+			tokenSession.Close()
 			releaseSuccess++
 		}
 
