@@ -186,8 +186,8 @@ func (this WalletDailyCountSheet) Tool(beginStr string){
 
 	//yesDate := yesDayTime.Format("2006-01-02")
 	//
-	startTime:= fmt.Sprintf("%s 00:00:00", beginStr)
-	endTime := fmt.Sprintf("%s 23:59:59", beginStr)
+	startTime:= fmt.Sprintf("%s 00:00:00", beginStr[:11])
+	endTime := fmt.Sprintf("%s 23:59:59", beginStr[:11])
 
 
 	fmt.Println("startTime:", startTime, " endTime:",endTime, "nowtime:", nTime.Unix())
