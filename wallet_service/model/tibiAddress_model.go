@@ -75,3 +75,8 @@ func (this *TibiAddress) DeleteByid(id int, uid int) (int, error) {
 func (this *TibiAddress) GetByAddress(address string) (bool,error) {
 	return utils.Engine_wallet.Where("address = ?",address).Get(this)
 }
+
+//判断提币地址是否存在
+func (this *TibiAddress) TiBiAddressExists(address string) (bool,error) {
+	return utils.Engine_wallet.Where("address = ?",address).Exist(this)
+}

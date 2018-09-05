@@ -211,3 +211,8 @@ func (this *WalletToken) GetWalletToken(start int,limit int) (data []WalletToken
 	err = Engine_wallet.Limit(limit,start).Find(&data)
 	return
 }
+
+//判断地址是否是BTC地址
+func (this *WalletToken) AddressExist(token_id int,address string) (bool,error) {
+	return Engine_wallet.Where("tokenid = ? and address = ?",token_id,address).Exist(this)
+}
