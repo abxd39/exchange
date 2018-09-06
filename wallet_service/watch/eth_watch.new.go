@@ -246,7 +246,7 @@ func (p *EthTiBiWatch) WriteEthInRecord(data TranInfo) {
 //写一条数据到链记录表中
 func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) error {
 	//交易是否已经收录
-	exist, err := new(models.TokenChainInout).TxhashExist(data.Hash,0)
+	exist, err := new(models.TokenChainInout).TxIDExist2(2,data.Hash)
 	if err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func (p *EthTiBiWatch) WriteERC20ChainTx(data TranInfo) error {
 //写一条数据到链记录表中
 func (p *EthTiBiWatch) WriteETHChainTx(data TranInfo) error {
 	//交易是否已经收录
-	exist, err := new(models.TokenChainInout).TxhashExist(data.Hash,0)
+	exist, err := new(models.TokenChainInout).TxIDExist2(2,data.Hash)
 
 	if err != nil {
 		log.Info("WriteETHChainTx error",exist, err)
@@ -778,7 +778,7 @@ func (p *EthCBiWatch) post(send map[string]interface{}) ([]byte, error) {
 func (p *EthCBiWatch) newOrder(uid int, from string, to string, chainid int, contract string, value string, txhash string,gas string,gasPrice string) (bool,error) {
 	log.Info("newOrder_params:",uid,",",from,",",to,",",chainid,",",contract,",",value,",",txhash)
 	//交易是否已经收录
-	exist, err := p.TxModel.TxhashExist(txhash, p.Chainid)
+	exist, err := p.TxModel.TxIDExist2(1,txhash)
 	fmt.Println("交易是否存在----------------------：",exist,err,txhash,p.Chainid)
 	if err != nil {
 		fmt.Println("txhash not exists",txhash,p.Chainid,exist,err)
