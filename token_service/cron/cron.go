@@ -22,17 +22,17 @@ import (
 var CronInstance *cron.Cron
 
 func InitCron() {
-	//划入
-	app.AsyncTask(HandlerTransferFromCurrency, true)
+	// 划入
+	app.NewGoroutine(HandlerTransferFromCurrency)
 
-	//划出
-	app.AsyncTask(HandlerTransferToCurrencyDone, true)
+	// 划出
+	app.NewGoroutine(HandlerTransferToCurrencyDone)
 
-	//cron
+	// 定时任务
 	if cf.Cfg.MustBool("cron", "run", false) {
 		CronInstance = cron.New()
-		CronInstance.AddFunc("0 30 * * * *", ResendTransferToCurrencyMsg) // 每半小时
-		CronInstance.AddFunc("0 0 0 * * *", ReleaseRegisterReward)        // 每天凌晨0点
+		CronInstance.AddFunc("0 */30 * * * *", ResendTransferToCurrencyMsg) // 每半小时
+		CronInstance.AddFunc("0 0 0 * * *", ReleaseRegisterReward)          // 每天凌晨0点
 		CronInstance.Start()
 	}
 }

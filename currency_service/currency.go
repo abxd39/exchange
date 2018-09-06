@@ -30,8 +30,11 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
 	log.Infof("begin run server")
+
+	flag.Parse()
+
+	// 初始化snowflake
 	snowflake.Init()
 
 	go rpc.RPCServerInit()
