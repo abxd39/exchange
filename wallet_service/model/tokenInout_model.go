@@ -261,6 +261,12 @@ func (this *TokenInout) TxhashExist(hash string, chainid int) (bool, error) {
 
 }
 
+func (this *TokenInout) TxhashExist2(opt int,hash string, chainid int) (bool, error) {
+	utils.Engine_wallet.ShowSQL(false)
+	return utils.Engine_wallet.Where("txhash=? and opt = ?", hash,opt).Get(this)
+
+}
+
 //根据交易hash，查询数据
 func (this *TokenInout) GetByHash(txhash string) error {
 	_, err := utils.Engine_wallet.Where("txhash =?", txhash).Get(this)
