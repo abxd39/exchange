@@ -46,6 +46,10 @@ func Int64ToStringBy8Bit(b int64) string {
 	return r.String()
 }
 
+func Int64ToString(b int64) string {
+	a := decimal.New(b, 0)
+	return a.String()
+}
 
 func StringToStringBy8Bit(b string) string {
 	a ,err:= decimal.NewFromString(b)

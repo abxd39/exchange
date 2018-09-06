@@ -18,7 +18,7 @@ const (
 	ERRCODE_PARAM       = 2
 	ERRCODE_TOKENVERIFY = 3
 	ERRCODE_GREE        = 4
-
+	ERRCODE_SIGN        = 5
 	ERRCODE_NORMAL_ERROR = 100
 
 	//200-
@@ -124,6 +124,7 @@ func init() {
 	message[ERRCODE_PARAM] = "参数错误"
 	message[ERRCODE_TOKENVERIFY] = "令牌失效"
 	message[ERRCODE_GREE] = "智能验证失败"
+	message[ERRCODE_SIGN] = "签名验证失败"
 
 	message[ERRCODE_ACCOUNT_EXIST] = "账户已经存在"
 	message[ERRCODE_ACCOUNT_NOTEXIST] = "账户不存在"

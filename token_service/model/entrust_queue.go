@@ -657,6 +657,10 @@ func (s *EntrustQuene) match2(entrust_id string) (err error) {
 		}
 	}
 
+	err = s.delSource(proto.ENTRUST_OPT(others[0].Opt), proto.ENTRUST_TYPE(others[0].Type), others[0].EntrustId, others[0])
+	if err != nil {
+		return
+	}
 	var buy_num, sell_num, g_num, price int64 //BTC数量，成交价格
 
 	if buyer.Type == int(proto.ENTRUST_TYPE_MARKET_PRICE) {
@@ -819,10 +823,7 @@ func (s *EntrustQuene) match2(entrust_id string) (err error) {
 		return
 	}
 
-	err = s.delSource(proto.ENTRUST_OPT(others[0].Opt), proto.ENTRUST_TYPE(others[0].Type), others[0].EntrustId, others[0])
-	if err != nil {
-		return
-	}
+
 
 	err = s.MakeDeal(buyer, seller, price, buy_num, sell_num)
 
@@ -881,12 +882,13 @@ func (s *EntrustQuene) SurplusBack(e *EntrustDetail) (err error) {
 	if err != nil {
 		return
 	}
+/*
 	err = s.delSource(proto.ENTRUST_OPT(e.Opt), proto.ENTRUST_TYPE(e.Type), e.EntrustId, e)
 	if err != nil {
 		log.Error(err.Error())
 		return
 	}
-
+*/
 	e.SurplusNum -= e.SurplusNum
 	return
 }
@@ -1515,32 +1517,36 @@ func (s *EntrustQuene) joinSellQuene(entrust_id string) (ret int, err error) {
 		return
 	}
 
-	log.Infof("begin record num %d", p.OnPrice)
 	key := fmt.Sprintf("%d", p.OnPrice)
 
+	log.Infof("add begin record on price  %d ,add hash_id %s,key %s,entrust_id %s,num %d", p.OnPrice,hash_id,key,entrust_id,p.SurplusNum)
 	var exist bool
 	exist, err = DB.GetRedisConn().HExists(hash_id, key).Result()
 	if err != nil {
+		log.Infof("add begin err  record on price  %d ,add hash_id %s,key %s,entrust_id %s,num %d,err %s", p.OnPrice,hash_id,key,entrust_id,p.SurplusNum,err.Error())
 		log.Errorln(err.Error())
 		return
 	}
 
 	if !exist {
+		log.Infof("not exist add begin record on price  %d ,hash_id %s,key %s,entrust_id %s,num %d", p.OnPrice,hash_id,key,entrust_id,p.SurplusNum)
 		err = DB.GetRedisConn().ZAdd(sort_id, redis.Z{
 			Member: p.OnPrice,
 			Score:  x,
 		}).Err()
 		if err != nil {
+			log.Infof("not exist err add begin record on price  %d ,hash_id %s,key %s,entrust_id %s,num %d", p.OnPrice,hash_id,key,entrust_id,p.SurplusNum)
 			log.Errorln(err.Error())
 			return
 		}
 	}
-	err = DB.GetRedisConn().HIncrBy(hash_id, key, p.SurplusNum).Err()
+	var val int64
+	val ,err = DB.GetRedisConn().HIncrBy(hash_id, key, p.SurplusNum).Result()
 	if err != nil {
-		log.Errorln(err.Error())
+		log.Errorf("add err hash_id %s begin record on price  %d ,key %s,entrust_id %s,num %d ,add val %d,err  %s", hash_id,p.OnPrice,key,entrust_id,p.SurplusNum,val,err.Error())
 		return
 	}
-
+	log.Infof("add hash_id %s begin record on price  %d ,key %s,entrust_id %s,num %d ,add val %d", hash_id,p.OnPrice,key,entrust_id,p.SurplusNum,val)
 	return
 }
 
@@ -1625,19 +1631,20 @@ func (s *EntrustQuene) delSource(opt proto.ENTRUST_OPT, ty proto.ENTRUST_TYPE, e
 		log.Errorln(err.Error())
 		return
 	}
-	log.Infof("quene %s,entrust_id %s,val %d,hash_id %s,num %d", quene_id, entrust_id, val, hash_id, p.SurplusNum)
+	log.Infof("del hash_id %s ,price %d,quene %s,entrust_id %s,val %d,,num %d", hash_id,p.OnPrice,quene_id, entrust_id, val, p.SurplusNum)
 	if val == 0 {
 		err = DB.GetRedisConn().HDel(hash_id, key).Err()
 		if err != nil {
-			log.Errorln(err.Error())
+			log.Errorf(		"del hash_id finish 1 %s ,quene %s,entrust_id %s,val %d,,num %d,err %s", hash_id,quene_id, entrust_id, val, p.SurplusNum,err.Error())
 			return
 		}
 
 		err = DB.GetRedisConn().ZRem(sort_id, key).Err()
 		if err != nil {
-			log.Errorln(err.Error())
+			log.Errorf(		"del hash_id finish 2 %s ,quene %s,entrust_id %s,val %d,,num %d,err %s", hash_id,quene_id, entrust_id, val, p.SurplusNum,err.Error())
 			return
 		}
+
 	}
 
 	return

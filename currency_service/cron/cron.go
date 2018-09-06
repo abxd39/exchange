@@ -18,7 +18,13 @@ func InitCron() {
 	// 手动执行日汇总
 	//app.AsyncTask(func() { new(DailyCountSheet).RunByDays(1535644800) }, false)
 
+
+	go new(DailyCountSheet).Run()
+	//go new(DailyCountSheet).RunByDays(1535644800)
+	//cron
+
 	// 定时任务
+
 	if cf.Cfg.MustBool("cron", "run", false) {
 		CronInstance = cron.New()
 		CronInstance.AddJob("0 0 1 * * *", DailyCountSheet{})          // 日汇总

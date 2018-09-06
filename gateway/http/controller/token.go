@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"digicon/common/check"
+	cf "digicon/gateway/conf"
 )
 
 type TokenGroup struct{}
@@ -57,12 +59,30 @@ func (s *TokenGroup) EntrustOrder(c *gin.Context) {
 		OnPrice string `form:"on_price"  `
 		Type    int32  `form:"type" binding:"required"`
 		Num     string `form:"num" binding:"required"`
+		Sign    string  `form:"sign" binding:"required"`
+		NonceStr     string `form:"nonce_str" binding:"required"`
 	}
 	var param EntrustOrderParam
 
 	if err := c.ShouldBind(&param); err != nil {
 		log.Errorf(err.Error())
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
+		return
+	}
+	keys:=make(map[string]interface{},0)
+	keys["uid"]=param.Uid
+	keys["token"]=param.Token
+	keys["symbol"]=param.Symbol
+	keys["opt"]=param.Opt
+	keys["on_price"]=param.OnPrice
+	keys["type"]=param.Type
+	keys["num"]=param.Num
+	keys["nonce_str"]=param.NonceStr
+
+	str:=check.MakeSignature(keys,cf.AppKey)
+
+	if str!=param.Sign {
+		ret.SetErrCode(ERRCODE_SIGN)
 		return
 	}
 	var o int64
@@ -473,6 +493,8 @@ func (s *TokenGroup) DelEntrust(c *gin.Context) {
 		Uid       uint64 `form:"uid" binding:"required"`
 		Token     string `form:"token" binding:"required"`
 		EntrustId string `form:"entrust_id" binding:"required"`
+		Sign    string  `form:"sign" binding:"required"`
+		NonceStr     string `form:"nonce_str" binding:"required"`
 	}{}
 
 	if err := c.ShouldBind(param); err != nil {
@@ -480,7 +502,18 @@ func (s *TokenGroup) DelEntrust(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, err.Error())
 		return
 	}
+	keys:=make(map[string]interface{},0)
+	keys["uid"]=param.Uid
+	keys["token"]=param.Token
+	keys["entrust_id"]=param.EntrustId
+	keys["nonce_str"]=param.NonceStr
 
+	str:=check.MakeSignature(keys,cf.AppKey)
+
+	if str!=param.Sign {
+		ret.SetErrCode(ERRCODE_SIGN)
+		return
+	}
 	rsp, err := rpc.InnerService.TokenService.CallDelEntrust(&proto.DelEntrustRequest{
 		Uid:       param.Uid,
 		EntrustId: param.EntrustId,

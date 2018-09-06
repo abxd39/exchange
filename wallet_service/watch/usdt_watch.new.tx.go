@@ -472,6 +472,7 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (boo bool,err error) {
 			"mark":tokens.Mark,
 			"opt":opt,
 		}).Info("insert usdt into tx order error:",err)
+		return false,err
 	}
 	_,err = p.TokenInoutModel.Insert(data.Txid, data.Sendingaddress, data.Referenceaddress, value, "", 0, walletToken.Uid, tokens.Id, tokens.Mark, tokens.Decimal,opt)
 	if err != nil {
@@ -488,6 +489,7 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (boo bool,err error) {
 			"deci":tokens.Decimal,
 			"opt":opt,
 		}).Info("insert usdt into inout order error:",err)
+		return false,err
 	}
 
 	//给用户添加token
