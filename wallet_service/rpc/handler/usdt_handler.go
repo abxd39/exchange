@@ -10,6 +10,7 @@ import (
 	. "digicon/wallet_service/utils"
 	"digicon/common/errors"
 	."digicon/proto/common"
+	"digicon/wallet_service/watch"
 )
 
 //usdt提币
@@ -24,15 +25,23 @@ func (s *WalletHandler) CreateUSDTWallet(ctx context.Context, req *proto.CreateW
 
 
 func (s *WalletHandler) UsdtTiBi(ctx context.Context, req *proto.UsdtTiBiRequest, rsp *proto.UsdtTiBiResponse) error {
-	
 	defer func() {
+		fmt.Println("USDT 提币结果：",rsp.Code,rsp.Message)
 		if rsp.Code != ERRCODE_SUCCESS {
 			log.WithFields(log.Fields{
 				"code":rsp.Code,
 				"msg":rsp.Message,
 			}).Error("UsdtTiBi error")
+			log.Error("USDT广播失败，改回状态:",rsp.Message)
+			//把状态改回去
+			//更新申请单记录
+			_,err := new(TokenInout).UpdateApplyTiBi2(int(req.Applyid),4,rsp.Message)  //正在提币中
+			if err != nil {
+				log.Error("USDT UpdateApplyTiBi error:",err)
+			}
+			//取消冻结
+			s.tiBiErrorUnfreeze(req.Applyid)
 		}
-		fmt.Println("提币结果：",rsp.Code,rsp.Message)
 	}()
 	
 	fromAddress := req.FromAddress
@@ -107,6 +116,9 @@ func (s *WalletHandler) UsdtSendToAddress(fromAddress string,toAddress string,pr
 		log.Errorf("USDT发送交易失败",err.Error())
 		return "", err
 	}
+
+	//添加txhash到监控队列
+	new(watch.USDTTiBiWatch).PushRedisList(txHash)
 
 	tio := new(TokenInout) //
 	//更新
