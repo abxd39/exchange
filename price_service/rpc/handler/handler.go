@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 	"strings"
 	"time"
+	"math"
 )
 
 type RPCServer struct {
@@ -343,6 +344,7 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 			CnyPrice: convert.Int64ToStringBy8Bit(cny_price),
 			CnyLow:   convert.Int64ToStringBy8Bit(l.CnyPrice),
 			CnyHigh:  convert.Int64ToStringBy8Bit(h.CnyPrice),
+			TokenTradeId:q.ToekenTradeId,
 		})
 		/*
 		cny_price, ok := model.GetQueneMgr().PriceMap[q.ToekenTradeId]
@@ -449,7 +451,44 @@ func getOtherSymbolRage(symbol string) (data *proto.RateBaseData, ok bool) {
 	return
 }
 
+//这个目前用造假数据，后续切换为Volume_bak
 func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *proto.VolumeResponse) error {
+
+
+	//每周天数
+	week_num := int64(7)
+	//每月天数
+	month_num := int64(30)
+	//平均每小时产生订单额
+	hour_amount := int64(25000)
+
+	t := time.Now().Local()
+
+	//当前时间戳
+	nowUnix := time.Now().Unix()
+	//当天0点时间戳
+	dayUnix := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()).Unix()
+
+
+	hours := (nowUnix - dayUnix) / 3600
+	mut := ((nowUnix - dayUnix) % 3600) / 60
+	bfb := float64(mut) / float64(60)
+
+	//计算日单
+	dayNum := hours * hour_amount + int64(bfb * float64(hour_amount))
+	//计算周单
+	weekNum := hour_amount * int64(24) * week_num + dayNum + week_num * int64(math.Round(10)) + week_num
+	//计算月单
+	monthNum := hour_amount * int64(24) * month_num + dayNum + month_num * int64(math.Round(10)) + month_num + 1
+
+
+	rsp.DayVolume = dayNum
+	rsp.WeekVolume = weekNum
+	rsp.MonthVolume = monthNum
+	return nil
+}
+
+func (s *RPCServer) Volume_bak(ctx context.Context, req *proto.VolumeRequest, rsp *proto.VolumeResponse) error {
 	nowSum, daySum, weekSum, monthSum := model.GetVolumeTotal()
 
 	w, _ := decimal.NewFromString("100000000")

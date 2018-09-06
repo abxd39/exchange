@@ -46,7 +46,7 @@ func main() {
 
 	model.GetQueneMgr().Init()
 	//model.Test9(1535299200,1535385600)
-	model.Test10()
+	//model.Test10()
 	//model.Testu()
 	fmt.Println("model get ...")
 	//model.GetKLine("BTC/USDT","1min",10)

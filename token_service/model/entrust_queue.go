@@ -85,7 +85,7 @@ type EntrustQuene struct {
 	//主币兑美元价格
 	//usd int64
 	//人民币成交额
-	usd_vol int64
+	usd_vol string
 
 	//买入手续费
 	BuyPoundage float64
@@ -100,7 +100,7 @@ type TradeInfo struct {
 }
 
 //func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, cny, usd int64, amount, vol, count, usd_vol int64) *EntrustQuene {
-func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, amount, vol, count, usd_vol int64) *EntrustQuene {
+func NewEntrustQueue(token_id, token_trade_id int, price int64, name string, amount, vol, count int64,usd_vol string) *EntrustQuene {
 	quene_id := name
 	log.Infof("load config symbol %s", name)
 	m := &EntrustQuene{
@@ -215,7 +215,7 @@ func (s *EntrustQuene) SetTradeInfo(price int64, deal_num int64) {
 	s.vol += convert.Int64MulInt64By8Bit(price, deal_num)
 	s.amount += deal_num
 
-	s.usd_vol =convert.Int64MulInt64By8Bit(s.vol, GetUsdPrice(int32(s.TokenTradeId)))
+	s.usd_vol =convert.Int64MulInt64By8BitString(s.vol, GetUsdPrice(int32(s.TokenTradeId)))
 	//s.usd_vol += convert.Int64MulInt64By8Bit(s.vol, GetUsdPrice(int32(s.TokenTradeId)))
 }
 

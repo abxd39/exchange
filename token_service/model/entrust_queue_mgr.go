@@ -85,7 +85,7 @@ func (s *EntrustQueneMgr) Init() bool {
 			e.BuyPoundage = v.BuyPoundage
 			s.AddQuene(e)
 		} else {
-			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, 0, 0, 0, 0)
+			e := NewEntrustQueue(v.TokenId, v.TokenTradeId, v.Price, v.Name, 0, 0, 0, "0")
 			e.SellPoundage = v.SellPoundage
 			e.BuyPoundage = v.BuyPoundage
 			s.AddQuene(e)

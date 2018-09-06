@@ -1,6 +1,12 @@
 *.log
 *.ini
-
+.gitignore
 /bin/*
 
 /proto/rpc/*.go
+.idea/
+.vscode/
+*.exe
+gateway/.idea/
+public_service/.vscode/
+
