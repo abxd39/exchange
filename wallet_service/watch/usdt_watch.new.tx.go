@@ -123,7 +123,7 @@ func (p *USDTTiBiWatch) checkTransactionDeal() (err error) {
 		return
 	}
 	confirmations := gjson.Get(tranInfo,"confirmations").Int()
-	if confirmations < 6 {
+	if confirmations < 1 {
 		log.Error("USDT未达到六次确认：",confirmations)
 		//未达到六次确认
 		err = errors.New("confirmations < 6")
@@ -195,7 +195,7 @@ func (p *USDTTiBiWatch) GetDataFromRedis() (error,string) {
 //写一条数据到链记录表中
 func (p *USDTTiBiWatch) WriteUSDTChainTx(data USDTTranInfo) error {
 	//交易是否已经收录
-	exist, err := new(TokenChainInout).TxhashExist(data.Txid,0)
+	exist, err := new(TokenChainInout).TxIDExist2(2,data.Txid)
 
 	if err != nil {
 		log.Info("WriteUSDTChainTx error",exist, err)
@@ -349,8 +349,8 @@ func (p *USDTCBiWatch) WorkerDone() {
 
 	log.Info("usdt height：",p.BlockNumber,height)
 
-	if p.BlockNumber <= height-6 {
-		for i := p.BlockNumber + 1; i <= height-2; i++ {
+	if p.BlockNumber <= height-1 {
+		for i := p.BlockNumber + 1; i <= height-1; i++ {
 			log.Info("USDT循环次数：",i)
 			//p.WorkerHander(i)
 			p.parseBlock(i)
@@ -397,7 +397,7 @@ func (p *USDTCBiWatch) parseTx(txhash string) {
 	}
 	confirmations := gjson.Get(tranInfo,"confirmations").Int()
 	log.Info("USDT代币交易确认次数:",confirmations)
-	if confirmations < 6 {
+	if confirmations < 1 {
 		//未达到六次确认
 		err = errors.New("confirmations < 6")
 		return
@@ -423,7 +423,7 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (boo bool,err error) {
 		}
 	}()
 	//交易是否已经收录
-	exist, err := p.TxModel.TxhashExist(data.Txid,0)
+	exist, err := p.TxModel.TxIDExist2(1,data.Txid)
 	if err != nil {
 		fmt.Println("txhash not exists",data.Txid,p.Chainid,exist,err)
 		return false, err
@@ -472,6 +472,7 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (boo bool,err error) {
 			"mark":tokens.Mark,
 			"opt":opt,
 		}).Info("insert usdt into tx order error:",err)
+		return false,err
 	}
 	_,err = p.TokenInoutModel.Insert(data.Txid, data.Sendingaddress, data.Referenceaddress, value, "", 0, walletToken.Uid, tokens.Id, tokens.Mark, tokens.Decimal,opt)
 	if err != nil {
@@ -488,6 +489,7 @@ func (p *USDTCBiWatch) newOrder(data USDTTranInfo) (boo bool,err error) {
 			"deci":tokens.Decimal,
 			"opt":opt,
 		}).Info("insert usdt into inout order error:",err)
+		return false,err
 	}
 
 	//给用户添加token

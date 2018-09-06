@@ -82,3 +82,8 @@ func (this *TokenChainInout) TxIDExist(txhash string) (bool, error) {
 	tk := &TokenChainInout{Txhash: txhash}
 	return utils.Engine_wallet.Exist(tk) //如果仅仅判断某条记录是否存在，则使用Exist方法，Exist的执行效率要比Get更高。
 }
+
+func (this *TokenChainInout) TxIDExist2(optype int,txhash string) (bool, error) {
+	tk := &TokenChainInout{Txhash: txhash,Type:optype}
+	return utils.Engine_wallet.Exist(tk) //如果仅仅判断某条记录是否存在，则使用Exist方法，Exist的执行效率要比Get更高。
+}

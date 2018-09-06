@@ -1,34 +1,38 @@
 package cron
 
 import (
-	"digicon/common/convert"
-	cf "digicon/token_service/conf"
-	"digicon/token_service/dao"
-	"digicon/token_service/model"
 	"fmt"
-	"github.com/robfig/cron"
+	"strings"
 	"time"
 
 	"digicon/common/app"
+	"digicon/common/convert"
+	"digicon/common/xmail"
 	"digicon/common/xtime"
 	proto "digicon/proto/rpc"
+	cf "digicon/token_service/conf"
+	"digicon/token_service/dao"
+	"digicon/token_service/model"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/log"
+	"github.com/robfig/cron"
+	"gopkg.in/gomail.v2"
 )
 
 var CronInstance *cron.Cron
 
 func InitCron() {
-	//划入
-	app.AsyncTask(HandlerTransferFromCurrency, true)
+	// 划入
+	app.NewGoroutine(HandlerTransferFromCurrency)
 
-	//划出
-	app.AsyncTask(HandlerTransferToCurrencyDone, true)
+	// 划出
+	app.NewGoroutine(HandlerTransferToCurrencyDone)
 
-	//cron
+	// 定时任务
 	if cf.Cfg.MustBool("cron", "run", false) {
 		CronInstance = cron.New()
-		CronInstance.AddFunc("0 30 * * * *", ResendTransferToCurrencyMsg) // 每半小时
-		CronInstance.AddFunc("0 0 0 * * *", ReleaseRegisterReward)        // 每天凌晨0点
+		CronInstance.AddFunc("0 */30 * * * *", ResendTransferToCurrencyMsg) // 每半小时
+		CronInstance.AddFunc("0 0 0 * * *", ReleaseRegisterReward)          // 每天凌晨0点
 		CronInstance.Start()
 	}
 }
@@ -243,7 +247,25 @@ func ReleaseRegisterReward() {
 		time.Sleep(1 * time.Second)
 	}
 
-	// 汇总数据
+	// 汇总数据日志
 	log.Errorf("【释放注册奖励汇总】用户总数: %d, 未通过认证人数: %d, 非正常人数: %d, 释放成功人数: %d, 释放失败人数: %d, 未通过认证UID: %v, 非正常UID: %v, 释放失败UID: %v",
 		totalUser, noAuthUser, notNormaUser, releaseSuccess, releaseFail, noAuthUidList, notNormalUidList, releaseFailUidList)
+
+	// !!!发送邮件!!!
+	d, from := xmail.NewGomail()
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", from)
+	m.SetHeader("To", strings.Split(cf.Cfg.MustValue("mail_send_to", "release_register_reward"), ";")...)
+	m.SetHeader("Subject", "释放注册奖励汇总"+time.Now().Format("2006-01-02"))
+	m.SetBody("text/html", fmt.Sprintf("用户总数: %d<br/><br/>"+
+		"释放成功人数: %d<br /><br/>"+
+		"未通过认证人数: %d<br />"+
+		"未通过认证UID: %v<br /><br/>"+
+		"非正常人数: %d<br />"+
+		"非正常UID: %v<br/><br />"+
+		"释放失败人数: %d<br />"+
+		"释放失败UID: %v", totalUser, releaseSuccess, noAuthUser, noAuthUidList, notNormaUser, notNormalUidList, releaseFail, releaseFailUidList))
+
+	d.DialAndSend(m)
 }

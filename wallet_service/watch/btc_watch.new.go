@@ -7,11 +7,10 @@ import(
 	"time"
 	"digicon/wallet_service/utils"
 	"encoding/json"
-	"strconv"
 	log "github.com/sirupsen/logrus"
 	"github.com/shopspring/decimal"
-	"digicon/common/convert"
 	"github.com/pkg/errors"
+	"strconv"
 )
 
 //新版监听区块变化，更新数据
@@ -146,31 +145,43 @@ func (p *BtcWatch) TranDeal(data TranItem) (boo bool,err error) {
 	if boo != true {
 		return false,nil
 	}
-	//判断交易是否存在
-	exists, err := p.tkChainInOutModel.TxIDExist(data.Txid)
-	if err != nil {
-		log.Error("交易id存在：",data.Txid)
-		return false,err
-	}
-	if exists == true {
-		log.Error("交易id存在：",data.Txid)
-		return false,nil
-	}
+
 	if data.Category != "send" && data.Category != "receive" {
 		return false,nil
 	}
 	//判断确认次数
-	if data.Confirmations < 3 {
+	if data.Confirmations < 2 {
 		return false,nil
 	}
-	//写入交易记录到链记录表
-	p.WriteChainTx(data)
 
 	log.Info("比特币交易处理：",data.Txid)
+	log.Info("比特币交易分类：",data.Category,data)
 
 	if data.Category == "send" {  //提币
+		//判断交易是否存在
+		exists, err := p.tkChainInOutModel.TxIDExist2(2,data.Txid)
+		if err != nil {
+			log.Error("send 交易id存在：",2,"---",data.Txid)
+			return false,err
+		}
+		if exists == true {
+			log.Error("send 交易id存在：",2,"---",data.Txid)
+			return false,nil
+		}
+		//判断地址是否存在
+		boo,err := new(TibiAddress).TiBiAddressExists(data.Address)
+		if err != nil || boo != true {
+			log.Error("send 比特币提币地址不存在或出错：",boo,err)
+			return false,nil
+		}
+		//写入交易记录到链记录表
+		boo,err = p.WriteChainTx(2,data)
+		if boo != true || err != nil {
+			log.Error("比特币写入链记录失败：",boo,err)
+			return false,nil
+		}
 		//更新完成状态
-		_,err := new(TokenInout).BteUpdateAppleDone2(data.Txid,p.GetFee(data.Fee))
+		_,err = new(TokenInout).BteUpdateAppleDone2(data.Txid,p.GetFee(data.Fee))
 		if err != nil {
 			log.Error("更新比特币申请状态失败：",data.Txid)
 			return false,err
@@ -188,17 +199,40 @@ func (p *BtcWatch) TranDeal(data TranItem) (boo bool,err error) {
 		}
 		//提币成功提醒
 		NewNotice().TiBiNoticeByTxHash(data.Txid)
-	}
-	if data.Category == "receive" {  //充币
-		log.Info("比特币充币：",data)
-		//更新用户账户数量
-		err := new(Common).AddBTCTokenNum(data)
+	} else if data.Category == "receive" {  //充币
+		//判断充币交易是否存在
+		exists, err := p.tkChainInOutModel.TxIDExist2(1,data.Txid)
 		if err != nil {
+			log.Error("receive 交易id存在：",1,"------",data.Txid)
+			return false,err
+		}
+		if exists == true {
+			log.Error("receive 交易id存在：",1,"------",data.Txid)
+			return false,nil
+		}
+		log.Info("receive 比特币充币：",1,"------",data)
+		//判断地址是否是比特币地址
+		boo,err := new(WalletToken).AddressExist(2,data.Address)
+		if boo != true || err != nil {
+			log.Error("不是比特币地址：",boo,err,2,data.Address)
+			return false,nil
+		}
+		//写入交易记录到链记录表
+		boo,err = p.WriteChainTx(1,data)
+		if boo != true || err != nil {
+			log.Error("比特币写入链记录失败：",boo,err)
+			return false,nil
+		}
+		//更新用户账户数量
+		err = new(Common).AddBTCTokenNum(data)
+		if err != nil {
+			log.Error("receive AddBTCTokenNum error:",err)
 			return false,err
 		}
 		//添加一条充币记录到表：token_inout
-		err = p.WriteBtcInRecord(data)
+		err = p.WriteBtcInRecord(1,data)
 		if err != nil {
+			log.Error("receive WriteBtcInRecord error:",err)
 			return false,err
 		}
 		//添加充币提醒
@@ -216,11 +250,11 @@ func (p *BtcWatch) GetFee(fee float64) int64 {
 }
 
 //写入充币记录
-func (p *BtcWatch) WriteBtcInRecord(data TranItem) error {
+func (p *BtcWatch) WriteBtcInRecord(optype int,data TranItem) error {
 	log.Info("写入比特币充币记录：",data)
 
 	//交易是否已经收录
-	exist, errr := new(TokenInout).TxhashExist(data.Txid, 0)
+	exist, errr := new(TokenInout).TxhashExist2(optype,data.Txid, 0)
 
 	if errr != nil {
 		return errr
@@ -233,7 +267,10 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) error {
 	//amount := decimal.NewFromBigInt(tmp1, int32(8)).IntPart()
 	//amount := int64(data.Amount * 100000000)
 
-	t1 := decimal.NewFromFloat(data.Amount)
+
+	fs := strconv.FormatFloat(data.Amount, 'E', -1, 64)
+
+	t1,_ := decimal.NewFromString(fs)
 	t1_c := decimal.NewFromFloat(100000000)
 	amount := t1.Mul(t1_c).IntPart()
 
@@ -276,39 +313,42 @@ func (p *BtcWatch) WriteBtcInRecord(data TranItem) error {
 }
 
 //写入链交易记录
-func (p *BtcWatch) WriteChainTx(data TranItem) {
-	log.Info("写入链交易记录：",data)
+func (p *BtcWatch) WriteChainTx(optype int,data TranItem) (bool,error) {
+	log.Info("写入链交易记录：",optype,"-------",data)
 	//交易是否已经收录
-	exist, err := new(TokenChainInout).TxhashExist(data.Txid,0)
+	exist, err := new(TokenChainInout).TxIDExist2(optype,data.Txid)
 
 	if err != nil {
-		return
+		return false,err
 	}
 	if exist {
-		return
-	}
-	//写入数据
-	//新增数据
-	var opt int = 1
-	if data.Category == "send" {
-		opt = 2 //提币
-	} else if data.Category == "receive" {
-		opt = 1 //充币
+		return false,nil
 	}
 
-	amount := convert.Float64ToInt64By8Bit(data.Amount)
-	amount1 := strconv.FormatInt(amount,10)
+
+	//amount := convert.Float64ToInt64By8Bit(data.Amount)
+	//amount1 := strconv.FormatInt(amount,10)
+
+	fs := strconv.FormatFloat(data.Amount, 'E', -1, 64)
+	aa,_ := decimal.NewFromString(fs)
+	bb := decimal.NewFromFloat(float64(100000000))
+	amount1 := aa.Mul(bb).Abs().String()
+
 
 	txmodel := &TokenChainInout{
 		Txhash:    data.Txid,
 		Address:   data.Address,
 		Value:     amount1,
-		Type:      opt,
+		Type:      optype,
 		Tokenid:   2,
 		TokenName: "BTC",  //这里仅仅是为了记录txhash用，所以TokenName并无实际用途
 	}
 	row, err := txmodel.InsertThis()
-	if row <= 0 || err != nil {
-		fmt.Println(err.Error())
+	if row <= 0 {
+		return false,nil
 	}
+	if err != nil {
+		return false,err
+	}
+	return true,nil
 }
