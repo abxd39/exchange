@@ -182,7 +182,7 @@ func (s *WorkQueneMgr) GetCnyPriceString(token_id int32) string {
 	if ok {
 		return  convert.Int64ToString( g.CnyPrice)
 	}
-	return 0
+	return "0"
 }
 
 func (s *WorkQueneMgr) GetQuene() map[string]*PriceWorkQuene {

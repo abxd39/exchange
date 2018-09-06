@@ -48,7 +48,7 @@ message PriceCache {
     int64 amount         =5;
     int64 vol              =6;
     int64 count         =7;
-    int64 usd_vol     =8;
+    string usd_vol     =8;
 }
 
 
@@ -142,6 +142,7 @@ message QutationBaseData{
     string cny_price                    =7;
     string cny_low                          =8;
     string cny_high                         =9;
+    int32 token_trade_id    =10;
 }
 
 message QuotationResponse{

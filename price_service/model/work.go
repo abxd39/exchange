@@ -96,7 +96,7 @@ func NewPriceWorkQuene(name string, token_id, token_trade_id int32, init_price i
 				Amount:      0,
 				Vol:         0,
 				Count:       0,
-				UsdVol:      0,
+				UsdVol:      "0",
 			}
 			v.MinPriceKey = fmt.Sprintf("price:%s:min", v.Key, period_key[i])
 			//	v.MinPriceIdKey = fmt.Sprintf("price:%s:min_id", v.Key, period_key[i])
@@ -157,7 +157,7 @@ func NewPriceWorkQuene(name string, token_id, token_trade_id int32, init_price i
 				Amount:      0,
 				Vol:         0,
 				Count:       0,
-				UsdVol:      0,
+				UsdVol:      "0",
 			}
 
 		} else {
@@ -321,7 +321,7 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 
 	p := s.data[period]
 	var h *proto.PeriodPrice
-	var close, amount, vol, open, count int64
+	var  amount, vol ,count, open ,close int64
 	var err error
 	/*
 		if p.PreData.Count == 0 {
@@ -386,23 +386,27 @@ func (s *PriceWorkQuene) save(period int, data *proto.PriceCache) {
 		}).Errorf("price record error ")
 		return
 	}
+	if s.TokenId==4 {
+		err = InsertKline(&Kline{
+			Symbol: s.Symbol,
+			Period: p.Key,
+			Id:     h.Id,
+			Open:   open,
+			Close:  close,
+			Amount: amount,
+			Vol:    vol,
+			Low:    low.Price,
+			High:   high.Price,
+			Count:  count,
+		})
 
-	err = InsertKline(&Kline{
-		Symbol: s.Symbol,
-		Period: p.Key,
-		Id:     h.Id,
-		Open:   open,
-		Close:  close,
-		Amount: amount,
-		Vol:    vol,
-		Low:    low.Price,
-		High:   high.Price,
-		Count:  count,
-	})
-
-	if err != nil {
-		return
+		if err != nil {
+			return
+		}
 	}
+
+
+
 	err = DB.GetRedisConn().LPush(p.Key, y).Err()
 	if err != nil {
 		log.Errorln(err.Error())

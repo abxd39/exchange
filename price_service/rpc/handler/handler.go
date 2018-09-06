@@ -343,6 +343,7 @@ func (s *RPCServer) Quotation(ctx context.Context, req *proto.QuotationRequest, 
 			CnyPrice: convert.Int64ToStringBy8Bit(cny_price),
 			CnyLow:   convert.Int64ToStringBy8Bit(l.CnyPrice),
 			CnyHigh:  convert.Int64ToStringBy8Bit(h.CnyPrice),
+			TokenTradeId:q.ToekenTradeId,
 		})
 		/*
 		cny_price, ok := model.GetQueneMgr().PriceMap[q.ToekenTradeId]
