@@ -1,0 +1,6 @@
+*.log
+*.ini
+
+/bin/*
+
+/proto/rpc/*.go
