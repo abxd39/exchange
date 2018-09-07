@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"digicon/common/check"
 	"digicon/common/convert"
+	cf "digicon/gateway/conf"
 	"digicon/gateway/rpc"
 	"digicon/gateway/utils"
 	. "digicon/proto/common"
@@ -265,9 +267,11 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 
 	//var param OrderRequest
 	param := struct {
-		Id      uint64 `form:"id"         json:"id"        binding:"required"`  // order 表Id
-		Uid     int32  `form:"uid"         json:"uid"       binding:"required"`  //
-		PayPwd  string `form:"pay_pwd"    json:"pay_pwd"   binding:"required"`  // pay_pwd
+		Id       uint64 `form:"id"         json:"id"        binding:"required"`  // order 表Id
+		Uid      int32  `form:"uid"         json:"uid"       binding:"required"` //
+		PayPwd   string `form:"pay_pwd"    json:"pay_pwd"   binding:"required"`  // pay_pwd
+		Sign     string `form:"sign" binding:"required"`
+		NonceStr string `form:"nonce_str" binding:"required"`
 	}{}
 	err := c.ShouldBind(&param)
 	if err != nil {
@@ -275,14 +279,26 @@ func (this CurrencyGroup) ConfirmOrder(c *gin.Context) {
 		ret.SetErrCode(ERRCODE_PARAM, GetErrorMessage(ERRCODE_PARAM))
 		return
 	}
+
+	// 检查参数一致性
+	keys := make(map[string]interface{}, 0)
+	keys["id"] = param.Id
+	keys["uid"] = param.Uid
+	keys["pay_pwd"] = param.PayPwd
+	keys["nonce_str"] = param.NonceStr
+	if check.MakeSignature(keys, cf.AppKey) != param.Sign {
+		ret.SetErrCode(ERRCODE_SIGN)
+		return
+	}
+
 	//rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.OrderRequest{
 	//	Id:  param.Id,
 	//	Uid: param.Uid,
 	//})
 	//log.Println("uid:", param)
 	rsp, err := rpc.InnerService.CurrencyService.CallConfirmOrder(&proto.ConfirmOrderRequest{
-		Id:   param.Id,
-		Uid:  param.Uid,
+		Id:     param.Id,
+		Uid:    param.Uid,
 		PayPwd: param.PayPwd,
 	})
 	if err != nil {
@@ -345,8 +361,8 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 	}()
 	//var param OrderRequest
 	param := struct {
-		Id     uint64 `form:"id"            json:"id"  ` //order 表Id
-		Order  string `form:"order_id"      json:"order_id" `    // 订单id
+		Id    uint64 `form:"id"            json:"id"  `      //order 表Id
+		Order string `form:"order_id"      json:"order_id" ` // 订单id
 	}{}
 
 	err := c.ShouldBind(&param)
@@ -356,7 +372,7 @@ func (this *CurrencyGroup) TradeDetail(c *gin.Context) {
 		return
 	}
 	rsp, err := rpc.InnerService.CurrencyService.CallGetTradeDetail(&proto.TradeDetailRequest{
-		Id: param.Id,
+		Id:      param.Id,
 		OrderId: param.Order,
 	})
 
