@@ -15,7 +15,6 @@ import (
 	"golang.org/x/net/context"
 	"strings"
 	"time"
-	"math"
 )
 
 type RPCServer struct {
@@ -477,9 +476,10 @@ func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *p
 	//计算日单
 	dayNum := hours * hour_amount + int64(bfb * float64(hour_amount))
 	//计算周单
-	weekNum := hour_amount * int64(24) * week_num + dayNum + week_num * int64(math.Round(10)) + week_num
+	weekNum := hour_amount * int64(24) * week_num + dayNum + week_num * 6 + week_num
 	//计算月单
-	monthNum := hour_amount * int64(24) * month_num + dayNum + month_num * int64(math.Round(10)) + month_num + 1
+	monthNum := hour_amount * int64(24) * month_num + dayNum + month_num * 6 + month_num + 1
+
 	rsp.DayVolume = dayNum
 	rsp.WeekVolume = weekNum
 	rsp.MonthVolume = monthNum
