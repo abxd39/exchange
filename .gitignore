@@ -9,4 +9,10 @@
 *.exe
 gateway/.idea/
 public_service/.vscode/
+currency_service/currency_service
+gateway/gateway
+token_service/token_service
+user_service/user_service
+wallet_service/wallet_service
+
 

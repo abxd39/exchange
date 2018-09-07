@@ -480,8 +480,6 @@ func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *p
 	weekNum := hour_amount * int64(24) * week_num + dayNum + week_num * int64(math.Round(10)) + week_num
 	//计算月单
 	monthNum := hour_amount * int64(24) * month_num + dayNum + month_num * int64(math.Round(10)) + month_num + 1
-
-
 	rsp.DayVolume = dayNum
 	rsp.WeekVolume = weekNum
 	rsp.MonthVolume = monthNum
