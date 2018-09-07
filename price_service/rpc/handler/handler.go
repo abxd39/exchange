@@ -460,7 +460,7 @@ func (s *RPCServer) Volume(ctx context.Context, req *proto.VolumeRequest, rsp *p
 	//每月天数
 	month_num := int64(30)
 	//平均每小时产生订单额
-	hour_amount := int64(25000)
+	hour_amount := int64(40000)
 
 	t := time.Now().Local()
 
