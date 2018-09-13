@@ -445,7 +445,7 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	if err != nil {
 		return
 	}
-	var ret int32
+	//var ret int32 =ERRCODE_SUCCESS
 	//USDT left num
 
 	err = buyer.SubSurplus(session, buy_num)
@@ -462,10 +462,11 @@ func (s *EntrustQuene) MakeDeal(buyer *EntrustDetail, seller *EntrustDetail, pri
 	}
 	//o.States = seller.States
 	err = buy_token_account.NotifyDelFronzen(session, buy_num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_FROZEN_COMFIRM_DEL)
-	if ret != ERRCODE_SUCCESS {
+	if err!=nil {
 		session.Rollback()
 		return
 	}
+
 
 	err = buy_trade_token_account.AddMoney(session, t.Num, t.TradeNo, proto.TOKEN_TYPE_OPERATOR_HISTORY_TRADE)
 	if err != nil {
