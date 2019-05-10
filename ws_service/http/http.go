@@ -1,8 +1,8 @@
 package http
 
 import (
-	cf "digicon/ws_service/conf"
-	"digicon/ws_service/http/controller"
+	cf "exchange/ws_service/conf"
+	"exchange/ws_service/http/controller"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )

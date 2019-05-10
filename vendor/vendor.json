@@ -385,12 +385,6 @@
 			"revisionTime": "2018-06-06T20:26:30Z"
 		},
 		{
-			"checksumSHA1": "fTJ7w+U/xUncdC5XoVpczYQyQug=",
-			"path": "github.com/golang/protobuf/proto",
-			"revision": "05f48f4eaf0e05663b562bab533cdd472238ce29",
-			"revisionTime": "2018-06-06T20:26:30Z"
-		},
-		{
 			"checksumSHA1": "5zgWCttE8KKKUKAR3BCs/p1pCPM=",
 			"path": "github.com/golang/protobuf/ptypes/struct",
 			"revision": "05f48f4eaf0e05663b562bab533cdd472238ce29",
